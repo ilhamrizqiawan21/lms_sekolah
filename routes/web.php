@@ -141,6 +141,9 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
     Route::get('/absensi/{kelasMapel}/rekap', [AbsensiController::class, 'rekap'])->name('absensi.rekap')->middleware('can:mengajar,kelasMapel');
     Route::get('/absensi/{kelasMapel}/export/excel', [ExportController::class, 'guruAbsensiExcel'])->name('absensi.export.excel')->middleware('can:mengajar,kelasMapel');
     Route::get('/absensi/{kelasMapel}/export/pdf', [ExportController::class, 'guruAbsensiPdf'])->name('absensi.export.pdf')->middleware('can:mengajar,kelasMapel');
+    Route::get('/rekap-absensi', [AbsensiController::class, 'rekapAbsensi'])->name('rekap-absensi');
+    Route::get('/rekap-absensi/export/excel', [ExportController::class, 'guruRekapAbsensiExcel'])->name('rekap-absensi.export.excel');
+    Route::get('/rekap-absensi/export/pdf', [ExportController::class, 'guruRekapAbsensiPdf'])->name('rekap-absensi.export.pdf');
     Route::get('/materi', [GuruMateriController::class, 'index'])->name('materi.index');
     Route::post('/materi/store', [GuruMateriController::class, 'storeBulk'])->name('materi.store.bulk');
     Route::get('/materi/{kelasMapel}/list', [GuruMateriController::class, 'list'])->name('materi.list')->middleware('can:mengajar,kelasMapel');

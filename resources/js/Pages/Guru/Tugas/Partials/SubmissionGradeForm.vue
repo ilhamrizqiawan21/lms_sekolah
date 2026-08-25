@@ -1,6 +1,6 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
 import { Button } from '../../../../Components/UI';
 
 const props = defineProps({
@@ -13,17 +13,26 @@ const form = useForm({
     nilai: props.item.nilai_input ?? props.item.nilai ?? '',
     catatan: props.item.catatan ?? '',
 });
+const localError = ref('');
 
 watch(
     () => props.item,
     (item) => {
         form.nilai = item.nilai_input ?? item.nilai ?? '';
         form.catatan = item.catatan ?? '';
+        localError.value = '';
         form.clearErrors();
     },
 );
 
 function submit() {
+    localError.value = '';
+
+    if (!props.compact && String(form.nilai ?? '').trim() === '' && String(form.catatan ?? '').trim() === '') {
+        localError.value = 'Isi nilai atau komentar/perbaikan terlebih dahulu.';
+        return;
+    }
+
     form.post(props.item.nilai_url, {
         preserveScroll: true,
     });
@@ -71,14 +80,20 @@ function submit() {
                     type="text"
                     name="catatan"
                     class="form-control"
-                    placeholder="Catatan (opsional)"
+                    placeholder="Komentar/perbaikan, boleh tanpa nilai"
                 >
+                <div class="form-text">
+                    Komentar tanpa nilai akan mengembalikan tugas ke siswa sebagai perlu perbaikan.
+                </div>
             </div>
             <div class="col-md-3">
                 <Button type="submit" color="success" size="" class="w-100" :disabled="form.processing">
                     <i class="bi bi-check me-1" aria-hidden="true"></i> Simpan
                 </Button>
             </div>
+        </div>
+        <div v-if="localError || form.errors.nilai || form.errors.catatan" class="text-danger small mt-2">
+            {{ localError || form.errors.nilai || form.errors.catatan }}
         </div>
     </form>
 </template>

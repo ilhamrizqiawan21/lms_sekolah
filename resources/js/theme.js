@@ -1,5 +1,6 @@
 const COLOR_MODE_KEY = 'lms.color-mode';
 const COLOR_MODES = ['light', 'dark'];
+let themeToggleReady = false;
 
 function storedColorMode() {
     try {
@@ -71,16 +72,20 @@ export function applyColorMode(mode, persist = true) {
 export function initColorMode() {
     applyColorMode(preferredColorMode(), false);
 
-    document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
-        if (button.dataset.themeToggleReady === 'true') {
+    if (themeToggleReady) {
+        return;
+    }
+
+    themeToggleReady = true;
+    document.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-theme-toggle]');
+
+        if (!button) {
             return;
         }
 
-        button.dataset.themeToggleReady = 'true';
-        button.addEventListener('click', () => {
-            const currentMode = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light';
-            applyColorMode(currentMode === 'dark' ? 'light' : 'dark');
-        });
+        const currentMode = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light';
+        applyColorMode(currentMode === 'dark' ? 'light' : 'dark');
     });
 }
 

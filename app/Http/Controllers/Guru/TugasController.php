@@ -485,6 +485,7 @@ class TugasController extends Controller
 
         return [
             'id' => $item->id,
+            'kelas_mapel_id' => $item->kelas_mapel_id,
             'judul' => $item->judul,
             'deskripsi' => Str::limit((string) $item->deskripsi, 80),
             'batas_waktu' => $item->batas_waktu?->format('d M Y'),

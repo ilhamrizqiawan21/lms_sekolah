@@ -1,9 +1,9 @@
 <script setup>
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { TextareaInput, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, IconButton, MetricStrip, TableWrapper } from '../../../Components/UI';
+import { Button, Card, DashboardHero, EmptyState, MetricStrip } from '../../../Components/UI';
 
 const props = defineProps({
     kelasMapel: { type: Array, default: () => [] },
@@ -18,20 +18,38 @@ const form = useForm({
     batas_waktu: '',
 });
 
-const search = ref('');
+const courseSearch = ref('');
 
-const filteredTugas = computed(() => {
-    const keyword = search.value.trim().toLowerCase();
+const courseSummaries = computed(() => props.kelasMapel.map((course) => {
+    const courseTasks = props.tugas.filter((item) => Number(item.kelas_mapel_id) === Number(course.id));
+    const submitted = courseTasks.reduce((total, item) => total + Number(item.sudah_mengumpulkan || 0), 0);
+    const pendingGrades = courseTasks.reduce((total, item) => total + Number(item.perlu_dinilai || 0), 0);
+    const overdue = courseTasks.filter((item) => item.is_overdue).length;
+    const latestTask = courseTasks[0] ?? null;
+
+    return {
+        ...course,
+        total_tugas: courseTasks.length,
+        total_pengumpulan: submitted,
+        perlu_dinilai: pendingGrades,
+        lewat_deadline: overdue,
+        tugas_terbaru: latestTask?.judul ?? 'Belum ada tugas',
+    };
+}));
+
+const filteredCourseSummaries = computed(() => {
+    const keyword = courseSearch.value.trim().toLowerCase();
 
     if (!keyword) {
-        return props.tugas;
+        return courseSummaries.value;
     }
 
-    return props.tugas.filter((item) => [
-        item.judul,
-        item.deskripsi,
+    return courseSummaries.value.filter((item) => [
         item.kelas,
         item.mata_pelajaran,
+        item.semester,
+        item.label,
+        item.tugas_terbaru,
     ].filter(Boolean).join(' ').toLowerCase().includes(keyword));
 });
 
@@ -65,17 +83,6 @@ function submit() {
     });
 }
 
-async function destroy(item) {
-    const confirmed = await window.confirmDialog?.('Hapus tugas ini?', {
-        title: 'Hapus Tugas',
-        confirmText: 'Ya, hapus',
-        danger: true,
-    });
-
-    if (!confirmed) return;
-
-    router.delete(item.delete_url, { preserveScroll: true });
-}
 </script>
 
 <template>
@@ -154,92 +161,37 @@ async function destroy(item) {
             </div>
 
             <div class="col-md-7 mb-4">
-                <Card title="Daftar Tugas" icon="bi-list-ul" body-class="p-0">
+                <Card title="Pilih Kelas" icon="bi-grid-1x2">
                     <template #actions>
                         <div class="assignment-search">
                             <i class="bi bi-search" aria-hidden="true"></i>
-                            <input v-model="search" class="form-control form-control-sm" type="search" placeholder="Cari tugas" aria-label="Cari tugas">
+                            <input v-model="courseSearch" class="form-control form-control-sm" type="search" placeholder="Cari kelas/mapel" aria-label="Cari kelas atau mata pelajaran">
                         </div>
                     </template>
 
-                    <TableWrapper v-if="filteredTugas.length" :min-width="980" class="d-none d-md-block">
-                        <table class="table table-hover mb-0 app-table-proportional assignment-table">
-                            <colgroup>
-                                <col style="width:28%">
-                                <col style="width:11%">
-                                <col style="width:13%">
-                                <col style="width:12%">
-                                <col style="width:21%">
-                                <col style="width:15%">
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th>Judul</th>
-                                    <th>Kelas</th>
-                                    <th>Mapel</th>
-                                    <th>Deadline</th>
-                                    <th>Kumpul</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="item in filteredTugas" :key="item.id">
-                                    <td class="app-table-judul">
-                                        <strong>{{ item.judul }}</strong>
-                                        <div v-if="item.deskripsi" class="text-muted small assignment-description">{{ item.deskripsi }}</div>
-                                    </td>
-                                    <td>{{ item.kelas }}</td>
-                                    <td>{{ item.mata_pelajaran }}</td>
-                                    <td class="text-nowrap small">
-                                        <Badge :color="item.is_overdue ? 'danger' : 'secondary'">{{ item.batas_waktu ?? '-' }}</Badge>
-                                    </td>
-                                    <td>
-                                        <div class="assignment-progress">
-                                            <span>{{ item.sudah_mengumpulkan ?? 0 }}/{{ item.total_siswa ?? 0 }}</span>
-                                            <div class="progress" role="progressbar" :aria-valuenow="item.progress_percent" aria-valuemin="0" aria-valuemax="100">
-                                                <div class="progress-bar" :style="{ width: `${item.progress_percent || 0}%` }"></div>
-                                            </div>
-                                            <small v-if="item.perlu_dinilai" class="text-danger">{{ item.perlu_dinilai }} perlu dinilai</small>
-                                        </div>
-                                    </td>
-                                    <td class="assignment-actions">
-                                        <div class="d-inline-flex align-items-center gap-1">
-                                            <a v-if="item.pengumpulan_url" :href="item.pengumpulan_url" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye me-1" aria-hidden="true"></i> Nilai
-                                            </a>
-                                            <IconButton icon="bi-trash" :label="`Hapus ${item.judul}`" color="outline-danger" @click="destroy(item)" />
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </TableWrapper>
-                    <div v-if="filteredTugas.length" class="app-mobile-list d-md-none">
-                        <div v-for="item in filteredTugas" :key="item.id" class="app-mobile-list-item">
-                            <div class="app-mobile-list-row">
-                                <span class="app-mobile-list-title">{{ item.judul }}</span>
-                                <Badge color="primary">{{ item.sudah_mengumpulkan ?? 0 }}/{{ item.total_siswa ?? 0 }}</Badge>
-                            </div>
-                            <span v-if="item.deskripsi" class="app-mobile-list-meta">{{ item.deskripsi }}</span>
-                            <span class="app-mobile-list-meta">{{ item.kelas }} - {{ item.mata_pelajaran }}</span>
-                            <div class="progress my-2" role="progressbar" :aria-valuenow="item.progress_percent" aria-valuemin="0" aria-valuemax="100">
-                                <div class="progress-bar" :style="{ width: `${item.progress_percent || 0}%` }"></div>
-                            </div>
-                            <div class="app-mobile-list-row">
-                                <span class="app-mobile-list-meta">
-                                    Deadline {{ item.batas_waktu ?? '-' }}
-                                    <span v-if="item.perlu_dinilai" class="text-danger">- {{ item.perlu_dinilai }} perlu dinilai</span>
-                                </span>
-                                <span class="d-inline-flex align-items-center gap-1">
-                                    <a v-if="item.pengumpulan_url" :href="item.pengumpulan_url" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-eye me-1" aria-hidden="true"></i> Nilai
-                                    </a>
-                                    <IconButton icon="bi-trash" :label="`Hapus ${item.judul}`" color="outline-danger" @click="destroy(item)" />
-                                </span>
-                            </div>
-                        </div>
+                    <div v-if="filteredCourseSummaries.length" class="assignment-course-grid">
+                        <a
+                            v-for="item in filteredCourseSummaries"
+                            :key="item.id"
+                            :href="item.href"
+                            class="assignment-course-card"
+                        >
+                            <span class="assignment-course-main">
+                                <span class="assignment-course-kicker">Semester {{ item.semester ?? '-' }}</span>
+                                <strong>{{ item.kelas }}</strong>
+                                <span>{{ item.mata_pelajaran }}</span>
+                            </span>
+                            <span class="assignment-course-stats">
+                                <span><strong>{{ item.total_tugas }}</strong> tugas</span>
+                                <span><strong>{{ item.total_pengumpulan }}</strong> kumpul</span>
+                                <span :class="{ danger: item.perlu_dinilai > 0 }"><strong>{{ item.perlu_dinilai }}</strong> dinilai</span>
+                                <span :class="{ warning: item.lewat_deadline > 0 }"><strong>{{ item.lewat_deadline }}</strong> lewat</span>
+                            </span>
+                            <span class="assignment-course-latest">{{ item.tugas_terbaru }}</span>
+                        </a>
                     </div>
-                    <EmptyState v-else :title="search ? 'Tugas tidak ditemukan' : 'Belum ada tugas'" icon="bi-journal" />
+
+                    <EmptyState v-else :title="courseSearch ? 'Kelas tidak ditemukan' : 'Belum ada kelas mengajar'" icon="bi-grid-1x2" />
                 </Card>
             </div>
         </div>
@@ -316,71 +268,102 @@ async function destroy(item) {
     padding-left: 30px;
 }
 
-.assignment-table {
-    width: 100%;
-    min-width: 980px;
-}
-
-.assignment-table th,
-.assignment-table td {
-    padding: 0.72rem 0.7rem;
-}
-
-.assignment-table td.app-table-judul {
-    max-width: 0;
-}
-
-.assignment-table td.app-table-judul strong,
-.assignment-description {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.assignment-table td.app-table-judul strong {
-    -webkit-line-clamp: 2;
-}
-
-.assignment-description {
-    -webkit-line-clamp: 2;
-}
-
-.assignment-progress {
+.assignment-course-grid {
     display: grid;
-    gap: 4px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 10px;
+    max-height: min(58vh, 520px);
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+.assignment-course-card {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    background: var(--surface-card);
+    color: var(--text-body);
+    text-align: left;
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+.assignment-course-card:hover,
+.assignment-course-card:focus-visible {
+    border-color: var(--primary-300);
+    background: var(--primary-50);
+}
+
+.assignment-course-main {
+    display: grid;
+    gap: 2px;
     min-width: 0;
 }
 
-.assignment-progress .progress,
-.app-mobile-list .progress {
-    height: 6px;
-    background: var(--gray-100);
+.assignment-course-main strong,
+.assignment-course-main span,
+.assignment-course-latest {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.assignment-actions {
-    white-space: nowrap !important;
+.assignment-course-main strong {
+    color: var(--text-strong);
+    font-size: 0.95rem;
 }
 
-.assignment-actions .d-inline-flex {
-    max-width: 100%;
+.assignment-course-main span:not(.assignment-course-kicker),
+.assignment-course-latest {
+    color: var(--text-muted);
+    font-size: 0.78rem;
 }
 
-@media (max-width: 1199.98px) and (min-width: 768px) {
-    .assignment-table {
-        min-width: 900px;
-    }
+.assignment-course-kicker {
+    color: var(--primary-700);
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
 
-    .assignment-table th,
-    .assignment-table td {
-        padding-left: 0.55rem;
-        padding-right: 0.55rem;
-    }
+.assignment-course-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.assignment-course-stats span {
+    min-width: 0;
+    padding: 6px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--gray-50);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.assignment-course-stats strong {
+    color: var(--text-strong);
+}
+
+.assignment-course-stats .danger strong {
+    color: var(--status-danger-text);
+}
+
+.assignment-course-stats .warning strong {
+    color: var(--status-warning-text);
 }
 
 @media (max-width: 767.98px) {
     .assignment-search {
         width: 100%;
+    }
+
+    .assignment-course-grid {
+        max-height: 420px;
     }
 }
 </style>

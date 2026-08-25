@@ -6,6 +6,7 @@
 :root {
     --responsive-page-gutter: clamp(0.9rem, 2vw, 1.5rem);
     --responsive-card-gap: clamp(0.75rem, 1.5vw, 1.25rem);
+    --responsive-card-radius: 0.875rem;
 }
 
 html,
@@ -60,6 +61,7 @@ textarea {
 .content-summary {
     max-width: 100%;
     min-width: 0;
+    border-radius: min(var(--card-radius, var(--responsive-card-radius)), var(--responsive-card-radius));
 }
 
 .card-header,
@@ -88,11 +90,11 @@ textarea {
     text-overflow: ellipsis;
 }
 
-/* Metrics: 5-up on wide desktop, then deliberate breakpoints instead of
- * letting the final metric fall into an orphaned row. */
+/* Metrics keep a stable card width on desktop, then settle into predictable
+ * tablet and mobile columns. */
 .metric-strip {
     display: grid !important;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 205px), 1fr));
     gap: var(--responsive-card-gap);
     width: 100%;
     min-width: 0;
@@ -101,6 +103,7 @@ textarea {
 .metric-tile {
     width: 100%;
     min-width: 0;
+    min-height: 74px;
 }
 
 .metric-copy {

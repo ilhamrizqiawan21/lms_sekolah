@@ -52,6 +52,7 @@
 
 <li class="nav-section">Rekap</li>
 <li><a href="{{ route('guru.rekap-nilai') }}" class="nav-link {{ request()->routeIs('guru.rekap-nilai') ? 'active' : '' }}"><i class="bi bi-file-earmark-bar-graph-fill"></i><span>Rekap Nilai</span></a></li>
+<li><a href="{{ route('guru.rekap-absensi') }}" class="nav-link {{ request()->routeIs('guru.rekap-absensi') ? 'active' : '' }}"><i class="bi bi-file-earmark-spreadsheet-fill"></i><span>Rekap Absensi</span></a></li>
 <li><a href="{{ route('guru.rekap-sikap') }}" class="nav-link {{ request()->routeIs('guru.rekap-sikap') ? 'active' : '' }}"><i class="bi bi-file-earmark-text-fill"></i><span>Rekap Sikap</span></a></li>
 
 @elseif($role == 'siswa')

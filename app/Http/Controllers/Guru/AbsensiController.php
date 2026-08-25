@@ -237,6 +237,92 @@ class AbsensiController extends Controller
         return redirect()->route('guru.absensi.index', ['kelas_mapel_id' => $kelasMapel->id]);
     }
 
+    public function rekapAbsensi(Request $request)
+    {
+        $validated = $request->validate([
+            'kelas_mapel_id' => 'nullable|integer',
+            'mode' => 'nullable|in:bulanan,keseluruhan',
+            'bulan' => 'nullable|date_format:Y-m',
+        ]);
+
+        $mode = $validated['mode'] ?? 'bulanan';
+        $bulan = $validated['bulan'] ?? date('Y-m');
+        $kelasMapel = KelasMapel::with(['kelas', 'mataPelajaran', 'tahunAjaran'])
+            ->where('guru_id', Auth::id())
+            ->aktif()
+            ->get();
+        $selectedId = $validated['kelas_mapel_id'] ?? null;
+        $selected = $selectedId ? $kelasMapel->firstWhere('id', (int) $selectedId) : null;
+        $rows = [];
+
+        if ($selected) {
+            $rows = $this->rekapAbsensiRows($selected, $mode, $bulan);
+        }
+
+        return Inertia::render('Guru/Rekap/Absensi', [
+            'kelasMapel' => $kelasMapel->map(fn (KelasMapel $item) => [
+                'id' => $item->id,
+                'label' => trim(($item->kelas?->nama_kelas ?? '-') . ' - ' . ($item->mataPelajaran?->nama_mapel ?? '-') . ' (Sem. ' . $item->semester . ')'),
+                'kelas' => $item->kelas?->nama_kelas ?? '-',
+                'mata_pelajaran' => $item->mataPelajaran?->nama_mapel ?? '-',
+                'semester' => $item->semester,
+            ])->values(),
+            'filters' => [
+                'kelas_mapel_id' => $selected ? (string) $selected->id : '',
+                'mode' => $mode,
+                'bulan' => $bulan,
+            ],
+            'selected' => $selected ? [
+                'id' => $selected->id,
+                'kelas' => $selected->kelas?->nama_kelas ?? '-',
+                'mata_pelajaran' => $selected->mataPelajaran?->nama_mapel ?? '-',
+                'semester' => $selected->semester,
+            ] : null,
+            'rekap' => $rows,
+            'exportUrls' => [
+                'excel' => route('guru.rekap-absensi.export.excel'),
+                'pdf' => route('guru.rekap-absensi.export.pdf'),
+            ],
+        ]);
+    }
+
+    private function rekapAbsensiRows(KelasMapel $kelasMapel, string $mode, string $bulan): array
+    {
+        $students = Siswa::with('user')
+            ->where('kelas_id', $kelasMapel->kelas_id)
+            ->where('status', 'aktif')
+            ->orderBy('nis')
+            ->get();
+        $query = Absensi::where('kelas_mapel_id', $kelasMapel->id)
+            ->whereIn('siswa_id', $students->pluck('id'));
+
+        if ($mode === 'bulanan') {
+            $query->whereBetween('tanggal', ["{$bulan}-01", date('Y-m-t', strtotime("{$bulan}-01"))]);
+        }
+
+        $absensiBySiswa = $query->get()->groupBy('siswa_id');
+
+        return $students->values()->map(function (Siswa $siswa, int $index) use ($absensiBySiswa) {
+            $records = $absensiBySiswa->get($siswa->id, collect());
+            $counts = [
+                'hadir' => $records->where('status', 'hadir')->count(),
+                'sakit' => $records->where('status', 'sakit')->count(),
+                'izin' => $records->where('status', 'izin')->count(),
+                'alpha' => $records->where('status', 'alpha')->count(),
+            ];
+            $total = array_sum($counts);
+
+            return [
+                'no' => $index + 1,
+                'nis' => $siswa->nis,
+                'nama' => $siswa->user?->nama_lengkap ?? '-',
+                ...$counts,
+                'total' => $total,
+                'persen_hadir' => $total > 0 ? round(($counts['hadir'] / $total) * 100, 2) : 0,
+            ];
+        })->all();
+    }
+
     private function attendanceMeetings(string $bulan, int $meetingsPerWeek): \Illuminate\Support\Collection
     {
         $meetingsPerWeek = max(1, min($meetingsPerWeek, 6));

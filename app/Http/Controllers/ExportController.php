@@ -296,6 +296,18 @@ class ExportController extends Controller
         return $this->tablePdf('absensi_' . $dataset['slug'] . '.pdf', 'DAFTAR ABSENSI', $dataset['context'], $dataset['headers'], $dataset['rows'], null, null, $this->teacherSigner($request));
     }
 
+    public function guruRekapAbsensiExcel(Request $request)
+    {
+        $dataset = $this->guruRekapAbsensiDataset($request);
+        return $this->tableExcel('rekap_absensi_' . $dataset['slug'] . '.xlsx', 'REKAP ABSENSI', $dataset['context'], $dataset['headers'], $dataset['rows']);
+    }
+
+    public function guruRekapAbsensiPdf(Request $request)
+    {
+        $dataset = $this->guruRekapAbsensiDataset($request);
+        return $this->tablePdf('rekap_absensi_' . $dataset['slug'] . '.pdf', 'REKAP ABSENSI', $dataset['context'], $dataset['headers'], $dataset['rows'], null, null, $this->teacherSigner($request));
+    }
+
     public function guruSikapExcel(Request $request, KelasMapel $kelasMapel)
     {
         $dataset = $this->guruSikapDataset($kelasMapel);
@@ -692,6 +704,62 @@ class ExportController extends Controller
             'rows' => $rows,
             'context' => $this->kelasMapelContext($kelasMapel) . " - {$bulan}",
             'slug' => $this->slug($this->kelasMapelContext($kelasMapel) . "_{$bulan}"),
+        ];
+    }
+
+    private function guruRekapAbsensiDataset(Request $request): array
+    {
+        $validated = $request->validate([
+            'kelas_mapel_id' => 'required|integer|exists:kelas_mapel,id',
+            'mode' => 'nullable|in:bulanan,keseluruhan',
+            'bulan' => 'nullable|date_format:Y-m',
+        ]);
+        $mode = $validated['mode'] ?? 'bulanan';
+        $bulan = $validated['bulan'] ?? date('Y-m');
+        $kelasMapel = KelasMapel::with(['kelas', 'mataPelajaran'])
+            ->where('guru_id', $request->user()?->id)
+            ->aktif()
+            ->findOrFail((int) $validated['kelas_mapel_id']);
+        $students = Siswa::with('user')
+            ->where('kelas_id', $kelasMapel->kelas_id)
+            ->where('status', 'aktif')
+            ->orderBy('nis')
+            ->get();
+        $query = Absensi::where('kelas_mapel_id', $kelasMapel->id)
+            ->whereIn('siswa_id', $students->pluck('id'));
+
+        if ($mode === 'bulanan') {
+            $query->whereBetween('tanggal', ["{$bulan}-01", date('Y-m-t', strtotime("{$bulan}-01"))]);
+        }
+
+        $absensiBySiswa = $query->get()->groupBy('siswa_id');
+        $rows = $students->values()->map(function (Siswa $siswa, int $index) use ($absensiBySiswa) {
+            $records = $absensiBySiswa->get($siswa->id, collect());
+            $hadir = $records->where('status', 'hadir')->count();
+            $sakit = $records->where('status', 'sakit')->count();
+            $izin = $records->where('status', 'izin')->count();
+            $alpha = $records->where('status', 'alpha')->count();
+            $total = $hadir + $sakit + $izin + $alpha;
+
+            return [
+                $index + 1,
+                $siswa->nis,
+                $siswa->user?->nama_lengkap ?? '-',
+                $hadir,
+                $sakit,
+                $izin,
+                $alpha,
+                $total,
+                $total > 0 ? round(($hadir / $total) * 100, 2) . '%' : '0%',
+            ];
+        })->all();
+        $period = $mode === 'bulanan' ? "Bulan {$bulan}" : 'Keseluruhan';
+
+        return [
+            'headers' => ['No', 'NIS', 'Nama', 'Hadir', 'Sakit', 'Izin', 'Alpha', 'Total', 'Persen Hadir'],
+            'rows' => $rows,
+            'context' => $this->kelasMapelContext($kelasMapel) . " - {$period}",
+            'slug' => $this->slug($this->kelasMapelContext($kelasMapel) . "_{$mode}_{$bulan}"),
         ];
     }
 
