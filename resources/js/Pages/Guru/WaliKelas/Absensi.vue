@@ -183,9 +183,9 @@ function submit() {
 
 <style scoped>
 .wali-attendance-select { font-size:0.72rem; min-width:54px; padding:0.25rem 0.35rem; text-align:center; }
-.wali-attendance-select.status-hadir { background:#dcfce7; color:#166534; }
-.wali-attendance-select.status-sakit { background:#fef3c7; color:#92400e; }
-.wali-attendance-select.status-izin { background:#dbeafe; color:#1e40af; }
-.wali-attendance-select.status-alpha { background:#fee2e2; color:#991b1b; }
+.wali-attendance-select.status-hadir { background:var(--status-success-bg); color:var(--status-success-text); }
+.wali-attendance-select.status-sakit { background:var(--status-warning-bg); color:var(--status-warning-text); }
+.wali-attendance-select.status-izin { background:var(--status-info-bg); color:var(--status-info-text); }
+.wali-attendance-select.status-alpha { background:var(--status-danger-bg); color:var(--status-danger-text); }
 .wali-attendance-table th { vertical-align:middle; }
 </style>

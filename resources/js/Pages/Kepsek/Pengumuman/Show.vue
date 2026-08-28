@@ -8,6 +8,12 @@ defineProps({
     targetKelasLabels: { type: Array, default: () => [] },
     backUrl: { type: String, default: '/kepsek/pengumuman' },
 });
+
+function formatFileSize(bytes) {
+    if (!bytes) return '';
+    const kb = bytes / 1024;
+    return kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${Math.ceil(kb)} KB`;
+}
 </script>
 
 <template>
@@ -23,6 +29,18 @@ defineProps({
                 </div>
                 <hr>
                 <div class="text-secondary" style="white-space: pre-line">{{ pengumuman.isi }}</div>
+                <div v-if="pengumuman.is_public_login" class="mt-4">
+                    <span class="badge bg-success-subtle text-success-emphasis">Tampil di halaman login</span>
+                </div>
+                <div v-if="pengumuman.attachment" class="mt-3">
+                    <a v-if="pengumuman.attachment.url" :href="pengumuman.attachment.url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">
+                        <i class="bi bi-paperclip me-1" aria-hidden="true"></i>{{ pengumuman.attachment.name }}
+                        <span v-if="formatFileSize(pengumuman.attachment.size)" class="text-muted">({{ formatFileSize(pengumuman.attachment.size) }})</span>
+                    </a>
+                    <span v-else class="badge bg-secondary-subtle text-secondary-emphasis">
+                        <i class="bi bi-paperclip me-1" aria-hidden="true"></i>{{ pengumuman.attachment.name }}
+                    </span>
+                </div>
                 <div v-if="targetKelasLabels.length" class="mt-4"><strong>Kelas tujuan:</strong> {{ targetKelasLabels.join(', ') }}</div>
             </div>
         </article>

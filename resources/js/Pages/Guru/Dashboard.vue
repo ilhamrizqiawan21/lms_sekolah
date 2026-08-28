@@ -1,8 +1,8 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import AppShell from '../../Layouts/AppShell.vue';
-import { ActionQueue, CourseCard, DashboardHero, MetricStrip, QuickActionBar } from '../../Components/UI';
+import { ActionQueue, Card, CourseCard, DashboardHero, EmptyState, MetricStrip, QuickActionBar } from '../../Components/UI';
 
 const page = usePage();
 const user = page.props.auth?.user;
@@ -15,7 +15,144 @@ const props = defineProps({
     pengumuman: { type: Array, default: () => [] },
     notifikasi: { type: Array, default: () => [] },
     unreadNotifCount: { type: Number, default: 0 },
+    kehadiranChart: { type: Array, default: () => [] },
+    pengumpulanTugasChart: { type: Array, default: () => [] },
 });
+
+const kehadiranCanvas = ref(null);
+const pengumpulanCanvas = ref(null);
+let kehadiranChartInstance = null;
+let pengumpulanChartInstance = null;
+
+const latestKehadiran = computed(() => props.kehadiranChart.at(-1));
+const latestPengumpulan = computed(() => props.pengumpulanTugasChart.at(-1));
+const averageKehadiran = computed(() => averagePercentage(props.kehadiranChart, 'persen_hadir'));
+const averagePengumpulan = computed(() => averagePercentage(props.pengumpulanTugasChart, 'persen_dikumpulkan'));
+
+function averagePercentage(items, key) {
+    const filledItems = items.filter((item) => Number(item.total) > 0);
+    if (!filledItems.length) {
+        return 0;
+    }
+
+    const total = filledItems.reduce((sum, item) => sum + Number(item[key] ?? 0), 0);
+    return Math.round(total / filledItems.length);
+}
+
+function taskChartLabel(index) {
+    return `T${index + 1}`;
+}
+
+async function chartJs() {
+    const { Chart, registerables } = await import('chart.js');
+    Chart.register(...registerables);
+    return Chart;
+}
+
+function trendChartOptions(title, tooltipTitleCallback = null) {
+    return {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    ...(tooltipTitleCallback ? { title: tooltipTitleCallback } : {}),
+                    label: (context) => `${title}: ${context.parsed.y}%`,
+                },
+            },
+        },
+        scales: {
+            x: {
+                grid: { display: false },
+                ticks: { maxRotation: 0, autoSkip: false },
+            },
+            y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    precision: 0,
+                    callback: (value) => `${value}%`,
+                },
+            },
+        },
+    };
+}
+
+async function renderKehadiranChart() {
+    if (!kehadiranCanvas.value || !props.kehadiranChart.length) {
+        return;
+    }
+
+    const Chart = await chartJs();
+    kehadiranChartInstance?.destroy();
+    kehadiranChartInstance = new Chart(kehadiranCanvas.value, {
+        type: 'line',
+        data: {
+            labels: props.kehadiranChart.map((item) => item.tanggal),
+            datasets: [
+                {
+                    label: 'Tren Kehadiran',
+                    data: props.kehadiranChart.map((item) => item.persen_hadir),
+                    borderColor: '#16a34a',
+                    backgroundColor: 'rgba(22, 163, 74, 0.12)',
+                    borderWidth: 3,
+                    fill: true,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#16a34a',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.35,
+                },
+            ],
+        },
+        options: trendChartOptions('Kehadiran'),
+    });
+}
+
+async function renderPengumpulanChart() {
+    if (!pengumpulanCanvas.value || !props.pengumpulanTugasChart.length) {
+        return;
+    }
+
+    const Chart = await chartJs();
+    pengumpulanChartInstance?.destroy();
+    pengumpulanChartInstance = new Chart(pengumpulanCanvas.value, {
+        type: 'line',
+        data: {
+            labels: props.pengumpulanTugasChart.map((_, index) => taskChartLabel(index)),
+            datasets: [
+                {
+                    label: 'Tren Pengumpulan',
+                    data: props.pengumpulanTugasChart.map((item) => item.persen_dikumpulkan),
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                    borderWidth: 3,
+                    fill: true,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#2563eb',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.35,
+                },
+            ],
+        },
+        options: trendChartOptions('Pengumpulan', (items) => {
+            const index = items[0]?.dataIndex ?? 0;
+            const task = props.pengumpulanTugasChart[index];
+
+            return task ? task.judul : taskChartLabel(index);
+        }),
+    });
+}
+
+onMounted(() => nextTick(() => { renderKehadiranChart(); renderPengumpulanChart(); }));
+watch(() => props.kehadiranChart, () => nextTick(renderKehadiranChart), { deep: true });
+watch(() => props.pengumpulanTugasChart, () => nextTick(renderPengumpulanChart), { deep: true });
+onBeforeUnmount(() => { kehadiranChartInstance?.destroy(); pengumpulanChartInstance?.destroy(); });
 
 const totalBelumMengumpulkan = computed(() => props.tugasBelumDikumpulkan.reduce((total, item) => total + (item.belum ?? 0), 0));
 const totalPerluDinilai = computed(() => props.tugasPerluDinilai.reduce((total, item) => total + (item.total ?? 0), 0));
@@ -44,6 +181,46 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({ i
         </DashboardHero>
         <MetricStrip :items="metrics" />
 
+        <div class="teacher-trend-grid">
+            <Card title="Tren Kehadiran (7 Hari Terakhir)" icon="bi-graph-up-arrow" body-class="teacher-trend-body">
+                <div v-if="kehadiranChart.length" class="teacher-trend-content">
+                    <div class="teacher-trend-summary">
+                        <div>
+                            <span class="teacher-trend-label">Terakhir</span>
+                            <strong>{{ latestKehadiran?.persen_hadir ?? 0 }}%</strong>
+                        </div>
+                        <div>
+                            <span class="teacher-trend-label">Rata-rata</span>
+                            <strong>{{ averageKehadiran }}%</strong>
+                        </div>
+                    </div>
+                    <div class="teacher-trend-chart">
+                        <canvas ref="kehadiranCanvas"></canvas>
+                    </div>
+                </div>
+                <EmptyState v-else title="Belum ada data kehadiran." icon="bi-clipboard-check" />
+            </Card>
+
+            <Card title="Tren Pengumpulan Tugas" icon="bi-graph-up-arrow" body-class="teacher-trend-body">
+                <div v-if="pengumpulanTugasChart.length" class="teacher-trend-content">
+                    <div class="teacher-trend-summary">
+                        <div>
+                            <span class="teacher-trend-label">Tugas terbaru</span>
+                            <strong>{{ latestPengumpulan?.persen_dikumpulkan ?? 0 }}%</strong>
+                        </div>
+                        <div>
+                            <span class="teacher-trend-label">Rata-rata</span>
+                            <strong>{{ averagePengumpulan }}%</strong>
+                        </div>
+                    </div>
+                    <div class="teacher-trend-chart">
+                        <canvas ref="pengumpulanCanvas"></canvas>
+                    </div>
+                </div>
+                <EmptyState v-else title="Belum ada data pengumpulan tugas." icon="bi-journal-x" />
+            </Card>
+        </div>
+
         <div class="dashboard-grid dashboard-grid-teacher teacher-dashboard-queues">
             <ActionQueue title="Perlu Dinilai" icon="bi-pencil-square" :items="gradingItems" empty-title="Tidak ada antrean nilai" empty-message="Semua pengumpulan yang masuk sudah dinilai." />
             <ActionQueue title="Belum Mengumpulkan" icon="bi-exclamation-circle" :items="missingItems" empty-title="Tidak ada tunggakan tugas" empty-message="Semua tugas lewat deadline sudah lengkap dikumpulkan." />
@@ -66,7 +243,52 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({ i
 <style scoped>
 .teacher-dashboard-queues { align-items: stretch; }
 .teacher-courses-panel { min-width: 0; }
+.teacher-trend-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 1.5rem;
+}
+.teacher-trend-body { padding: 1rem; }
+.teacher-trend-content {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+}
+.teacher-trend-summary {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.teacher-trend-summary > div {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    min-width: 0;
+    padding: 0.75rem;
+}
+.teacher-trend-label {
+    color: #64748b;
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+}
+.teacher-trend-summary strong {
+    color: #0f172a;
+    display: block;
+    font-size: 1.35rem;
+    line-height: 1.1;
+}
+.teacher-trend-chart {
+    height: 220px;
+    min-width: 0;
+    position: relative;
+}
 @media (max-width: 991.98px) {
+    .teacher-trend-grid { grid-template-columns: minmax(0, 1fr); }
     .teacher-dashboard-queues { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .teacher-dashboard-queues > :last-child { grid-column: 1 / -1; }
 }
@@ -74,5 +296,7 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({ i
     .teacher-dashboard-queues { grid-template-columns: minmax(0, 1fr); }
     .teacher-dashboard-queues > :last-child { grid-column: auto; }
     .teacher-courses-panel .course-card-grid { grid-template-columns: minmax(0, 1fr); }
+    .teacher-trend-summary { grid-template-columns: minmax(0, 1fr); }
+    .teacher-trend-chart { height: 210px; }
 }
 </style>

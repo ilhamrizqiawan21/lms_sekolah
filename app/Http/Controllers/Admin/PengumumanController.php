@@ -10,6 +10,7 @@ use App\Models\Pengumuman;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -45,6 +46,11 @@ class PengumumanController extends Controller
             $item->delete_url = route($prefix.'.destroy', $item);
             $item->show_url = route($prefix.'.show', $item);
             $item->target_kelas_ids = $item->targetKelasIds();
+            $item->attachment = $item->public_file_path ? [
+                'name' => $item->public_file_name ?: basename($item->public_file_path),
+                'size' => $item->public_file_size,
+                'url' => $item->is_public_login ? route('public-pengumuman.attachment', $item) : null,
+            ] : null;
             return $item;
         });
 
@@ -75,6 +81,11 @@ class PengumumanController extends Controller
         $targetKelasLabels = Kelas::whereIn('id', $pengumuman->targetKelasIds())
             ->orderBy('tingkat')->orderBy('nama_kelas')->get()
             ->map(fn (Kelas $k) => trim($k->tingkat.' '.$k->nama_kelas))->values();
+        $pengumuman->attachment = $pengumuman->public_file_path ? [
+            'name' => $pengumuman->public_file_name ?: basename($pengumuman->public_file_path),
+            'size' => $pengumuman->public_file_size,
+            'url' => $pengumuman->is_public_login ? route('public-pengumuman.attachment', $pengumuman) : null,
+        ] : null;
 
         return match ($role) {
             'admin', 'guru' => Inertia::render('Admin/Pengumuman/Show', compact('pengumuman','targetKelasLabels') + [
@@ -101,9 +112,13 @@ class PengumumanController extends Controller
             'target' => ['required', Rule::in($allowed)],
             'target_kelas_ids' => 'nullable|required_if:target,kelas_mapel|array',
             'target_kelas_ids.*' => 'integer|exists:kelas,id',
+            'is_public_login' => 'nullable|boolean',
+            'public_file' => 'nullable|file|extensions:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|max:5120',
         ]);
         $v = $this->prepareTarget($v);
+        $v['is_public_login'] = $request->boolean('is_public_login');
         $v['created_by'] = Auth::id();
+        $this->attachPublicFile($request, $v);
         $pengumuman = Pengumuman::create($v);
         $this->notifyRecipients($pengumuman);
         return redirect()->route($this->routePrefix().'.index')->with('success', 'Pengumuman berhasil dipublikasikan.');
@@ -119,8 +134,23 @@ class PengumumanController extends Controller
             'target' => ['required', Rule::in($allowed)],
             'target_kelas_ids' => 'nullable|required_if:target,kelas_mapel|array',
             'target_kelas_ids.*' => 'integer|exists:kelas,id',
+            'is_public_login' => 'nullable|boolean',
+            'public_file' => 'nullable|file|extensions:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|max:5120',
+            'remove_public_file' => 'nullable|boolean',
         ]);
-        $pengumuman->update($this->prepareTarget($v));
+        $v = $this->prepareTarget($v);
+        $v['is_public_login'] = $request->boolean('is_public_login');
+
+        if ($request->boolean('remove_public_file') || $request->hasFile('public_file')) {
+            $this->deletePublicFile($pengumuman);
+            $v['public_file_name'] = null;
+            $v['public_file_path'] = null;
+            $v['public_file_mime'] = null;
+            $v['public_file_size'] = null;
+        }
+
+        $this->attachPublicFile($request, $v);
+        $pengumuman->update($v);
         return redirect()->route($this->routePrefix().'.index')->with('success', 'Pengumuman berhasil diperbarui.');
     }
 
@@ -128,6 +158,7 @@ class PengumumanController extends Controller
     {
         $role = Auth::user()->role?->nama_role;
         abort_unless($role === 'admin' || ($role === 'guru' && (int) $pengumuman->created_by === (int) Auth::id()), 403);
+        $this->deletePublicFile($pengumuman);
         $pengumuman->delete();
         return redirect()->route($this->routePrefix().'.index')->with('success', 'Pengumuman berhasil dihapus.');
     }
@@ -147,8 +178,28 @@ class PengumumanController extends Controller
             $v['target_kelas'] = null;
             $v['kelas_mapel_id'] = null;
         }
-        unset($v['target_kelas_ids']);
+        unset($v['target_kelas_ids'], $v['public_file'], $v['remove_public_file']);
         return $v;
+    }
+
+    private function attachPublicFile(Request $request, array &$data): void
+    {
+        if (! $request->hasFile('public_file')) {
+            return;
+        }
+
+        $file = $request->file('public_file');
+        $data['public_file_name'] = $file->getClientOriginalName();
+        $data['public_file_path'] = $file->store('pengumuman-public/' . Auth::id(), 'local');
+        $data['public_file_mime'] = $file->getClientMimeType();
+        $data['public_file_size'] = $file->getSize();
+    }
+
+    private function deletePublicFile(Pengumuman $pengumuman): void
+    {
+        if ($pengumuman->public_file_path) {
+            Storage::disk('local')->delete($pengumuman->public_file_path);
+        }
     }
 
     private function routePrefix(): string

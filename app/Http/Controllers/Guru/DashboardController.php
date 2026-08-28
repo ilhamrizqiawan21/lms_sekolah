@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Absensi;
 use App\Models\KelasMapel;
 use App\Models\Notifikasi;
-use App\Models\Pengumuman;
 use App\Models\PengumpulanTugas;
+use App\Models\Pengumuman;
 use App\Models\Siswa;
 use App\Models\Tugas;
 use App\Services\StatistikService;
@@ -27,7 +27,7 @@ class DashboardController extends Controller
 
     public function index()
     {
-        //fitur fitur dalam dashboard
+        // fitur fitur dalam dashboard
         $guruId = Auth::id();
         $statistik = $this->statistikService->dashboardGuru($guruId);
 
@@ -42,21 +42,23 @@ class DashboardController extends Controller
         $tugasBelumDikumpulkan = $this->tugasBelumDikumpulkan($kelasMapel, $kelasMapelIds, $kelasIds);
         $siswaJarangMasuk = $this->siswaJarangMasuk($kelasMapelIds);
         $tugasPerluDinilai = $this->tugasPerluDinilai($kelasMapelIds);
+        $kehadiranChart = $this->kehadiranChart($kelasMapelIds);
+        $pengumpulanTugasChart = $this->pengumpulanTugasChart($kelasMapelIds);
 
         $pengumuman = Pengumuman::with('creator')
             ->where(function ($q) use ($kelasMapelIds, $kelasIds) {
                 $q->where('target', 'semua')
-                  ->orWhere('target', 'guru')
-                  ->orWhere(function ($q) use ($kelasMapelIds, $kelasIds) {
-                      $q->where('target', 'kelas_mapel')
-                        ->where(function ($q) use ($kelasMapelIds, $kelasIds) {
-                            $q->whereIn('kelas_mapel_id', $kelasMapelIds);
+                    ->orWhere('target', 'guru')
+                    ->orWhere(function ($q) use ($kelasMapelIds, $kelasIds) {
+                        $q->where('target', 'kelas_mapel')
+                            ->where(function ($q) use ($kelasMapelIds, $kelasIds) {
+                                $q->whereIn('kelas_mapel_id', $kelasMapelIds);
 
-                            foreach ($kelasIds as $kelasId) {
-                                $q->orWhere('target_kelas', 'like', '%"' . $kelasId . '"%');
-                            }
-                        });
-                  });
+                                foreach ($kelasIds as $kelasId) {
+                                    $q->orWhere('target_kelas', 'like', '%"'.$kelasId.'"%');
+                                }
+                            });
+                    });
             })
             ->orderBy('created_at', 'desc')
             ->take(5)
@@ -85,6 +87,8 @@ class DashboardController extends Controller
             'tugasBelumDikumpulkan' => $tugasBelumDikumpulkan,
             'siswaJarangMasuk' => $siswaJarangMasuk,
             'tugasPerluDinilai' => $tugasPerluDinilai,
+            'kehadiranChart' => $kehadiranChart,
+            'pengumpulanTugasChart' => $pengumpulanTugasChart,
             'pengumuman' => $pengumuman->map(fn (Pengumuman $item) => [
                 'id' => $item->id,
                 'judul' => $item->judul,
@@ -237,5 +241,83 @@ class DashboardController extends Controller
                 'url' => route('guru.tugas.pengumpulan', [$item->kelas_mapel_id, $item->id]),
             ])
             ->values();
+    }
+
+    private function kehadiranChart($kelasMapelIds)
+    {
+        if ($kelasMapelIds->isEmpty()) {
+            return collect();
+        }
+
+        $since = now()->subDays(6)->startOfDay()->toDateString();
+
+        $records = Absensi::whereIn('kelas_mapel_id', $kelasMapelIds)
+            ->where('tanggal', '>=', $since)
+            ->selectRaw("tanggal,
+                SUM(CASE WHEN status = 'hadir' THEN 1 ELSE 0 END) as hadir,
+                SUM(CASE WHEN status = 'sakit' THEN 1 ELSE 0 END) as sakit,
+                SUM(CASE WHEN status = 'izin' THEN 1 ELSE 0 END) as izin,
+                SUM(CASE WHEN status = 'alpha' THEN 1 ELSE 0 END) as alpha,
+                COUNT(*) as total")
+            ->groupBy('tanggal')
+            ->orderBy('tanggal')
+            ->get()
+            ->keyBy(fn ($item) => Carbon::parse($item->tanggal)->format('Y-m-d'));
+
+        return collect(range(6, 0))->map(function (int $daysAgo) use ($records) {
+            $date = now()->subDays($daysAgo);
+            $record = $records->get($date->format('Y-m-d'));
+            $hadir = (int) ($record->hadir ?? 0);
+            $total = (int) ($record->total ?? 0);
+
+            return [
+                'tanggal' => $date->format('d M'),
+                'hadir' => $hadir,
+                'sakit' => (int) ($record->sakit ?? 0),
+                'izin' => (int) ($record->izin ?? 0),
+                'alpha' => (int) ($record->alpha ?? 0),
+                'total' => $total,
+                'persen_hadir' => $total > 0 ? round(($hadir / $total) * 100, 1) : 0,
+            ];
+        })->values();
+    }
+
+    private function pengumpulanTugasChart($kelasMapelIds)
+    {
+        if ($kelasMapelIds->isEmpty()) {
+            return collect();
+        }
+
+        $tugas = Tugas::with(['kelasMapel.kelas'])
+            ->whereIn('kelas_mapel_id', $kelasMapelIds)
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->get()
+            ->reverse()
+            ->values();
+
+        $kelasIds = $tugas->pluck('kelasMapel.kelas_id')->unique()->filter();
+
+        $totalSiswaByKelas = Siswa::whereIn('kelas_id', $kelasIds)
+            ->where('status', 'aktif')
+            ->selectRaw('kelas_id, count(*) as total')
+            ->groupBy('kelas_id')
+            ->pluck('total', 'kelas_id');
+
+        return $tugas->map(function (Tugas $item) use ($totalSiswaByKelas) {
+            $kelasId = $item->kelasMapel?->kelas_id;
+            $total = (int) ($totalSiswaByKelas[$kelasId] ?? 0);
+            $collected = PengumpulanTugas::where('tugas_id', $item->id)
+                ->whereIn('status', PengumpulanTugas::STATUS_SUBMITTED)
+                ->count();
+
+            return [
+                'judul' => $item->judul,
+                'collected' => $collected,
+                'total' => $total,
+                'belum' => max(0, $total - $collected),
+                'persen_dikumpulkan' => $total > 0 ? round(($collected / $total) * 100, 1) : 0,
+            ];
+        })->values();
     }
 }

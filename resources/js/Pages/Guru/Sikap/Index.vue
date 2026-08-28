@@ -158,20 +158,31 @@ function submit() {
                     </template>
 
                     <TableWrapper>
-                        <table class="table table-bordered table-hover app-table mb-0">
+                        <table class="table table-bordered table-hover app-table attitude-table mb-0">
+                            <colgroup>
+                                <col class="attitude-col-no">
+                                <col class="attitude-col-nis">
+                                <col class="attitude-col-student">
+                                <col
+                                    v-for="field in spiritualFields"
+                                    :key="`spiritual-col-${field.key}`"
+                                    class="attitude-col-score"
+                                >
+                                <col class="attitude-col-total">
+                            </colgroup>
                             <thead class="table-light">
                                 <tr>
-                                    <th class="text-center w-row-number">#</th>
-                                    <th class="min-w-nis">NIS</th>
-                                    <th class="min-w-student">Nama Siswa</th>
+                                    <th class="text-center">#</th>
+                                    <th>NIS</th>
+                                    <th>Nama Siswa</th>
                                     <th
                                         v-for="field in spiritualFields"
                                         :key="field.key"
-                                        class="text-center w-score"
+                                        class="text-center"
                                     >
                                         {{ field.label }}
                                     </th>
-                                    <th class="text-center w-score-total">Rata-rata</th>
+                                    <th class="text-center">Rata-rata</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -215,20 +226,31 @@ function submit() {
                     </template>
 
                     <TableWrapper>
-                        <table class="table table-bordered table-hover app-table mb-0">
+                        <table class="table table-bordered table-hover app-table attitude-table mb-0">
+                            <colgroup>
+                                <col class="attitude-col-no">
+                                <col class="attitude-col-nis">
+                                <col class="attitude-col-student">
+                                <col
+                                    v-for="field in sosialFields"
+                                    :key="`sosial-col-${field.key}`"
+                                    class="attitude-col-score"
+                                >
+                                <col class="attitude-col-total">
+                            </colgroup>
                             <thead class="table-light">
                                 <tr>
-                                    <th class="text-center w-row-number">#</th>
-                                    <th class="min-w-nis">NIS</th>
-                                    <th class="min-w-student">Nama Siswa</th>
+                                    <th class="text-center">#</th>
+                                    <th>NIS</th>
+                                    <th>Nama Siswa</th>
                                     <th
                                         v-for="field in sosialFields"
                                         :key="field.key"
-                                        class="text-center w-score"
+                                        class="text-center"
                                     >
                                         {{ field.label }}
                                     </th>
-                                    <th class="text-center w-score-total">Rata-rata</th>
+                                    <th class="text-center">Rata-rata</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -285,7 +307,53 @@ function submit() {
 </template>
 
 <style scoped>
+.attitude-table {
+    min-width: 1060px;
+    table-layout: fixed;
+}
+
+.attitude-col-no {
+    width: 44px;
+}
+
+.attitude-col-nis {
+    width: 110px;
+}
+
+.attitude-col-student {
+    width: 320px;
+}
+
+.attitude-col-score {
+    width: 76px;
+}
+
+.attitude-col-total {
+    width: 108px;
+}
+
+.attitude-table th,
+.attitude-table td {
+    vertical-align: middle;
+}
+
+.attitude-table th {
+    padding: 0.65rem 0.45rem;
+    line-height: 1.2;
+    white-space: normal;
+}
+
+.attitude-table td {
+    padding: 0.55rem 0.45rem;
+}
+
+.attitude-table td:nth-child(3) {
+    white-space: normal;
+}
+
 .attitude-select {
-    min-width: 62px;
+    width: 100%;
+    min-width: 0;
+    text-align: center;
 }
 </style>

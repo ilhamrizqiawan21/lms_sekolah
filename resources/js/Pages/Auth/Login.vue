@@ -5,6 +5,7 @@ import { Head, useForm, usePage } from '@inertiajs/vue3';
 const props = defineProps({
     branding: { type: Object, required: true },
     loginUrl: { type: String, required: true },
+    publicAnnouncements: { type: Array, default: () => [] },
     year: { type: [String, Number], required: true },
 });
 
@@ -18,6 +19,16 @@ const form = useForm({
 const flash = computed(() => page.props.flash ?? {});
 const title = computed(() => `Login - ${props.branding.school_short_name} ${props.branding.school_name}`);
 const forgotPasswordUrl = 'https://wa.me/62895802329062?text=Assalamu%27alaikum%2C%20Bapa%20saya%20lupa%20password%20mohon%20bantu%20saya%20%20%3A%0ANama%20%3A%20........%0AKelas%20%3A%20.........%0ATerimakasih';
+
+function formatDate(value) {
+    return value ? new Date(value).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+}
+
+function formatFileSize(bytes) {
+    if (!bytes) return '';
+    const kb = bytes / 1024;
+    return kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${Math.ceil(kb)} KB`;
+}
 
 function submit() {
     form.post(props.loginUrl, {
@@ -136,6 +147,36 @@ function submit() {
                 </form>
             </section>
 
+            <section v-if="publicAnnouncements.length" class="public-board" aria-label="Papan informasi">
+                <div class="public-board-title">
+                    <i class="bi bi-megaphone-fill" aria-hidden="true"></i>
+                    <span>Papan Informasi</span>
+                </div>
+                <article
+                    v-for="announcement in publicAnnouncements"
+                    :key="announcement.id"
+                    class="public-announcement"
+                >
+                    <div class="public-announcement-meta">
+                        <span>{{ announcement.creator_name || 'Sekolah' }}</span>
+                        <span v-if="formatDate(announcement.created_at)">{{ formatDate(announcement.created_at) }}</span>
+                    </div>
+                    <h2>{{ announcement.judul }}</h2>
+                    <p>{{ announcement.isi }}</p>
+                    <a
+                        v-if="announcement.attachment"
+                        class="public-attachment"
+                        :href="announcement.attachment.url"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        <i class="bi bi-paperclip" aria-hidden="true"></i>
+                        <span>{{ announcement.attachment.name }}</span>
+                        <small v-if="formatFileSize(announcement.attachment.size)">{{ formatFileSize(announcement.attachment.size) }}</small>
+                    </a>
+                </article>
+            </section>
+
             <footer class="login-footer">
                 &copy; {{ year }} {{ branding.school_name }}<br>
                 <span>{{ branding.school_short_name }}</span>
@@ -162,10 +203,10 @@ function submit() {
     --login-success-text: var(--status-success-text, #166534);
     min-height: 100vh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 20px;
-    overflow: hidden;
+    padding: 24px 20px;
+    overflow-x: hidden;
     background: linear-gradient(135deg, var(--login-primary-dark) 0%, var(--login-primary-deep) 58%, #0b2419 100%);
     font-family: var(--font-sans);
 }
@@ -183,7 +224,7 @@ function submit() {
 .login-wrapper {
     position: relative;
     width: 100%;
-    max-width: 440px;
+    max-width: 520px;
     animation: fadeInUp 0.5s ease;
 }
 
@@ -377,6 +418,94 @@ function submit() {
     color: #dc2626;
     font-size: 0.75rem;
     margin-top: 4px;
+}
+
+.public-board {
+    margin-top: 18px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.94);
+    padding: 16px;
+    box-shadow: 0 16px 44px rgba(4, 31, 20, 0.22);
+}
+
+.public-board-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    color: var(--login-primary-dark);
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.public-announcement {
+    padding: 14px 0;
+    border-top: 1px solid var(--login-border);
+}
+
+.public-announcement:first-of-type {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.public-announcement:last-of-type {
+    padding-bottom: 0;
+}
+
+.public-announcement-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 5px;
+    color: var(--login-text-muted);
+    font-size: 0.74rem;
+}
+
+.public-announcement h2 {
+    margin: 0 0 7px;
+    color: var(--login-text);
+    font-size: 0.98rem;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.public-announcement p {
+    margin: 0;
+    color: #475569;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.public-attachment {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    max-width: 100%;
+    margin-top: 10px;
+    padding: 7px 10px;
+    border: 1px solid color-mix(in srgb, var(--login-primary) 34%, white);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--login-primary) 7%, white);
+    color: var(--login-primary-dark);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.public-attachment span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.public-attachment small {
+    flex-shrink: 0;
+    color: var(--login-text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
 }
 
 .login-footer {

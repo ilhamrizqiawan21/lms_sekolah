@@ -112,20 +112,29 @@ function submit() {
                 </template>
 
                 <TableWrapper>
-                    <table class="table table-bordered table-hover mb-0" style="font-size:0.82rem;">
+                    <table class="table table-bordered table-hover attitude-table mb-0">
+                        <colgroup>
+                            <col class="attitude-col-no">
+                            <col class="attitude-col-student">
+                            <col
+                                v-for="field in spiritualFields"
+                                :key="`spiritual-col-${field.key}`"
+                                class="attitude-col-score"
+                            >
+                            <col class="attitude-col-total">
+                        </colgroup>
                         <thead class="table-light">
                             <tr>
-                                <th style="width:35px;">#</th>
-                                <th style="min-width:140px;">Nama Siswa</th>
+                                <th class="text-center">#</th>
+                                <th>Nama Siswa</th>
                                 <th
                                     v-for="field in spiritualFields"
                                     :key="field.key"
                                     class="text-center"
-                                    style="width:72px;"
                                 >
                                     {{ field.label }}
                                 </th>
-                                <th class="text-center" style="width:70px;">Rata-rata</th>
+                                <th class="text-center">Rata-rata</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -135,8 +144,7 @@ function submit() {
                                 <td v-for="field in spiritualFields" :key="`${student.id}-${field.key}`">
                                     <select
                                         v-model="form.spiritual[String(student.id)][field.key]"
-                                        class="form-select form-select-sm"
-                                        style="min-width:62px;"
+                                        class="form-select form-select-sm attitude-select"
                                     >
                                         <option value="">-</option>
                                         <option v-for="value in 5" :key="value" :value="value">{{ value }}</option>
@@ -169,20 +177,29 @@ function submit() {
                 </template>
 
                 <TableWrapper>
-                    <table class="table table-bordered table-hover mb-0" style="font-size:0.82rem;">
+                    <table class="table table-bordered table-hover attitude-table mb-0">
+                        <colgroup>
+                            <col class="attitude-col-no">
+                            <col class="attitude-col-student">
+                            <col
+                                v-for="field in sosialFields"
+                                :key="`sosial-col-${field.key}`"
+                                class="attitude-col-score"
+                            >
+                            <col class="attitude-col-total">
+                        </colgroup>
                         <thead class="table-light">
                             <tr>
-                                <th style="width:35px;">#</th>
-                                <th style="min-width:140px;">Nama Siswa</th>
+                                <th class="text-center">#</th>
+                                <th>Nama Siswa</th>
                                 <th
                                     v-for="field in sosialFields"
                                     :key="field.key"
                                     class="text-center"
-                                    style="width:72px;"
                                 >
                                     {{ field.label }}
                                 </th>
-                                <th class="text-center" style="width:70px;">Rata-rata</th>
+                                <th class="text-center">Rata-rata</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -192,8 +209,7 @@ function submit() {
                                 <td v-for="field in sosialFields" :key="`${student.id}-${field.key}`">
                                     <select
                                         v-model="form.sosial[String(student.id)][field.key]"
-                                        class="form-select form-select-sm"
-                                        style="min-width:62px;"
+                                        class="form-select form-select-sm attitude-select"
                                     >
                                         <option value="">-</option>
                                         <option v-for="value in 5" :key="value" :value="value">{{ value }}</option>
@@ -234,3 +250,52 @@ function submit() {
         </form>
     </AppShell>
 </template>
+
+<style scoped>
+.attitude-table {
+    min-width: 950px;
+    table-layout: fixed;
+    font-size: 0.82rem;
+}
+
+.attitude-col-no {
+    width: 44px;
+}
+
+.attitude-col-student {
+    width: 320px;
+}
+
+.attitude-col-score {
+    width: 76px;
+}
+
+.attitude-col-total {
+    width: 108px;
+}
+
+.attitude-table th,
+.attitude-table td {
+    vertical-align: middle;
+}
+
+.attitude-table th {
+    padding: 0.65rem 0.45rem;
+    line-height: 1.2;
+    white-space: normal;
+}
+
+.attitude-table td {
+    padding: 0.55rem 0.45rem;
+}
+
+.attitude-table td:nth-child(2) {
+    white-space: normal;
+}
+
+.attitude-select {
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+}
+</style>

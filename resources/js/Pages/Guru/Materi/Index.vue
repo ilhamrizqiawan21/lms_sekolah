@@ -154,7 +154,7 @@ async function destroy(item) {
     gap: 8px;
     align-items: flex-start;
     padding: 9px 10px;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--bs-border-color);
     border-radius: 8px;
     cursor: pointer;
 }

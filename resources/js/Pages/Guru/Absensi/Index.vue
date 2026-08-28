@@ -329,10 +329,10 @@ function selectedExportUrl(format) {
     padding:0.35rem 0.5rem;
     text-align:center;
 }
-.attendance-select.hadir { background:#dcfce7; color:#166534; }
-.attendance-select.sakit { background:#fef3c7; color:#92400e; }
-.attendance-select.izin { background:#dbeafe; color:#1e40af; }
-.attendance-select.alpha { background:#fee2e2; color:#991b1b; }
+.attendance-select.hadir { background:var(--status-success-bg); color:var(--status-success-text); }
+.attendance-select.sakit { background:var(--status-warning-bg); color:var(--status-warning-text); }
+.attendance-select.izin { background:var(--status-info-bg); color:var(--status-info-text); }
+.attendance-select.alpha { background:var(--status-danger-bg); color:var(--status-danger-text); }
 .attendance-legend .badge { font-size:0.78rem; }
 .attendance-table th { vertical-align: middle; }
 

@@ -305,6 +305,8 @@ function openEvent(event) {
 
 .calendar-table {
     table-layout: fixed;
+    overflow: hidden;
+    border-color: var(--bs-border-color);
 }
 
 .calendar-head {
@@ -314,12 +316,15 @@ function openEvent(event) {
 .calendar-head th {
     font-size: 0.75rem;
     padding: 8px 0;
+    color: var(--text-muted);
+    font-weight: 700;
 }
 
 .calendar-cell {
     height: 80px;
     vertical-align: top;
     padding: 4px;
+    background: var(--surface-card);
 }
 
 .calendar-cell-empty {
@@ -383,6 +388,7 @@ function openEvent(event) {
     min-width: 0;
     border: 0;
     background: transparent;
+    color: inherit;
     text-align: left;
     padding: 0;
 }
@@ -405,6 +411,75 @@ function openEvent(event) {
 .calendar-dialog {
     max-width: 560px;
     text-align: left;
+}
+
+:global([data-bs-theme="dark"]) .calendar-table {
+    --calendar-border: rgba(148, 163, 184, 0.22);
+    border-color: var(--calendar-border);
+    background: #101827;
+}
+
+:global([data-bs-theme="dark"]) .calendar-table th,
+:global([data-bs-theme="dark"]) .calendar-table td {
+    border-color: var(--calendar-border);
+}
+
+:global([data-bs-theme="dark"]) .calendar-head {
+    background: #243244;
+}
+
+:global([data-bs-theme="dark"]) .calendar-head th {
+    color: #cbd5e1;
+}
+
+:global([data-bs-theme="dark"]) .calendar-cell {
+    background: #111827;
+}
+
+:global([data-bs-theme="dark"]) .calendar-cell-empty {
+    background: #0f172a;
+}
+
+:global([data-bs-theme="dark"]) .calendar-cell-today {
+    background: #123626;
+    box-shadow: inset 0 0 0 1px rgba(74, 222, 128, 0.42);
+}
+
+:global([data-bs-theme="dark"]) .calendar-day {
+    color: #9ca3af;
+}
+
+:global([data-bs-theme="dark"]) .calendar-day-today {
+    color: #86efac;
+}
+
+:global([data-bs-theme="dark"]) .calendar-event-normal {
+    background: #1e3a5f;
+    color: #bfdbfe;
+    border: 1px solid rgba(147, 197, 253, 0.24);
+}
+
+:global([data-bs-theme="dark"]) .calendar-event-holiday {
+    background: #4a1d24;
+    color: #fecdd3;
+    border: 1px solid rgba(251, 113, 133, 0.28);
+}
+
+:global([data-bs-theme="dark"]) .calendar-event-normal:hover,
+:global([data-bs-theme="dark"]) .calendar-event-holiday:hover {
+    filter: brightness(1.08);
+}
+
+:global([data-bs-theme="dark"]) .calendar-list-item {
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
+:global([data-bs-theme="dark"]) .calendar-list-main strong {
+    color: #e5edf7;
+}
+
+:global([data-bs-theme="dark"]) .calendar-list-main .text-muted {
+    color: #9fb0c5 !important;
 }
 
 @media (max-width: 576px) {

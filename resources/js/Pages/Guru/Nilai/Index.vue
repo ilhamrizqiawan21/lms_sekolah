@@ -1,6 +1,6 @@
 <script setup>
 import { Head, useForm } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
@@ -23,8 +23,10 @@ const fieldGroups = [
     { key: 'sas', label: 'Nilai' },
     { key: 'sat', label: 'Nilai' },
 ];
+const editableFieldKeys = fieldGroups.filter((field) => !field.readonly).map((field) => field.key);
 
 const selectedKelasMapelId = ref(props.kelasMapel[0]?.id ?? null);
+const pasteStatus = ref('');
 
 const form = useForm({
     semester: props.semester,
@@ -43,6 +45,7 @@ watch(() => props.groups, () => {
 
 watch(selectedKelasMapelId, (value) => {
     form.kelas_mapel_ids = value ? [value] : [];
+    pasteStatus.value = '';
 });
 
 function buildNilai() {
@@ -68,6 +71,101 @@ function formatScore(value) {
     return Number(value).toFixed(1);
 }
 
+function normalizeScore(value) {
+    return String(value ?? '').trim().replace(',', '.');
+}
+
+function parseScoreText(text) {
+    if (!/[\r\n\t\u2028\u2029]/.test(text)) return [];
+
+    const rows = text.replace(/\r\n?|\u2028|\u2029/g, '\n').split('\n');
+    while (rows.length > 1 && rows.at(-1) === '') rows.pop();
+
+    return rows.map((row) => row.split('\t').map(normalizeScore));
+}
+
+function parseClipboardHtml(html) {
+    if (!html || typeof DOMParser === 'undefined') return [];
+
+    const document = new DOMParser().parseFromString(html, 'text/html');
+    return Array.from(document.querySelectorAll('table tr'))
+        .map((row) => Array.from(row.querySelectorAll('th, td')).map((cell) => normalizeScore(cell.textContent)))
+        .filter((row) => row.length);
+}
+
+function parsePastedScoreGrid(event) {
+    const clipboard = event.clipboardData ?? window.clipboardData;
+    const text = clipboard?.getData('text/plain') || clipboard?.getData('Text') || '';
+    const textGrid = parseScoreText(text);
+
+    return textGrid.length
+        ? textGrid
+        : parseClipboardHtml(clipboard?.getData('text/html') ?? '');
+}
+
+function setStudentScore(studentIndex, fieldKey, score) {
+    const group = activeGroup.value;
+    const student = group?.students[studentIndex];
+    if (!group || !student || !editableFieldKeys.includes(fieldKey)) return false;
+
+    const groupId = String(group.kelas_mapel_id);
+    const studentId = String(student.id);
+    const studentScores = form.nilai[groupId]?.[studentId];
+    if (!studentScores) return false;
+
+    form.nilai[groupId][studentId] = {
+        ...studentScores,
+        [fieldKey]: score,
+    };
+
+    return true;
+}
+
+async function applyScoreGrid(grid, studentIndex, fieldKey) {
+    const startFieldIndex = editableFieldKeys.indexOf(fieldKey);
+    if (startFieldIndex < 0) return;
+
+    const isSingleColumn = grid.every((row) => row.length === 1);
+    const targetFields = editableFieldKeys.slice(startFieldIndex);
+    let pastedCount = 0;
+    let lastTarget = null;
+
+    grid.forEach((row, rowOffset) => {
+        const scores = isSingleColumn ? [row[0]] : row;
+        const fields = isSingleColumn ? [fieldKey] : targetFields;
+
+        scores.forEach((score, columnOffset) => {
+            const targetField = fields[columnOffset];
+            if (targetField && setStudentScore(studentIndex + rowOffset, targetField, score)) {
+                pastedCount += 1;
+                lastTarget = { studentIndex: studentIndex + rowOffset, fieldKey: targetField };
+            }
+        });
+    });
+
+    pasteStatus.value = pastedCount ? `${pastedCount} nilai ditempel` : '';
+
+    await nextTick();
+    if (lastTarget) {
+        document.querySelector(
+            `.score-input[data-student-index="${lastTarget.studentIndex}"][data-field-key="${lastTarget.fieldKey}"]`,
+        )?.focus();
+    }
+}
+
+function handleScorePaste(event, studentIndex, fieldKey) {
+    const grid = parsePastedScoreGrid(event);
+    if (!grid.length) return;
+
+    event.preventDefault();
+    applyScoreGrid(grid, studentIndex, fieldKey);
+}
+
+function handleScoreInput(event, studentIndex, fieldKey) {
+    const grid = parseScoreText(event.target.value);
+    if (grid.length) applyScoreGrid(grid, studentIndex, fieldKey);
+}
+
 function handleScoreKeyup(event) {
     const input = event.target;
     if (input.value.length < 3) return;
@@ -79,6 +177,14 @@ function handleScoreKeyup(event) {
 
 function submit() {
     form.kelas_mapel_ids = selectedKelasMapelId.value ? [selectedKelasMapelId.value] : [];
+
+    const groupId = String(selectedKelasMapelId.value ?? '');
+    Object.values(form.nilai[groupId] ?? {}).forEach((scores) => {
+        editableFieldKeys.forEach((fieldKey) => {
+            scores[fieldKey] = normalizeScore(scores[fieldKey]);
+        });
+    });
+
     form.post(props.storeUrl, { preserveScroll: true });
 }
 </script>
@@ -129,6 +235,7 @@ function submit() {
             >
                 <template #actions>
                     <div class="d-flex align-items-center gap-2">
+                        <span v-if="pasteStatus" class="badge bg-soft-success">{{ pasteStatus }}</span>
                         <a :href="activeGroup.export_excel_url" class="btn btn-sm btn-outline-success">
                             <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
                         </a>
@@ -139,7 +246,14 @@ function submit() {
                 </template>
 
                 <TableWrapper>
-                    <table class="table table-bordered table-hover app-table mb-0">
+                    <table class="table table-bordered table-hover app-table grade-table mb-0">
+                        <colgroup>
+                            <col class="grade-col-no">
+                            <col class="grade-col-nis">
+                            <col class="grade-col-student">
+                            <col v-for="field in fieldGroups" :key="`col-${field.key}`" class="grade-col-score">
+                            <col class="grade-col-total">
+                        </colgroup>
                         <thead class="table-light">
                             <tr>
                                 <th class="text-center w-row-number">#</th>
@@ -163,7 +277,7 @@ function submit() {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="student in activeGroup.students" :key="`${activeGroup.kelas_mapel_id}-${student.id}`">
+                            <tr v-for="(student, studentIndex) in activeGroup.students" :key="`${activeGroup.kelas_mapel_id}-${student.id}`">
                                 <td class="text-center text-muted">{{ student.no }}</td>
                                 <td><code>{{ student.nis }}</code></td>
                                 <td>{{ student.nama }}</td>
@@ -175,18 +289,21 @@ function submit() {
                                     >
                                         {{ formatScore(form.nilai[String(activeGroup.kelas_mapel_id)][String(student.id)][field.key]) ?? '-' }}
                                     </span>
-                                    <input
+                                    <textarea
                                         v-else
                                         v-model="form.nilai[String(activeGroup.kelas_mapel_id)][String(student.id)][field.key]"
-                                        type="number"
+                                        rows="1"
+                                        inputmode="decimal"
                                         class="form-control form-control-sm score-input"
-                                        min="0"
-                                        max="100"
-                                        step="0.01"
+                                        autocomplete="off"
                                         placeholder="-"
+                                        :data-student-index="studentIndex"
+                                        :data-field-key="field.key"
                                         @keyup="handleScoreKeyup"
+                                        @paste.stop="handleScorePaste($event, studentIndex, field.key)"
+                                        @input="handleScoreInput($event, studentIndex, field.key)"
                                         @focus="$event.target.select()"
-                                    >
+                                    ></textarea>
                                 </td>
                                 <td class="text-center">
                                     <strong v-if="formatScore(student.rata_akhir)" class="score-result" :class="scoreClass(student.rata_akhir)">
@@ -223,15 +340,70 @@ function submit() {
 </template>
 
 <style scoped>
+.grade-table {
+    min-width: 1220px;
+    table-layout: fixed;
+}
+
+.grade-col-no {
+    width: 44px;
+}
+
+.grade-col-nis {
+    width: 110px;
+}
+
+.grade-col-student {
+    width: 320px;
+}
+
+.grade-col-score {
+    width: 78px;
+}
+
+.grade-col-total {
+    width: 108px;
+}
+
+.grade-table th,
+.grade-table td {
+    vertical-align: middle;
+}
+
+.grade-table th {
+    padding: 0.65rem 0.45rem;
+    line-height: 1.2;
+    white-space: normal;
+}
+
+.grade-table td {
+    padding: 0.55rem 0.45rem;
+}
+
+.grade-table td:nth-child(3) {
+    white-space: normal;
+}
+
+.grade-table .score-input {
+    width: 100% !important;
+    min-width: 0;
+    height: 31px;
+    min-height: 31px;
+    overflow: hidden;
+    resize: none;
+    text-align: center;
+}
+
 .readonly-score {
     display: inline-flex;
-    min-width: 68px;
+    width: 100%;
+    min-width: 0;
     min-height: 31px;
     align-items: center;
     justify-content: center;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--bs-border-color);
     border-radius: 6px;
-    background: #f8f9fa;
+    background: var(--surface-muted);
     font-weight: 700;
 }
 </style>

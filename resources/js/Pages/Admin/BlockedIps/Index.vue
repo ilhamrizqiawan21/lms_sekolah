@@ -100,7 +100,7 @@ async function unblock(item) {
     display: inline-flex;
     padding: 0.25rem 0.45rem;
     border-radius: 0.45rem;
-    background: #f8fafc;
+    background: var(--surface-muted);
     color: var(--text-strong);
     font-weight: 800;
 }

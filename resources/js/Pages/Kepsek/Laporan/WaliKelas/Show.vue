@@ -176,22 +176,22 @@ function statusLabel(status) {
 
 <style scoped>
 .wali-report-table td.status-hadir {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--status-success-bg);
+    color: var(--status-success-text);
 }
 
 .wali-report-table td.status-sakit {
-    background: #fef3c7;
-    color: #92400e;
+    background: var(--status-warning-bg);
+    color: var(--status-warning-text);
 }
 
 .wali-report-table td.status-izin {
-    background: #dbeafe;
-    color: #1e40af;
+    background: var(--status-info-bg);
+    color: var(--status-info-text);
 }
 
 .wali-report-table td.status-alpha {
-    background: #fee2e2;
-    color: #991b1b;
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
 }
 </style>

@@ -346,7 +346,7 @@ function saveSchool() {
     justify-content: center;
     border: 1px solid var(--modern-border);
     border-radius: 1rem;
-    background: #f8fafc;
+    background: var(--surface-muted);
     color: var(--primary-600);
     font-size: 2rem;
 }
@@ -388,7 +388,7 @@ function saveSchool() {
     justify-content: center;
     border: 1px solid var(--modern-border);
     border-radius: 0.75rem;
-    background: #f8fafc;
+    background: var(--surface-muted);
     object-fit: contain;
 }
 
@@ -407,7 +407,7 @@ function saveSchool() {
     padding: 0.75rem;
     border: 1px solid var(--modern-border);
     border-radius: 0.85rem;
-    background: #fff;
+    background: var(--surface-card);
     cursor: pointer;
     transition: var(--transition-fast);
 }
@@ -426,7 +426,7 @@ function saveSchool() {
     overflow: hidden;
     border: 1px solid var(--modern-border);
     border-radius: 0.45rem;
-    background: #f8fafc;
+    background: var(--surface-muted);
 }
 
 .theme-option-screen {

@@ -100,7 +100,7 @@ watch(
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 15px;
-    background: #f9fafb;
+    background: var(--surface-muted);
 }
 
 .chat-message {
@@ -116,7 +116,7 @@ watch(
     max-width: min(75%, 42rem);
     border: 1px solid var(--gray-200);
     border-radius: 1rem;
-    background: #fff;
+    background: var(--surface-card);
     padding: 0.5rem 0.75rem;
     text-align: left;
     white-space: pre-wrap;
@@ -131,5 +131,22 @@ watch(
 
 .chat-time {
     font-size: 0.65rem;
+}
+
+:global([data-bs-theme="dark"]) .chat-area {
+    border-color: var(--border-soft);
+    background: var(--surface-input);
+}
+
+:global([data-bs-theme="dark"]) .chat-bubble {
+    border-color: var(--border-soft);
+    background: var(--surface-muted);
+    color: var(--text-body);
+}
+
+:global([data-bs-theme="dark"]) .chat-message.is-mine .chat-bubble {
+    border-color: color-mix(in srgb, var(--primary-500) 70%, var(--surface-card));
+    background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+    color: #fff;
 }
 </style>

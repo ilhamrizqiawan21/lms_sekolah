@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\LogLogin;
+use App\Models\Pengumuman;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -14,6 +17,28 @@ class LoginController extends Controller
 {
     public function showLogin()
     {
+        $publicAnnouncements = collect();
+
+        if (Schema::hasTable('pengumuman') && Schema::hasColumn('pengumuman', 'is_public_login')) {
+            $publicAnnouncements = Pengumuman::with('creator')
+                ->where('is_public_login', true)
+                ->orderByDesc('created_at')
+                ->limit(5)
+                ->get()
+                ->map(fn (Pengumuman $item) => [
+                    'id' => $item->id,
+                    'judul' => $item->judul,
+                    'isi' => $item->isi,
+                    'creator_name' => $item->creator?->nama_lengkap,
+                    'created_at' => $item->created_at,
+                    'attachment' => $item->public_file_path ? [
+                        'name' => $item->public_file_name ?: basename($item->public_file_path),
+                        'size' => $item->public_file_size,
+                        'url' => route('public-pengumuman.attachment', $item),
+                    ] : null,
+                ]);
+        }
+
         return Inertia::render('Auth/Login', [
             'branding' => [
                 'school_name' => school_setting('school_name', 'Nama Sekolah'),
@@ -24,8 +49,22 @@ class LoginController extends Controller
                 'logo_url' => school_logo_url(),
             ],
             'loginUrl' => route('login.post'),
+            'publicAnnouncements' => $publicAnnouncements,
             'year' => date('Y'),
         ]);
+    }
+
+    public function downloadPublicAnnouncementAttachment(Pengumuman $pengumuman)
+    {
+        abort_unless($pengumuman->is_public_login && $pengumuman->public_file_path, 404);
+
+        $disk = Storage::disk('local');
+        abort_unless($disk->exists($pengumuman->public_file_path), 404);
+
+        return response()->download(
+            $disk->path($pengumuman->public_file_path),
+            $pengumuman->public_file_name ?: basename($pengumuman->public_file_path)
+        );
     }
 
     public function login(Request $request)

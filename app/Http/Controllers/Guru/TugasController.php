@@ -291,6 +291,12 @@ class TugasController extends Controller
 
         if ($nilaiInput === null && blank($validated['catatan'] ?? null)) {
             // Form kosong: jangan ubah status/nilai yang sudah ada.
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Tidak ada nilai atau komentar yang diisi.',
+                ], 422);
+            }
+
             return back()->with('info', 'Tidak ada nilai atau komentar yang diisi.');
         }
 
@@ -314,7 +320,7 @@ class TugasController extends Controller
             $values['penalty_terlambat'] = 0;
         }
 
-        PengumpulanTugas::updateOrCreate(
+        $savedPengumpulan = PengumpulanTugas::updateOrCreate(
             [
                 'tugas_id' => $tugas->id,
                 'siswa_id' => $siswa->id,
@@ -326,9 +332,24 @@ class TugasController extends Controller
             $this->syncNilaiHarian($kelasMapel, $siswa);
         }
 
-        return back()->with('success', $nilaiInput !== null
+        $message = $nilaiInput !== null
             ? 'Nilai tugas berhasil disimpan dan nilai harian diperbarui.'
-            : 'Komentar tugas berhasil disimpan.');
+            : 'Komentar tugas berhasil disimpan.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'id' => $savedPengumpulan->id,
+                'status' => $savedPengumpulan->status,
+                'nilai' => $savedPengumpulan->nilai,
+                'nilai_input' => $savedPengumpulan->nilai_sebelum_penalty ?? $savedPengumpulan->nilai,
+                'catatan' => $savedPengumpulan->catatan,
+                'penalty_terlambat' => $savedPengumpulan->penalty_terlambat,
+                'saved_at' => now()->format('H:i'),
+            ]);
+        }
+
+        return back()->with('success', $message);
     }
 
     public function downloadFile(KelasMapel $kelasMapel, Tugas $tugas, PengumpulanFile $file)

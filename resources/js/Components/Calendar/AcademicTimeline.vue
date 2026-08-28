@@ -68,5 +68,10 @@ const typeIcon = (type) => ({ calendar: 'bi-calendar-event', task: 'bi-hourglass
 .timeline-marker { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--bs-light); border: 1px solid var(--bs-border-color); z-index: 1; }
 .timeline-content { min-width: 0; padding-bottom: 0.5rem; }
 .timeline-description { white-space: pre-line; overflow-wrap: anywhere; }
+:global([data-bs-theme="dark"]) .timeline-item:not(:last-child)::before { background: rgba(148, 163, 184, 0.24); }
+:global([data-bs-theme="dark"]) .timeline-marker { background: #1e293b; border-color: rgba(148, 163, 184, 0.28); color: #86efac; }
+:global([data-bs-theme="dark"]) .timeline-content h6 { color: #e5edf7; }
+:global([data-bs-theme="dark"]) .timeline-description,
+:global([data-bs-theme="dark"]) .timeline-content .text-secondary { color: #9fb0c5 !important; }
 @media (max-width: 576px) { .timeline-filters .btn { flex: 1 1 auto; } }
 </style>
