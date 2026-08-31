@@ -52,11 +52,25 @@ watch(
                     class="chat-message"
                     :class="{ 'is-mine': message.is_mine }"
                 >
-                    <small class="text-muted d-block">{{ message.author }}</small>
-                    <div class="chat-bubble">
-                        {{ message.message }}
+                    <img
+                        v-if="message.avatar_url"
+                        :src="message.avatar_url"
+                        :alt="`Foto ${message.author}`"
+                        class="chat-avatar"
+                        width="34"
+                        height="34"
+                        decoding="async"
+                    >
+                    <div v-else class="chat-avatar chat-avatar-empty" aria-hidden="true">
+                        <i class="bi bi-person-fill"></i>
                     </div>
-                    <small class="text-muted d-block chat-time">{{ message.time }}</small>
+                    <div class="chat-message-body">
+                        <small class="text-muted d-block">{{ message.author }}</small>
+                        <div class="chat-bubble">
+                            {{ message.message }}
+                        </div>
+                        <small class="text-muted d-block chat-time">{{ message.time }}</small>
+                    </div>
                 </div>
             </template>
 
@@ -105,15 +119,40 @@ watch(
 
 .chat-message {
     margin-bottom: 0.75rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
 }
 
 .chat-message.is-mine {
+    flex-direction: row-reverse;
     text-align: right;
+}
+
+.chat-avatar {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 999px;
+    object-fit: cover;
+}
+
+.chat-avatar-empty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--gray-200);
+    background: var(--surface-card);
+    color: var(--text-muted);
+}
+
+.chat-message-body {
+    max-width: min(75%, 42rem);
 }
 
 .chat-bubble {
     display: inline-block;
-    max-width: min(75%, 42rem);
+    max-width: 100%;
     border: 1px solid var(--gray-200);
     border-radius: 1rem;
     background: var(--surface-card);
@@ -142,6 +181,12 @@ watch(
     border-color: var(--border-soft);
     background: var(--surface-muted);
     color: var(--text-body);
+}
+
+:global([data-bs-theme="dark"]) .chat-avatar-empty {
+    border-color: var(--border-soft);
+    background: var(--surface-muted);
+    color: var(--text-muted);
 }
 
 :global([data-bs-theme="dark"]) .chat-message.is-mine .chat-bubble {

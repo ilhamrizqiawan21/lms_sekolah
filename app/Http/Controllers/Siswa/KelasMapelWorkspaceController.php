@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChatMessage;
+use App\Models\KelasDaring;
 use App\Models\KelasMapel;
 use App\Models\Materi;
 use App\Models\PengumpulanTugas;
@@ -34,6 +35,13 @@ class KelasMapelWorkspaceController extends Controller
             ->whereHas('tugas', fn ($query) => $query->where('kelas_mapel_id', $kelasMapel->id))
             ->count();
         $latestMessage = ChatMessage::with('user')->where('kelas_mapel_id', $kelasMapel->id)->latest('created_at')->first();
+        $onlineClasses = KelasDaring::where('kelas_mapel_id', $kelasMapel->id)
+            ->where('status', 'terjadwal')
+            ->where('tanggal', '>=', now()->toDateString())
+            ->orderBy('tanggal')
+            ->orderBy('pelajaran_ke')
+            ->take(5)
+            ->get();
 
         return Inertia::render('Siswa/KelasMapel/Show', [
             'course' => [
@@ -47,6 +55,7 @@ class KelasMapelWorkspaceController extends Controller
                 ['label' => 'Ringkasan', 'href' => route('siswa.kelas-mapel.show', $kelasMapel), 'icon' => 'bi-grid-1x2'],
                 ['label' => 'Materi', 'href' => route('siswa.materi.list', $kelasMapel), 'icon' => 'bi-file-earmark-text'],
                 ['label' => 'Tugas', 'href' => route('siswa.kelas-mapel.show', $kelasMapel) . '#tugas', 'icon' => 'bi-journal-check'],
+                ['label' => 'Daring', 'href' => route('siswa.kelas-daring', ['kelas_mapel_id' => $kelasMapel->id]), 'icon' => 'bi-camera-video'],
                 ['label' => 'Chat', 'href' => route('siswa.chat.show', $kelasMapel), 'icon' => 'bi-chat-dots'],
             ],
             'metrics' => [
@@ -75,6 +84,13 @@ class KelasMapelWorkspaceController extends Controller
                 'message' => $latestMessage->message,
                 'href' => route('siswa.chat.show', $kelasMapel),
             ] : null,
+            'onlineClasses' => $onlineClasses->map(fn (KelasDaring $item) => [
+                'id' => $item->id,
+                'judul' => $item->judul,
+                'tanggal' => $item->tanggal?->format('d M Y'),
+                'pelajaran_ke' => $item->pelajaran_ke,
+                'meeting_url' => $item->meeting_url,
+            ])->values(),
         ]);
     }
 }

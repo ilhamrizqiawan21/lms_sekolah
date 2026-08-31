@@ -10,6 +10,7 @@ const props = defineProps({
     tugasTerbaru: { type: Array, default: () => [] },
     notifikasi: { type: Array, default: () => [] },
     pengumuman: { type: Array, default: () => [] },
+    kelasDaring: { type: Array, default: () => [] },
     links: { type: Object, default: () => ({}) },
 });
 
@@ -28,11 +29,13 @@ const metrics = computed(() => [
 ]);
 const quickActions = computed(() => [
     { label: 'Tugas Saya', href: props.links.tugas || '/siswa/tugas', icon: 'bi-journal-check', color: 'primary' },
+    { label: 'Jadwal', href: props.links.jadwal_pelajaran || '/siswa/jadwal-pelajaran', icon: 'bi-calendar-week', color: 'light' },
+    { label: 'Daring', href: props.links.kelas_daring || '/siswa/kelas-daring', icon: 'bi-camera-video', color: 'light' },
     { label: 'Materi', href: props.links.materi || '/siswa/materi', icon: 'bi-file-earmark-text', color: 'light' },
     { label: 'Nilai', href: '/siswa/nilai', icon: 'bi-bar-chart', color: 'light' },
-    { label: 'Chat', href: '/siswa/chat', icon: 'bi-chat-dots', color: 'light' },
 ]);
 const taskItems = computed(() => props.tugasTerbaru.map((item) => ({ id: item.id, title: item.judul, meta: item.mata_pelajaran, detail: `Deadline ${item.batas_waktu}`, href: item.show_url || props.links.tugas || '/siswa/tugas', badge: item.selesai ? 'Selesai' : 'Belum', badgeColor: item.selesai ? 'success' : 'warning text-dark', icon: item.selesai ? 'bi-check-circle' : 'bi-journal-text', accent: item.selesai ? '#16a34a' : '#f59e0b' })));
+const onlineClassItems = computed(() => props.kelasDaring.map((item) => ({ id: item.id, title: item.judul, meta: item.mata_pelajaran, detail: `${item.tanggal} · Pelajaran ke-${item.pelajaran_ke}`, href: item.workspace_url, badge: 'Daring', badgeColor: 'primary', icon: 'bi-camera-video', accent: '#0d6efd' })));
 const notificationItems = computed(() => props.notifikasi.map((item) => ({ id: item.id, title: item.judul, meta: item.created_at, detail: item.pesan, href: props.links.notifikasi, badge: item.is_read ? '' : 'Baru', badgeColor: 'danger', icon: iconFor(item.tipe).icon, accent: iconFor(item.tipe).color })));
 const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: item.id, title: item.judul, meta: item.created_at, href: item.show_url, icon: 'bi-megaphone-fill', accent: '#2563eb' })));
 </script>
@@ -47,6 +50,9 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: i
 
         <div class="dashboard-grid dashboard-grid-student student-priority-grid">
             <ActionQueue title="Tugas Terdekat" icon="bi-journal-check" :items="taskItems" empty-title="Belum ada tugas" />
+            <ActionQueue title="Kelas Daring" icon="bi-camera-video-fill" :items="onlineClassItems" empty-title="Belum ada kelas daring">
+                <template #actions><Link :href="links.kelas_daring || '/siswa/kelas-daring'" class="app-card-action-link">Lihat Semua</Link></template>
+            </ActionQueue>
             <ActionQueue title="Notifikasi" icon="bi-bell-fill" :items="notificationItems" empty-title="Belum ada notifikasi">
                 <template v-if="notifikasi.length" #actions><Link :href="links.notifikasi" class="app-card-action-link">Lihat Semua</Link></template>
             </ActionQueue>

@@ -9,6 +9,7 @@ const props = defineProps({
     metrics: { type: Array, default: () => [] },
     tasks: { type: Array, default: () => [] },
     latestMessage: { type: Object, default: null },
+    onlineClasses: { type: Array, default: () => [] },
 });
 
 const quickActions = [
@@ -35,6 +36,19 @@ const quickActions = [
 
         <div class="dashboard-grid dashboard-grid-admin">
             <AgendaPanel id="tugas" title="Agenda Tugas" :items="tasks" empty-title="Belum ada tugas" />
+            <section class="workspace-panel">
+                <header class="workspace-panel-header"><span class="workspace-panel-title"><i class="bi bi-camera-video" aria-hidden="true"></i>Kelas Daring</span></header>
+                <div class="workspace-panel-body workspace-summary-list">
+                    <a v-for="session in onlineClasses" :key="session.id" :href="session.meeting_url" target="_blank" rel="noopener" class="workspace-summary-item">
+                        <span class="workspace-summary-icon text-primary"><i class="bi bi-camera-video" aria-hidden="true"></i></span>
+                        <span><strong>{{ session.judul }}</strong><small>{{ session.tanggal }} · Pelajaran ke-{{ session.pelajaran_ke }}</small></span>
+                    </a>
+                    <div v-if="!onlineClasses.length" class="workspace-summary-item">
+                        <span class="workspace-summary-icon text-muted"><i class="bi bi-camera-video" aria-hidden="true"></i></span>
+                        <span><strong>Belum ada kelas daring</strong><small>Link meeting akan tampil saat guru menjadwalkan sesi.</small></span>
+                    </div>
+                </div>
+            </section>
             <section class="workspace-panel">
                 <header class="workspace-panel-header"><span class="workspace-panel-title"><i class="bi bi-chat-dots" aria-hidden="true"></i>Chat Kelas</span></header>
                 <div class="workspace-panel-body workspace-summary-list">

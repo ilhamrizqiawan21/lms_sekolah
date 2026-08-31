@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
 use App\Models\Absensi;
+use App\Models\KelasDaring;
 use App\Models\KelasMapel;
 use App\Models\Materi;
 use App\Models\Notifikasi;
@@ -90,6 +91,14 @@ class DashboardController extends Controller
             ->orderBy('tanggal', 'desc')
             ->take(5)
             ->get();
+        $kelasDaring = KelasDaring::with('kelasMapel.mataPelajaran')
+            ->whereIn('kelas_mapel_id', $kelasMapelIds)
+            ->where('status', 'terjadwal')
+            ->where('tanggal', '>=', now()->toDateString())
+            ->orderBy('tanggal')
+            ->orderBy('pelajaran_ke')
+            ->take(5)
+            ->get();
 
         return Inertia::render('Siswa/Dashboard', [
             'stats' => [
@@ -131,11 +140,22 @@ class DashboardController extends Controller
                 'created_at' => $item->created_at ? Carbon::parse($item->created_at)->format('d/m/Y') : '-',
                 'show_url' => route('siswa.pengumuman.show', $item),
             ])->values(),
+            'kelasDaring' => $kelasDaring->map(fn (KelasDaring $item) => [
+                'id' => $item->id,
+                'judul' => $item->judul,
+                'mata_pelajaran' => $item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
+                'tanggal' => $item->tanggal?->format('d M Y'),
+                'pelajaran_ke' => $item->pelajaran_ke,
+                'meeting_url' => $item->meeting_url,
+                'workspace_url' => $item->kelasMapel ? route('siswa.kelas-mapel.show', $item->kelasMapel) : null,
+            ])->values(),
             'links' => [
                 'notifikasi' => route('siswa.notifikasi.index'),
                 'pengumuman' => route('siswa.pengumuman.index'),
                 'materi' => route('siswa.materi.index'),
                 'tugas' => route('siswa.tugas.index'),
+                'jadwal_pelajaran' => route('siswa.jadwal-pelajaran'),
+                'kelas_daring' => route('siswa.kelas-daring'),
             ],
         ]);
     }

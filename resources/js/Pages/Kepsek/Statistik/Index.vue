@@ -11,6 +11,7 @@ const props = defineProps({
     totalSiswa: { type: Number, default: 0 },
     totalKelas: { type: Number, default: 0 },
     absensiBulanan: { type: Array, default: () => [] },
+    pengumpulanBulanan: { type: Array, default: () => [] },
     distribusiNilai: { type: Array, default: () => [] },
     pembelajaran: {
         type: Object,
@@ -21,9 +22,11 @@ const props = defineProps({
 const siswaCanvas = ref(null);
 const nilaiCanvas = ref(null);
 const absensiCanvas = ref(null);
+const pengumpulanCanvas = ref(null);
 let siswaChart = null;
 let nilaiChart = null;
 let absensiChart = null;
+let pengumpulanChart = null;
 
 async function chartJs() {
     const { Chart, registerables } = await import('chart.js');
@@ -70,7 +73,7 @@ async function renderCharts() {
         absensiChart = new Chart(absensiCanvas.value, {
             type: 'line',
             data: {
-                labels: props.absensiBulanan.map((item) => item.bulan),
+                labels: props.absensiBulanan.map((item) => item.bulan_label || item.bulan),
                 datasets: [{
                     label: 'Persentase Hadir',
                     data: props.absensiBulanan.map((item) => item.persentase),
@@ -86,14 +89,34 @@ async function renderCharts() {
             },
         });
     }
+
+    if (pengumpulanCanvas.value && props.pengumpulanBulanan.length) {
+        pengumpulanChart?.destroy();
+        pengumpulanChart = new Chart(pengumpulanCanvas.value, {
+            type: 'bar',
+            data: {
+                labels: props.pengumpulanBulanan.map((item) => item.bulan_label || item.bulan),
+                datasets: [
+                    { label: 'Tepat Waktu', data: props.pengumpulanBulanan.map((item) => item.tepat_waktu), backgroundColor: '#198754', borderRadius: 8 },
+                    { label: 'Terlambat', data: props.pengumpulanBulanan.map((item) => item.terlambat), backgroundColor: '#dc3545', borderRadius: 8 },
+                    { label: 'Sudah Dinilai', data: props.pengumpulanBulanan.map((item) => item.dinilai), backgroundColor: '#0d6efd', borderRadius: 8 },
+                ],
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } },
+            },
+        });
+    }
 }
 
 onMounted(() => nextTick(renderCharts));
-watch(() => [props.siswaPerKelas, props.distribusiNilai, props.absensiBulanan], () => nextTick(renderCharts), { deep: true });
+watch(() => [props.siswaPerKelas, props.distribusiNilai, props.absensiBulanan, props.pengumpulanBulanan], () => nextTick(renderCharts), { deep: true });
 onBeforeUnmount(() => {
     siswaChart?.destroy();
     nilaiChart?.destroy();
     absensiChart?.destroy();
+    pengumpulanChart?.destroy();
 });
 </script>
 
@@ -186,7 +209,7 @@ onBeforeUnmount(() => {
                             </thead>
                             <tbody>
                                 <tr v-for="item in absensiBulanan" :key="item.bulan">
-                                    <td><strong>{{ item.bulan }}</strong></td>
+                                    <td><strong>{{ item.bulan_label || item.bulan }}</strong></td>
                                     <td>{{ item.hadir }}</td>
                                     <td>{{ item.total }}</td>
                                     <td>{{ item.persentase }}%</td>
@@ -195,6 +218,41 @@ onBeforeUnmount(() => {
                         </table>
                     </TableWrapper>
                     <EmptyState v-else title="Tidak ada data" icon="bi-list-ul" />
+                </Card>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-7 mb-4">
+                <Card title="Tren Pengumpulan Tugas Bulanan" icon="bi-journal-check">
+                    <canvas v-if="pengumpulanBulanan.length" ref="pengumpulanCanvas" height="220"></canvas>
+                    <EmptyState v-else title="Belum ada data pengumpulan tugas." icon="bi-journal-check" />
+                </Card>
+            </div>
+
+            <div class="col-lg-5 mb-4">
+                <Card title="Rekap Pengumpulan Bulanan" icon="bi-list-check" body-class="p-0">
+                    <TableWrapper v-if="pengumpulanBulanan.length">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Bulan</th>
+                                    <th>Total</th>
+                                    <th>Tepat Waktu</th>
+                                    <th>Terlambat</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in pengumpulanBulanan" :key="item.bulan">
+                                    <td><strong>{{ item.bulan_label || item.bulan }}</strong></td>
+                                    <td>{{ item.total }}</td>
+                                    <td>{{ item.tepat_waktu }}</td>
+                                    <td>{{ item.terlambat }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </TableWrapper>
+                    <EmptyState v-else title="Tidak ada data" icon="bi-list-check" />
                 </Card>
             </div>
         </div>

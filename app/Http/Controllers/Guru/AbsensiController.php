@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Guru;
 use App\Http\Controllers\Controller;
 use App\Models\Absensi;
 use App\Models\AcademicAuditLog;
+use App\Models\CalendarEvent;
+use App\Models\JadwalMengajar;
 use App\Models\KelasMapel;
 use App\Models\Notifikasi;
 use App\Models\Siswa;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -50,7 +53,7 @@ class AbsensiController extends Controller
                     ->orderBy('nis')
                     ->get();
 
-                $meetings = $this->attendanceMeetings($bulan, (int) $kmData->pertemuan_per_minggu);
+                $meetings = $this->attendanceMeetings($bulan, $kmData);
 
                 // Ambil data absensi
                 $absensiRaw = Absensi::where('kelas_mapel_id', $kmData->id)
@@ -86,6 +89,8 @@ class AbsensiController extends Controller
                 'kelas' => $kmData->kelas?->nama_kelas ?? '-',
                 'mata_pelajaran' => $kmData->mataPelajaran?->nama_mapel ?? '-',
                 'pertemuan_per_minggu' => (int) $kmData->pertemuan_per_minggu,
+                'has_schedule' => JadwalMengajar::where('kelas_mapel_id', $kmData->id)->exists(),
+                'schedule_url' => route('guru.jadwal-mengajar.index'),
                 'workspace_url' => route('guru.kelas-mapel.show', $kmData),
                 'store_url' => route('guru.absensi.store', $kmData),
                 'export_excel_url' => route('guru.absensi.export.excel', $kmData),
@@ -143,7 +148,7 @@ class AbsensiController extends Controller
         }
 
         $bulan = $validated['bulan'];
-        $meetings = $this->attendanceMeetings($bulan, (int) $kelasMapel->pertemuan_per_minggu)
+        $meetings = $this->attendanceMeetings($bulan, $kelasMapel)
             ->keyBy('key');
 
         $invalidMeetingKeys = collect($absensiInput)
@@ -323,11 +328,58 @@ class AbsensiController extends Controller
         })->all();
     }
 
-    private function attendanceMeetings(string $bulan, int $meetingsPerWeek): \Illuminate\Support\Collection
+    private function attendanceMeetings(string $bulan, KelasMapel $kelasMapel): \Illuminate\Support\Collection
+    {
+        $schedules = JadwalMengajar::where('kelas_mapel_id', $kelasMapel->id)
+            ->orderBy('hari')
+            ->orderBy('pelajaran_ke')
+            ->get()
+            ->groupBy('hari');
+
+        if ($schedules->isEmpty()) {
+            return collect();
+        }
+
+        $start = Carbon::createFromFormat('Y-m-d', "{$bulan}-01")->startOfDay();
+        $end = $start->copy()->endOfMonth();
+        $holidays = CalendarEvent::where('is_holiday', true)
+            ->whereBetween('event_date', [$start->toDateString(), $end->toDateString()])
+            ->pluck('event_date')
+            ->map(fn ($date) => $date instanceof Carbon ? $date->toDateString() : Carbon::parse($date)->toDateString())
+            ->flip();
+        $meetings = [];
+
+        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            $dayNumber = (int) $date->format('N');
+
+            if ($dayNumber < 1 || $dayNumber > 5 || ! $schedules->has($dayNumber) || $holidays->has($date->toDateString())) {
+                continue;
+            }
+
+            $slots = $schedules->get($dayNumber)
+                ->pluck('pelajaran_ke')
+                ->unique()
+                ->sort()
+                ->values();
+
+            $meetings[] = [
+                'key' => $date->toDateString(),
+                'week' => (int) ceil((int) $date->format('j') / 7),
+                'meeting' => $slots->first(),
+                'date' => $date->toDateString(),
+                'label' => $date->format('d/m'),
+                'title' => JadwalMengajar::DAYS[$dayNumber] . ' P' . $slots->implode('/P'),
+            ];
+        }
+
+        return collect($meetings);
+    }
+
+    private function legacyAttendanceMeetings(string $bulan, int $meetingsPerWeek): \Illuminate\Support\Collection
     {
         $meetingsPerWeek = max(1, min($meetingsPerWeek, 6));
         $monthNumber = (int) substr($bulan, 5, 2);
-        $firstDay = \Carbon\Carbon::create((int) substr($bulan, 0, 4), $monthNumber, 1);
+        $firstDay = Carbon::create((int) substr($bulan, 0, 4), $monthNumber, 1);
         $firstMonday = $firstDay->copy();
 
         if ($firstDay->dayOfWeek !== 1) {

@@ -309,15 +309,18 @@ class TugasController extends Controller
             $values['nilai_sebelum_penalty'] = $nilaiInput;
             $values['penalty_terlambat'] = $penalty;
             $values['status'] = PengumpulanTugas::STATUS_DINILAI;
+            $values['graded_at'] = now();
         } elseif ($pengumpulan && $pengumpulan->nilai === null
             && in_array($pengumpulan->status, PengumpulanTugas::STATUS_PERLU_DINILAI)) {
             // Komentar tanpa nilai: kembalikan ke siswa untuk diperbaiki,
             // sehingga tidak lagi masuk antrian "perlu dinilai".
             $values['status'] = PengumpulanTugas::STATUS_PERLU_PERBAIKAN;
             $values['penalty_terlambat'] = 0;
+            $values['graded_at'] = now();
         } elseif (!$pengumpulan) {
             $values['status'] = PengumpulanTugas::STATUS_BELUM;
             $values['penalty_terlambat'] = 0;
+            $values['graded_at'] = now();
         }
 
         $savedPengumpulan = PengumpulanTugas::updateOrCreate(
@@ -345,6 +348,7 @@ class TugasController extends Controller
                 'nilai_input' => $savedPengumpulan->nilai_sebelum_penalty ?? $savedPengumpulan->nilai,
                 'catatan' => $savedPengumpulan->catatan,
                 'penalty_terlambat' => $savedPengumpulan->penalty_terlambat,
+                'graded_at' => $savedPengumpulan->graded_at?->format('H:i'),
                 'saved_at' => now()->format('H:i'),
             ]);
         }

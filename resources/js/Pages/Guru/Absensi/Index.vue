@@ -194,6 +194,20 @@ function selectedExportUrl(format) {
                 </Card>
             </div>
 
+            <div v-else-if="selected && !selected.has_schedule" class="col-12">
+                <Card>
+                    <EmptyState
+                        title="Jadwal mengajar belum tersedia"
+                        message="Isi jadwal mengajar Senin-Jumat terlebih dahulu agar tanggal absensi otomatis sesuai kalender."
+                        icon="bi-calendar-week"
+                    >
+                        <a :href="selected.schedule_url" class="btn btn-primary btn-sm">
+                            <i class="bi bi-calendar-plus me-1" aria-hidden="true"></i> Atur Jadwal
+                        </a>
+                    </EmptyState>
+                </Card>
+            </div>
+
             <div v-else-if="selected" class="col-12">
                 <form @submit.prevent="submit">
                     <Card
@@ -206,7 +220,7 @@ function selectedExportUrl(format) {
                             <Badge color="warning" class="text-dark">S=Sakit</Badge>
                             <Badge color="info" class="text-dark">I=Izin</Badge>
                             <Badge color="danger">A=Alpha</Badge>
-                            <Badge color="secondary">{{ selected.pertemuan_per_minggu }}x/minggu</Badge>
+                            <Badge color="secondary">Mengikuti jadwal mengajar</Badge>
                             <span class="ms-auto d-flex flex-wrap gap-2">
                                 <a :href="selectedExportUrl('excel')" class="btn btn-sm btn-outline-success">
                                     <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel

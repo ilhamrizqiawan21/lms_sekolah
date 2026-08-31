@@ -1,7 +1,8 @@
 <script setup>
 import { computed } from 'vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import PageHeader from '../../Components/AppShell/PageHeader.vue';
+import FileInput from '../../Components/Form/FileInput.vue';
 import TextInput from '../../Components/Form/TextInput.vue';
 import AppShell from '../../Layouts/AppShell.vue';
 import { Badge, Button, Card } from '../../Components/UI';
@@ -9,12 +10,18 @@ import { Badge, Button, Card } from '../../Components/UI';
 const props = defineProps({
     profile: { type: Object, required: true },
     updateUrl: { type: String, required: true },
+    avatarUpdateUrl: { type: String, required: true },
+    avatarDeleteUrl: { type: String, required: true },
 });
 
 const form = useForm({
     current_password: '',
     password: '',
     password_confirmation: '',
+});
+
+const avatarForm = useForm({
+    foto: null,
 });
 
 const accountRows = computed(() => [
@@ -46,6 +53,30 @@ function submit() {
         onSuccess: () => form.reset(),
     });
 }
+
+function submitAvatar() {
+    avatarForm.post(props.avatarUpdateUrl, {
+        forceFormData: true,
+        preserveScroll: true,
+        onSuccess: () => avatarForm.reset(),
+    });
+}
+
+async function deleteAvatar() {
+    const confirmed = await window.confirmDialog?.('Hapus foto profil saat ini?', {
+        title: 'Hapus Foto',
+        confirmText: 'Ya, hapus',
+        danger: true,
+    });
+
+    if (!confirmed) {
+        return;
+    }
+
+    router.delete(props.avatarDeleteUrl, {
+        preserveScroll: true,
+    });
+}
 </script>
 
 <template>
@@ -58,9 +89,20 @@ function submit() {
             <div class="col-xl-7 mb-4">
                 <Card title="Data Akun" icon="bi-info-circle">
                     <div class="account-summary">
-                        <div>
-                            <div class="account-name">{{ profile.nama_lengkap || '-' }}</div>
-                            <div class="account-username">@{{ profile.username || '-' }}</div>
+                        <div class="account-identity">
+                            <img
+                                v-if="profile.foto_url"
+                                :src="profile.foto_url"
+                                :alt="`Foto ${profile.nama_lengkap}`"
+                                class="account-avatar"
+                            >
+                            <div v-else class="account-avatar account-avatar-empty" aria-hidden="true">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <div>
+                                <div class="account-name">{{ profile.nama_lengkap || '-' }}</div>
+                                <div class="account-username">@{{ profile.username || '-' }}</div>
+                            </div>
                         </div>
                         <div class="account-badges">
                             <Badge :color="profile.role === 'admin' ? 'primary' : profile.role">
@@ -74,6 +116,38 @@ function submit() {
                             </Badge>
                         </div>
                     </div>
+
+                    <form class="avatar-form" @submit.prevent="submitAvatar">
+                        <FileInput
+                            v-model="avatarForm.foto"
+                            name="foto"
+                            label="Foto Profil"
+                            accept=".jpg,.jpeg,.png,.webp"
+                            accept-label=".jpg, .jpeg, .png, .webp"
+                            max-size="2MB"
+                            wrapper-class="mb-2"
+                            :error="avatarForm.errors.foto"
+                        />
+                        <div class="d-flex flex-wrap gap-2">
+                            <Button
+                                type="submit"
+                                color="primary"
+                                icon="bi-upload"
+                                :disabled="avatarForm.processing || !avatarForm.foto"
+                            >
+                                {{ avatarForm.processing ? 'Mengunggah...' : 'Upload Foto' }}
+                            </Button>
+                            <Button
+                                v-if="profile.foto_url"
+                                type="button"
+                                color="outline-danger"
+                                icon="bi-trash"
+                                @click="deleteAvatar"
+                            >
+                                Hapus Foto
+                            </Button>
+                        </div>
+                    </form>
 
                     <div class="table-responsive">
                         <table class="table table-sm align-middle mb-0 profile-table">
@@ -161,6 +235,35 @@ function submit() {
     gap: 1rem;
     justify-content: space-between;
     margin-bottom: 1rem;
+}
+
+.account-identity {
+    align-items: center;
+    display: flex;
+    gap: 0.85rem;
+}
+
+.account-avatar {
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    height: 64px;
+    object-fit: cover;
+    width: 64px;
+}
+
+.account-avatar-empty {
+    align-items: center;
+    background: var(--gray-100);
+    color: var(--gray-500);
+    display: inline-flex;
+    font-size: 1.8rem;
+    justify-content: center;
+}
+
+.avatar-form {
+    border-bottom: 1px solid var(--gray-100);
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
 }
 
 .account-name {

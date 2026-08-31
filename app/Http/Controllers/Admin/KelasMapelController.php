@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\JadwalMengajar;
 use App\Models\Kelas;
 use App\Models\KelasMapel;
 use App\Models\MataPelajaran;
@@ -21,6 +22,10 @@ class KelasMapelController extends Controller
             ->orderBy('tahun_ajaran_id', 'desc')->orderBy('kelas_id')->orderBy('semester')->paginate(20);
         $waliKelas = WaliKelas::with(['kelas', 'guru', 'tahunAjaran'])
             ->orderBy('tahun_ajaran_id', 'desc')->orderBy('kelas_id')->paginate(20, ['*'], 'wali_page');
+        $jadwalMengajar = JadwalMengajar::with(['guru', 'kelasMapel.kelas', 'kelasMapel.mataPelajaran'])
+            ->orderBy('hari')
+            ->orderBy('pelajaran_ke')
+            ->get();
         $kelas = Kelas::all();
         $mapel = MataPelajaran::orderBy('urutan')->get();
         $guru = User::whereHas('role', fn($q) => $q->where('nama_role', 'guru'))->where('is_active', true)->orderBy('nama_lengkap')->get();
@@ -39,6 +44,14 @@ class KelasMapelController extends Controller
                 'kelas' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat . ' ' : '') . ($item->kelas?->nama_kelas ?? '-')),
                 'guru' => $item->guru?->nama_lengkap ?? '-', 'tahun_ajaran' => $item->tahunAjaran?->tahun ?? '-',
             ]),
+            'jadwalMengajar' => $jadwalMengajar->map(fn (JadwalMengajar $item) => [
+                'id' => $item->id,
+                'guru' => $item->guru?->nama_lengkap ?? '-',
+                'hari' => $item->dayLabel(),
+                'pelajaran_ke' => $item->pelajaran_ke,
+                'kelas_mapel' => trim(($item->kelasMapel?->kelas?->nama_kelas ?? '-') . ' - ' . ($item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-')),
+                'delete_url' => route('admin.jadwal-mengajar.destroy', $item),
+            ])->values(),
             'kelasOptions' => $kelas->map(fn (Kelas $item) => ['value' => $item->id, 'label' => trim(($item->tingkat ? $item->tingkat . ' ' : '') . $item->nama_kelas)])->values(),
             'mapelOptions' => $mapel->map(fn (MataPelajaran $item) => ['value' => $item->id, 'label' => trim($item->kode . ' - ' . $item->nama_mapel)])->values(),
             'guruOptions' => $guru->map(fn (User $item) => ['value' => $item->id, 'label' => $item->nama_lengkap])->values(),
@@ -63,8 +76,8 @@ class KelasMapelController extends Controller
 
     public function destroy(KelasMapel $kelasMapel)
     {
-        $hasData = $kelasMapel->materi()->exists() || $kelasMapel->tugas()->exists() || $kelasMapel->absensi()->exists() || $kelasMapel->nilaiAkhir()->exists() || $kelasMapel->sikapSosial()->exists() || $kelasMapel->sikapSpiritual()->exists() || $kelasMapel->chatMessages()->exists();
-        if ($hasData) return back()->with('error', 'Pengajaran tidak dapat dihapus karena sudah memiliki data materi, tugas, absensi, nilai, sikap, atau chat.');
+        $hasData = $kelasMapel->materi()->exists() || $kelasMapel->tugas()->exists() || $kelasMapel->absensi()->exists() || $kelasMapel->nilaiAkhir()->exists() || $kelasMapel->sikapSosial()->exists() || $kelasMapel->sikapSpiritual()->exists() || $kelasMapel->chatMessages()->exists() || $kelasMapel->jadwalMengajar()->exists() || $kelasMapel->kelasDaring()->exists();
+        if ($hasData) return back()->with('error', 'Pengajaran tidak dapat dihapus karena sudah memiliki data materi, tugas, absensi, nilai, sikap, chat, jadwal, atau kelas daring.');
         $kelasMapel->delete();
         return redirect()->route('admin.kelas-mapel.index')->with('success', 'Pengaturan kelas-mapel berhasil dihapus.');
     }
@@ -88,5 +101,12 @@ class KelasMapelController extends Controller
         }
         $waliKelas->delete();
         return redirect()->route('admin.kelas-mapel.index')->with('success', 'Penugasan wali kelas berhasil dihapus.');
+    }
+
+    public function destroyJadwalMengajar(JadwalMengajar $jadwalMengajar)
+    {
+        $jadwalMengajar->delete();
+
+        return redirect()->route('admin.kelas-mapel.index')->with('success', 'Jadwal mengajar berhasil dihapus.');
     }
 }

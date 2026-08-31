@@ -4,8 +4,8 @@ import { Link, router } from '@inertiajs/vue3';
 defineProps({ school: { type: Object, required: true }, user: { type: Object, default: null }, pageTitle: { type: String, default: 'Dashboard' }, notifications: { type: Object, default: () => ({}) }, sidebarOpen: { type: Boolean, default: false } });
 const emit = defineEmits(['toggle-sidebar', 'open-command']);
 function logout() { router.post('/logout'); }
-function profileHref(role) { if (role === 'admin') return '/admin/pengaturan-akun'; if (role === 'guru') return '/guru/pengaturan'; if (role === 'siswa') return '/siswa/pengaturan'; return null; }
-function profileIsInertia(role) { return ['admin', 'guru', 'siswa'].includes(role); }
+function profileHref(role) { if (role === 'admin') return '/admin/pengaturan-akun'; if (role === 'guru') return '/guru/pengaturan'; if (role === 'siswa') return '/siswa/pengaturan'; if (role === 'kepala_sekolah') return '/kepsek/pengaturan'; return null; }
+function profileIsInertia(role) { return ['admin', 'guru', 'siswa', 'kepala_sekolah'].includes(role); }
 </script>
 
 <template>
@@ -31,7 +31,7 @@ function profileIsInertia(role) { return ['admin', 'guru', 'siswa'].includes(rol
             <button class="btn btn-sm topbar-icon-btn theme-toggle-btn" type="button" data-theme-toggle aria-label="Aktifkan mode gelap" title="Aktifkan mode gelap" aria-pressed="false"><i class="bi bi-moon-stars-fill" data-theme-toggle-icon aria-hidden="true"></i></button>
             <span class="d-none d-lg-inline me-2 topbar-user-name">{{ user?.nama_lengkap ?? '-' }}</span>
             <div class="dropdown">
-                <button class="btn btn-sm dropdown-toggle topbar-account-btn" type="button" data-bs-toggle="dropdown" aria-label="Menu akun"><i class="bi bi-person-circle me-1" aria-hidden="true"></i><span class="topbar-account-label">{{ user?.nama_lengkap ?? 'Akun' }}</span></button>
+                <button class="btn btn-sm dropdown-toggle topbar-account-btn" type="button" data-bs-toggle="dropdown" aria-label="Menu akun"><img v-if="user?.foto_url" :src="user.foto_url" :alt="`Foto ${user.nama_lengkap ?? 'pengguna'}`" class="topbar-account-avatar" width="24" height="24" decoding="async"><i v-else class="bi bi-person-circle me-1" aria-hidden="true"></i><span class="topbar-account-label">{{ user?.nama_lengkap ?? 'Akun' }}</span></button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><span class="dropdown-item-text fw-bold">{{ user?.nama_lengkap ?? '-' }}</span></li><li><span class="dropdown-item-text text-muted small">{{ user?.username ?? '-' }} - {{ user?.role_label ?? '-' }}</span></li><li><hr class="dropdown-divider"></li>
                     <li v-if="profileHref(user?.role)"><Link v-if="profileIsInertia(user?.role)" :href="profileHref(user?.role)" class="dropdown-item"><i class="bi bi-person-gear me-1" aria-hidden="true"></i> Pengaturan</Link><a v-else :href="profileHref(user?.role)" class="dropdown-item"><i class="bi bi-person-gear me-1" aria-hidden="true"></i> Pengaturan</a></li>
@@ -44,6 +44,7 @@ function profileIsInertia(role) { return ['admin', 'guru', 'siswa'].includes(rol
 
 <style scoped>
 .topbar-search { min-width: 0; max-width: 420px; flex: 1 1 320px; }
+.topbar-account-avatar { width: 24px; height: 24px; border-radius: 999px; object-fit: cover; margin-right: .35rem; }
 .topbar-account-label { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 @media (max-width: 991.98px) {
     .topbar { gap: .5rem; padding-inline: .65rem; }
@@ -54,7 +55,7 @@ function profileIsInertia(role) { return ['admin', 'guru', 'siswa'].includes(rol
     .topbar-actions { margin-left: auto; }
     .topbar-account-label { display: none; }
     .topbar-account-btn { width: 38px; height: 38px; padding: 0; }
-    .topbar-account-btn i { margin: 0 !important; }
+    .topbar-account-btn i, .topbar-account-avatar { margin: 0 !important; }
     .topbar-search { flex: 0 0 38px; width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
     .topbar-search span, .topbar-search kbd { display: none; }
 }

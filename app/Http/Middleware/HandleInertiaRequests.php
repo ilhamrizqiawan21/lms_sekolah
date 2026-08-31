@@ -6,6 +6,7 @@ use App\Models\Pengaturan;
 use App\Models\Notifikasi;
 use App\Models\WaliKelas;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -62,6 +63,7 @@ class HandleInertiaRequests extends Middleware
                     'username' => $user->username,
                     'nama_lengkap' => $user->nama_lengkap,
                     'email' => $user->email,
+                    'foto_url' => $user->foto ? Storage::disk('public')->url($user->foto) : null,
                     'role' => $role,
                     'role_label' => match ($role) {
                         'admin' => 'Admin',

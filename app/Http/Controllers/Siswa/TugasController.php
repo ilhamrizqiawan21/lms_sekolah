@@ -194,7 +194,7 @@ class TugasController extends Controller
             DB::beginTransaction();
             $pengumpulan = PengumpulanTugas::updateOrCreate(
                 ['tugas_id' => $tugas->id, 'siswa_id' => $siswa->id],
-                ['status' => $statusPengumpulan, 'file_upload' => null, 'teks_jawaban' => $validated['teks_jawaban'] ?? null, 'tanggal_kumpul' => now()]
+                ['status' => $statusPengumpulan, 'file_upload' => null, 'teks_jawaban' => $validated['teks_jawaban'] ?? null, 'tanggal_kumpul' => now(), 'graded_at' => null]
             );
 
             if ($request->hasFile('file_upload')) {

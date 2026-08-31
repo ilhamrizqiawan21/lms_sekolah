@@ -102,6 +102,16 @@ class User extends Authenticatable
         return $this->hasMany(KelasMapel::class, 'guru_id');
     }
 
+    public function jadwalMengajar(): HasMany
+    {
+        return $this->hasMany(JadwalMengajar::class, 'guru_id');
+    }
+
+    public function kelasDaring(): HasMany
+    {
+        return $this->hasMany(KelasDaring::class, 'guru_id');
+    }
+
     public function waliKelas(): HasMany
     {
         return $this->hasMany(WaliKelas::class, 'guru_id');

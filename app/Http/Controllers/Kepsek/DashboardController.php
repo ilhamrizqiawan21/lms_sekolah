@@ -27,18 +27,21 @@ class DashboardController extends Controller
     public function index()
     {
         $statistik = $this->statistikService->dashboardKepsek();
+        $monthExpression = DB::getDriverName() === 'sqlite'
+            ? "strftime('%Y-%m', tanggal)"
+            : "DATE_FORMAT(tanggal, '%Y-%m')";
 
-        // Grafik absensi 7 hari terakhir
-        $absensiMingguan = Absensi::select(
-            DB::raw('DATE(tanggal) as tanggal'),
+        // Grafik absensi bulanan agar tren lebih mudah dianalisis.
+        $absensiBulanan = Absensi::select(
+            DB::raw("$monthExpression as bulan"),
             DB::raw("SUM(CASE WHEN status = 'hadir' THEN 1 ELSE 0 END) as hadir"),
             DB::raw("SUM(CASE WHEN status = 'sakit' THEN 1 ELSE 0 END) as sakit"),
             DB::raw("SUM(CASE WHEN status = 'izin' THEN 1 ELSE 0 END) as izin"),
             DB::raw("SUM(CASE WHEN status = 'alpha' THEN 1 ELSE 0 END) as alpha")
         )
-            ->where('tanggal', '>=', now()->subDays(7))
-            ->groupBy('tanggal')
-            ->orderBy('tanggal')
+            ->where('tanggal', '>=', now()->subMonths(6)->startOfMonth())
+            ->groupBy('bulan')
+            ->orderBy('bulan')
             ->get();
 
         // Rata-rata nilai per mata pelajaran
@@ -69,8 +72,9 @@ class DashboardController extends Controller
                 'total_kelas' => $statistik['total_kelas'] ?? 0,
                 'total_mapel' => $statistik['total_mapel'] ?? 0,
             ],
-            'absensiMingguan' => $absensiMingguan->map(fn ($item) => [
-                'tanggal' => $item->tanggal,
+            'absensiBulanan' => $absensiBulanan->map(fn ($item) => [
+                'bulan' => $item->bulan,
+                'bulan_label' => Carbon::createFromFormat('Y-m', $item->bulan)->format('M Y'),
                 'hadir' => (int) $item->hadir,
                 'sakit' => (int) $item->sakit,
                 'izin' => (int) $item->izin,

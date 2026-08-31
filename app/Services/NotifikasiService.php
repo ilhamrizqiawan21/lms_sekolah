@@ -2,9 +2,8 @@
 
 namespace App\Services;
 
+use App\Jobs\CreateClassNotifications;
 use App\Models\Notifikasi;
-use App\Models\Siswa;
-use App\Models\User;
 
 class NotifikasiService
 {
@@ -13,19 +12,7 @@ class NotifikasiService
      */
     public function notifikasiKelasMapel(int $kelasMapelId, string $tipe, string $judul, string $pesan, ?string $link = null): void
     {
-        $siswas = Siswa::whereHas('kelas.kelasMapel', function ($q) use ($kelasMapelId) {
-            $q->where('kelas_mapel.id', $kelasMapelId);
-        })->where('status', 'aktif')->get();
-
-        foreach ($siswas as $siswa) {
-            Notifikasi::create([
-                'user_id' => $siswa->user_id,
-                'tipe' => $tipe,
-                'judul' => $judul,
-                'pesan' => $pesan,
-                'link' => $link,
-            ]);
-        }
+        CreateClassNotifications::dispatch($kelasMapelId, $tipe, $judul, $pesan, $link)->afterResponse();
     }
 
     /**

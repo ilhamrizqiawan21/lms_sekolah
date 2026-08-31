@@ -6,7 +6,7 @@ import { Badge, Card, DashboardHero, EmptyState, MetricStrip, TableWrapper } fro
 
 const props = defineProps({
     statistik: { type: Object, default: () => ({}) },
-    absensiMingguan: { type: Array, default: () => [] },
+    absensiBulanan: { type: Array, default: () => [] },
     rataNilaiPerMapel: { type: Array, default: () => [] },
     pengumuman: { type: Array, default: () => [] },
     loginTerbaru: { type: Array, default: () => [] },
@@ -23,7 +23,7 @@ const absensiCanvas = ref(null);
 let absensiChart = null;
 
 async function renderAbsensiChart() {
-    if (!absensiCanvas.value || !props.absensiMingguan.length) {
+    if (!absensiCanvas.value || !props.absensiBulanan.length) {
         return;
     }
 
@@ -34,12 +34,12 @@ async function renderAbsensiChart() {
     absensiChart = new Chart(absensiCanvas.value, {
         type: 'bar',
         data: {
-            labels: props.absensiMingguan.map((item) => item.tanggal),
+            labels: props.absensiBulanan.map((item) => item.bulan_label || item.bulan),
             datasets: [
-                { label: 'Hadir', data: props.absensiMingguan.map((item) => item.hadir), backgroundColor: '#198754' },
-                { label: 'Sakit', data: props.absensiMingguan.map((item) => item.sakit), backgroundColor: '#ffc107' },
-                { label: 'Izin', data: props.absensiMingguan.map((item) => item.izin), backgroundColor: '#0d6efd' },
-                { label: 'Alpa', data: props.absensiMingguan.map((item) => item.alpha), backgroundColor: '#dc3545' },
+                { label: 'Hadir', data: props.absensiBulanan.map((item) => item.hadir), backgroundColor: '#198754' },
+                { label: 'Sakit', data: props.absensiBulanan.map((item) => item.sakit), backgroundColor: '#ffc107' },
+                { label: 'Izin', data: props.absensiBulanan.map((item) => item.izin), backgroundColor: '#0d6efd' },
+                { label: 'Alpa', data: props.absensiBulanan.map((item) => item.alpha), backgroundColor: '#dc3545' },
             ],
         },
         options: {
@@ -59,7 +59,7 @@ function roleBadgeColor(role) {
 }
 
 onMounted(() => nextTick(renderAbsensiChart));
-watch(() => props.absensiMingguan, () => nextTick(renderAbsensiChart), { deep: true });
+watch(() => props.absensiBulanan, () => nextTick(renderAbsensiChart), { deep: true });
 onBeforeUnmount(() => absensiChart?.destroy());
 </script>
 
@@ -79,8 +79,8 @@ onBeforeUnmount(() => absensiChart?.destroy());
 
         <div class="row">
             <div class="col-md-6 mb-4">
-                <Card title="Statistik Absensi (7 Hari Terakhir)" icon="bi-clipboard-check-fill">
-                    <canvas v-if="absensiMingguan.length" ref="absensiCanvas" height="200"></canvas>
+                <Card title="Statistik Absensi Bulanan" icon="bi-clipboard-check-fill">
+                    <canvas v-if="absensiBulanan.length" ref="absensiCanvas" height="200"></canvas>
                     <EmptyState v-else title="Belum ada data absensi." icon="bi-clipboard-check" />
                 </Card>
             </div>

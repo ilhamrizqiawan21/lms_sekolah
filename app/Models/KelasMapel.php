@@ -82,6 +82,16 @@ class KelasMapel extends Model
         return $this->hasMany(ChatMessage::class, 'kelas_mapel_id');
     }
 
+    public function jadwalMengajar(): HasMany
+    {
+        return $this->hasMany(JadwalMengajar::class, 'kelas_mapel_id');
+    }
+
+    public function kelasDaring(): HasMany
+    {
+        return $this->hasMany(KelasDaring::class, 'kelas_mapel_id');
+    }
+
     public function nilaiAkhir(): HasMany
     {
         return $this->hasMany(NilaiAkhir::class, 'kelas_mapel_id');

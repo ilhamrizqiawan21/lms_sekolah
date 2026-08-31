@@ -10,6 +10,7 @@ use App\Models\Siswa;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -67,6 +68,7 @@ class ChatController extends Controller
                 'id' => $message->id,
                 'message' => $message->message,
                 'author' => $message->user?->nama_lengkap ?? 'Unknown',
+                'avatar_url' => $message->user?->foto ? Storage::disk('public')->url($message->user->foto) : null,
                 'is_mine' => (int) $message->user_id === (int) Auth::id(),
                 'time' => $message->created_at ? Carbon::parse($message->created_at)->format('H:i') : '',
             ]),

@@ -41,10 +41,12 @@ class PengumpulanTugas extends Model
         'teks_jawaban',
         'catatan',
         'tanggal_kumpul',
+        'graded_at',
     ];
 
     protected $casts = [
         'tanggal_kumpul' => 'datetime',
+        'graded_at' => 'datetime',
         'nilai' => 'decimal:2',
         'nilai_sebelum_penalty' => 'decimal:2',
         'penalty_terlambat' => 'decimal:2',

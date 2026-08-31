@@ -20,6 +20,7 @@ import {
 const props = defineProps({
     kelasMapel: { type: Object, default: () => ({ data: [], links: [] }) },
     waliKelas: { type: Object, default: () => ({ data: [], links: [] }) },
+    jadwalMengajar: { type: Array, default: () => [] },
     kelasOptions: { type: Array, default: () => [] },
     mapelOptions: { type: Array, default: () => [] },
     guruOptions: { type: Array, default: () => [] },
@@ -112,6 +113,22 @@ async function destroyHomeroom(item) {
     }
 
     router.delete(`/admin/wali-kelas/${item.id}`, {
+        preserveScroll: true,
+    });
+}
+
+async function destroySchedule(item) {
+    const confirmed = await window.confirmDialog?.(`Hapus jadwal ${item.guru} pada ${item.hari} pelajaran ke-${item.pelajaran_ke}?`, {
+        title: 'Hapus Jadwal Mengajar',
+        confirmText: 'Ya, hapus',
+        danger: true,
+    });
+
+    if (!confirmed) {
+        return;
+    }
+
+    router.delete(item.delete_url, {
         preserveScroll: true,
     });
 }
@@ -397,6 +414,46 @@ async function destroyHomeroom(item) {
             <div v-if="waliKelas.links?.length > 3" class="d-flex justify-content-end p-3 border-top">
                         <Pagination :links="waliKelas.links" />
             </div>
+        </section>
+
+        <section class="workspace-panel">
+            <header class="workspace-panel-header">
+                <span class="workspace-panel-title">
+                    <i class="bi bi-calendar-week-fill" aria-hidden="true"></i>
+                    Jadwal Mengajar Guru
+                </span>
+                <Badge color="primary">{{ jadwalMengajar.length }} slot</Badge>
+            </header>
+            <TableWrapper v-if="jadwalMengajar.length">
+                <table class="table table-hover app-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Guru</th>
+                            <th>Hari</th>
+                            <th>Jam</th>
+                            <th>Kelas/Mapel</th>
+                            <th class="table-action-column">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="item in jadwalMengajar" :key="item.id">
+                            <td><strong>{{ item.guru }}</strong></td>
+                            <td><Badge color="primary">{{ item.hari }}</Badge></td>
+                            <td>Pelajaran ke-{{ item.pelajaran_ke }}</td>
+                            <td>{{ item.kelas_mapel }}</td>
+                            <td class="table-action-column">
+                                <IconButton
+                                    icon="bi-trash"
+                                    :label="`Hapus jadwal ${item.guru}`"
+                                    color="outline-danger"
+                                    @click="destroySchedule(item)"
+                                />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </TableWrapper>
+            <EmptyState v-else title="Belum ada jadwal mengajar" icon="bi-calendar-week" />
         </section>
     </AppShell>
 </template>

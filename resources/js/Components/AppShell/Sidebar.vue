@@ -40,7 +40,16 @@ function isActive(entry) {
         </div>
 
         <div class="sidebar-user">
-            <div class="sidebar-user-avatar"><i class="bi bi-person-fill" aria-hidden="true"></i></div>
+            <img
+                v-if="user?.foto_url"
+                :src="user.foto_url"
+                :alt="`Foto ${user.nama_lengkap ?? 'pengguna'}`"
+                class="sidebar-user-avatar sidebar-user-photo"
+                width="40"
+                height="40"
+                decoding="async"
+            >
+            <div v-else class="sidebar-user-avatar"><i class="bi bi-person-fill" aria-hidden="true"></i></div>
             <div>
                 <div class="sidebar-user-name">{{ user?.nama_lengkap ?? '-' }}</div>
                 <div class="sidebar-user-role">{{ user?.role_label ?? '-' }}</div>
@@ -81,3 +90,10 @@ function isActive(entry) {
         </Link>
     </nav>
 </template>
+
+<style scoped>
+.sidebar-user-photo {
+    display: block;
+    object-fit: cover;
+}
+</style>
