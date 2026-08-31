@@ -348,6 +348,7 @@ class AbsensiController extends Controller
             ->map(fn ($date) => $date instanceof Carbon ? $date->toDateString() : Carbon::parse($date)->toDateString())
             ->flip();
         $meetings = [];
+        $meetingNumber = 1;
 
         for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
             $dayNumber = (int) $date->format('N');
@@ -365,11 +366,13 @@ class AbsensiController extends Controller
             $meetings[] = [
                 'key' => $date->toDateString(),
                 'week' => (int) ceil((int) $date->format('j') / 7),
-                'meeting' => $slots->first(),
+                'meeting' => $meetingNumber,
                 'date' => $date->toDateString(),
                 'label' => $date->format('d/m'),
-                'title' => JadwalMengajar::DAYS[$dayNumber] . ' P' . $slots->implode('/P'),
+                'title' => JadwalMengajar::DAYS[$dayNumber] . ' P' . $meetingNumber,
+                'lesson_title' => 'Jam ke-' . $slots->implode('/'),
             ];
+            $meetingNumber++;
         }
 
         return collect($meetings);

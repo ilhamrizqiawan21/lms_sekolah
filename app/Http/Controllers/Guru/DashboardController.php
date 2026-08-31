@@ -39,11 +39,12 @@ class DashboardController extends Controller
 
         $kelasMapelIds = $kelasMapel->pluck('id');
         $kelasIds = $kelasMapel->pluck('kelas_id')->unique()->values();
+        $chartMonths = $this->chartMonths();
         $tugasBelumDikumpulkan = $this->tugasBelumDikumpulkan($kelasMapel, $kelasMapelIds, $kelasIds);
         $siswaJarangMasuk = $this->siswaJarangMasuk($kelasMapelIds);
         $tugasPerluDinilai = $this->tugasPerluDinilai($kelasMapelIds);
-        $kehadiranChart = $this->kehadiranChart($kelasMapelIds);
-        $pengumpulanTugasChart = $this->pengumpulanTugasChart($kelasMapelIds);
+        $kehadiranChart = $this->kehadiranChart($kelasMapelIds, $chartMonths);
+        $pengumpulanTugasChart = $this->pengumpulanTugasChart($kelasMapelIds, $chartMonths);
 
         $pengumuman = Pengumuman::with('creator')
             ->where(function ($q) use ($kelasMapelIds, $kelasIds) {
@@ -243,60 +244,78 @@ class DashboardController extends Controller
             ->values();
     }
 
-    private function kehadiranChart($kelasMapelIds)
+    private function chartMonths()
+    {
+        $today = now();
+        $startYear = $today->month >= 7 ? $today->year : $today->year - 1;
+        $start = Carbon::create($startYear, 7, 1)->startOfMonth();
+
+        return collect(range(0, 11))
+            ->map(fn (int $monthsFromStart) => $start->copy()->addMonths($monthsFromStart));
+    }
+
+    private function kehadiranChart($kelasMapelIds, $chartMonths)
     {
         if ($kelasMapelIds->isEmpty()) {
             return collect();
         }
 
-        $since = now()->subDays(6)->startOfDay()->toDateString();
-
+        $start = $chartMonths->first();
+        $monthExpression = DB::getDriverName() === 'sqlite'
+            ? "strftime('%Y-%m', tanggal)"
+            : "DATE_FORMAT(tanggal, '%Y-%m')";
         $records = Absensi::whereIn('kelas_mapel_id', $kelasMapelIds)
-            ->where('tanggal', '>=', $since)
-            ->selectRaw("tanggal,
-                SUM(CASE WHEN status = 'hadir' THEN 1 ELSE 0 END) as hadir,
-                SUM(CASE WHEN status = 'sakit' THEN 1 ELSE 0 END) as sakit,
-                SUM(CASE WHEN status = 'izin' THEN 1 ELSE 0 END) as izin,
-                SUM(CASE WHEN status = 'alpha' THEN 1 ELSE 0 END) as alpha,
-                COUNT(*) as total")
-            ->groupBy('tanggal')
-            ->orderBy('tanggal')
+            ->where('tanggal', '>=', $start->toDateString())
+            ->select(
+                DB::raw("$monthExpression as bulan"),
+                DB::raw("SUM(CASE WHEN status = 'hadir' THEN 1 ELSE 0 END) as hadir"),
+                DB::raw("SUM(CASE WHEN status = 'sakit' THEN 1 ELSE 0 END) as sakit"),
+                DB::raw("SUM(CASE WHEN status = 'izin' THEN 1 ELSE 0 END) as izin"),
+                DB::raw("SUM(CASE WHEN status = 'alpha' THEN 1 ELSE 0 END) as alpha"),
+                DB::raw('COUNT(*) as total')
+            )
+            ->groupBy('bulan')
+            ->orderBy('bulan')
             ->get()
-            ->keyBy(fn ($item) => Carbon::parse($item->tanggal)->format('Y-m-d'));
+            ->keyBy('bulan');
 
-        return collect(range(6, 0))->map(function (int $daysAgo) use ($records) {
-            $date = now()->subDays($daysAgo);
-            $record = $records->get($date->format('Y-m-d'));
+        return $chartMonths->map(function (Carbon $month) use ($records) {
+            $record = $records->get($month->format('Y-m'));
             $hadir = (int) ($record->hadir ?? 0);
+            $sakit = (int) ($record->sakit ?? 0);
+            $izin = (int) ($record->izin ?? 0);
+            $alpha = (int) ($record->alpha ?? 0);
             $total = (int) ($record->total ?? 0);
 
             return [
-                'tanggal' => $date->format('d M'),
+                'bulan' => $month->format('Y-m'),
+                'bulan_label' => $month->format('M Y'),
                 'hadir' => $hadir,
-                'sakit' => (int) ($record->sakit ?? 0),
-                'izin' => (int) ($record->izin ?? 0),
-                'alpha' => (int) ($record->alpha ?? 0),
+                'sakit' => $sakit,
+                'izin' => $izin,
+                'alpha' => $alpha,
                 'total' => $total,
                 'persen_hadir' => $total > 0 ? round(($hadir / $total) * 100, 1) : 0,
             ];
         })->values();
     }
 
-    private function pengumpulanTugasChart($kelasMapelIds)
+    private function pengumpulanTugasChart($kelasMapelIds, $chartMonths)
     {
         if ($kelasMapelIds->isEmpty()) {
             return collect();
         }
 
-        $tugas = Tugas::with(['kelasMapel.kelas'])
+        $start = $chartMonths->first();
+        $end = $chartMonths->last()->copy()->endOfMonth();
+        $tugas = Tugas::query()
             ->whereIn('kelas_mapel_id', $kelasMapelIds)
-            ->orderByDesc('created_at')
-            ->take(10)
-            ->get()
-            ->reverse()
-            ->values();
+            ->whereNotNull('batas_waktu')
+            ->where('batas_waktu', '>=', $start)
+            ->where('batas_waktu', '<=', $end)
+            ->get(['id', 'kelas_mapel_id', 'batas_waktu']);
 
-        $kelasIds = $tugas->pluck('kelasMapel.kelas_id')->unique()->filter();
+        $kelasIds = KelasMapel::whereIn('id', $kelasMapelIds)->pluck('kelas_id')->unique()->filter();
 
         $totalSiswaByKelas = Siswa::whereIn('kelas_id', $kelasIds)
             ->where('status', 'aktif')
@@ -304,15 +323,36 @@ class DashboardController extends Controller
             ->groupBy('kelas_id')
             ->pluck('total', 'kelas_id');
 
-        return $tugas->map(function (Tugas $item) use ($totalSiswaByKelas) {
-            $kelasId = $item->kelasMapel?->kelas_id;
-            $total = (int) ($totalSiswaByKelas[$kelasId] ?? 0);
-            $collected = PengumpulanTugas::where('tugas_id', $item->id)
+        $kelasIdByKelasMapel = KelasMapel::whereIn('id', $kelasMapelIds)->pluck('kelas_id', 'id');
+        $collectedByTask = PengumpulanTugas::whereIn('tugas_id', $tugas->pluck('id'))
                 ->whereIn('status', PengumpulanTugas::STATUS_SUBMITTED)
-                ->count();
+                ->selectRaw('tugas_id, COUNT(*) as total')
+                ->groupBy('tugas_id')
+                ->pluck('total', 'tugas_id');
+
+        $monthly = $tugas->groupBy(fn (Tugas $item) => Carbon::parse($item->batas_waktu)->format('Y-m'))
+            ->map(function ($items) use ($kelasIdByKelasMapel, $totalSiswaByKelas, $collectedByTask) {
+                $total = $items->sum(function (Tugas $item) use ($kelasIdByKelasMapel, $totalSiswaByKelas) {
+                    $kelasId = $kelasIdByKelasMapel[$item->kelas_mapel_id] ?? null;
+
+                    return (int) ($totalSiswaByKelas[$kelasId] ?? 0);
+                });
+                $collected = $items->sum(fn (Tugas $item) => (int) ($collectedByTask[$item->id] ?? 0));
+
+                return [
+                    'collected' => $collected,
+                    'total' => $total,
+                ];
+            });
+
+        return $chartMonths->map(function (Carbon $month) use ($monthly) {
+            $stats = $monthly->get($month->format('Y-m'), ['collected' => 0, 'total' => 0]);
+            $collected = (int) $stats['collected'];
+            $total = (int) $stats['total'];
 
             return [
-                'judul' => $item->judul,
+                'bulan' => $month->format('Y-m'),
+                'bulan_label' => $month->format('M Y'),
                 'collected' => $collected,
                 'total' => $total,
                 'belum' => max(0, $total - $collected),

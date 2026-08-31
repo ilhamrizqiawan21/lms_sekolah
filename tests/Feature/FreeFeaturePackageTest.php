@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Absensi;
 use App\Models\CalendarEvent;
 use App\Models\ChatMessage;
 use App\Models\JadwalMengajar;
@@ -15,6 +16,7 @@ use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Models\Tugas;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -125,8 +127,81 @@ class FreeFeaturePackageTest extends TestCase
                 ->component('Guru/Absensi/Index')
                 ->where('selected.has_schedule', true)
                 ->where('weeks.0.date', '2026-09-14')
+                ->where('weeks.0.title', 'Senin P1')
                 ->where('weeks.1.date', '2026-09-21')
+                ->where('weeks.1.title', 'Senin P2')
                 ->where('weeks.2.date', '2026-09-28')
+                ->where('weeks.2.title', 'Senin P3')
+            );
+    }
+
+    public function test_guru_dashboard_trends_are_aggregated_by_month(): void
+    {
+        [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
+        $kelasMapel = $this->course($guru, $kelas, $tahunAjaran, 'TRG');
+        $siswaUser = $this->createUser('siswa-tren-guru', 'Siswa Tren Guru', 'siswa');
+        $siswa = Siswa::create([
+            'user_id' => $siswaUser->id,
+            'nis' => '8151',
+            'kelas_id' => $kelas->id,
+            'status' => 'aktif',
+        ]);
+        $bulanLalu = Carbon::create(
+            now()->month >= 7 ? now()->year : now()->year - 1,
+            7,
+            1
+        );
+
+        Absensi::create([
+            'siswa_id' => $siswa->id,
+            'kelas_mapel_id' => $kelasMapel->id,
+            'tanggal' => $bulanLalu->copy()->day(3),
+            'status' => 'hadir',
+        ]);
+        Absensi::create([
+            'siswa_id' => $siswa->id,
+            'kelas_mapel_id' => $kelasMapel->id,
+            'tanggal' => $bulanLalu->copy()->day(20),
+            'status' => 'alpha',
+        ]);
+
+        $tugasA = Tugas::create([
+            'kelas_mapel_id' => $kelasMapel->id,
+            'judul' => 'Tugas Tren A',
+            'batas_waktu' => $bulanLalu->copy()->day(10),
+            'kategori_nilai' => 'NH',
+        ]);
+        $tugasB = Tugas::create([
+            'kelas_mapel_id' => $kelasMapel->id,
+            'judul' => 'Tugas Tren B',
+            'batas_waktu' => $bulanLalu->copy()->day(24),
+            'kategori_nilai' => 'NH',
+        ]);
+        PengumpulanTugas::create([
+            'tugas_id' => $tugasA->id,
+            'siswa_id' => $siswa->id,
+            'status' => 'dinilai',
+            'nilai' => 85,
+            'tanggal_kumpul' => $bulanLalu->copy()->day(8),
+        ]);
+        PengumpulanTugas::create([
+            'tugas_id' => $tugasB->id,
+            'siswa_id' => $siswa->id,
+            'status' => 'terlambat',
+            'tanggal_kumpul' => $bulanLalu->copy()->day(26),
+        ]);
+
+        $this->actingAs($guru)
+            ->get(route('guru.dashboard'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('kehadiranChart', 12)
+                ->where('kehadiranChart.0.bulan', '2026-07')
+                ->where('kehadiranChart.0.total', 2)
+                ->where('kehadiranChart.11.bulan', '2027-06')
+                ->where('pengumpulanTugasChart.0.bulan', '2026-07')
+                ->where('pengumpulanTugasChart.0.total', 2)
+                ->where('pengumpulanTugasChart.0.collected', 2)
             );
     }
 

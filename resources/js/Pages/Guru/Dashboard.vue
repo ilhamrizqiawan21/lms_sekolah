@@ -24,10 +24,22 @@ const pengumpulanCanvas = ref(null);
 let kehadiranChartInstance = null;
 let pengumpulanChartInstance = null;
 
-const latestKehadiran = computed(() => props.kehadiranChart.at(-1));
-const latestPengumpulan = computed(() => props.pengumpulanTugasChart.at(-1));
+function currentMonthKey() {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+}
+
+const latestKehadiran = computed(() => props.kehadiranChart.find((item) => item.bulan === currentMonthKey()) || props.kehadiranChart.at(-1));
+const latestPengumpulan = computed(() => props.pengumpulanTugasChart.find((item) => item.bulan === currentMonthKey()) || props.pengumpulanTugasChart.at(-1));
 const averageKehadiran = computed(() => averagePercentage(props.kehadiranChart, 'persen_hadir'));
 const averagePengumpulan = computed(() => averagePercentage(props.pengumpulanTugasChart, 'persen_dikumpulkan'));
+const chartPeriodLabel = computed(() => {
+    const items = props.kehadiranChart.length ? props.kehadiranChart : props.pengumpulanTugasChart;
+    const first = items[0]?.bulan_label || items[0]?.bulan;
+    const last = items.at(-1)?.bulan_label || items.at(-1)?.bulan;
+
+    return first && last ? `${first} - ${last}` : 'Tahun Pelajaran';
+});
 
 function averagePercentage(items, key) {
     const filledItems = items.filter((item) => Number(item.total) > 0);
@@ -37,10 +49,6 @@ function averagePercentage(items, key) {
 
     const total = filledItems.reduce((sum, item) => sum + Number(item[key] ?? 0), 0);
     return Math.round(total / filledItems.length);
-}
-
-function taskChartLabel(index) {
-    return `T${index + 1}`;
 }
 
 async function chartJs() {
@@ -90,7 +98,7 @@ async function renderKehadiranChart() {
     kehadiranChartInstance = new Chart(kehadiranCanvas.value, {
         type: 'line',
         data: {
-            labels: props.kehadiranChart.map((item) => item.tanggal),
+            labels: props.kehadiranChart.map((item) => item.bulan_label || item.bulan),
             datasets: [
                 {
                     label: 'Tren Kehadiran',
@@ -122,7 +130,7 @@ async function renderPengumpulanChart() {
     pengumpulanChartInstance = new Chart(pengumpulanCanvas.value, {
         type: 'line',
         data: {
-            labels: props.pengumpulanTugasChart.map((_, index) => taskChartLabel(index)),
+            labels: props.pengumpulanTugasChart.map((item) => item.bulan_label || item.bulan),
             datasets: [
                 {
                     label: 'Tren Pengumpulan',
@@ -142,9 +150,9 @@ async function renderPengumpulanChart() {
         },
         options: trendChartOptions('Pengumpulan', (items) => {
             const index = items[0]?.dataIndex ?? 0;
-            const task = props.pengumpulanTugasChart[index];
+            const month = props.pengumpulanTugasChart[index];
 
-            return task ? task.judul : taskChartLabel(index);
+            return month ? `${month.bulan_label || month.bulan} (${month.total} target)` : '';
         }),
     });
 }
@@ -176,17 +184,17 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({ i
 <template>
     <Head title="Dashboard Guru" />
     <AppShell title="Dashboard Guru">
-        <DashboardHero eyebrow="Teaching Cockpit" :title="`Selamat datang, ${user?.nama_lengkap ?? 'Guru'}`" :subtitle="`${totalPerluDinilai} pengumpulan perlu dinilai dan ${totalBelumMengumpulkan} tugas belum lengkap.`" icon="bi-person-workspace" tone="teacher">
+        <DashboardHero eyebrow="Teacher Dashboard" :title="`Selamat datang, ${user?.nama_lengkap ?? 'Guru'}`" :subtitle="`${totalPerluDinilai} pengumpulan perlu dinilai dan ${totalBelumMengumpulkan} tugas belum lengkap.`" icon="bi-person-workspace" tone="teacher">
             <template #actions><QuickActionBar :actions="quickActions" /></template>
         </DashboardHero>
         <MetricStrip :items="metrics" />
 
         <div class="teacher-trend-grid">
-            <Card title="Tren Kehadiran (7 Hari Terakhir)" icon="bi-graph-up-arrow" body-class="teacher-trend-body">
+            <Card :title="`Tren Kehadiran (${chartPeriodLabel})`" icon="bi-graph-up-arrow" body-class="teacher-trend-body">
                 <div v-if="kehadiranChart.length" class="teacher-trend-content">
                     <div class="teacher-trend-summary">
                         <div>
-                            <span class="teacher-trend-label">Terakhir</span>
+                            <span class="teacher-trend-label">Bulan berjalan</span>
                             <strong>{{ latestKehadiran?.persen_hadir ?? 0 }}%</strong>
                         </div>
                         <div>
@@ -201,11 +209,11 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({ i
                 <EmptyState v-else title="Belum ada data kehadiran." icon="bi-clipboard-check" />
             </Card>
 
-            <Card title="Tren Pengumpulan Tugas" icon="bi-graph-up-arrow" body-class="teacher-trend-body">
+            <Card :title="`Tren Pengumpulan Tugas (${chartPeriodLabel})`" icon="bi-graph-up-arrow" body-class="teacher-trend-body">
                 <div v-if="pengumpulanTugasChart.length" class="teacher-trend-content">
                     <div class="teacher-trend-summary">
                         <div>
-                            <span class="teacher-trend-label">Tugas terbaru</span>
+                            <span class="teacher-trend-label">Bulan berjalan</span>
                             <strong>{{ latestPengumpulan?.persen_dikumpulkan ?? 0 }}%</strong>
                         </div>
                         <div>

@@ -246,6 +246,7 @@ function selectedExportUrl(format) {
                                         >
                                             {{ week.title }}<br>
                                             <small class="text-muted">{{ week.label }}</small>
+                                            <small v-if="week.lesson_title" class="text-muted d-block">{{ week.lesson_title }}</small>
                                         </th>
                                         <th class="text-center" style="width:42px;">H</th>
                                         <th class="text-center" style="width:42px;">S</th>
