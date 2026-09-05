@@ -1,6 +1,6 @@
 <script setup>
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { computed, reactive, watch } from 'vue';
+import { computed, nextTick, reactive, watch } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { SearchableSelect, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
@@ -8,7 +8,8 @@ import { Badge, Button, Card, DashboardHero, EmptyState, QuickActionBar, TableWr
 
 const props = defineProps({
     kelasMapel: { type: Array, default: () => [] },
-    filters: { type: Object, default: () => ({ kelas_mapel_id: '', bulan: '' }) },
+    filters: { type: Object, default: () => ({ kelas_mapel_id: '', bulan: '', siswa_id: '' }) },
+    highlightedSiswaId: { type: [Number, String], default: null },
     selected: { type: Object, default: null },
     weeks: { type: Array, default: () => [] },
     students: { type: Array, default: () => [] },
@@ -33,6 +34,9 @@ const statusOptions = [
 ];
 
 const meetingKeys = computed(() => props.weeks.map((week) => String(week.key)));
+const highlightedStudent = computed(() => props.students.find(
+    (student) => Number(student.id) === Number(props.highlightedSiswaId)
+) ?? null);
 
 const courseTabs = computed(() => {
     if (!props.selected) return [];
@@ -51,6 +55,18 @@ watch(() => [props.filters.bulan, props.students], () => {
     form.bulan = props.filters.bulan ?? '';
     form.absensi = buildAbsensi();
 }, { deep: true });
+
+watch(() => [props.highlightedSiswaId, props.students.length], async () => {
+    if (!props.highlightedSiswaId || typeof document === 'undefined') {
+        return;
+    }
+
+    await nextTick();
+    document.getElementById(`attendance-student-${props.highlightedSiswaId}`)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+    });
+}, { immediate: true });
 
 function buildAbsensi() {
     return Object.fromEntries(props.students.map((student) => [
@@ -215,6 +231,11 @@ function selectedExportUrl(format) {
                         icon="bi-table"
                         body-class="p-0"
                     >
+                        <div v-if="highlightedStudent" class="attendance-focus-note" role="status">
+                            <i class="bi bi-person-check" aria-hidden="true"></i>
+                            <span>Menyorot <strong>{{ highlightedStudent.nama }}</strong> dari dashboard guru.</span>
+                        </div>
+
                         <div class="p-3 attendance-legend d-flex flex-wrap gap-2 align-items-center">
                             <Badge color="success">H=Hadir</Badge>
                             <Badge color="warning" class="text-dark">S=Sakit</Badge>
@@ -278,10 +299,18 @@ function selectedExportUrl(format) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="student in students" :key="student.id">
+                                    <tr
+                                        v-for="student in students"
+                                        :id="`attendance-student-${student.id}`"
+                                        :key="student.id"
+                                        :class="{ 'attendance-row-highlighted': Number(student.id) === Number(highlightedSiswaId) }"
+                                    >
                                         <td class="text-center text-muted align-middle">{{ student.no }}</td>
                                         <td class="align-middle">{{ student.nis }}</td>
-                                        <td class="align-middle"><strong>{{ student.nama }}</strong></td>
+                                        <td class="align-middle">
+                                            <strong>{{ student.nama }}</strong>
+                                            <span v-if="Number(student.id) === Number(highlightedSiswaId)" class="visually-hidden">Siswa yang dipilih dari dashboard</span>
+                                        </td>
                                         <td
                                             v-for="week in weeks"
                                             :key="`${student.id}-${week.key}`"
@@ -350,6 +379,29 @@ function selectedExportUrl(format) {
 .attendance-select.alpha { background:var(--status-danger-bg); color:var(--status-danger-text); }
 .attendance-legend .badge { font-size:0.78rem; }
 .attendance-table th { vertical-align: middle; }
+
+.attendance-focus-note {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+    background: var(--primary-50, #f0fdf4);
+    color: var(--text-body, #374151);
+    font-size: 0.8rem;
+}
+
+.attendance-focus-note i {
+    color: var(--app-primary);
+}
+
+.attendance-row-highlighted > td {
+    background: var(--primary-50, #f0fdf4) !important;
+}
+
+.attendance-row-highlighted > td:first-child {
+    box-shadow: inset 3px 0 0 var(--app-primary);
+}
 
 @media (max-width: 767px) {
     .attendance-select {

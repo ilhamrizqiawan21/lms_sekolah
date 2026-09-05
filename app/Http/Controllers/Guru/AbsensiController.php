@@ -26,16 +26,24 @@ class AbsensiController extends Controller
     {
         $guruId = Auth::id();
         $bulan = $request->input('bulan', date('Y-m'));
-        $bulanNum = (int) substr($bulan, 5, 2);
-        $tahun = (int) substr($bulan, 0, 4);
-        $bulanIndo = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-        $kelasMapelId = $request->input('kelas_mapel_id');
+        $kelasMapelId = $request->integer('kelas_mapel_id') ?: null;
+        $highlightedSiswaId = $request->integer('siswa_id') ?: null;
 
         $kelasMapel = KelasMapel::with(['kelas', 'mataPelajaran', 'tahunAjaran'])
             ->where('guru_id', $guruId)
             ->aktif()
             ->get();
+
+        if (! $kelasMapelId && $highlightedSiswaId) {
+            $targetSiswa = Siswa::query()
+                ->whereKey($highlightedSiswaId)
+                ->where('status', 'aktif')
+                ->first(['id', 'kelas_id']);
+
+            $kelasMapelId = $targetSiswa
+                ? $kelasMapel->firstWhere('kelas_id', $targetSiswa->kelas_id)?->id
+                : null;
+        }
 
         $kmData = null;
         $siswaList = collect();
@@ -54,7 +62,6 @@ class AbsensiController extends Controller
 
                 $meetings = $this->attendanceMeetings($bulan, $kmData);
 
-                // Ambil data absensi
                 $absensiRaw = Absensi::where('kelas_mapel_id', $kmData->id)
                     ->whereIn('siswa_id', $siswaList->pluck('id'))
                     ->whereBetween('tanggal', ["{$bulan}-01", date('Y-m-t', strtotime("{$bulan}-01"))])
@@ -70,6 +77,10 @@ class AbsensiController extends Controller
             }
         }
 
+        if (! $siswaList->contains('id', $highlightedSiswaId)) {
+            $highlightedSiswaId = null;
+        }
+
         return Inertia::render('Guru/Absensi/Index', [
             'kelasMapel' => $kelasMapel->map(fn (KelasMapel $item) => [
                 'id' => $item->id,
@@ -82,7 +93,9 @@ class AbsensiController extends Controller
             'filters' => [
                 'kelas_mapel_id' => $kelasMapelId ? (string) $kelasMapelId : '',
                 'bulan' => $bulan,
+                'siswa_id' => $highlightedSiswaId ? (string) $highlightedSiswaId : '',
             ],
+            'highlightedSiswaId' => $highlightedSiswaId,
             'selected' => $kmData ? [
                 'id' => $kmData->id,
                 'kelas' => $kmData->kelas?->nama_kelas ?? '-',

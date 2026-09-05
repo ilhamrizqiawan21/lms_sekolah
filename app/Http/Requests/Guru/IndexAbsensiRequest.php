@@ -16,6 +16,7 @@ class IndexAbsensiRequest extends FormRequest
         return [
             'bulan' => ['nullable', 'date_format:Y-m'],
             'kelas_mapel_id' => ['nullable', 'integer'],
+            'siswa_id' => ['nullable', 'integer', 'min:1'],
         ];
     }
 }
