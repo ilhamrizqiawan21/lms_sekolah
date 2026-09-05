@@ -28,7 +28,7 @@ class JadwalMengajarController extends Controller
             'lessonSlots' => collect(range(1, 5))->map(fn ($slot) => ['value' => $slot, 'label' => "Pelajaran ke-{$slot}"])->values(),
             'kelasMapel' => $kelasMapel->map(fn (KelasMapel $item) => [
                 'id' => $item->id,
-                'label' => trim(($item->kelas?->nama_kelas ?? '-') . ' - ' . ($item->mataPelajaran?->nama_mapel ?? '-') . ' (Sem. ' . $item->semester . ')'),
+                'label' => ($item->kelas?->displayName() ?? '-') . ' - ' . ($item->mataPelajaran?->nama_mapel ?? '-') . ' (Sem. ' . $item->semester . ')',
             ])->values(),
             'schedules' => $schedules->map(fn (JadwalMengajar $item) => $this->formatSchedule($item))->values(),
             'storeUrl' => route('guru.jadwal-mengajar.store'),
@@ -106,7 +106,7 @@ class JadwalMengajarController extends Controller
 
     private function formatSchedule(JadwalMengajar $item): array
     {
-        $kelas = $item->kelasMapel?->kelas?->nama_kelas ?? '-';
+        $kelas = $item->kelasMapel?->kelas?->displayName() ?? '-';
         $mapel = $item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-';
 
         return [
