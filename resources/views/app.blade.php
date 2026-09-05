@@ -163,6 +163,7 @@
         }
     </style>
     @vite(['resources/css/app.css', 'resources/js/inertia.js'])
+    <link rel="stylesheet" href="{{ asset('css/login-isolation.css') }}">
     @inertiaHead
 </head>
 <body>
