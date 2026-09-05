@@ -139,40 +139,59 @@ function progressColor(value) {
         </div>
 
         <Card v-if="selected && rekap.length" title="Ringkasan Siswa" icon="bi-table" body-class="p-0">
-            <TableWrapper>
-                <table class="table table-hover mb-0 app-table">
+            <TableWrapper :min-width="1040">
+                <table class="table table-hover mb-0 app-table rekap-table">
+                    <colgroup>
+                        <col class="col-no">
+                        <col class="col-nis">
+                        <col class="col-name">
+                        <col class="col-status">
+                        <col class="col-status">
+                        <col class="col-status">
+                        <col class="col-status">
+                        <col class="col-total">
+                        <col class="col-attendance">
+                    </colgroup>
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th>NIS</th>
-                            <th>Nama</th>
-                            <th class="text-center">H</th>
-                            <th class="text-center">S</th>
-                            <th class="text-center">I</th>
-                            <th class="text-center">A</th>
-                            <th class="text-center">Total</th>
-                            <th>Persen Hadir</th>
+                            <th scope="col">No</th>
+                            <th scope="col">NIS</th>
+                            <th scope="col">Nama</th>
+                            <th scope="col" class="text-center">H</th>
+                            <th scope="col" class="text-center">S</th>
+                            <th scope="col" class="text-center">I</th>
+                            <th scope="col" class="text-center">A</th>
+                            <th scope="col" class="text-center">Total</th>
+                            <th scope="col">Persen Hadir</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="item in rekap" :key="item.nis">
                             <td>{{ item.no }}</td>
                             <td>{{ item.nis }}</td>
-                            <td><strong>{{ item.nama }}</strong></td>
+                            <td class="rekap-name-cell"><strong>{{ item.nama }}</strong></td>
                             <td class="text-center">{{ item.hadir }}</td>
                             <td class="text-center">{{ item.sakit }}</td>
                             <td class="text-center">{{ item.izin }}</td>
                             <td class="text-center">{{ item.alpha }}</td>
                             <td class="text-center">{{ item.total }}</td>
-                            <td style="min-width:160px">
-                                <div class="progress rekap-progress">
+                            <td class="rekap-attendance-cell">
+                                <div class="d-flex align-items-center gap-2">
                                     <div
-                                        class="progress-bar"
-                                        :class="progressColor(item.persen_hadir)"
-                                        :style="{ width: `${item.persen_hadir}%` }"
+                                        class="progress rekap-progress flex-grow-1"
+                                        role="progressbar"
+                                        :aria-label="`Persentase hadir ${item.nama}`"
+                                        :aria-valuenow="item.persen_hadir"
+                                        aria-valuemin="0"
+                                        aria-valuemax="100"
                                     >
-                                        {{ item.persen_hadir }}%
+                                        <div
+                                            class="progress-bar"
+                                            :class="progressColor(item.persen_hadir)"
+                                            :style="{ width: `${item.persen_hadir}%` }"
+                                        ></div>
                                     </div>
+                                    <span class="rekap-percent">{{ item.persen_hadir }}%</span>
                                 </div>
                             </td>
                         </tr>
@@ -190,13 +209,44 @@ function progressColor(value) {
 </template>
 
 <style scoped>
+.rekap-table {
+    table-layout: fixed;
+}
+
+.rekap-table .col-no { width: 56px; }
+.rekap-table .col-nis { width: 100px; }
+.rekap-table .col-name { width: 280px; }
+.rekap-table .col-status { width: 64px; }
+.rekap-table .col-total { width: 76px; }
+.rekap-table .col-attendance { width: 260px; }
+
+.rekap-name-cell {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+}
+
 .rekap-progress {
-    height: 18px;
+    height: 12px;
+    min-width: 140px;
+    overflow: hidden;
+}
+
+.rekap-percent {
+    flex: 0 0 46px;
+    text-align: right;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--bs-emphasis-color);
 }
 
 @media (max-width: 767.98px) {
     .btn {
         min-width: 0;
+    }
+
+    .rekap-table .col-name {
+        width: 220px;
     }
 }
 </style>
