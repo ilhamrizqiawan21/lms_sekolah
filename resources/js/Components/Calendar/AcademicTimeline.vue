@@ -48,7 +48,20 @@ const typeIcon = (type) => ({ calendar: 'bi-calendar-event', task: 'bi-hourglass
                     </div>
                     <div v-if="event.meta" class="small text-muted mb-1">{{ event.meta }}</div>
                     <p v-if="event.description" class="small text-secondary mb-2 timeline-description">{{ event.description }}</p>
-                    <div class="d-flex gap-2">
+
+                    <div v-if="event.detail_links?.length" class="timeline-targets mb-2" aria-label="Kelas tujuan tugas">
+                        <Link
+                            v-for="link in event.detail_links"
+                            :key="`${event.id}-${link.label}`"
+                            :href="link.url"
+                            class="timeline-target-link"
+                            :title="`Buka pengumpulan ${link.label}`"
+                        >
+                            <i class="bi bi-people me-1"></i>{{ link.label }}
+                        </Link>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2">
                         <Link v-if="event.detail_url" :href="event.detail_url" class="btn btn-sm btn-outline-primary">Detail</Link>
                         <span v-if="event.is_holiday" class="badge bg-danger-subtle text-danger-emphasis">Hari libur</span>
                         <span v-if="event.is_done" class="badge bg-success-subtle text-success-emphasis">Selesai</span>
@@ -68,10 +81,34 @@ const typeIcon = (type) => ({ calendar: 'bi-calendar-event', task: 'bi-hourglass
 .timeline-marker { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--bs-light); border: 1px solid var(--bs-border-color); z-index: 1; }
 .timeline-content { min-width: 0; padding-bottom: 0.5rem; }
 .timeline-description { white-space: pre-line; overflow-wrap: anywhere; }
+.timeline-targets { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.timeline-target-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0.28rem 0.6rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 999px;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+.timeline-target-link:hover,
+.timeline-target-link:focus-visible {
+    border-color: var(--bs-primary);
+    background: color-mix(in srgb, var(--bs-primary) 8%, var(--bs-body-bg));
+    color: var(--bs-primary);
+}
 :global([data-bs-theme="dark"]) .timeline-item:not(:last-child)::before { background: rgba(148, 163, 184, 0.24); }
 :global([data-bs-theme="dark"]) .timeline-marker { background: #1e293b; border-color: rgba(148, 163, 184, 0.28); color: #86efac; }
 :global([data-bs-theme="dark"]) .timeline-content h6 { color: #e5edf7; }
 :global([data-bs-theme="dark"]) .timeline-description,
 :global([data-bs-theme="dark"]) .timeline-content .text-secondary { color: #9fb0c5 !important; }
-@media (max-width: 576px) { .timeline-filters .btn { flex: 1 1 auto; } }
+@media (max-width: 576px) {
+    .timeline-filters .btn { flex: 1 1 auto; }
+    .timeline-target-link { flex: 1 1 auto; justify-content: center; }
+}
 </style>
