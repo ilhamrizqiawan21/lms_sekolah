@@ -42,40 +42,49 @@ function submit() {
     <Head :title="title" />
 
     <main class="login-page">
-        <div class="login-wrapper">
-            <section class="login-header" aria-labelledby="login-title">
-                <div class="logo-circle">
+        <div class="login-shell">
+            <section class="login-brand" aria-labelledby="login-title">
+                <div class="brand-mark">
                     <img
                         :src="branding.logo_url"
                         :alt="`Logo ${branding.school_name}`"
-                        width="36"
-                        height="36"
+                        width="48"
+                        height="48"
                         decoding="async"
                     >
                 </div>
-                <h1 id="login-title">{{ branding.school_name }}</h1>
-                <div class="product-name">{{ branding.school_short_name }}</div>
-                <div class="school-motto">{{ branding.school_motto }}</div>
-                <div class="school-address">{{ branding.school_address }}</div>
+
+                <div class="brand-copy">
+                    <div class="product-name">{{ branding.school_short_name }}</div>
+                    <h1 id="login-title">{{ branding.school_name }}</h1>
+                    <p v-if="branding.school_motto" class="school-motto">{{ branding.school_motto }}</p>
+                    <p v-if="branding.school_address" class="school-address">{{ branding.school_address }}</p>
+                </div>
             </section>
 
             <section class="login-card" aria-label="Form login">
-                <div v-if="flash.error" class="alert alert-danger d-flex align-items-center">
-                    <i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i>
+                <div class="login-card-heading">
+                    <div>
+                        <span class="login-eyebrow">Akses LMS</span>
+                        <h2>Selamat datang</h2>
+                    </div>
+                    <p>Masuk menggunakan akun sekolah Anda.</p>
+                </div>
+
+                <div v-if="flash.error" class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>
                     <span>{{ flash.error }}</span>
                 </div>
-                <div v-if="flash.success" class="alert alert-success d-flex align-items-center">
-                    <i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i>
+                <div v-if="flash.success" class="alert alert-success d-flex align-items-center" role="status">
+                    <i class="bi bi-check-circle me-2" aria-hidden="true"></i>
                     <span>{{ flash.success }}</span>
                 </div>
 
                 <form @submit.prevent="submit">
-                    <div class="mb-3">
+                    <div class="field-group">
                         <label for="username" class="form-label">Username</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-person-fill" aria-hidden="true"></i>
-                            </span>
+                        <div class="input-shell" :class="{ 'has-error': form.errors.username }">
+                            <i class="bi bi-person" aria-hidden="true"></i>
                             <input
                                 id="username"
                                 v-model="form.username"
@@ -87,17 +96,16 @@ function submit() {
                                 required
                                 autofocus
                                 autocomplete="username"
+                                :aria-describedby="form.errors.username ? 'username-error' : undefined"
                             >
                         </div>
-                        <div v-if="form.errors.username" class="login-error">{{ form.errors.username }}</div>
+                        <div v-if="form.errors.username" id="username-error" class="login-error">{{ form.errors.username }}</div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="field-group">
                         <label for="password" class="form-label">Password</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-lock-fill" aria-hidden="true"></i>
-                            </span>
+                        <div class="input-shell" :class="{ 'has-error': form.errors.password }">
+                            <i class="bi bi-lock" aria-hidden="true"></i>
                             <input
                                 id="password"
                                 v-model="form.password"
@@ -108,12 +116,13 @@ function submit() {
                                 placeholder="Masukkan password"
                                 required
                                 autocomplete="current-password"
+                                :aria-describedby="form.errors.password ? 'password-error' : undefined"
                             >
                         </div>
-                        <div v-if="form.errors.password" class="login-error">{{ form.errors.password }}</div>
+                        <div v-if="form.errors.password" id="password-error" class="login-error">{{ form.errors.password }}</div>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="login-options">
                         <div class="form-check">
                             <input
                                 id="remember"
@@ -124,34 +133,38 @@ function submit() {
                             >
                             <label class="form-check-label" for="remember">Ingat saya</label>
                         </div>
+
+                        <a
+                            class="forgot-link"
+                            :href="forgotPasswordUrl"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Lupa password?
+                        </a>
                     </div>
 
                     <button type="submit" class="btn-login" :disabled="form.processing">
-                        <i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>
-                        {{ form.processing ? 'Memproses...' : 'Masuk' }}
+                        <span>{{ form.processing ? 'Memproses...' : 'Masuk ke LMS' }}</span>
+                        <i v-if="!form.processing" class="bi bi-arrow-right" aria-hidden="true"></i>
+                        <span v-else class="login-spinner" aria-hidden="true"></span>
                     </button>
-                    <div class="login-help" role="note">
-                        <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
-                        <span>
-                            <a
-                                class="login-help-title"
-                                :href="forgotPasswordUrl"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                Lupa password?
-                            </a>
-                            Hubungi admin lewat WhatsApp untuk bantuan reset akun.
-                        </span>
-                    </div>
+
+                    <p class="login-help" role="note">
+                        Jika mengalami kendala akses, hubungi admin sekolah melalui tautan lupa password.
+                    </p>
                 </form>
             </section>
 
             <section v-if="publicAnnouncements.length" class="public-board" aria-label="Papan informasi">
                 <div class="public-board-title">
-                    <i class="bi bi-megaphone-fill" aria-hidden="true"></i>
-                    <span>Papan Informasi</span>
+                    <div>
+                        <span class="board-eyebrow">Informasi sekolah</span>
+                        <h2>Papan Informasi</h2>
+                    </div>
+                    <i class="bi bi-megaphone" aria-hidden="true"></i>
                 </div>
+
                 <article
                     v-for="announcement in publicAnnouncements"
                     :key="announcement.id"
@@ -161,7 +174,7 @@ function submit() {
                         <span>{{ announcement.creator_name || 'Sekolah' }}</span>
                         <span v-if="formatDate(announcement.created_at)">{{ formatDate(announcement.created_at) }}</span>
                     </div>
-                    <h2>{{ announcement.judul }}</h2>
+                    <h3>{{ announcement.judul }}</h3>
                     <p>{{ announcement.isi }}</p>
                     <a
                         v-if="announcement.attachment"
@@ -178,7 +191,8 @@ function submit() {
             </section>
 
             <footer class="login-footer">
-                &copy; {{ year }} {{ branding.school_name }}<br>
+                <span>&copy; {{ year }} {{ branding.school_name }}</span>
+                <span aria-hidden="true">•</span>
                 <span>{{ branding.school_short_name }}</span>
             </footer>
         </div>
@@ -187,153 +201,214 @@ function submit() {
 
 <style scoped>
 .login-page {
-    position: relative;
     --login-primary: var(--app-primary, #198754);
     --login-primary-dark: var(--app-primary-dark, #166534);
-    --login-primary-deep: var(--primary-800, #0f3f2a);
-    --login-accent: var(--gold-500, #f59e0b);
-    --login-surface: var(--surface-card, #ffffff);
-    --login-surface-muted: var(--surface-muted, #f8fafc);
-    --login-border: var(--gray-200, #e5e7eb);
-    --login-text: var(--text-strong, #1f2937);
-    --login-text-muted: var(--text-muted, #64748b);
-    --login-danger-bg: var(--status-danger-bg, #fee2e2);
-    --login-danger-text: var(--status-danger-text, #991b1b);
-    --login-success-bg: var(--status-success-bg, #dcfce7);
-    --login-success-text: var(--status-success-text, #166534);
+    --login-surface: #ffffff;
+    --login-surface-soft: #f8fafc;
+    --login-border: #e2e8f0;
+    --login-text: #0f172a;
+    --login-text-soft: #475569;
+    --login-text-muted: #64748b;
+    --login-danger-bg: #fff1f2;
+    --login-danger-text: #be123c;
+    --login-success-bg: #f0fdf4;
+    --login-success-text: #166534;
     min-height: 100vh;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 24px 20px;
+    padding: clamp(24px, 5vw, 56px) 20px 28px;
     overflow-x: hidden;
-    background: linear-gradient(135deg, var(--login-primary-dark) 0%, var(--login-primary-deep) 58%, #0b2419 100%);
+    background:
+        radial-gradient(circle at top left, color-mix(in srgb, var(--login-primary) 9%, transparent), transparent 32rem),
+        #f6f8fa;
+    color: var(--login-text);
     font-family: var(--font-sans);
 }
 
-.login-page::before {
-    content: '';
-    position: fixed;
-    inset: -50%;
-    background:
-        radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--login-accent) 11%, transparent) 0%, transparent 46%),
-        radial-gradient(circle at 70% 80%, color-mix(in srgb, var(--login-primary) 14%, transparent) 0%, transparent 50%);
-    pointer-events: none;
+.login-shell {
+    width: min(100%, 460px);
+    margin: 0 auto;
 }
 
-.login-wrapper {
-    position: relative;
-    width: 100%;
-    max-width: 520px;
-    animation: fadeInUp 0.5s ease;
-}
-
-.login-header {
-    text-align: center;
-    color: white;
-    margin-bottom: 20px;
-}
-
-.logo-circle {
-    width: 80px;
-    height: 80px;
+.login-brand {
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin: 0 auto 12px;
-    border: 3px solid color-mix(in srgb, var(--login-accent) 48%, transparent);
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 0 30px color-mix(in srgb, var(--login-accent) 16%, transparent);
+    gap: 16px;
+    margin-bottom: 24px;
 }
 
-.logo-circle img {
-    width: 36px;
-    height: 36px;
+.brand-mark {
+    width: 68px;
+    height: 68px;
+    flex: 0 0 68px;
+    display: grid;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--login-primary) 18%, var(--login-border));
+    border-radius: 18px;
+    background: var(--login-surface);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.brand-mark img {
+    width: 48px;
+    height: 48px;
     object-fit: contain;
-    border-radius: 50%;
 }
 
-.login-header h1 {
+.brand-copy {
+    min-width: 0;
+}
+
+.product-name,
+.login-eyebrow,
+.board-eyebrow {
+    display: block;
+    color: var(--login-primary-dark);
+    font-size: 0.7rem;
     font-weight: 800;
-    font-size: 1.4rem;
-    margin-bottom: 4px;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
 }
 
-.product-name {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px 10px;
-    margin-bottom: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 700;
-    font-size: 0.74rem;
+.login-brand h1 {
+    margin: 4px 0 5px;
+    color: var(--login-text);
+    font-size: clamp(1.1rem, 4vw, 1.35rem);
+    font-weight: 800;
+    line-height: 1.25;
 }
 
-.school-motto {
-    max-width: 360px;
-    margin: 0 auto 6px;
-    color: rgba(255, 255, 255, 0.84);
-    font-size: 0.84rem;
+.school-motto,
+.school-address {
+    margin: 0;
+    color: var(--login-text-muted);
+    font-size: 0.78rem;
     line-height: 1.45;
 }
 
 .school-address {
-    max-width: 360px;
-    margin: 0 auto;
-    color: rgba(255, 255, 255, 0.70);
-    font-size: 0.74rem;
-    line-height: 1.4;
+    margin-top: 2px;
+    font-size: 0.72rem;
+}
+
+.login-card,
+.public-board {
+    border: 1px solid var(--login-border);
+    border-radius: 20px;
+    background: var(--login-surface);
+    box-shadow: 0 14px 40px rgba(15, 23, 42, 0.07);
 }
 
 .login-card {
-    border-radius: 18px;
-    background: var(--login-surface);
-    padding: 35px 30px;
-    box-shadow: 0 20px 60px rgba(4, 31, 20, 0.28);
+    padding: 28px;
+}
+
+.login-card-heading {
+    margin-bottom: 24px;
+}
+
+.login-card-heading h2 {
+    margin: 5px 0 6px;
+    color: var(--login-text);
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.login-card-heading p {
+    margin: 0;
+    color: var(--login-text-muted);
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+
+.field-group {
+    margin-bottom: 16px;
 }
 
 .form-label {
-    font-weight: 600;
-    font-size: 0.84rem;
-    color: var(--login-text);
-    margin-bottom: 5px;
+    margin-bottom: 7px;
+    color: var(--login-text-soft);
+    font-size: 0.8rem;
+    font-weight: 700;
 }
 
-.input-group-text {
+.input-shell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 46px;
+    padding: 0 13px;
     border: 1px solid var(--login-border);
-    border-right: 0;
-    border-radius: 10px 0 0 10px;
-    background: var(--login-surface-muted);
-    color: var(--login-text-muted);
+    border-radius: 12px;
+    background: var(--login-surface);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
-.form-control {
-    border: 1px solid var(--login-border);
-    border-left: 0;
-    border-radius: 0 10px 10px 0;
-    padding: 12px 16px;
-    color: var(--login-text);
-    font-size: 0.92rem;
+.input-shell > i {
+    flex: 0 0 auto;
+    color: #94a3b8;
+    font-size: 1rem;
 }
 
-.input-group:focus-within .input-group-text {
-    border-color: var(--login-primary);
+.input-shell:focus-within {
+    border-color: color-mix(in srgb, var(--login-primary) 70%, #ffffff);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--login-primary) 12%, transparent);
+}
+
+.input-shell:focus-within > i {
     color: var(--login-primary);
 }
 
-.form-control:focus {
-    border-color: var(--login-primary);
-    box-shadow: none;
+.input-shell.has-error {
+    border-color: #fb7185;
 }
 
-.form-check-label {
-    color: var(--login-text-muted);
-    font-size: 0.85rem;
+.form-control {
+    min-width: 0;
+    height: 44px;
+    padding: 0;
+    border: 0 !important;
+    background: transparent !important;
+    color: var(--login-text);
+    font-size: 0.9rem;
+    box-shadow: none !important;
+}
+
+.form-control::placeholder {
+    color: #94a3b8;
+}
+
+.form-control:focus {
+    color: var(--login-text);
+}
+
+.form-control.is-invalid {
+    background-image: none;
+}
+
+.login-error {
+    margin-top: 6px;
+    color: #e11d48;
+    font-size: 0.74rem;
+    font-weight: 600;
+}
+
+.login-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 2px 0 20px;
+}
+
+.form-check {
+    min-height: auto;
+    margin: 0;
+}
+
+.form-check-input {
+    margin-top: 0.19em;
+    border-color: #cbd5e1;
 }
 
 .form-check-input:checked {
@@ -341,67 +416,88 @@ function submit() {
     background-color: var(--login-primary);
 }
 
-.btn-login {
-    width: 100%;
-    border: 0;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--login-primary), var(--login-primary-dark));
-    color: white;
-    padding: 14px;
-    font: inherit;
-    font-weight: 700;
-    font-size: 0.95rem;
-    transition: all 0.3s ease;
+.form-check-input:focus {
+    border-color: var(--login-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--login-primary) 12%, transparent);
 }
 
-.btn-login:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(22, 101, 52, 0.32);
-    background: linear-gradient(135deg, var(--login-primary-dark), var(--login-primary-deep));
-}
-
-.btn-login:disabled {
-    cursor: wait;
-    opacity: 0.75;
-}
-
-.login-help {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin-top: 14px;
-    padding: 11px 12px;
-    border: 1px solid var(--login-border);
-    border-radius: 10px;
-    background: var(--login-surface-muted);
+.form-check-label,
+.forgot-link {
     color: var(--login-text-muted);
-    font-size: 0.82rem;
-    line-height: 1.45;
+    font-size: 0.8rem;
 }
 
-.login-help i {
-    flex-shrink: 0;
-    margin-top: 2px;
-    color: var(--login-primary);
-}
-
-.login-help-title {
+.forgot-link {
     color: var(--login-primary-dark);
     font-weight: 700;
     text-decoration: none;
 }
 
-.login-help-title:hover {
+.forgot-link:hover {
     color: var(--login-primary);
     text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.btn-login {
+    width: 100%;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px solid var(--login-primary);
+    border-radius: 12px;
+    background: var(--login-primary);
+    color: #ffffff;
+    padding: 10px 16px;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 800;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-login:hover:not(:disabled) {
+    border-color: var(--login-primary-dark);
+    background: var(--login-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--login-primary) 22%, transparent);
+}
+
+.btn-login:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--login-primary) 20%, transparent);
+}
+
+.btn-login:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+.login-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: login-spin 0.7s linear infinite;
+}
+
+.login-help {
+    margin: 13px 0 0;
+    color: var(--login-text-muted);
+    font-size: 0.73rem;
+    line-height: 1.5;
+    text-align: center;
 }
 
 .alert {
     border: 0;
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    font-size: 0.85rem;
+    border-radius: 12px;
+    padding: 11px 13px;
+    margin-bottom: 18px;
+    font-size: 0.8rem;
+    line-height: 1.45;
 }
 
 .alert-danger {
@@ -414,38 +510,38 @@ function submit() {
     color: var(--login-success-text);
 }
 
-.login-error {
-    color: #dc2626;
-    font-size: 0.75rem;
-    margin-top: 4px;
-}
-
 .public-board {
-    margin-top: 18px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.94);
-    padding: 16px;
-    box-shadow: 0 16px 44px rgba(4, 31, 20, 0.22);
+    margin-top: 16px;
+    padding: 22px 24px;
 }
 
 .public-board-title {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-    color: var(--login-primary-dark);
-    font-size: 0.9rem;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 6px;
+}
+
+.public-board-title h2 {
+    margin: 4px 0 0;
+    color: var(--login-text);
+    font-size: 1rem;
     font-weight: 800;
 }
 
+.public-board-title > i {
+    color: var(--login-primary);
+    font-size: 1.2rem;
+}
+
 .public-announcement {
-    padding: 14px 0;
+    padding: 16px 0;
     border-top: 1px solid var(--login-border);
 }
 
 .public-announcement:first-of-type {
     border-top: 0;
-    padding-top: 0;
 }
 
 .public-announcement:last-of-type {
@@ -455,43 +551,49 @@ function submit() {
 .public-announcement-meta {
     display: flex;
     flex-wrap: wrap;
+    justify-content: space-between;
     gap: 8px;
     margin-bottom: 5px;
     color: var(--login-text-muted);
-    font-size: 0.74rem;
+    font-size: 0.7rem;
 }
 
-.public-announcement h2 {
+.public-announcement h3 {
     margin: 0 0 7px;
     color: var(--login-text);
-    font-size: 0.98rem;
+    font-size: 0.9rem;
     font-weight: 800;
-    line-height: 1.3;
+    line-height: 1.35;
 }
 
 .public-announcement p {
     margin: 0;
-    color: #475569;
-    font-size: 0.85rem;
+    color: var(--login-text-soft);
+    font-size: 0.79rem;
     line-height: 1.55;
-    white-space: pre-line;
     overflow-wrap: anywhere;
+    white-space: pre-line;
 }
 
 .public-attachment {
+    max-width: 100%;
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    max-width: 100%;
     margin-top: 10px;
     padding: 7px 10px;
-    border: 1px solid color-mix(in srgb, var(--login-primary) 34%, white);
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--login-primary) 7%, white);
+    border: 1px solid color-mix(in srgb, var(--login-primary) 20%, var(--login-border));
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--login-primary) 5%, var(--login-surface));
     color: var(--login-primary-dark);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-decoration: none;
+}
+
+.public-attachment:hover {
+    border-color: color-mix(in srgb, var(--login-primary) 45%, var(--login-border));
+    background: color-mix(in srgb, var(--login-primary) 8%, var(--login-surface));
 }
 
 .public-attachment span {
@@ -502,39 +604,111 @@ function submit() {
 }
 
 .public-attachment small {
-    flex-shrink: 0;
+    flex: 0 0 auto;
     color: var(--login-text-muted);
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 600;
 }
 
 .login-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 18px;
+    color: var(--login-text-muted);
+    font-size: 0.7rem;
     text-align: center;
-    margin-top: 20px;
-    color: rgba(255, 255, 255, 0.68);
-    font-size: 0.78rem;
 }
 
-.login-footer span {
-    color: color-mix(in srgb, var(--login-accent) 90%, white);
-    font-weight: 700;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
+@keyframes login-spin {
     to {
-        opacity: 1;
-        transform: translateY(0);
+        transform: rotate(360deg);
     }
 }
 
-@media (max-width: 480px) {
+:global(html[data-bs-theme='dark']) .login-page {
+    --login-surface: #111827;
+    --login-surface-soft: #172033;
+    --login-border: #273449;
+    --login-text: #f8fafc;
+    --login-text-soft: #cbd5e1;
+    --login-text-muted: #94a3b8;
+    --login-danger-bg: #3a1520;
+    --login-danger-text: #fecdd3;
+    --login-success-bg: #123322;
+    --login-success-text: #bbf7d0;
+    background:
+        radial-gradient(circle at top left, color-mix(in srgb, var(--login-primary) 13%, transparent), transparent 32rem),
+        #0b1120;
+}
+
+:global(html[data-bs-theme='dark']) .brand-mark,
+:global(html[data-bs-theme='dark']) .login-card,
+:global(html[data-bs-theme='dark']) .public-board {
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.2);
+}
+
+:global(html[data-bs-theme='dark']) .input-shell {
+    background: #0f172a;
+}
+
+:global(html[data-bs-theme='dark']) .form-control::placeholder {
+    color: #64748b;
+}
+
+@media (max-width: 520px) {
+    .login-page {
+        padding: 24px 14px 22px;
+    }
+
+    .login-brand {
+        gap: 13px;
+        margin-bottom: 18px;
+    }
+
+    .brand-mark {
+        width: 58px;
+        height: 58px;
+        flex-basis: 58px;
+        border-radius: 15px;
+    }
+
+    .brand-mark img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .school-motto,
+    .school-address {
+        display: none;
+    }
+
     .login-card {
-        padding: 25px 20px;
+        padding: 22px 20px;
+        border-radius: 17px;
+    }
+
+    .login-card-heading {
+        margin-bottom: 20px;
+    }
+
+    .login-card-heading h2 {
+        font-size: 1.2rem;
+    }
+
+    .public-board {
+        padding: 18px 20px;
+        border-radius: 17px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-login,
+    .input-shell,
+    .login-spinner {
+        transition: none;
+        animation: none;
     }
 }
 </style>
