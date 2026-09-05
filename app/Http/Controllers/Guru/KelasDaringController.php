@@ -28,7 +28,7 @@ class KelasDaringController extends Controller
         return Inertia::render('Guru/KelasDaring/Index', [
             'kelasMapel' => $kelasMapel->map(fn (KelasMapel $item) => [
                 'id' => $item->id,
-                'label' => trim(($item->kelas?->nama_kelas ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$item->semester.')'),
+                'label' => ($item->kelas?->displayName() ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$item->semester.')',
             ])->values(),
             'lessonSlots' => collect(range(1, 5))->map(fn ($slot) => ['value' => $slot, 'label' => "Pelajaran ke-{$slot}"])->values(),
             'sessions' => $sessions->map(fn (KelasDaring $item) => $this->formatSession($item))->values(),
@@ -114,7 +114,7 @@ class KelasDaringController extends Controller
             'id' => $item->id,
             'judul' => $item->judul,
             'deskripsi' => $item->deskripsi,
-            'kelas_mapel' => trim(($item->kelasMapel?->kelas?->nama_kelas ?? '-').' - '.($item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-')),
+            'kelas_mapel' => ($item->kelasMapel?->kelas?->displayName() ?? '-').' - '.($item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-'),
             'tanggal' => $item->tanggal?->format('d M Y'),
             'tanggal_iso' => $item->tanggal?->format('Y-m-d'),
             'pelajaran_ke' => $item->pelajaran_ke,
