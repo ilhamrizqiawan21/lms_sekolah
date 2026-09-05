@@ -72,14 +72,22 @@ function page(pageNumber) {
                 <EmptyState title="Tidak ada data nilai." icon="bi-inbox" />
             </div>
 
-            <TableWrapper v-else :min-width="1100">
-                <table class="table table-hover align-middle mb-0 app-table">
+            <TableWrapper v-else :min-width="1320">
+                <table class="table table-hover align-middle mb-0 app-table rekap-table">
+                    <colgroup>
+                        <col class="col-no">
+                        <col class="col-name">
+                        <col class="col-class">
+                        <col class="col-subject">
+                        <col v-for="index in 9" :key="`score-${index}`" class="col-score">
+                        <col class="col-predicate">
+                    </colgroup>
                     <thead class="table-light">
                         <tr>
                             <th scope="col" class="text-center">#</th>
-                            <th scope="col" class="min-w-student">Nama Siswa</th>
+                            <th scope="col">Nama Siswa</th>
                             <th scope="col">Kelas</th>
-                            <th scope="col" class="min-w-subject">Mapel</th>
+                            <th scope="col">Mapel</th>
                             <th scope="col" class="text-center">SUM1</th>
                             <th scope="col" class="text-center">SUM2</th>
                             <th scope="col" class="text-center">SUM3</th>
@@ -95,9 +103,9 @@ function page(pageNumber) {
                     <tbody>
                         <tr v-for="(row, index) in nilai.data" :key="row.id">
                             <td class="text-center text-muted">{{ (nilai.from || 1) + index }}</td>
-                            <td>{{ row.siswa?.user?.nama_lengkap || row.siswa?.nis || '-' }}</td>
+                            <td class="rekap-name-cell">{{ row.siswa?.user?.nama_lengkap || row.siswa?.nis || '-' }}</td>
                             <td>{{ row.siswa?.kelas?.nama_kelas || '-' }}</td>
-                            <td>{{ row.kelas_mapel?.mata_pelajaran?.nama_mapel || row.kelasMapel?.mataPelajaran?.nama_mapel || '-' }}</td>
+                            <td class="rekap-subject-cell">{{ row.kelas_mapel?.mata_pelajaran?.nama_mapel || row.kelasMapel?.mataPelajaran?.nama_mapel || '-' }}</td>
                             <td class="text-center">{{ row.sum1 ?? '-' }}</td>
                             <td class="text-center">{{ row.sum2 ?? '-' }}</td>
                             <td class="text-center">{{ row.sum3 ?? '-' }}</td>
@@ -136,23 +144,32 @@ function page(pageNumber) {
 </template>
 
 <style scoped>
-.min-w-student {
-    min-width: 180px;
+.rekap-table {
+    table-layout: fixed;
 }
 
-.min-w-subject {
-    min-width: 160px;
-}
+.rekap-table .col-no { width: 56px; }
+.rekap-table .col-name { width: 250px; }
+.rekap-table .col-class { width: 100px; }
+.rekap-table .col-subject { width: 190px; }
+.rekap-table .col-score { width: 70px; }
+.rekap-table .col-predicate { width: 94px; }
 
-.app-table th,
-.app-table td {
-    white-space: nowrap;
+.rekap-name-cell,
+.rekap-subject-cell {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
 }
 
 @media (max-width: 767.98px) {
     .app-table th,
     .app-table td {
         font-size: 0.8rem;
+    }
+
+    .rekap-table .col-name {
+        width: 220px;
     }
 }
 </style>
