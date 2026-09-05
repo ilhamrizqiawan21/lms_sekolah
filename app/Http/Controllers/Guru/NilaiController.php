@@ -76,7 +76,7 @@ class NilaiController extends Controller
         return Inertia::render('Guru/Nilai/Input', [
             'kelasMapel' => [
                 'id' => $kelasMapel->id,
-                'kelas' => $kelasMapel->kelas?->nama_kelas ?? '-',
+                'kelas' => $kelasMapel->kelas?->displayName() ?? '-',
                 'mata_pelajaran' => $kelasMapel->mataPelajaran?->nama_mapel ?? '-',
                 'workspace_url' => route('guru.kelas-mapel.show', $kelasMapel),
                 'store_url' => route('guru.nilai.store', $kelasMapel),
@@ -180,11 +180,13 @@ class NilaiController extends Controller
             ->get()
             ->keyBy('siswa_id');
 
+        $kelasLabel = $kelasMapel->kelas?->displayName() ?? '-';
+
         return [
             'kelas_mapel_id' => $kelasMapel->id,
-            'kelas' => trim(($kelasMapel->kelas?->tingkat ? $kelasMapel->kelas->tingkat.' ' : '').($kelasMapel->kelas?->nama_kelas ?? '-')),
+            'kelas' => $kelasLabel,
             'mata_pelajaran' => $kelasMapel->mataPelajaran?->nama_mapel ?? '-',
-            'label' => trim(($kelasMapel->kelas?->tingkat ? $kelasMapel->kelas->tingkat.' ' : '').($kelasMapel->kelas?->nama_kelas ?? '-').' - '.($kelasMapel->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$kelasMapel->semester.')'),
+            'label' => $kelasLabel.' - '.($kelasMapel->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$kelasMapel->semester.')',
             'export_excel_url' => route('guru.nilai.export.excel', $kelasMapel),
             'export_pdf_url' => route('guru.nilai.export.pdf', $kelasMapel),
             'students' => $siswa->values()->map(function (Siswa $student, int $index) use ($nilaiList, $fields) {
@@ -207,14 +209,18 @@ class NilaiController extends Controller
 
     private function formatKelasMapelOptions($kelasMapel)
     {
-        return $kelasMapel->map(fn (KelasMapel $item) => [
-            'id' => $item->id,
-            'kelas' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat.' ' : '').($item->kelas?->nama_kelas ?? '-')),
-            'mata_pelajaran' => $item->mataPelajaran?->nama_mapel ?? '-',
-            'semester' => $item->semester,
-            'label' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat.' ' : '').($item->kelas?->nama_kelas ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$item->semester.')'),
-            'href' => route('guru.nilai.input', $item),
-        ])->values();
+        return $kelasMapel->map(function (KelasMapel $item) {
+            $kelasLabel = $item->kelas?->displayName() ?? '-';
+
+            return [
+                'id' => $item->id,
+                'kelas' => $kelasLabel,
+                'mata_pelajaran' => $item->mataPelajaran?->nama_mapel ?? '-',
+                'semester' => $item->semester,
+                'label' => $kelasLabel.' - '.($item->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$item->semester.')',
+                'href' => route('guru.nilai.input', $item),
+            ];
+        })->values();
     }
 
     private function saveNilaiForKelasMapel(KelasMapel $kelasMapel, string $semester, array $nilaiInput): void
@@ -310,7 +316,7 @@ class NilaiController extends Controller
                 'metadata' => [
                     'siswa' => $siswa->user?->nama_lengkap ?? $siswa->nis,
                     'nis' => $siswa->nis,
-                    'kelas' => $kelasMapel->kelas?->nama_kelas ?? '-',
+                    'kelas' => $kelasMapel->kelas?->displayName() ?? '-',
                     'mata_pelajaran' => $kelasMapel->mataPelajaran?->nama_mapel ?? '-',
                     'semester' => $semester,
                 ],
