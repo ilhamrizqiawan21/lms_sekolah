@@ -43,10 +43,10 @@ class NilaiRekapController extends NilaiController
             'semester' => $semester,
             'kelasMapel' => $kelasMapel->map(fn (KelasMapel $item) => [
                 'id' => $item->id,
-                'kelas' => $item->kelas?->nama_kelas ?? '-',
+                'kelas' => $item->kelas?->displayName() ?? '-',
                 'tingkat' => $item->kelas?->tingkat,
                 'mata_pelajaran' => $item->mataPelajaran?->nama_mapel ?? '-',
-                'label' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat . ' ' : '') . ($item->kelas?->nama_kelas ?? '-') . ' — ' . ($item->mataPelajaran?->nama_mapel ?? '-')),
+                'label' => ($item->kelas?->displayName() ?? '-').' — '.($item->mataPelajaran?->nama_mapel ?? '-'),
             ])->values(),
             'nilai' => $nilai,
         ]);
