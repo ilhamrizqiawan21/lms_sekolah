@@ -353,7 +353,7 @@ class WaliKelasController extends Controller
     {
         return [
             'id' => $waliKelas->id,
-            'kelas' => trim(($waliKelas->kelas?->tingkat ? $waliKelas->kelas?->tingkat . ' ' : '') . ($waliKelas->kelas?->nama_kelas ?? '-')),
+            'kelas' => $waliKelas->kelas?->displayName() ?? '-',
             'tahun_ajaran' => $waliKelas->tahunAjaran?->tahun ?? '-',
         ];
     }
