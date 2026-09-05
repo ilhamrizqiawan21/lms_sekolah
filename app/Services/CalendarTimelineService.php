@@ -66,37 +66,119 @@ class CalendarTimelineService
             $query->whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $kelasId));
         }
 
-        return $query->orderBy('batas_waktu')->get()->map(function (Tugas $task) use ($user) {
-            $mapel = $task->kelasMapel?->mataPelajaran?->nama_mapel ?? '-';
-            $kelas = $task->kelasMapel?->kelas?->nama_kelas ?? '-';
-            $deadline = $task->batas_waktu;
-            $detailUrl = null;
+        $tasks = $query->orderBy('batas_waktu')->get();
 
-            if ($user->isSiswa()) {
-                $detailUrl = route('siswa.tugas.show', $task);
-            } elseif ($user->isGuru()) {
-                $detailUrl = route('guru.tugas.pengumpulan', [$task->kelas_mapel_id, $task->id]);
-            }
+        if ($user->isGuru()) {
+            return $this->groupTeacherTasks($tasks);
+        }
 
-            return [
-                'id' => 'task-'.$task->id,
-                'source_id' => $task->id,
-                'type' => 'task',
-                'type_label' => 'Deadline Tugas',
-                'title' => $task->judul,
-                'description' => $task->deskripsi,
-                'date' => $deadline?->format('Y-m-d'),
-                'date_label' => $deadline?->translatedFormat('d F Y') ?? '-',
-                'time_label' => $deadline?->format('H:i'),
-                'is_done' => false,
-                'is_holiday' => false,
-                'scope' => 'academic',
-                'priority' => 10,
-                'detail_url' => $detailUrl,
-                'can_manage' => $user->isGuru(),
-                'meta' => trim($mapel.' · '.$kelas, ' ·'),
-            ];
-        });
+        return $tasks->map(fn (Tugas $task) => $this->taskItem($task, $user));
+    }
+
+    private function groupTeacherTasks(Collection $tasks): Collection
+    {
+        return $tasks
+            ->groupBy(fn (Tugas $task) => $this->teacherTaskGroupKey($task))
+            ->map(function (Collection $group) {
+                /** @var Tugas $first */
+                $first = $group->first();
+                $deadline = $first->batas_waktu;
+                $mapel = $first->kelasMapel?->mataPelajaran?->nama_mapel ?? '-';
+
+                $targets = $group
+                    ->map(function (Tugas $task) {
+                        $kelasMapel = $task->kelasMapel;
+
+                        return [
+                            'kelas' => $kelasMapel?->kelas?->displayName() ?? '-',
+                            'url' => $kelasMapel
+                                ? route('guru.tugas.pengumpulan', [$kelasMapel->id, $task->id])
+                                : null,
+                        ];
+                    })
+                    ->filter(fn (array $target) => $target['url'])
+                    ->unique('kelas')
+                    ->sortBy('kelas', SORT_NATURAL)
+                    ->values();
+
+                if ($targets->count() <= 1) {
+                    return $this->taskItem($first, $first->kelasMapel?->guru ?? auth()->user());
+                }
+
+                $groupIds = $group->pluck('id')->sort()->implode('-');
+
+                return [
+                    'id' => 'task-group-'.sha1($groupIds),
+                    'source_id' => $first->id,
+                    'type' => 'task',
+                    'type_label' => 'Deadline Tugas',
+                    'title' => $first->judul,
+                    'description' => $first->deskripsi,
+                    'date' => $deadline?->format('Y-m-d'),
+                    'date_label' => $deadline?->translatedFormat('d F Y') ?? '-',
+                    'time_label' => $deadline?->format('H:i'),
+                    'is_done' => false,
+                    'is_holiday' => false,
+                    'scope' => 'academic',
+                    'priority' => 10,
+                    'detail_url' => null,
+                    'detail_links' => $targets->map(fn (array $target) => [
+                        'label' => $target['kelas'],
+                        'url' => $target['url'],
+                    ])->all(),
+                    'can_manage' => true,
+                    'meta' => $mapel.' · '.$targets->count().' kelas',
+                    'target_classes' => $targets->pluck('kelas')->all(),
+                    'group_count' => $targets->count(),
+                ];
+            })
+            ->values();
+    }
+
+    private function teacherTaskGroupKey(Tugas $task): string
+    {
+        $description = preg_replace('/\s+/u', ' ', trim((string) $task->deskripsi));
+
+        return implode('|', [
+            (string) ($task->kelasMapel?->mapel_id ?? 0),
+            mb_strtolower(trim((string) $task->judul)),
+            mb_strtolower($description ?? ''),
+            $task->batas_waktu?->format('Y-m-d H:i:s') ?? '',
+            (string) ($task->kategori_nilai ?? ''),
+        ]);
+    }
+
+    private function taskItem(Tugas $task, User $user): array
+    {
+        $mapel = $task->kelasMapel?->mataPelajaran?->nama_mapel ?? '-';
+        $kelas = $task->kelasMapel?->kelas?->displayName() ?? '-';
+        $deadline = $task->batas_waktu;
+        $detailUrl = null;
+
+        if ($user->isSiswa()) {
+            $detailUrl = route('siswa.tugas.show', $task);
+        } elseif ($user->isGuru()) {
+            $detailUrl = route('guru.tugas.pengumpulan', [$task->kelas_mapel_id, $task->id]);
+        }
+
+        return [
+            'id' => 'task-'.$task->id,
+            'source_id' => $task->id,
+            'type' => 'task',
+            'type_label' => 'Deadline Tugas',
+            'title' => $task->judul,
+            'description' => $task->deskripsi,
+            'date' => $deadline?->format('Y-m-d'),
+            'date_label' => $deadline?->translatedFormat('d F Y') ?? '-',
+            'time_label' => $deadline?->format('H:i'),
+            'is_done' => false,
+            'is_holiday' => false,
+            'scope' => 'academic',
+            'priority' => 10,
+            'detail_url' => $detailUrl,
+            'can_manage' => $user->isGuru(),
+            'meta' => trim($mapel.' · '.$kelas, ' ·'),
+        ];
     }
 
     private function announcements(User $user, Carbon $start, Carbon $end): Collection
