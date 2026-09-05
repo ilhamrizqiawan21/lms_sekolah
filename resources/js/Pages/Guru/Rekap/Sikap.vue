@@ -73,12 +73,19 @@ function badgeClass(value) {
                 <EmptyState title="Belum ada data spiritual." icon="bi-inbox" />
             </div>
 
-            <TableWrapper v-else :min-width="900">
-                <table class="table table-hover align-middle mb-0 app-table">
+            <TableWrapper v-else :min-width="1120">
+                <table class="table table-hover align-middle mb-0 app-table rekap-table">
+                    <colgroup>
+                        <col class="col-no">
+                        <col class="col-name">
+                        <col class="col-class">
+                        <col v-for="index in spiritualFields.length" :key="`spiritual-${index}`" class="col-score">
+                        <col class="col-average">
+                    </colgroup>
                     <thead class="table-light">
                         <tr>
                             <th scope="col" class="text-center">#</th>
-                            <th scope="col" class="min-w-student">Nama Siswa</th>
+                            <th scope="col">Nama Siswa</th>
                             <th scope="col">Kelas</th>
                             <th v-for="field in spiritualFields" :key="field[0]" scope="col" class="text-center">{{ field[1] }}</th>
                             <th scope="col" class="text-center">Rata²</th>
@@ -87,7 +94,7 @@ function badgeClass(value) {
                     <tbody>
                         <tr v-for="(row, index) in sikapSpiritual" :key="row.siswa.id">
                             <td class="text-center text-muted">{{ index + 1 }}</td>
-                            <td>{{ row.siswa.nama }}</td>
+                            <td class="rekap-name-cell">{{ row.siswa.nama }}</td>
                             <td>{{ row.siswa.kelas || '-' }}</td>
                             <td v-for="field in spiritualFields" :key="field[0]" class="text-center">
                                 <span class="badge" :class="badgeClass(row.nilai[field[0]])">{{ row.nilai[field[0]] ?? '-' }}</span>
@@ -109,12 +116,19 @@ function badgeClass(value) {
                 <EmptyState title="Belum ada data sosial." icon="bi-inbox" />
             </div>
 
-            <TableWrapper v-else :min-width="850">
-                <table class="table table-hover align-middle mb-0 app-table">
+            <TableWrapper v-else :min-width="1040">
+                <table class="table table-hover align-middle mb-0 app-table rekap-table">
+                    <colgroup>
+                        <col class="col-no">
+                        <col class="col-name">
+                        <col class="col-class">
+                        <col v-for="index in sosialFields.length" :key="`social-${index}`" class="col-score">
+                        <col class="col-average">
+                    </colgroup>
                     <thead class="table-light">
                         <tr>
                             <th scope="col" class="text-center">#</th>
-                            <th scope="col" class="min-w-student">Nama Siswa</th>
+                            <th scope="col">Nama Siswa</th>
                             <th scope="col">Kelas</th>
                             <th v-for="field in sosialFields" :key="field[0]" scope="col" class="text-center">{{ field[1] }}</th>
                             <th scope="col" class="text-center">Rata²</th>
@@ -123,7 +137,7 @@ function badgeClass(value) {
                     <tbody>
                         <tr v-for="(row, index) in sikapSosial" :key="row.siswa.id">
                             <td class="text-center text-muted">{{ index + 1 }}</td>
-                            <td>{{ row.siswa.nama }}</td>
+                            <td class="rekap-name-cell">{{ row.siswa.nama }}</td>
                             <td>{{ row.siswa.kelas || '-' }}</td>
                             <td v-for="field in sosialFields" :key="field[0]" class="text-center">
                                 <span class="badge" :class="badgeClass(row.nilai[field[0]])">{{ row.nilai[field[0]] ?? '-' }}</span>
@@ -138,19 +152,31 @@ function badgeClass(value) {
 </template>
 
 <style scoped>
-.min-w-student {
-    min-width: 180px;
+.rekap-table {
+    table-layout: fixed;
 }
 
-.app-table th,
-.app-table td {
-    white-space: nowrap;
+.rekap-table .col-no { width: 56px; }
+.rekap-table .col-name { width: 250px; }
+.rekap-table .col-class { width: 110px; }
+.rekap-table .col-score { width: 92px; }
+.rekap-table .col-average { width: 90px; }
+
+.rekap-name-cell {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+    font-weight: 600;
 }
 
 @media (max-width: 767.98px) {
     .app-table th,
     .app-table td {
         font-size: 0.8rem;
+    }
+
+    .rekap-table .col-name {
+        width: 220px;
     }
 }
 </style>
