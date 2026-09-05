@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Kelas extends Model
 {
@@ -39,5 +39,26 @@ class Kelas extends Model
     {
         return $this->belongsToMany(MataPelajaran::class, 'kelas_mapel', 'kelas_id', 'mapel_id')
             ->withPivot(['guru_id', 'tahun_ajaran_id', 'semester']);
+    }
+
+    public function displayName(): string
+    {
+        $tingkat = trim((string) $this->tingkat);
+        $namaKelas = trim((string) $this->nama_kelas);
+
+        if ($namaKelas === '') {
+            return $tingkat !== '' ? $tingkat : '-';
+        }
+
+        if ($tingkat === '') {
+            return $namaKelas;
+        }
+
+        $alreadyContainsTingkat = preg_match(
+            '/^'.preg_quote($tingkat, '/').'(?=$|[\s-])/iu',
+            $namaKelas
+        ) === 1;
+
+        return $alreadyContainsTingkat ? $namaKelas : $tingkat.' '.$namaKelas;
     }
 }
