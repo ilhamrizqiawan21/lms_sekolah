@@ -8,7 +8,6 @@
     color-scheme: light;
 }
 
-/* Inputs: neutralize Bootstrap/dark-theme/global form rules. */
 .login-page .input-shell,
 .login-page .form-control,
 .login-page .form-control:focus,
@@ -38,8 +37,6 @@
     opacity: 1;
 }
 
-/* Chrome/Chromium saved-credential autofill can otherwise paint the
- * input with a dark system surface even on this intentionally light page. */
 .login-page .form-control:-webkit-autofill,
 .login-page .form-control:-webkit-autofill:hover,
 .login-page .form-control:-webkit-autofill:focus,
@@ -52,7 +49,6 @@
     transition: background-color 9999s ease-out 0s;
 }
 
-/* Remember-me checkbox: keep native/bootstrap dark mode from leaking in. */
 .login-page .form-check-input {
     background-color: #ffffff !important;
     border-color: #cbd5e1 !important;
@@ -73,8 +69,19 @@
     color: #64748b !important;
 }
 
-/* Old .login-help rules existed in the shared dark theme. The new login
- * uses this as plain supporting copy, not a card/pill. */
+.login-page .forgot-link {
+    position: relative;
+    z-index: 2;
+    pointer-events: auto !important;
+    cursor: pointer;
+}
+
+.login-page .forgot-link:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--app-primary, #198754) 42%, transparent);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
 .login-page .login-help {
     display: block !important;
     margin: 13px 0 0 !important;
@@ -86,8 +93,6 @@
     color: #64748b !important;
 }
 
-/* Keep the new login shell light and self-contained even when the rest of
- * the application is currently stored in dark mode. */
 html[data-bs-theme='dark'] .login-page {
     --login-surface: #ffffff !important;
     --login-surface-soft: #f8fafc !important;
