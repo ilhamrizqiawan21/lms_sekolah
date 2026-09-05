@@ -106,12 +106,17 @@ class JadwalMengajarController extends Controller
 
     private function formatSchedule(JadwalMengajar $item): array
     {
+        $kelas = $item->kelasMapel?->kelas?->nama_kelas ?? '-';
+        $mapel = $item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-';
+
         return [
             'id' => $item->id,
             'hari' => $item->hari,
             'hari_label' => $item->dayLabel(),
             'pelajaran_ke' => $item->pelajaran_ke,
-            'kelas_mapel' => trim(($item->kelasMapel?->kelas?->nama_kelas ?? '-') . ' - ' . ($item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-')),
+            'kelas' => $kelas,
+            'mapel' => $mapel,
+            'kelas_mapel' => trim($kelas . ' - ' . $mapel),
             'delete_url' => route('guru.jadwal-mengajar.destroy', $item),
         ];
     }
