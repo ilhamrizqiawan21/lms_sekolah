@@ -109,7 +109,7 @@ function counts(studentId) {
 }
 
 function submit() {
-    if (!props.selected?.store_url) {
+    if (!props.selected?.store_url || form.processing) {
         return;
     }
 

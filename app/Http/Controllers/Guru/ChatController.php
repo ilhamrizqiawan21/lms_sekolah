@@ -10,6 +10,7 @@ use App\Models\Siswa;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -32,7 +33,8 @@ class ChatController extends Controller
             'emptyMessage' => 'Anda belum memiliki penugasan.',
         ]);
     }
-    //Pengaturan chat sesuai dengan guru mata pelajaran dan kelas yang diampu
+
+    // Pengaturan chat sesuai dengan guru mata pelajaran dan kelas yang diampu
     public function chat(KelasMapel $kelasMapel)
     {
         $this->authorize('mengajar', $kelasMapel);
@@ -66,7 +68,8 @@ class ChatController extends Controller
             'emptyMessage' => 'Belum ada pesan. Mulai percakapan!',
         ]);
     }
-    //Kirim pesan
+
+    // Kirim pesan
     public function send(Request $request, KelasMapel $kelasMapel)
     {
         $this->authorize('mengajar', $kelasMapel);
@@ -75,27 +78,31 @@ class ChatController extends Controller
             'message' => 'required|string|max:1000',
         ]);
 
-        $chat = ChatMessage::create([
-            'user_id' => Auth::id(),
-            'kelas_mapel_id' => $kelasMapel->id,
-            'message' => $validated['message'],
-        ]);
-
-        $siswas = Siswa::where('kelas_id', $kelasMapel->kelas_id)
-            ->where('status', 'aktif')
-            ->get();
-
-        foreach ($siswas as $siswa) {
-            Notifikasi::create([
-                'user_id' => $siswa->user_id,
-                'tipe' => 'chat_baru',
-                'judul' => 'Pesan baru dari guru',
-                'pesan' => 'Pesan: ' . $validated['message'],
-                'link' => route('siswa.chat.show', $kelasMapel),
+        $chat = DB::transaction(function () use ($kelasMapel, $validated) {
+            $chat = ChatMessage::create([
+                'user_id' => Auth::id(),
+                'kelas_mapel_id' => $kelasMapel->id,
+                'message' => $validated['message'],
             ]);
-        }
 
-        if ($request->ajax() && !$request->header('X-Inertia')) {
+            $siswas = Siswa::where('kelas_id', $kelasMapel->kelas_id)
+                ->where('status', 'aktif')
+                ->get();
+
+            foreach ($siswas as $siswa) {
+                Notifikasi::create([
+                    'user_id' => $siswa->user_id,
+                    'tipe' => 'chat_baru',
+                    'judul' => 'Pesan baru dari guru',
+                    'pesan' => 'Pesan: '.$validated['message'],
+                    'link' => route('siswa.chat.show', $kelasMapel),
+                ]);
+            }
+
+            return $chat;
+        });
+
+        if ($request->ajax() && ! $request->header('X-Inertia')) {
             return response()->json(['success' => true, 'message' => $chat->load('user')]);
         }
 

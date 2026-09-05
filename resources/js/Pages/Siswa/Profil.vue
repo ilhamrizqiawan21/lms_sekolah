@@ -17,6 +17,10 @@ const form = useForm({
 });
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     form.put(props.updateUrl, {
         preserveScroll: true,
         onSuccess: () => form.reset(),

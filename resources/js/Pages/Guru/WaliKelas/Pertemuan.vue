@@ -17,6 +17,10 @@ const form = useForm({
 });
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     form.post(props.waliKelas.store_url, {
         preserveScroll: true,
         onSuccess: () => form.reset(),

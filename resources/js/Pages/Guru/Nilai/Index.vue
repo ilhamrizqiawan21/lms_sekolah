@@ -176,6 +176,10 @@ function handleScoreKeyup(event) {
 }
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     form.kelas_mapel_ids = selectedKelasMapelId.value ? [selectedKelasMapelId.value] : [];
 
     const groupId = String(selectedKelasMapelId.value ?? '');

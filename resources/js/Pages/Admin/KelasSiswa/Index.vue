@@ -86,6 +86,10 @@ function resetFilters() {
 }
 
 function submitImport() {
+    if (importForm.processing) {
+        return;
+    }
+
     importForm.post('/admin/kelas-siswa/import', {
         preserveScroll: true,
         forceFormData: true,
@@ -94,6 +98,10 @@ function submitImport() {
 }
 
 function submitCreate() {
+    if (createForm.processing) {
+        return;
+    }
+
     createForm.post('/admin/kelas-siswa/siswa', {
         preserveScroll: true,
         onSuccess: () => createForm.reset(),
@@ -120,6 +128,10 @@ function cancelEdit() {
 }
 
 function submitEdit(item) {
+    if (editForm.processing) {
+        return;
+    }
+
     editForm.put(`/admin/kelas-siswa/siswa/${item.id}`, {
         preserveScroll: true,
         onSuccess: cancelEdit,

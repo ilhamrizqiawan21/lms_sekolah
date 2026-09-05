@@ -72,6 +72,10 @@ const latestAssignments = computed(() => props.kelasMapel.data?.slice(0, 5).map(
 })) ?? []);
 
 function submitTeaching() {
+    if (teachingForm.processing) {
+        return;
+    }
+
     teachingForm.post('/admin/kelas-mapel', {
         preserveScroll: true,
         onSuccess: () => teachingForm.reset(),
@@ -79,6 +83,10 @@ function submitTeaching() {
 }
 
 function submitHomeroom() {
+    if (homeroomForm.processing) {
+        return;
+    }
+
     homeroomForm.post('/admin/wali-kelas', {
         preserveScroll: true,
         onSuccess: () => homeroomForm.reset(),

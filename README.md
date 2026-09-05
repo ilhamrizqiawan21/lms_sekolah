@@ -163,7 +163,14 @@ Seeder demo menyediakan akun untuk empat role utama:
 Jalankan test suite secara lokal:
 
 ```bash
-php artisan test
+composer test
+```
+
+Format/lint PHP untuk area hardening:
+
+```bash
+composer format
+composer lint
 ```
 
 Build frontend:
@@ -172,7 +179,7 @@ Build frontend:
 npm run build
 ```
 
-CI menjalankan install dependency, test suite Laravel, dan frontend build melalui GitHub Actions.
+CI menjalankan Composer validate, lint PHP, test suite Laravel, dan frontend build melalui GitHub Actions.
 
 ## Security
 

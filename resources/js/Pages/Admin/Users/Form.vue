@@ -30,6 +30,10 @@ const roleOptions = computed(() => props.roles.map((role) => ({
 })));
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     if (isEdit.value) {
         form.put(props.user.update_url, { preserveScroll: true });
         return;

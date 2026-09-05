@@ -57,6 +57,10 @@ const metrics = computed(() => {
 });
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     form.post(props.kelasMapel.store_url, {
         preserveScroll: true,
         onSuccess: () => form.reset(),

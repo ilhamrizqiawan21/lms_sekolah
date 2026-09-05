@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Siswa;
-use App\Models\User;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Border;
 use OpenSpout\Common\Entity\Style\BorderName;
@@ -11,7 +9,6 @@ use OpenSpout\Common\Entity\Style\BorderPart;
 use OpenSpout\Common\Entity\Style\BorderWidth;
 use OpenSpout\Common\Entity\Style\CellAlignment;
 use OpenSpout\Common\Entity\Style\CellVerticalAlignment;
-use OpenSpout\Common\Entity\Style\Color;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 
@@ -20,11 +17,11 @@ class SiswaExportService
     public function export($query): string
     {
         $filePath = tempnam(sys_get_temp_dir(), 'siswa_export_');
-        $writer = new Writer();
+        $writer = new Writer;
         $writer->openToFile($filePath);
         $writer->getCurrentSheet()->setName('Data Siswa');
 
-        foreach ([16, 22, 32, 20, 18, 14, 18, 20] as $column => $width) {
+        foreach ([16, 22, 32, 20, 18, 14, 20] as $column => $width) {
             $writer->getCurrentSheet()->setColumnWidth($width, $column + 1);
         }
 
@@ -42,7 +39,6 @@ class SiswaExportService
             'Kelas',
             'Jenis Kelamin',
             'Status Siswa',
-            'Password Default',
             'Status Password',
         ], $styles['tableHeader'], 24));
 
@@ -58,7 +54,6 @@ class SiswaExportService
                     $kelas,
                     $siswa->user?->jenis_kelamin ?? '-',
                     $siswa->status ?? '-',
-                    User::DEFAULT_PASSWORD,
                     $isDefaultPassword ? 'Masih default' : 'Sudah diubah',
                 ];
                 $writer->addRow(Row::fromValuesWithStyle(
@@ -71,25 +66,45 @@ class SiswaExportService
         });
 
         $writer->close();
+
         return $filePath;
     }
 
     private function styles(): array
     {
         $border = new Border(
-            new BorderPart(BorderName::TOP, Color::GRAY, BorderWidth::THIN),
-            new BorderPart(BorderName::BOTTOM, Color::GRAY, BorderWidth::THIN),
-            new BorderPart(BorderName::LEFT, Color::GRAY, BorderWidth::THIN),
-            new BorderPart(BorderName::RIGHT, Color::GRAY, BorderWidth::THIN),
+            new BorderPart(BorderName::TOP, 'CBD5E1', BorderWidth::THIN),
+            new BorderPart(BorderName::BOTTOM, 'CBD5E1', BorderWidth::THIN),
+            new BorderPart(BorderName::LEFT, 'CBD5E1', BorderWidth::THIN),
+            new BorderPart(BorderName::RIGHT, 'CBD5E1', BorderWidth::THIN),
         );
 
         return [
-            'school' => (new Style())->setFontBold()->setFontSize(16)->setHorizontalAlignment(CellAlignment::CENTER)->setVerticalAlignment(CellVerticalAlignment::CENTER),
-            'title' => (new Style())->setFontBold()->setFontSize(13)->setHorizontalAlignment(CellAlignment::CENTER)->setVerticalAlignment(CellVerticalAlignment::CENTER),
-            'meta' => (new Style())->setFontSize(10)->setBorder($border),
-            'tableHeader' => (new Style())->setFontBold()->setFontSize(10)->setBorder($border)->setHorizontalAlignment(CellAlignment::CENTER)->setVerticalAlignment(CellVerticalAlignment::CENTER),
-            'row' => (new Style())->setFontSize(10)->setBorder($border),
-            'alternateRow' => (new Style())->setFontSize(10)->setBorder($border),
+            'school' => (new Style)
+                ->withFontBold(true)
+                ->withFontSize(16)
+                ->withCellAlignment(CellAlignment::CENTER)
+                ->withCellVerticalAlignment(CellVerticalAlignment::CENTER),
+            'title' => (new Style)
+                ->withFontBold(true)
+                ->withFontSize(13)
+                ->withCellAlignment(CellAlignment::CENTER)
+                ->withCellVerticalAlignment(CellVerticalAlignment::CENTER),
+            'meta' => (new Style)
+                ->withFontSize(10)
+                ->withBorder($border),
+            'tableHeader' => (new Style)
+                ->withFontBold(true)
+                ->withFontSize(10)
+                ->withBorder($border)
+                ->withCellAlignment(CellAlignment::CENTER)
+                ->withCellVerticalAlignment(CellVerticalAlignment::CENTER),
+            'row' => (new Style)
+                ->withFontSize(10)
+                ->withBorder($border),
+            'alternateRow' => (new Style)
+                ->withFontSize(10)
+                ->withBorder($border),
         ];
     }
 }

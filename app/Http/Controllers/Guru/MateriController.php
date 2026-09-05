@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Guru\StoreBulkMateriRequest;
+use App\Http\Requests\Guru\StoreMateriRequest;
 use App\Models\KelasMapel;
 use App\Models\Materi;
-use Illuminate\Http\Request;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -33,7 +36,8 @@ class MateriController extends Controller
             'storeUrl' => route('guru.materi.store.bulk'),
         ]);
     }
-    //Daftar materi yang diupload oleh guru untuk kelas dan mata pelajaran tertentu
+
+    // Daftar materi yang diupload oleh guru untuk kelas dan mata pelajaran tertentu
     public function list(KelasMapel $kelasMapel)
     {
         $this->authorize('mengajar', $kelasMapel);
@@ -63,15 +67,9 @@ class MateriController extends Controller
         ]);
     }
 
-    public function storeBulk(Request $request)
+    public function storeBulk(StoreBulkMateriRequest $request)
     {
-        $validated = $request->validate([
-            'kelas_mapel_ids' => 'required|array|min:1',
-            'kelas_mapel_ids.*' => 'integer',
-            'judul' => 'required|string|max:200',
-            'deskripsi' => 'nullable|string',
-            'file_materi' => 'required|file|extensions:jpg,jpeg,pdf|max:5120',
-        ]);
+        $validated = $request->validated();
 
         $kelasMapel = $this->assignedKelasMapelQuery()
             ->whereIn('id', $validated['kelas_mapel_ids'])
@@ -82,57 +80,98 @@ class MateriController extends Controller
         }
 
         $file = $request->file('file_materi');
-        foreach ($kelasMapel as $item) {
-            Materi::create([
-                'kelas_mapel_id' => $item->id,
-                'judul' => $validated['judul'],
-                'deskripsi' => $validated['deskripsi'] ?? null,
-                'file_path' => $file->store('materi/' . $item->id, 'local'),
-            ]);
+        $storedPaths = [];
+
+        try {
+            DB::beginTransaction();
+
+            foreach ($kelasMapel as $item) {
+                $path = $file->store('materi/'.$item->id, 'local');
+                $storedPaths[] = $path;
+
+                Materi::create([
+                    'kelas_mapel_id' => $item->id,
+                    'judul' => $validated['judul'],
+                    'deskripsi' => $validated['deskripsi'] ?? null,
+                    'file_path' => $path,
+                ]);
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            foreach ($storedPaths as $path) {
+                Storage::disk('local')->delete($path);
+            }
+
+            report($e);
+
+            return back()->withInput()->with('error', 'Materi gagal diupload. Silakan coba lagi.');
         }
 
         return redirect()->route('guru.materi.index')
             ->with('success', 'Materi berhasil diupload ke kelas yang dipilih.');
     }
-    //Menyimpan materi baru
-    public function store(Request $request, KelasMapel $kelasMapel)
+
+    // Menyimpan materi baru
+    public function store(StoreMateriRequest $request, KelasMapel $kelasMapel)
     {
         $this->authorize('mengajar', $kelasMapel);
 
-        $validated = $request->validate([
-            'judul' => 'required|string|max:200',
-            'deskripsi' => 'nullable|string',
-            'file_materi' => 'required|file|extensions:jpg,jpeg,pdf|max:5120',
-        ]);
+        $validated = $request->validated();
 
         $file = $request->file('file_materi');
-        $path = $file->store('materi/' . $kelasMapel->id, 'local');
+        $path = null;
 
-        Materi::create([
-            'kelas_mapel_id' => $kelasMapel->id,
-            'judul' => $validated['judul'],
-            'deskripsi' => $validated['deskripsi'],
-            'file_path' => $path,
-        ]);
+        try {
+            DB::beginTransaction();
+
+            $path = $file->store('materi/'.$kelasMapel->id, 'local');
+
+            Materi::create([
+                'kelas_mapel_id' => $kelasMapel->id,
+                'judul' => $validated['judul'],
+                'deskripsi' => $validated['deskripsi'],
+                'file_path' => $path,
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            if ($path) {
+                Storage::disk('local')->delete($path);
+            }
+
+            report($e);
+
+            return back()->withInput()->with('error', 'Materi gagal diupload. Silakan coba lagi.');
+        }
 
         return redirect()->route('guru.materi.list', $kelasMapel)
             ->with('success', 'Materi berhasil diupload.');
     }
-    //Menghapus materi yang sudah diupload oleh guru untuk kelas dan mata pelajaran tertentu
+
+    // Menghapus materi yang sudah diupload oleh guru untuk kelas dan mata pelajaran tertentu
     public function download(KelasMapel $kelasMapel, Materi $materi)
     {
         $this->authorize('mengajar', $kelasMapel);
         $this->ensureMateriBelongsToKelasMapel($materi, $kelasMapel);
 
         $disk = $this->materiDisk($materi->file_path);
-        if (!$materi->file_path || !$disk) {
+        if (! $materi->file_path || ! $disk) {
             return back()->with('error', 'File materi tidak ditemukan.');
         }
 
-        return response()->download($disk->path($materi->file_path), $materi->judul . '_' . basename($materi->file_path));
+        return response()->download($disk->path($materi->file_path), $materi->judul.'_'.basename($materi->file_path));
     }
 
-    //Menghapus materi yang sudah diupload oleh guru untuk kelas dan mata pelajaran tertentu
+    // Menghapus materi yang sudah diupload oleh guru untuk kelas dan mata pelajaran tertentu
     public function destroy(KelasMapel $kelasMapel, Materi $materi)
     {
         $this->authorize('mengajar', $kelasMapel);
@@ -154,9 +193,9 @@ class MateriController extends Controller
         abort_unless((int) $materi->kelas_mapel_id === (int) $kelasMapel->id, 403);
     }
 
-    private function materiDisk(?string $path): ?\Illuminate\Filesystem\FilesystemAdapter
+    private function materiDisk(?string $path): ?FilesystemAdapter
     {
-        if (!$path) {
+        if (! $path) {
             return null;
         }
 
@@ -176,10 +215,10 @@ class MateriController extends Controller
     {
         return $kelasMapel->map(fn (KelasMapel $item) => [
             'id' => $item->id,
-            'kelas' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat . ' ' : '') . ($item->kelas?->nama_kelas ?? '-')),
+            'kelas' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat.' ' : '').($item->kelas?->nama_kelas ?? '-')),
             'mata_pelajaran' => $item->mataPelajaran?->nama_mapel ?? '-',
             'semester' => $item->semester,
-            'label' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat . ' ' : '') . ($item->kelas?->nama_kelas ?? '-') . ' - ' . ($item->mataPelajaran?->nama_mapel ?? '-') . ' (Sem. ' . $item->semester . ')'),
+            'label' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat.' ' : '').($item->kelas?->nama_kelas ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$item->semester.')'),
             'href' => route('guru.materi.list', $item),
         ])->values();
     }
@@ -194,7 +233,7 @@ class MateriController extends Controller
             'deskripsi' => $item->deskripsi,
             'deskripsi_ringkas' => Str::limit((string) $item->deskripsi, 60),
             'tanggal' => $item->created_at?->format('d M Y') ?? '-',
-            'kelas' => trim(($kelasMapel?->kelas?->tingkat ? $kelasMapel->kelas->tingkat . ' ' : '') . ($kelasMapel?->kelas?->nama_kelas ?? '-')),
+            'kelas' => trim(($kelasMapel?->kelas?->tingkat ? $kelasMapel->kelas->tingkat.' ' : '').($kelasMapel?->kelas?->nama_kelas ?? '-')),
             'mata_pelajaran' => $kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
             'download_url' => $item->file_path && $kelasMapel ? route('guru.materi.download', [$kelasMapel, $item]) : null,
             'delete_url' => $kelasMapel ? route('guru.materi.destroy', [$kelasMapel, $item]) : null,

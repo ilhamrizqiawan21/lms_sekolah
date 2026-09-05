@@ -28,13 +28,13 @@ defineEmits(['detail']);
                     :href="file.url"
                     class="btn btn-sm btn-outline-primary mb-1 me-1"
                     target="_blank"
-                    rel="noopener"
+                    rel="noopener noreferrer"
                     :title="file.name"
                 >
                     <i class="bi bi-paperclip" aria-hidden="true"></i>
                 </a>
             </template>
-            <a v-else-if="item.legacy_file_url" :href="item.legacy_file_url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">
+            <a v-else-if="item.legacy_file_url" :href="item.legacy_file_url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">
                 <i class="bi bi-download" aria-hidden="true"></i>
             </a>
             <span v-else class="text-muted">-</span>

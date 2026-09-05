@@ -34,6 +34,10 @@ function blankForm(status = '') {
 }
 
 function submitCreate() {
+    if (createForm.processing) {
+        return;
+    }
+
     createForm.post(props.waliKelas.store_url, {
         preserveScroll: true,
         onSuccess: () => createForm.reset(),
@@ -52,6 +56,10 @@ function startEdit(item) {
 }
 
 function submitEdit(item) {
+    if (editForm.processing) {
+        return;
+    }
+
     editForm.put(item.update_url, {
         preserveScroll: true,
         onSuccess: () => {

@@ -62,4 +62,24 @@ class ErrorPageTest extends TestCase
         $response->assertSee('Sistem sedang dalam pemeliharaan');
         $response->assertDontSee('Terjadi kesalahan sistem');
     }
+
+    public function test_json_errors_use_safe_messages(): void
+    {
+        Route::get('/__test-json-error-403', fn () => abort(403));
+        Route::get('/__test-json-error-404', fn () => abort(404));
+        Route::get('/__test-json-error-500', fn () => abort(500, 'database password=super-secret'));
+
+        $this->getJson('/__test-json-error-403')
+            ->assertForbidden()
+            ->assertJson(['message' => 'Forbidden']);
+
+        $this->getJson('/__test-json-error-404')
+            ->assertNotFound()
+            ->assertJson(['message' => 'Not Found.']);
+
+        $this->getJson('/__test-json-error-500')
+            ->assertStatus(500)
+            ->assertJson(['message' => 'Server Error.'])
+            ->assertDontSee('super-secret');
+    }
 }

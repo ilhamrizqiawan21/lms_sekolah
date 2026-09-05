@@ -48,6 +48,10 @@ const siswaRows = computed(() => {
 });
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     form.put(props.updateUrl, {
         preserveScroll: true,
         onSuccess: () => form.reset(),
@@ -55,6 +59,10 @@ function submit() {
 }
 
 function submitAvatar() {
+    if (avatarForm.processing) {
+        return;
+    }
+
     avatarForm.post(props.avatarUpdateUrl, {
         forceFormData: true,
         preserveScroll: true,

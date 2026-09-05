@@ -8,6 +8,7 @@ use App\Models\Siswa;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use OpenSpout\Common\Exception\OpenSpoutException;
 use OpenSpout\Reader\XLSX\Reader;
 
@@ -55,7 +56,7 @@ class SiswaImportService
                     'kelas_id' => (int) $row['kelas_id'],
                     'angkatan' => $row['angkatan'] ?: null,
                     'status' => $row['status'] ?: 'aktif',
-            ]);
+                ]);
             }
         });
 
@@ -67,7 +68,7 @@ class SiswaImportService
 
     private function readRows(string $filePath): array
     {
-        $reader = new Reader();
+        $reader = new Reader;
         $readerOpened = false;
 
         $dataRows = [];
@@ -89,12 +90,13 @@ class SiswaImportService
                     $values = $this->normalizeRow($row->toArray());
                     $values = array_slice(array_pad($values, count(SiswaTemplateService::HEADERS), ''), 0, count(SiswaTemplateService::HEADERS));
 
-                    if (!$headerChecked) {
+                    if (! $headerChecked) {
                         $headerChecked = true;
                         if ($values !== SiswaTemplateService::HEADERS) {
                             $errors[] = 'Header template tidak sesuai. Silakan unduh dan gunakan template terbaru.';
                             break 2;
                         }
+
                         continue;
                     }
 
@@ -103,15 +105,17 @@ class SiswaImportService
                     }
 
                     if (count($dataRows) >= self::MAX_IMPORT_ROWS) {
-                        $errors[] = 'Import dibatasi maksimal ' . self::MAX_IMPORT_ROWS . ' siswa per file. Pecah file menjadi beberapa bagian.';
+                        $errors[] = 'Import dibatasi maksimal '.self::MAX_IMPORT_ROWS.' siswa per file. Pecah file menjadi beberapa bagian.';
                         break 2;
                     }
 
                     $rowData = array_combine(SiswaTemplateService::HEADERS, $values);
+                    $rowData['nis'] = Str::upper($rowData['nis']);
                     $rowErrors = $this->validateRow($rowData, $rowIndex, $seenUsernames, $seenNis);
 
                     if ($rowErrors !== []) {
                         $errors = array_merge($errors, $rowErrors);
+
                         continue;
                     }
 
@@ -128,7 +132,7 @@ class SiswaImportService
             }
         }
 
-        if (!$headerChecked) {
+        if (! $headerChecked) {
             $errors[] = 'File Excel kosong atau sheet template tidak ditemukan.';
         }
 
@@ -199,7 +203,7 @@ class SiswaImportService
 
         if ($data['kelas_id'] === '') {
             $errors[] = "{$prefix} kelas_id wajib diisi.";
-        } elseif (!ctype_digit($data['kelas_id']) || !Kelas::whereKey((int) $data['kelas_id'])->exists()) {
+        } elseif (! ctype_digit($data['kelas_id']) || ! Kelas::whereKey((int) $data['kelas_id'])->exists()) {
             $errors[] = "{$prefix} kelas_id tidak ditemukan.";
         }
 
@@ -207,11 +211,11 @@ class SiswaImportService
             $errors[] = "{$prefix} password minimal 6 karakter.";
         }
 
-        if ($data['jenis_kelamin'] !== '' && !in_array($data['jenis_kelamin'], ['L', 'P'], true)) {
+        if ($data['jenis_kelamin'] !== '' && ! in_array($data['jenis_kelamin'], ['L', 'P'], true)) {
             $errors[] = "{$prefix} jenis_kelamin harus L atau P.";
         }
 
-        if ($data['status'] !== '' && !in_array($data['status'], ['aktif', 'lulus', 'keluar'], true)) {
+        if ($data['status'] !== '' && ! in_array($data['status'], ['aktif', 'lulus', 'keluar'], true)) {
             $errors[] = "{$prefix} status harus aktif, lulus, atau keluar.";
         }
 

@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Guru\StoreKelasDaringRequest;
+use App\Http\Requests\Guru\UpdateKelasDaringStatusRequest;
 use App\Models\JadwalMengajar;
 use App\Models\KelasDaring;
 use App\Models\KelasMapel;
 use App\Services\NotifikasiService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -27,7 +28,7 @@ class KelasDaringController extends Controller
         return Inertia::render('Guru/KelasDaring/Index', [
             'kelasMapel' => $kelasMapel->map(fn (KelasMapel $item) => [
                 'id' => $item->id,
-                'label' => trim(($item->kelas?->nama_kelas ?? '-') . ' - ' . ($item->mataPelajaran?->nama_mapel ?? '-') . ' (Sem. ' . $item->semester . ')'),
+                'label' => trim(($item->kelas?->nama_kelas ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$item->semester.')'),
             ])->values(),
             'lessonSlots' => collect(range(1, 5))->map(fn ($slot) => ['value' => $slot, 'label' => "Pelajaran ke-{$slot}"])->values(),
             'sessions' => $sessions->map(fn (KelasDaring $item) => $this->formatSession($item))->values(),
@@ -35,17 +36,9 @@ class KelasDaringController extends Controller
         ]);
     }
 
-    public function store(Request $request, NotifikasiService $notifikasiService)
+    public function store(StoreKelasDaringRequest $request, NotifikasiService $notifikasiService)
     {
-        $validated = $request->validate([
-            'kelas_mapel_id' => 'required|integer',
-            'judul' => 'required|string|max:200',
-            'deskripsi' => 'nullable|string|max:1000',
-            'tanggal' => 'required|date|after_or_equal:today',
-            'pelajaran_ke' => 'required|integer|min:1|max:5',
-            'meeting_url' => 'required|url|max:500',
-            'status' => ['nullable', Rule::in(['terjadwal', 'selesai', 'dibatalkan'])],
-        ]);
+        $validated = $request->validated();
 
         $kelasMapel = $this->assignedKelasMapelQuery()
             ->whereKey($validated['kelas_mapel_id'])
@@ -69,30 +62,30 @@ class KelasDaringController extends Controller
             ]);
         }
 
-        $session = KelasDaring::create([
-            ...$validated,
-            'guru_id' => Auth::id(),
-            'status' => $validated['status'] ?? KelasDaring::STATUS_TERJADWAL,
-        ]);
+        DB::transaction(function () use ($validated, $kelasMapel, $notifikasiService) {
+            $session = KelasDaring::create([
+                ...$validated,
+                'guru_id' => Auth::id(),
+                'status' => $validated['status'] ?? KelasDaring::STATUS_TERJADWAL,
+            ]);
 
-        $notifikasiService->notifikasiKelasMapel(
-            $kelasMapel->id,
-            'kelas_daring',
-            'Kelas Daring Baru',
-            "Kelas daring '{$session->judul}' dijadwalkan pada " . $session->tanggal->format('d/m/Y') . '.',
-            route('siswa.kelas-mapel.show', $kelasMapel)
-        );
+            $notifikasiService->notifikasiKelasMapel(
+                $kelasMapel->id,
+                'kelas_daring',
+                'Kelas Daring Baru',
+                "Kelas daring '{$session->judul}' dijadwalkan pada ".$session->tanggal->format('d/m/Y').'.',
+                route('siswa.kelas-mapel.show', $kelasMapel)
+            );
+        });
 
         return back()->with('success', 'Kelas daring berhasil dijadwalkan.');
     }
 
-    public function updateStatus(Request $request, KelasDaring $kelasDaring)
+    public function updateStatus(UpdateKelasDaringStatusRequest $request, KelasDaring $kelasDaring)
     {
         abort_unless((int) $kelasDaring->guru_id === (int) Auth::id(), 403);
 
-        $validated = $request->validate([
-            'status' => ['required', Rule::in(['terjadwal', 'selesai', 'dibatalkan'])],
-        ]);
+        $validated = $request->validated();
 
         $kelasDaring->update($validated);
 
@@ -121,7 +114,7 @@ class KelasDaringController extends Controller
             'id' => $item->id,
             'judul' => $item->judul,
             'deskripsi' => $item->deskripsi,
-            'kelas_mapel' => trim(($item->kelasMapel?->kelas?->nama_kelas ?? '-') . ' - ' . ($item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-')),
+            'kelas_mapel' => trim(($item->kelasMapel?->kelas?->nama_kelas ?? '-').' - '.($item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-')),
             'tanggal' => $item->tanggal?->format('d M Y'),
             'tanggal_iso' => $item->tanggal?->format('Y-m-d'),
             'pelajaran_ke' => $item->pelajaran_ke,

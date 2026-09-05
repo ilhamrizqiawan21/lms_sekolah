@@ -75,6 +75,10 @@ function formatAverage(value) {
 }
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     form.post(props.kelasMapel.store_url, {
         preserveScroll: true,
     });

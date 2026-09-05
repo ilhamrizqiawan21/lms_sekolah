@@ -168,7 +168,7 @@ function submit() {
                         class="public-attachment"
                         :href="announcement.attachment.url"
                         target="_blank"
-                        rel="noopener"
+                        rel="noopener noreferrer"
                     >
                         <i class="bi bi-paperclip" aria-hidden="true"></i>
                         <span>{{ announcement.attachment.name }}</span>

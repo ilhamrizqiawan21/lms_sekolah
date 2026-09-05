@@ -27,6 +27,10 @@ const courseTabs = [
 ];
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     form.post(props.kelasMapel.store_url, {
         preserveScroll: true,
         forceFormData: true,
@@ -144,7 +148,7 @@ async function destroy(item) {
                                                     :href="item.download_url"
                                                     class="btn btn-sm btn-outline-primary btn-icon"
                                                     target="_blank"
-                                                    rel="noopener"
+                                                    rel="noopener noreferrer"
                                                     :title="`Download ${item.judul}`"
                                                     :aria-label="`Download ${item.judul}`"
                                                 >

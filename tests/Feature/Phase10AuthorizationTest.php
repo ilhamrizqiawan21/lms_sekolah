@@ -260,9 +260,9 @@ class Phase10AuthorizationTest extends TestCase
             );
     }
 
-    public function test_admin_student_password_reset_uses_generated_temporary_password(): void
+    public function test_admin_student_password_reset_uses_default_password(): void
     {
-        [$admin, , , $kelas, ] = $this->fixture();
+        [$admin, , , $kelas] = $this->fixture();
         $studentUser = $this->createUser('siswa-reset', 'Siswa Reset', 'siswa');
         $siswa = Siswa::create([
             'user_id' => $studentUser->id,
@@ -280,14 +280,14 @@ class Phase10AuthorizationTest extends TestCase
         $studentUser->refresh();
 
         $this->assertIsArray($payload);
-        $this->assertNotSame(User::DEFAULT_PASSWORD, $payload['password']);
+        $this->assertSame(User::DEFAULT_PASSWORD, $payload['password']);
         $this->assertTrue(Hash::check($payload['password'], $studentUser->password));
         $this->assertTrue((bool) $studentUser->is_password_default);
     }
 
     public function test_student_cannot_use_admin_student_reset_endpoint(): void
     {
-        [, , , $kelas, ] = $this->fixture();
+        [, , , $kelas] = $this->fixture();
         $studentUser = $this->createUser('siswa-attacker', 'Siswa Attacker', 'siswa');
         $targetUser = $this->createUser('siswa-target', 'Siswa Target', 'siswa');
         $target = Siswa::create([

@@ -29,6 +29,10 @@ const statusOptions = [
 ];
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     form.post(props.storeUrl, {
         preserveScroll: true,
         onSuccess: () => form.reset('kelas_mapel_id', 'judul', 'deskripsi', 'tanggal', 'pelajaran_ke', 'meeting_url'),
@@ -117,7 +121,7 @@ async function destroySession(session) {
                                     <td>
                                         <strong>{{ session.judul }}</strong>
                                         <div class="text-muted small">{{ session.kelas_mapel }}</div>
-                                        <a :href="session.meeting_url" target="_blank" rel="noopener" class="small">Buka link</a>
+                                        <a :href="session.meeting_url" target="_blank" rel="noopener noreferrer" class="small">Buka link</a>
                                     </td>
                                     <td>{{ session.tanggal }}<div class="text-muted small">Pelajaran ke-{{ session.pelajaran_ke }}</div></td>
                                     <td>

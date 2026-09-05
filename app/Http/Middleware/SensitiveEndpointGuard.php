@@ -4,10 +4,11 @@ namespace App\Http\Middleware;
 
 use App\Models\Siswa;
 use App\Models\User;
+use App\Support\RoleAccess;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -47,16 +48,14 @@ class SensitiveEndpointGuard
 
         abort_unless($user instanceof User && ! $user->isSiswa(), 404);
 
-        $temporaryPassword = Str::password(20);
-
         $user->forceFill([
-            'password' => Hash::make($temporaryPassword),
+            'password' => Hash::make(User::DEFAULT_PASSWORD),
             'is_password_default' => true,
         ])->save();
 
         return back()->with(
             'success',
-            "Password {$user->nama_lengkap} berhasil direset. Password sementara: {$temporaryPassword}. Segera berikan kepada pengguna dan minta pengguna menggantinya."
+            "Password {$user->nama_lengkap} berhasil direset ke ".User::DEFAULT_PASSWORD.'.'
         );
     }
 
@@ -73,20 +72,18 @@ class SensitiveEndpointGuard
 
         abort_unless($siswa instanceof Siswa && $user instanceof User && $user->isSiswa(), 404);
 
-        $temporaryPassword = Str::password(20);
-
         $user->forceFill([
-            'password' => Hash::make($temporaryPassword),
+            'password' => Hash::make(User::DEFAULT_PASSWORD),
             'is_password_default' => true,
         ])->save();
 
         return back()
-            ->with('success', 'Password siswa berhasil direset. Password sementara hanya ditampilkan sekali.')
+            ->with('success', 'Password siswa berhasil direset.')
             ->with('student_password', [
-                'title' => 'Password sementara siswa',
+                'title' => 'Password baru siswa',
                 'name' => $user->nama_lengkap,
                 'username' => $user->username,
-                'password' => $temporaryPassword,
+                'password' => User::DEFAULT_PASSWORD,
             ]);
     }
 
@@ -97,12 +94,12 @@ class SensitiveEndpointGuard
         }
 
         $validated = $request->validate([
-            'role_id' => 'nullable|exists:roles,id',
+            'role_id' => ['nullable', 'integer', Rule::in(RoleAccess::staffRoleIds())],
             'search' => 'nullable|string|max:100',
         ]);
 
         $query = User::with('role')
-            ->whereHas('role', fn ($q) => $q->where('nama_role', '!=', 'siswa'));
+            ->whereHas('role', fn ($q) => $q->whereIn('nama_role', RoleAccess::STAFF_MANAGED_BY_ADMIN));
 
         if (! empty($validated['role_id'])) {
             $query->where('role_id', $validated['role_id']);
@@ -116,7 +113,7 @@ class SensitiveEndpointGuard
             });
         }
 
-        $filename = 'status_password_guru_staf_' . now()->format('Ymd_His') . '.csv';
+        $filename = 'status_password_guru_staf_'.now()->format('Ymd_His').'.csv';
 
         return response()->streamDownload(function () use ($query): void {
             $output = fopen('php://output', 'wb');
@@ -136,7 +133,7 @@ class SensitiveEndpointGuard
             fclose($output);
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
             'X-Content-Type-Options' => 'nosniff',
         ]);
     }

@@ -23,7 +23,7 @@ Status: **code-level hardening complete; production deployment gate remains runt
 - Account password changes require current-password confirmation and a stronger password policy.
 - Production environment controls are documented in `.env.example`.
 - Legacy admin password export is intercepted by `SensitiveEndpointGuard` and replaced with a CSV containing account identity and password-status metadata only; no password value is exported.
-- Legacy admin and student password-reset routes are intercepted by `SensitiveEndpointGuard` and use unique generated temporary credentials with hashed storage. The temporary credential is exposed only once to the authenticated admin initiating the reset.
+- Legacy admin and student password-reset routes are intercepted by `SensitiveEndpointGuard` and, per current operational policy, reset accounts to `User::DEFAULT_PASSWORD` (`123456`) with hashed storage. The credential is exposed only to the authenticated admin initiating the reset.
 - Added `tests/Feature/Phase10AuthorizationTest.php` covering cross-guru task deletion, owner task deletion, secure student password reset and role-boundary rejection.
 
 ## Authorization / IDOR completion
@@ -48,7 +48,9 @@ The repository CI workflow runs:
 
 ```text
 composer install
+composer validate --strict
 npm ci
+composer lint
 php artisan test --colors=never
 npm run build
 ```

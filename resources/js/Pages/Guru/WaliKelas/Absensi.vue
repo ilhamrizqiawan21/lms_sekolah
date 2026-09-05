@@ -57,6 +57,10 @@ function statusClass(status) {
 }
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     form.post(props.waliKelas.store_url, {
         preserveScroll: true,
     });

@@ -52,6 +52,10 @@ function cancelEdit() {
 }
 
 function submitCreate() {
+    if (createForm.processing) {
+        return;
+    }
+
     createForm.post('/admin/kelas', {
         preserveScroll: true,
         onSuccess: () => createForm.reset(),
@@ -59,7 +63,7 @@ function submitCreate() {
 }
 
 function submitEdit() {
-    if (!editing.value) {
+    if (!editing.value || editForm.processing) {
         return;
     }
 

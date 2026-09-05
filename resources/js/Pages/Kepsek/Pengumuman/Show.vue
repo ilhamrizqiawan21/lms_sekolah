@@ -33,7 +33,7 @@ function formatFileSize(bytes) {
                     <span class="badge bg-success-subtle text-success-emphasis">Tampil di halaman login</span>
                 </div>
                 <div v-if="pengumuman.attachment" class="mt-3">
-                    <a v-if="pengumuman.attachment.url" :href="pengumuman.attachment.url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">
+                    <a v-if="pengumuman.attachment.url" :href="pengumuman.attachment.url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">
                         <i class="bi bi-paperclip me-1" aria-hidden="true"></i>{{ pengumuman.attachment.name }}
                         <span v-if="formatFileSize(pengumuman.attachment.size)" class="text-muted">({{ formatFileSize(pengumuman.attachment.size) }})</span>
                     </a>

@@ -10,9 +10,14 @@ on:
       - main
       - experimental/demo-lms
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -35,11 +40,17 @@ jobs:
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: Validate Composer config
+        run: composer validate --strict
+
       - name: Install frontend dependencies
         run: npm ci
 
       - name: Prepare application
         run: cp .env.example .env && php artisan key:generate --force
+
+      - name: Run Laravel Pint
+        run: composer lint
 
       - name: Run test suite
         run: php artisan test --colors=never

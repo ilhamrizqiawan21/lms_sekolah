@@ -3,11 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ImportSiswaRequest;
+use App\Http\Requests\Admin\StaffUserFilterRequest;
+use App\Http\Requests\Admin\StoreStaffUserRequest;
+use App\Http\Requests\Admin\UpdateStaffUserRequest;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\SiswaImportService;
 use App\Services\SiswaTemplateService;
-use Illuminate\Http\Request;
+use App\Support\RoleAccess;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -29,10 +34,10 @@ class UserController extends Controller
     /**
      * Tampilkan daftar user.
      */
-    public function index(Request $request)
+    public function index(StaffUserFilterRequest $request)
     {
         $query = User::with('role')
-            ->whereHas('role', fn ($query) => $query->where('nama_role', '!=', 'siswa'));
+            ->whereHas('role', fn ($query) => $query->whereIn('nama_role', RoleAccess::STAFF_MANAGED_BY_ADMIN));
 
         // Filter role
         if ($request->filled('role_id')) {
@@ -44,7 +49,7 @@ class UserController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('username', 'like', "%{$search}%")
-                  ->orWhere('nama_lengkap', 'like', "%{$search}%");
+                    ->orWhere('nama_lengkap', 'like', "%{$search}%");
             });
         }
 
@@ -87,15 +92,12 @@ class UserController extends Controller
         ]);
     }
 
-    public function exportExcel(Request $request)
+    public function exportExcel(StaffUserFilterRequest $request)
     {
-        $request->validate([
-            'role_id' => 'nullable|exists:roles,id',
-            'search' => 'nullable|string|max:100',
-        ]);
+        $this->ensureAdmin();
 
         $query = User::with('role')
-            ->whereHas('role', fn ($query) => $query->where('nama_role', '!=', 'siswa'));
+            ->whereHas('role', fn ($query) => $query->whereIn('nama_role', RoleAccess::STAFF_MANAGED_BY_ADMIN));
 
         if ($request->filled('role_id')) {
             $query->where('role_id', $request->role_id);
@@ -109,16 +111,15 @@ class UserController extends Controller
             });
         }
 
-        $writer = new Writer();
+        $writer = new Writer;
         $filePath = tempnam(sys_get_temp_dir(), 'guru_staf_');
-        $filename = 'status_password_guru_staf_' . date('Ymd_His') . '.xlsx';
+        $filename = 'status_password_guru_staf_'.date('Ymd_His').'.xlsx';
 
         $writer->openToFile($filePath);
         $writer->getCurrentSheet()->setColumnWidth(22, 1);
         $writer->getCurrentSheet()->setColumnWidth(32, 2);
         $writer->getCurrentSheet()->setColumnWidth(18, 3);
         $writer->getCurrentSheet()->setColumnWidth(18, 4);
-        $writer->getCurrentSheet()->setColumnWidth(24, 5);
 
         $styles = $this->excelStyles();
         $writer->addRow(Row::fromValuesWithStyle([school_setting('school_name', 'Nama Sekolah')], $styles['school'], 24));
@@ -129,7 +130,6 @@ class UserController extends Controller
             'Username',
             'Nama',
             'Role',
-            'Password Default',
             'Status Password',
         ], $styles['tableHeader'], 24));
 
@@ -140,7 +140,6 @@ class UserController extends Controller
                 $user->username,
                 $user->nama_lengkap,
                 $user->role?->nama_role ? str_replace('_', ' ', ucwords($user->role->nama_role, '_')) : '-',
-                User::DEFAULT_PASSWORD,
                 $isDefaultPassword ? 'Masih default' : 'Sudah diubah',
             ], $index % 2 === 0 ? $styles['row'] : $styles['alternateRow'], 20));
         });
@@ -167,18 +166,10 @@ class UserController extends Controller
     /**
      * Simpan user baru.
      */
-    public function store(Request $request)
+    public function store(StoreStaffUserRequest $request)
     {
-        $validated = $request->validate([
-            'username' => 'required|string|max:50|unique:users,username',
-            'nama_lengkap' => 'required|string|max:100',
-            'email' => 'nullable|email|max:255|unique:users,email',
-            'password' => 'nullable|string|min:6',
-            'role_id' => 'required|exists:roles,id',
-            'nip_nis' => 'nullable|string|max:20|unique:users,nip_nis',
-            'jenis_kelamin' => 'nullable|in:L,P',
-            'is_active' => 'boolean',
-        ]);
+        $this->ensureAdmin();
+        $validated = $request->validated();
 
         $role = Role::findOrFail($validated['role_id']);
         $this->ensureStaffRole($role);
@@ -199,6 +190,8 @@ class UserController extends Controller
      */
     public function downloadSiswaTemplate(SiswaTemplateService $templateService)
     {
+        $this->ensureAdmin();
+
         return response()
             ->download($templateService->createTemplateFile(), SiswaTemplateService::FILENAME)
             ->deleteFileAfterSend(true);
@@ -207,11 +200,9 @@ class UserController extends Controller
     /**
      * Import banyak siswa dari file Excel.
      */
-    public function importSiswa(Request $request, SiswaImportService $importService)
+    public function importSiswa(ImportSiswaRequest $request, SiswaImportService $importService)
     {
-        $request->validate([
-            'file_siswa' => 'required|file|mimes:xlsx|max:5120',
-        ]);
+        $this->ensureAdmin();
 
         $result = $importService->import($request->file('file_siswa')->getRealPath());
 
@@ -219,7 +210,7 @@ class UserController extends Controller
             return back()->with('import_errors', $result['errors']);
         }
 
-        return back()->with('success', $result['imported'] . ' siswa berhasil diimport.');
+        return back()->with('success', $result['imported'].' siswa berhasil diimport.');
     }
 
     /**
@@ -249,26 +240,17 @@ class UserController extends Controller
     /**
      * Update user.
      */
-    public function update(Request $request, User $user)
+    public function update(UpdateStaffUserRequest $request, User $user)
     {
+        $this->ensureAdmin();
         $this->ensureNotSiswaUser($user);
-
-        $validated = $request->validate([
-            'username' => 'required|string|max:50|unique:users,username,' . $user->id,
-            'nama_lengkap' => 'required|string|max:100',
-            'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
-            'role_id' => 'required|exists:roles,id',
-            'nip_nis' => 'nullable|string|max:20|unique:users,nip_nis,' . $user->id,
-            'jenis_kelamin' => 'nullable|in:L,P',
-            'password' => 'nullable|string|min:6',
-            'is_active' => 'boolean',
-        ]);
+        $validated = $request->validated();
 
         $role = Role::findOrFail($validated['role_id']);
         $this->ensureStaffRole($role);
 
         if ((int) $user->id === (int) Auth::id()
-            && (!$request->boolean('is_active') || (int) $validated['role_id'] !== (int) $user->role_id)) {
+            && (! $request->boolean('is_active') || (int) $validated['role_id'] !== (int) $user->role_id)) {
             throw ValidationException::withMessages([
                 'role_id' => 'Anda tidak dapat menonaktifkan atau mengubah role akun sendiri.',
             ]);
@@ -282,7 +264,7 @@ class UserController extends Controller
         }
 
         if ($this->isLastActiveAdmin($user)
-            && (!$request->boolean('is_active') || $role->nama_role !== 'admin')) {
+            && (! $request->boolean('is_active') || $role->nama_role !== 'admin')) {
             throw ValidationException::withMessages([
                 'role_id' => 'Sistem harus memiliki setidaknya satu admin aktif.',
             ]);
@@ -308,6 +290,7 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        $this->ensureAdmin();
         $this->ensureNotSiswaUser($user);
 
         if ($user->id === Auth::id()) {
@@ -322,7 +305,8 @@ class UserController extends Controller
             return back()->with('error', 'User tidak dapat dihapus karena masih memiliki penugasan mengajar.');
         }
 
-        $user->delete();
+        DB::transaction(fn () => $user->delete());
+
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil dihapus.');
     }
@@ -332,6 +316,7 @@ class UserController extends Controller
      */
     public function toggleActive(User $user)
     {
+        $this->ensureAdmin();
         $this->ensureNotSiswaUser($user);
 
         if ($user->id === Auth::id()) {
@@ -342,7 +327,8 @@ class UserController extends Controller
             return back()->with('error', 'Sistem harus memiliki setidaknya satu admin aktif.');
         }
 
-        $user->update(['is_active' => !$user->is_active]);
+        DB::transaction(fn () => $user->update(['is_active' => ! $user->is_active]));
+
         return back()->with('success', 'Status user berhasil diubah.');
     }
 
@@ -351,14 +337,15 @@ class UserController extends Controller
      */
     public function resetPassword(User $user)
     {
+        $this->ensureAdmin();
         $this->ensureNotSiswaUser($user);
 
-        $user->update([
+        DB::transaction(fn () => $user->update([
             'password' => Hash::make(User::DEFAULT_PASSWORD),
             'is_password_default' => true,
-        ]);
+        ]));
 
-        return back()->with('success', "Password {$user->nama_lengkap} berhasil direset ke " . User::DEFAULT_PASSWORD . '.');
+        return back()->with('success', "Password {$user->nama_lengkap} berhasil direset ke ".User::DEFAULT_PASSWORD.'.');
     }
 
     private function isLastActiveAdmin(User $user): bool
@@ -372,7 +359,7 @@ class UserController extends Controller
 
     private function staffRoles()
     {
-        return Role::where('nama_role', '!=', 'siswa')->orderBy('nama_role')->get();
+        return RoleAccess::staffRoles();
     }
 
     private function staffRoleProps()
@@ -385,9 +372,9 @@ class UserController extends Controller
 
     private function ensureStaffRole(Role $role): void
     {
-        if ($role->nama_role === 'siswa') {
+        if (! RoleAccess::isStaffRole($role)) {
             throw ValidationException::withMessages([
-                'role_id' => 'Akun siswa hanya dapat dibuat melalui menu Kelas & Siswa.',
+                'role_id' => 'Role ini tidak dapat dikelola dari menu guru/staf.',
             ]);
         }
     }
@@ -399,6 +386,17 @@ class UserController extends Controller
         }
     }
 
+    private function ensureAdmin(): void
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            throw new AuthenticationException;
+        }
+
+        abort_unless($user->hasRole(RoleAccess::ADMIN), 403, 'Anda tidak memiliki akses ke halaman ini.');
+    }
+
     private function excelStyles(): array
     {
         $border = new Border(
@@ -408,7 +406,7 @@ class UserController extends Controller
             new BorderPart(BorderName::LEFT, 'CBD5E1', BorderWidth::THIN),
         );
 
-        $base = (new Style())
+        $base = (new Style)
             ->withFontName('Arial')
             ->withFontSize(10)
             ->withShouldWrapText(true)

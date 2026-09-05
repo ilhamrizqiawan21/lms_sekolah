@@ -199,6 +199,7 @@ Setelah login admin:
 - Gunakan database dan user database khusus aplikasi
 - Jalankan `composer install --no-dev --optimize-autoloader`
 - Jalankan `npm install` lalu `npm run build`
+- Jalankan verifikasi lokal: `composer lint`, `composer test`, dan `npm run build`
 - Pastikan `public/build/manifest.json` ikut terdeploy
 - Jalankan `php artisan storage:link`
 - Jalankan `php artisan optimize`

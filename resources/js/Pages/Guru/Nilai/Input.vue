@@ -207,6 +207,10 @@ function handleScoreKeyup(event) {
 }
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     props.students.forEach((student) => {
         const scores = form.nilai[String(student.id)];
         if (!scores) {

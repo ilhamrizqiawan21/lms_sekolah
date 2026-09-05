@@ -77,6 +77,10 @@ function toggleAllCourses() {
 }
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     form.post(props.storeUrl, {
         preserveScroll: true,
         onSuccess: () => form.reset(),

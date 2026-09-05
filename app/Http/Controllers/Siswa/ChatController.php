@@ -10,6 +10,7 @@ use App\Models\Siswa;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -21,7 +22,7 @@ class ChatController extends Controller
         $user = Auth::user();
         $siswa = $user->siswa;
 
-        if (!$siswa) {
+        if (! $siswa) {
             return redirect()->route('login')->with('error', 'Data siswa tidak ditemukan.');
         }
 
@@ -40,7 +41,8 @@ class ChatController extends Controller
             'emptyMessage' => 'Belum ada mata pelajaran.',
         ]);
     }
-    //Tampilan chat yang difilter sesuai dengan guru dan mapel yang dipilih oleh siswa, dan menampilkan pesan yang sudah dibaca dan belum dibaca
+
+    // Tampilan chat yang difilter sesuai dengan guru dan mapel yang dipilih oleh siswa, dan menampilkan pesan yang sudah dibaca dan belum dibaca
     public function show(KelasMapel $kelasMapel)
     {
         $user = Auth::user();
@@ -77,7 +79,8 @@ class ChatController extends Controller
             'emptyMessage' => 'Belum ada pesan.',
         ]);
     }
-    //Kirim Pesan
+
+    // Kirim Pesan
     public function send(Request $request, KelasMapel $kelasMapel)
     {
         $user = Auth::user();
@@ -89,24 +92,28 @@ class ChatController extends Controller
             'message' => 'required|string|max:1000',
         ]);
 
-        $chat = ChatMessage::create([
-            'user_id' => Auth::id(),
-            'kelas_mapel_id' => $kelasMapel->id,
-            'message' => $validated['message'],
-        ]);
-
-        // Kirim notifikasi ke guru
-        if ($kelasMapel->guru_id) {
-            Notifikasi::create([
-                'user_id' => $kelasMapel->guru_id,
-                'tipe' => 'chat_baru',
-                'judul' => 'Pesan baru dari siswa',
-                'pesan' => $user->nama_lengkap . ': ' . Str::limit($validated['message'], 100),
-                'link' => route('guru.chat.show', $kelasMapel),
+        $chat = DB::transaction(function () use ($kelasMapel, $validated, $user) {
+            $chat = ChatMessage::create([
+                'user_id' => Auth::id(),
+                'kelas_mapel_id' => $kelasMapel->id,
+                'message' => $validated['message'],
             ]);
-        }
 
-        if ($request->ajax() && !$request->header('X-Inertia')) {
+            // Kirim notifikasi ke guru
+            if ($kelasMapel->guru_id) {
+                Notifikasi::create([
+                    'user_id' => $kelasMapel->guru_id,
+                    'tipe' => 'chat_baru',
+                    'judul' => 'Pesan baru dari siswa',
+                    'pesan' => $user->nama_lengkap.': '.Str::limit($validated['message'], 100),
+                    'link' => route('guru.chat.show', $kelasMapel),
+                ]);
+            }
+
+            return $chat;
+        });
+
+        if ($request->ajax() && ! $request->header('X-Inertia')) {
             return response()->json(['success' => true, 'message' => $chat->load('user')]);
         }
 

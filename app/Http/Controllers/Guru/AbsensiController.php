@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Guru\IndexAbsensiRequest;
+use App\Http\Requests\Guru\RekapAbsensiRequest;
+use App\Http\Requests\Guru\StoreAbsensiRequest;
 use App\Models\Absensi;
 use App\Models\AcademicAuditLog;
 use App\Models\CalendarEvent;
@@ -11,20 +14,16 @@ use App\Models\KelasMapel;
 use App\Models\Notifikasi;
 use App\Models\Siswa;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class AbsensiController extends Controller
 {
-    public function index(Request $request)
+    public function index(IndexAbsensiRequest $request)
     {
-        $request->validate([
-            'bulan' => 'nullable|date_format:Y-m',
-            'kelas_mapel_id' => 'nullable|integer',
-        ]);
-
         $guruId = Auth::id();
         $bulan = $request->input('bulan', date('Y-m'));
         $bulanNum = (int) substr($bulan, 5, 2);
@@ -65,7 +64,7 @@ class AbsensiController extends Controller
                     $absensiData[$s->id] = [];
                 }
                 foreach ($absensiRaw as $a) {
-                    $tgl = $a->tanggal instanceof \Carbon\Carbon ? $a->tanggal->format('Y-m-d') : $a->tanggal;
+                    $tgl = $a->tanggal instanceof Carbon ? $a->tanggal->format('Y-m-d') : $a->tanggal;
                     $absensiData[$a->siswa_id][$tgl] = $a->status;
                 }
             }
@@ -74,7 +73,7 @@ class AbsensiController extends Controller
         return Inertia::render('Guru/Absensi/Index', [
             'kelasMapel' => $kelasMapel->map(fn (KelasMapel $item) => [
                 'id' => $item->id,
-                'label' => trim(($item->kelas?->nama_kelas ?? '-') . ' - ' . ($item->mataPelajaran?->nama_mapel ?? '-') . ' (' . (int) $item->pertemuan_per_minggu . 'x/minggu)'),
+                'label' => trim(($item->kelas?->nama_kelas ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-').' ('.(int) $item->pertemuan_per_minggu.'x/minggu)'),
                 'kelas' => $item->kelas?->nama_kelas ?? '-',
                 'mata_pelajaran' => $item->mataPelajaran?->nama_mapel ?? '-',
                 'pertemuan_per_minggu' => (int) $item->pertemuan_per_minggu,
@@ -123,23 +122,18 @@ class AbsensiController extends Controller
         return redirect()->route('guru.absensi.index', ['kelas_mapel_id' => $kelasMapel->id]);
     }
 
-    //Simpan Absensi
-    public function store(Request $request, KelasMapel $kelasMapel)
+    // Simpan Absensi
+    public function store(StoreAbsensiRequest $request, KelasMapel $kelasMapel)
     {
         $this->authorize('mengajar', $kelasMapel);
 
-        $validated = $request->validate([
-            'bulan' => 'required|date_format:Y-m',
-            'absensi' => 'nullable|array',
-            'absensi.*' => 'array',
-            'absensi.*.*' => 'nullable|in:hadir,sakit,izin,alpha',
-        ]);
+        $validated = $request->validated();
 
         $absensiInput = $validated['absensi'] ?? [];
         $validSiswaIds = Siswa::where('kelas_id', $kelasMapel->kelas_id)
             ->where('status', 'aktif')
             ->pluck('id')
-            ->map(fn($id) => (string) $id);
+            ->map(fn ($id) => (string) $id);
 
         if (collect(array_keys($absensiInput))->diff($validSiswaIds)->isNotEmpty()) {
             throw ValidationException::withMessages([
@@ -167,70 +161,75 @@ class AbsensiController extends Controller
             ->whereIn('siswa_id', $validSiswaIds->map(fn ($id) => (int) $id))
             ->whereIn('tanggal', $meetingDates)
             ->get()
-            ->keyBy(fn (Absensi $absensi) => $absensi->siswa_id . '|' . $absensi->tanggal->format('Y-m-d'));
+            ->keyBy(fn (Absensi $absensi) => $absensi->siswa_id.'|'.$absensi->tanggal->format('Y-m-d'));
         $siswasForLog = Siswa::with('user')
             ->whereIn('id', $validSiswaIds->map(fn ($id) => (int) $id))
             ->get()
             ->keyBy('id');
         $changedSiswaIds = collect();
 
-        if ($absensiInput) {
-            foreach ($absensiInput as $siswaId => $mingguData) {
-                foreach ($mingguData as $meetingKey => $status) {
-                    $meeting = $meetings->get($meetingKey);
+        DB::transaction(function () use ($absensiInput, $meetings, $kelasMapel, $siswasForLog, $existingAbsensi, $validated, &$changedSiswaIds) {
+            if ($absensiInput) {
+                foreach ($absensiInput as $siswaId => $mingguData) {
+                    foreach ($mingguData as $meetingKey => $status) {
+                        $meeting = $meetings->get($meetingKey);
 
-                    if ($meeting) {
-                        $scope = [
-                            'siswa_id' => (int) $siswaId,
-                            'kelas_mapel_id' => $kelasMapel->id,
-                            'tanggal' => $meeting['date'],
-                        ];
-                        $existingKey = ((int) $siswaId) . '|' . $meeting['date'];
-                        $existing = $existingAbsensi->get($existingKey);
-                        $existingStatus = $existing?->status;
+                        if ($meeting) {
+                            $scope = [
+                                'siswa_id' => (int) $siswaId,
+                                'kelas_mapel_id' => $kelasMapel->id,
+                                'tanggal' => $meeting['date'],
+                            ];
+                            $existingKey = ((int) $siswaId).'|'.$meeting['date'];
+                            $existing = $existingAbsensi->get($existingKey);
+                            $existingStatus = $existing?->status;
 
-                        if (($existingStatus ?? '') === ($status ?? '')) {
-                            continue;
+                            if (($existingStatus ?? '') === ($status ?? '')) {
+                                continue;
+                            }
+
+                            $changedSiswaIds->push((int) $siswaId);
+
+                            if (! $status) {
+                                Absensi::where($scope)->delete();
+                                $this->logAbsensiChange($kelasMapel, $siswasForLog->get((int) $siswaId), $meeting['date'], $existing, $existingStatus, null);
+
+                                continue;
+                            }
+
+                            $absensi = Absensi::updateOrCreate(
+                                $scope,
+                                ['status' => $status]
+                            );
+                            $this->logAbsensiChange($kelasMapel, $siswasForLog->get((int) $siswaId), $meeting['date'], $absensi, $existingStatus, $status);
                         }
-
-                        $changedSiswaIds->push((int) $siswaId);
-
-                        if (!$status) {
-                            Absensi::where($scope)->delete();
-                            $this->logAbsensiChange($kelasMapel, $siswasForLog->get((int) $siswaId), $meeting['date'], $existing, $existingStatus, null);
-                            continue;
-                        }
-
-                        $absensi = Absensi::updateOrCreate(
-                            $scope,
-                            ['status' => $status]
-                        );
-                        $this->logAbsensiChange($kelasMapel, $siswasForLog->get((int) $siswaId), $meeting['date'], $absensi, $existingStatus, $status);
                     }
                 }
             }
-        }
 
-        // Kirim notifikasi hanya untuk siswa yang datanya benar-benar berubah.
-        if ($changedSiswaIds->isNotEmpty()) {
-            $siswaIds = $changedSiswaIds->unique()->values();
-            $siswas = Siswa::whereIn('id', $siswaIds)->get()->keyBy('id');
-            $bulanLabel = $validated['bulan'];
+            // Kirim notifikasi hanya untuk siswa yang datanya benar-benar berubah.
+            if ($changedSiswaIds->isNotEmpty()) {
+                $siswaIds = $changedSiswaIds->unique()->values();
+                $siswas = Siswa::whereIn('id', $siswaIds)->get()->keyBy('id');
+                $bulanLabel = $validated['bulan'];
 
-            foreach ($siswaIds as $siswaId) {
-                $siswa = $siswas->get((int) $siswaId);
-                if (!$siswa || !$siswa->user_id) continue;
+                foreach ($siswaIds as $siswaId) {
+                    $siswa = $siswas->get((int) $siswaId);
+                    if (! $siswa || ! $siswa->user_id) {
+                        continue;
+                    }
 
-                Notifikasi::firstOrCreate([
-                    'user_id' => $siswa->user_id,
-                    'tipe' => 'absensi',
-                    'judul' => 'Absensi Diperbarui',
-                    'pesan' => "Absensi {$kelasMapel->mataPelajaran?->nama_mapel} bulan {$bulanLabel} telah dicatat.",
-                    'link' => route('siswa.progress'),
-                    'is_read' => false,
-                ]);
+                    Notifikasi::firstOrCreate([
+                        'user_id' => $siswa->user_id,
+                        'tipe' => 'absensi',
+                        'judul' => 'Absensi Diperbarui',
+                        'pesan' => "Absensi {$kelasMapel->mataPelajaran?->nama_mapel} bulan {$bulanLabel} telah dicatat.",
+                        'link' => route('siswa.progress'),
+                        'is_read' => false,
+                    ]);
+                }
             }
-        }
+        });
 
         return back()->with('success', 'Absensi berhasil disimpan.');
     }
@@ -242,13 +241,9 @@ class AbsensiController extends Controller
         return redirect()->route('guru.absensi.index', ['kelas_mapel_id' => $kelasMapel->id]);
     }
 
-    public function rekapAbsensi(Request $request)
+    public function rekapAbsensi(RekapAbsensiRequest $request)
     {
-        $validated = $request->validate([
-            'kelas_mapel_id' => 'nullable|integer',
-            'mode' => 'nullable|in:bulanan,keseluruhan',
-            'bulan' => 'nullable|date_format:Y-m',
-        ]);
+        $validated = $request->validated();
 
         $mode = $validated['mode'] ?? 'bulanan';
         $bulan = $validated['bulan'] ?? date('Y-m');
@@ -267,7 +262,7 @@ class AbsensiController extends Controller
         return Inertia::render('Guru/Rekap/Absensi', [
             'kelasMapel' => $kelasMapel->map(fn (KelasMapel $item) => [
                 'id' => $item->id,
-                'label' => trim(($item->kelas?->nama_kelas ?? '-') . ' - ' . ($item->mataPelajaran?->nama_mapel ?? '-') . ' (Sem. ' . $item->semester . ')'),
+                'label' => trim(($item->kelas?->nama_kelas ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$item->semester.')'),
                 'kelas' => $item->kelas?->nama_kelas ?? '-',
                 'mata_pelajaran' => $item->mataPelajaran?->nama_mapel ?? '-',
                 'semester' => $item->semester,
@@ -328,7 +323,7 @@ class AbsensiController extends Controller
         })->all();
     }
 
-    private function attendanceMeetings(string $bulan, KelasMapel $kelasMapel): \Illuminate\Support\Collection
+    private function attendanceMeetings(string $bulan, KelasMapel $kelasMapel): Collection
     {
         $schedules = JadwalMengajar::where('kelas_mapel_id', $kelasMapel->id)
             ->orderBy('hari')
@@ -369,8 +364,8 @@ class AbsensiController extends Controller
                 'meeting' => $meetingNumber,
                 'date' => $date->toDateString(),
                 'label' => $date->format('d/m'),
-                'title' => JadwalMengajar::DAYS[$dayNumber] . ' P' . $meetingNumber,
-                'lesson_title' => 'Jam ke-' . $slots->implode('/'),
+                'title' => JadwalMengajar::DAYS[$dayNumber].' P'.$meetingNumber,
+                'lesson_title' => 'Jam ke-'.$slots->implode('/'),
             ];
             $meetingNumber++;
         }
@@ -378,7 +373,7 @@ class AbsensiController extends Controller
         return collect($meetings);
     }
 
-    private function legacyAttendanceMeetings(string $bulan, int $meetingsPerWeek): \Illuminate\Support\Collection
+    private function legacyAttendanceMeetings(string $bulan, int $meetingsPerWeek): Collection
     {
         $meetingsPerWeek = max(1, min($meetingsPerWeek, 6));
         $monthNumber = (int) substr($bulan, 5, 2);

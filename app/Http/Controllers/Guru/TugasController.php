@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Guru\GradeTugasRequest;
+use App\Http\Requests\Guru\StoreBulkTugasRequest;
+use App\Http\Requests\Guru\StoreTugasRequest;
 use App\Models\KelasMapel;
 use App\Models\NilaiAkhir;
 use App\Models\Pengaturan;
@@ -14,8 +17,8 @@ use App\Models\Tugas;
 use App\Services\NilaiService;
 use App\Services\NotifikasiService;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -23,6 +26,7 @@ use Inertia\Inertia;
 class TugasController extends Controller
 {
     protected NotifikasiService $notifikasiService;
+
     protected NilaiService $nilaiService;
 
     public function __construct(NotifikasiService $notifikasiService, NilaiService $nilaiService)
@@ -87,7 +91,7 @@ class TugasController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $totalSiswa = \App\Models\Siswa::where('kelas_id', $kelasMapel->kelas_id)
+        $totalSiswa = Siswa::where('kelas_id', $kelasMapel->kelas_id)
             ->where('status', 'aktif')
             ->count();
 
@@ -117,46 +121,38 @@ class TugasController extends Controller
         ]);
     }
 
-    public function store(Request $request, KelasMapel $kelasMapel)
+    public function store(StoreTugasRequest $request, KelasMapel $kelasMapel)
     {
         $this->authorize('mengajar', $kelasMapel);
 
-        $validated = $request->validate([
-            'judul' => 'required|string|max:200',
-            'deskripsi' => 'nullable|string',
-            'batas_waktu' => 'required|date|after_or_equal:today',
-        ]);
+        $validated = $request->validated();
 
         $batasWaktu = Carbon::parse($validated['batas_waktu'])->endOfDay();
 
-        $tugas = Tugas::create([
-            'kelas_mapel_id' => $kelasMapel->id,
-            'judul' => $validated['judul'],
-            'deskripsi' => $validated['deskripsi'],
-            'batas_waktu' => $batasWaktu,
-        ]);
+        DB::transaction(function () use ($kelasMapel, $validated, $batasWaktu) {
+            $tugas = Tugas::create([
+                'kelas_mapel_id' => $kelasMapel->id,
+                'judul' => $validated['judul'],
+                'deskripsi' => $validated['deskripsi'],
+                'batas_waktu' => $batasWaktu,
+            ]);
 
-        $this->notifikasiService->notifikasiKelasMapel(
-            $kelasMapel->id,
-            'tugas_baru',
-            'Tugas Baru',
-            "Tugas '{$tugas->judul}' telah diberikan.",
-            route('siswa.tugas.show', $tugas->id)
-        );
+            $this->notifikasiService->notifikasiKelasMapel(
+                $kelasMapel->id,
+                'tugas_baru',
+                'Tugas Baru',
+                "Tugas '{$tugas->judul}' telah diberikan.",
+                route('siswa.tugas.show', $tugas->id)
+            );
+        });
 
         return redirect()->route('guru.tugas.list', $kelasMapel)
             ->with('success', 'Tugas berhasil ditambahkan.');
     }
 
-    public function storeBulk(Request $request)
+    public function storeBulk(StoreBulkTugasRequest $request)
     {
-        $validated = $request->validate([
-            'kelas_mapel_ids' => 'required|array|min:1',
-            'kelas_mapel_ids.*' => 'integer',
-            'judul' => 'required|string|max:200',
-            'deskripsi' => 'nullable|string',
-            'batas_waktu' => 'required|date|after_or_equal:today',
-        ]);
+        $validated = $request->validated();
 
         $kelasMapel = $this->assignedKelasMapelQuery()
             ->whereIn('id', $validated['kelas_mapel_ids'])
@@ -168,22 +164,24 @@ class TugasController extends Controller
 
         $batasWaktu = Carbon::parse($validated['batas_waktu'])->endOfDay();
 
-        foreach ($kelasMapel as $item) {
-            $tugas = Tugas::create([
-                'kelas_mapel_id' => $item->id,
-                'judul' => $validated['judul'],
-                'deskripsi' => $validated['deskripsi'] ?? null,
-                'batas_waktu' => $batasWaktu,
-            ]);
+        DB::transaction(function () use ($kelasMapel, $validated, $batasWaktu) {
+            foreach ($kelasMapel as $item) {
+                $tugas = Tugas::create([
+                    'kelas_mapel_id' => $item->id,
+                    'judul' => $validated['judul'],
+                    'deskripsi' => $validated['deskripsi'] ?? null,
+                    'batas_waktu' => $batasWaktu,
+                ]);
 
-            $this->notifikasiService->notifikasiKelasMapel(
-                $item->id,
-                'tugas_baru',
-                'Tugas Baru',
-                "Tugas '{$tugas->judul}' telah diberikan.",
-                route('siswa.tugas.show', $tugas->id)
-            );
-        }
+                $this->notifikasiService->notifikasiKelasMapel(
+                    $item->id,
+                    'tugas_baru',
+                    'Tugas Baru',
+                    "Tugas '{$tugas->judul}' telah diberikan.",
+                    route('siswa.tugas.show', $tugas->id)
+                );
+            }
+        });
 
         return redirect()->route('guru.tugas.index')
             ->with('success', 'Tugas berhasil ditambahkan ke kelas yang dipilih.');
@@ -243,7 +241,7 @@ class TugasController extends Controller
 
                 return [
                     'id' => $item?->id,
-                    'key' => $item?->id ? 'pengumpulan-' . $item->id : 'siswa-' . $student->id,
+                    'key' => $item?->id ? 'pengumpulan-'.$item->id : 'siswa-'.$student->id,
                     'no' => $index + 1,
                     'siswa' => $student->user?->nama_lengkap ?: ($student->user?->username ?: $student->nis),
                     'nis' => $student->nis,
@@ -266,16 +264,13 @@ class TugasController extends Controller
         ]);
     }
 
-    public function nilai(Request $request, KelasMapel $kelasMapel, Tugas $tugas, Siswa $siswa)
+    public function nilai(GradeTugasRequest $request, KelasMapel $kelasMapel, Tugas $tugas, Siswa $siswa)
     {
         $this->authorize('mengajar', $kelasMapel);
         $this->ensureTugasBelongsToKelasMapel($tugas, $kelasMapel);
         $this->ensureSiswaBelongsToKelasMapel($siswa, $kelasMapel);
 
-        $validated = $request->validate([
-            'nilai' => 'nullable|required_without:catatan|numeric|min:0|max:100',
-            'catatan' => 'nullable|required_without:nilai|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         $pengumpulan = PengumpulanTugas::where([
             'tugas_id' => $tugas->id,
@@ -317,7 +312,7 @@ class TugasController extends Controller
             $values['status'] = PengumpulanTugas::STATUS_PERLU_PERBAIKAN;
             $values['penalty_terlambat'] = 0;
             $values['graded_at'] = now();
-        } elseif (!$pengumpulan) {
+        } elseif (! $pengumpulan) {
             $values['status'] = PengumpulanTugas::STATUS_BELUM;
             $values['penalty_terlambat'] = 0;
             $values['graded_at'] = now();
@@ -413,7 +408,7 @@ class TugasController extends Controller
     {
         $tahunAjaran = TahunAjaran::getAktif();
 
-        if (!$tahunAjaran) {
+        if (! $tahunAjaran) {
             return;
         }
 
@@ -432,7 +427,7 @@ class TugasController extends Controller
             'semester' => $semester,
         ])->first();
 
-        if ($average === null && !$existing) {
+        if ($average === null && ! $existing) {
             return;
         }
 
@@ -454,7 +449,7 @@ class TugasController extends Controller
 
     private function latePenaltyPoints(?PengumpulanTugas $pengumpulan, Tugas $tugas): float
     {
-        if (!$pengumpulan?->tanggal_kumpul || !$tugas->batas_waktu) {
+        if (! $pengumpulan?->tanggal_kumpul || ! $tugas->batas_waktu) {
             return 0.0;
         }
 
@@ -477,7 +472,7 @@ class TugasController extends Controller
         abort_unless($path, 404);
 
         $disk = Storage::disk('local');
-        if (!$disk->exists($path)) {
+        if (! $disk->exists($path)) {
             $disk = Storage::disk('public');
         }
         abort_unless($disk->exists($path), 404);
@@ -496,10 +491,10 @@ class TugasController extends Controller
     {
         return $kelasMapel->map(fn (KelasMapel $item) => [
             'id' => $item->id,
-            'kelas' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat . ' ' : '') . ($item->kelas?->nama_kelas ?? '-')),
+            'kelas' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat.' ' : '').($item->kelas?->nama_kelas ?? '-')),
             'mata_pelajaran' => $item->mataPelajaran?->nama_mapel ?? '-',
             'semester' => $item->semester,
-            'label' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat . ' ' : '') . ($item->kelas?->nama_kelas ?? '-') . ' - ' . ($item->mataPelajaran?->nama_mapel ?? '-') . ' (Sem. ' . $item->semester . ')'),
+            'label' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat.' ' : '').($item->kelas?->nama_kelas ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$item->semester.')'),
             'href' => route('guru.tugas.list', $item),
         ])->values();
     }
@@ -519,7 +514,7 @@ class TugasController extends Controller
             'total_siswa' => $totalSiswa,
             'progress_percent' => $totalSiswa > 0 ? round((($item->sudah_mengumpulkan ?? 0) / $totalSiswa) * 100) : 0,
             'is_overdue' => $item->batas_waktu ? now()->startOfDay()->gt($item->batas_waktu->copy()->startOfDay()) : false,
-            'kelas' => trim(($kelasMapel?->kelas?->tingkat ? $kelasMapel->kelas->tingkat . ' ' : '') . ($kelasMapel?->kelas?->nama_kelas ?? '-')),
+            'kelas' => trim(($kelasMapel?->kelas?->tingkat ? $kelasMapel->kelas->tingkat.' ' : '').($kelasMapel?->kelas?->nama_kelas ?? '-')),
             'mata_pelajaran' => $kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
             'pengumpulan_url' => $kelasMapel ? route('guru.tugas.pengumpulan', [$kelasMapel, $item]) : null,
             'delete_url' => route('guru.tugas.destroy', $item),
@@ -528,7 +523,7 @@ class TugasController extends Controller
 
     private function deletePengumpulanPath(?string $path): void
     {
-        if (!$path) {
+        if (! $path) {
             return;
         }
 

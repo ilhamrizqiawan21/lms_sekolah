@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ImportSiswaRequest;
+use App\Http\Requests\Admin\SiswaFilterRequest;
+use App\Http\Requests\Admin\StoreSiswaRequest;
+use App\Http\Requests\Admin\UpdateSiswaRequest;
 use App\Models\Kelas;
 use App\Models\Role;
 use App\Models\Siswa;
@@ -10,28 +14,22 @@ use App\Models\User;
 use App\Services\SiswaExportService;
 use App\Services\SiswaImportService;
 use App\Services\SiswaTemplateService;
-use Illuminate\Http\Request;
+use App\Support\RoleAccess;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Inertia\Inertia;
 
 class KelasSiswaController extends Controller
 {
-    public function index(Request $request)
+    public function index(SiswaFilterRequest $request)
     {
-        $request->validate([
-            'kelas_id' => 'nullable|exists:kelas,id',
-            'search' => 'nullable|string|max:100',
-            'status' => 'nullable|in:aktif,lulus,keluar',
-        ]);
-
         $kelasList = Kelas::withCount(['siswa' => fn ($query) => $query->where('status', 'aktif')])
             ->orderByRaw("CASE tingkat WHEN 'VII' THEN 1 WHEN 'VIII' THEN 2 WHEN 'IX' THEN 3 ELSE 4 END")
             ->orderBy('nama_kelas')
             ->get();
-        //Urutan User berdasarkan NIS/Kode Guru
+        // Urutan User berdasarkan NIS/Kode Guru
         $query = Siswa::with(['user', 'kelas'])
             ->whereHas('user')
             ->orderBy('nis');
@@ -43,7 +41,7 @@ class KelasSiswaController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nis', 'like', "%{$search}%")
-                  ->orWhereHas('user', fn($u) => $u->where('nama_lengkap', 'like', "%{$search}%"));
+                    ->orWhereHas('user', fn ($u) => $u->where('nama_lengkap', 'like', "%{$search}%"));
             });
         }
         if ($request->filled('status')) {
@@ -59,7 +57,7 @@ class KelasSiswaController extends Controller
                     'id' => $siswa->id,
                     'nis' => $siswa->nis,
                     'kelas_id' => $siswa->kelas_id,
-                    'kelas' => trim(($siswa->kelas?->tingkat ? $siswa->kelas->tingkat . ' ' : '') . ($siswa->kelas?->nama_kelas ?? '')),
+                    'kelas' => trim(($siswa->kelas?->tingkat ? $siswa->kelas->tingkat.' ' : '').($siswa->kelas?->nama_kelas ?? '')),
                     'status' => $siswa->status,
                     'is_active' => (bool) $siswa->user?->is_active,
                     'tinggal_kelas' => (bool) $siswa->tinggal_kelas,
@@ -92,13 +90,9 @@ class KelasSiswaController extends Controller
         ]);
     }
 
-    public function exportExcel(Request $request, SiswaExportService $exportService)
+    public function exportExcel(SiswaFilterRequest $request, SiswaExportService $exportService)
     {
-        $request->validate([
-            'kelas_id' => 'nullable|exists:kelas,id',
-            'search' => 'nullable|string|max:100',
-            'status' => 'nullable|in:aktif,lulus,keluar',
-        ]);
+        $this->ensureAdmin();
 
         $query = Siswa::with(['user', 'kelas'])
             ->whereHas('user')
@@ -121,22 +115,22 @@ class KelasSiswaController extends Controller
         }
 
         return response()
-            ->download($exportService->export($query), 'export_siswa_' . date('Ymd_His') . '.xlsx')
+            ->download($exportService->export($query), 'export_siswa_'.date('Ymd_His').'.xlsx')
             ->deleteFileAfterSend(true);
     }
 
     public function downloadTemplate(SiswaTemplateService $templateService)
     {
+        $this->ensureAdmin();
+
         return response()
             ->download($templateService->createTemplateFile(), SiswaTemplateService::FILENAME)
             ->deleteFileAfterSend(true);
     }
 
-    public function importSiswa(Request $request, SiswaImportService $importService)
+    public function importSiswa(ImportSiswaRequest $request, SiswaImportService $importService)
     {
-        $request->validate([
-            'file_siswa' => 'required|file|mimes:xlsx|max:5120',
-        ]);
+        $this->ensureAdmin();
 
         $result = $importService->import($request->file('file_siswa')->getRealPath());
 
@@ -144,29 +138,21 @@ class KelasSiswaController extends Controller
             return back()->with('import_errors', $result['errors']);
         }
 
-        return back()->with('success', $result['imported'] . ' siswa berhasil diimport.');
+        return back()->with('success', $result['imported'].' siswa berhasil diimport.');
     }
 
-    //Save new Siswa
-    public function storeSiswa(Request $request)
+    // Save new Siswa
+    public function storeSiswa(StoreSiswaRequest $request)
     {
-        $this->normalizeSiswaInput($request);
-
-        $validated = $request->validate([
-            'nis' => 'required|string|max:20|unique:siswa,nis|unique:users,username',
-            'nama_lengkap' => 'required|string|max:100',
-            'kelas_id' => 'required|exists:kelas,id',
-            'jenis_kelamin' => 'required|in:L,P',
-        ], [
-            'nis.unique' => 'NIS sudah digunakan oleh siswa lain.',
-        ]);
+        $this->ensureAdmin();
+        $validated = $request->validated();
 
         try {
             $created = DB::transaction(function () use ($validated) {
                 $siswaRoleId = Role::where('nama_role', 'siswa')->value('id');
                 $password = $this->generateInitialPassword();
 
-                if (!$siswaRoleId) {
+                if (! $siswaRoleId) {
                     throw new \RuntimeException('Role siswa belum tersedia.');
                 }
 
@@ -208,19 +194,12 @@ class KelasSiswaController extends Controller
                 ->with('error', 'Data sudah ada di database. Silakan periksa kembali NIS atau username yang dimasukkan.');
         }
     }
-    //Edit Siswa
-    public function updateSiswa(Request $request, Siswa $siswa)
-    {
-        $this->normalizeSiswaInput($request);
-        $userId = $siswa->user_id;
 
-        $validated = $request->validate([
-            'nis' => 'required|string|max:20|unique:siswa,nis,' . $siswa->id . '|unique:users,username,' . $userId,
-            'nama_lengkap' => 'required|string|max:100',
-            'kelas_id' => 'required|exists:kelas,id',
-            'jenis_kelamin' => 'required|in:L,P',
-            'tinggal_kelas' => 'boolean',
-        ]);
+    // Edit Siswa
+    public function updateSiswa(UpdateSiswaRequest $request, Siswa $siswa)
+    {
+        $this->ensureAdmin();
+        $validated = $request->validated();
 
         DB::transaction(function () use ($siswa, $validated) {
             $user = $siswa->user;
@@ -242,17 +221,20 @@ class KelasSiswaController extends Controller
 
         return back()->with('success', 'Data siswa berhasil diperbarui.');
     }
-    //Reset password ke password default.
+
+    // Reset password ke password default.
     public function resetPassword(Siswa $siswa)
     {
+        $this->ensureAdmin();
+
         $user = $siswa->user;
         abort_unless($user, 404);
         $password = $this->generateInitialPassword();
 
-        $user->update([
+        DB::transaction(fn () => $user->update([
             'password' => Hash::make($password),
             'is_password_default' => true,
-        ]);
+        ]));
 
         return back()
             ->with('success', 'Password siswa berhasil direset.')
@@ -263,9 +245,12 @@ class KelasSiswaController extends Controller
                 'password' => $password,
             ]);
     }
-    //Delete Siswa beserta Usernya
+
+    // Delete Siswa beserta Usernya
     public function destroySiswa(Siswa $siswa)
     {
+        $this->ensureAdmin();
+
         $siswa->loadMissing('user');
         abort_unless($siswa->user, 404);
 
@@ -286,9 +271,12 @@ class KelasSiswaController extends Controller
 
         return back()->with('success', "Siswa {$nama} berhasil dihapus.");
     }
-    //Tampilkan daftar siswa yang sudah lulus
+
+    // Tampilkan daftar siswa yang sudah lulus
     public function luluskanKelas(Kelas $kelas)
     {
+        $this->ensureAdmin();
+
         if ($kelas->tingkat !== 'IX') {
             return back()->with('error', 'Hanya kelas IX yang bisa diluluskan.');
         }
@@ -316,12 +304,14 @@ class KelasSiswaController extends Controller
         return User::DEFAULT_PASSWORD;
     }
 
-    private function normalizeSiswaInput(Request $request): void
+    private function ensureAdmin(): void
     {
-        $request->merge([
-            'nis' => Str::upper(trim((string) $request->input('nis'))),
-            'nama_lengkap' => trim((string) $request->input('nama_lengkap')),
-        ]);
-    }
+        $user = request()->user();
 
+        if (! $user) {
+            throw new AuthenticationException;
+        }
+
+        abort_unless($user->hasRole(RoleAccess::ADMIN), 403, 'Anda tidak memiliki akses ke halaman ini.');
+    }
 }

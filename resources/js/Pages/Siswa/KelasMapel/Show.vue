@@ -39,7 +39,7 @@ const quickActions = [
             <section class="workspace-panel">
                 <header class="workspace-panel-header"><span class="workspace-panel-title"><i class="bi bi-camera-video" aria-hidden="true"></i>Kelas Daring</span></header>
                 <div class="workspace-panel-body workspace-summary-list">
-                    <a v-for="session in onlineClasses" :key="session.id" :href="session.meeting_url" target="_blank" rel="noopener" class="workspace-summary-item">
+                    <a v-for="session in onlineClasses" :key="session.id" :href="session.meeting_url" target="_blank" rel="noopener noreferrer" class="workspace-summary-item">
                         <span class="workspace-summary-icon text-primary"><i class="bi bi-camera-video" aria-hidden="true"></i></span>
                         <span><strong>{{ session.judul }}</strong><small>{{ session.tanggal }} · Pelajaran ke-{{ session.pelajaran_ke }}</small></span>
                     </a>

@@ -10,10 +10,11 @@ use App\Models\Role;
 use App\Models\TahunAjaran;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class CoreAuthenticationTest extends TestCase
@@ -42,6 +43,28 @@ class CoreAuthenticationTest extends TestCase
 
         $response->assertRedirect(route('admin.dashboard'));
         $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_login_redirects_each_role_to_its_dashboard(): void
+    {
+        $cases = [
+            'admin' => 'admin.dashboard',
+            'guru' => 'guru.dashboard',
+            'siswa' => 'siswa.dashboard',
+            'kepala_sekolah' => 'kepsek.dashboard',
+        ];
+
+        foreach ($cases as $role => $routeName) {
+            $user = $this->makeUser($role, "redirect-{$role}");
+
+            $this->post(route('login.post'), [
+                'username' => $user->username,
+                'password' => 'secret-password',
+            ])->assertRedirect(route($routeName));
+
+            Auth::logout();
+            session()->flush();
+        }
     }
 
     public function test_inactive_user_cannot_remain_authenticated(): void
@@ -87,6 +110,20 @@ class CoreAuthenticationTest extends TestCase
         ]);
 
         $response->assertRedirect(route('admin.dashboard'));
+    }
+
+    public function test_cross_role_intended_url_is_not_used_after_login(): void
+    {
+        $user = $this->makeUser('guru', 'redirect-guru-cross-role');
+
+        $this->withSession(['url.intended' => route('admin.dashboard')]);
+
+        $response = $this->post(route('login.post'), [
+            'username' => $user->username,
+            'password' => 'secret-password',
+        ]);
+
+        $response->assertRedirect(route('guru.dashboard'));
     }
 
     public function test_login_shows_only_public_announcements_with_public_attachment(): void
@@ -215,7 +252,7 @@ class CoreAuthenticationTest extends TestCase
 
         return User::create([
             'username' => $username,
-            'email' => $username . '@example.test',
+            'email' => $username.'@example.test',
             'password' => Hash::make('secret-password'),
             'is_password_default' => false,
             'nama_lengkap' => strtoupper($username),

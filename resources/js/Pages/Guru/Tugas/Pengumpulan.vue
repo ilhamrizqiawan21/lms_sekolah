@@ -160,11 +160,11 @@ function statusLabel(status) {
                             :href="file.url"
                             class="btn btn-sm btn-outline-primary"
                             target="_blank"
-                            rel="noopener"
+                            rel="noopener noreferrer"
                         >
                             <i class="bi bi-paperclip me-1" aria-hidden="true"></i>File
                         </a>
-                        <a v-if="item.legacy_file_url" :href="item.legacy_file_url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">
+                        <a v-if="item.legacy_file_url" :href="item.legacy_file_url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">
                             <i class="bi bi-download me-1" aria-hidden="true"></i>File
                         </a>
                         <Button v-if="item.teks_jawaban" type="button" color="outline-info" size="sm" @click="detail = item">
@@ -191,12 +191,12 @@ function statusLabel(status) {
                         <strong>File:</strong>
                         <ul class="mb-0 mt-2">
                             <li v-for="file in detail.files" :key="file.id">
-                                <a :href="file.url" target="_blank" rel="noopener">{{ file.name }}</a>
+                                <a :href="file.url" target="_blank" rel="noopener noreferrer">{{ file.name }}</a>
                             </li>
                         </ul>
                     </div>
                     <p v-else-if="detail.legacy_file_url">
-                        <strong>File:</strong> <a :href="detail.legacy_file_url" target="_blank" rel="noopener">Download</a>
+                        <strong>File:</strong> <a :href="detail.legacy_file_url" target="_blank" rel="noopener noreferrer">Download</a>
                     </p>
 
                     <div v-if="detail.teks_jawaban">

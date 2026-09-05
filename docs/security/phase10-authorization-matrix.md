@@ -80,7 +80,7 @@ Added `TugasPolicy::mengajar()` and registered the `mengajar-tugas` Gate. The ro
 
 ### Sensitive password endpoints
 
-`SensitiveEndpointGuard` intercepts legacy staff/student password reset and password export endpoints. Reset generates a unique temporary credential with `Str::password(20)`, stores only its hash, marks the account as requiring a password change, and exposes the temporary credential only once to the initiating authenticated admin. Export contains only identity and password-status metadata.
+`SensitiveEndpointGuard` intercepts legacy staff/student password reset and password export endpoints. Per current operational policy, reset returns accounts to the shared default credential (`User::DEFAULT_PASSWORD`), stores only its hash, marks the account as requiring a password change, and exposes the credential only to the initiating authenticated admin. Export contains only identity and password-status metadata and must not include plaintext default credentials.
 
 ## Automated runtime coverage added
 
@@ -88,7 +88,7 @@ Added `TugasPolicy::mengajar()` and registered the `mengajar-tugas` Gate. The ro
 
 - Guru A attempting to delete Guru B's task → **403** and record remains.
 - Task owner deleting their own task → **allowed**.
-- Admin student reset → generated temporary credential, hashed storage and default-password flag.
+- Admin student reset → reset to `User::DEFAULT_PASSWORD`, hashed storage and default-password flag.
 - Student attempting to access the admin reset endpoint → **403**.
 
 Existing Wali Kelas feature coverage additionally verifies cross-guru Wali Kelas isolation and student/class boundaries.

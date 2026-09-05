@@ -45,7 +45,7 @@ const courseTabs = [
                     <small class="text-muted">{{ item.tanggal }}</small>
 
                     <template v-if="item.download_url" #footer>
-                        <a :href="item.download_url" class="btn btn-sm btn-success" target="_blank" rel="noopener">
+                        <a :href="item.download_url" class="btn btn-sm btn-success" target="_blank" rel="noopener noreferrer">
                             <i class="bi bi-download me-1" aria-hidden="true"></i> Download
                         </a>
                     </template>

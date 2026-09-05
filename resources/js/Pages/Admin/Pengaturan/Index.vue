@@ -73,12 +73,20 @@ const quickActions = [
 ];
 
 function saveSystem() {
+    if (systemForm.processing) {
+        return;
+    }
+
     systemForm.post(props.urls.save_system, {
         preserveScroll: true,
     });
 }
 
 function saveSchool() {
+    if (schoolForm.processing) {
+        return;
+    }
+
     schoolForm
         .transform((data) => ({
             ...data,

@@ -83,7 +83,7 @@ function statusColor(status) {
                                     v-if="session.status === 'terjadwal'"
                                     :href="session.meeting_url"
                                     target="_blank"
-                                    rel="noopener"
+                                    rel="noopener noreferrer"
                                     class="btn btn-sm btn-success"
                                 >
                                     <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>

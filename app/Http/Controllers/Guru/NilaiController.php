@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Guru\RekapNilaiRequest;
+use App\Http\Requests\Guru\StoreBulkNilaiRequest;
+use App\Http\Requests\Guru\StoreNilaiRequest;
 use App\Models\AcademicAuditLog;
 use App\Models\KelasMapel;
 use App\Models\NilaiAkhir;
@@ -11,8 +14,8 @@ use App\Models\Pengaturan;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Services\NilaiService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -47,7 +50,8 @@ class NilaiController extends Controller
             'storeUrl' => route('guru.nilai.store.bulk'),
         ]);
     }
-    //Input nilai
+
+    // Input nilai
     public function input(KelasMapel $kelasMapel)
     {
         $this->authorize('mengajar', $kelasMapel);
@@ -101,22 +105,11 @@ class NilaiController extends Controller
             }),
         ]);
     }
-    //Simpan nilai
-    public function store(Request $request, KelasMapel $kelasMapel)
+
+    // Simpan nilai
+    public function store(StoreNilaiRequest $request, KelasMapel $kelasMapel)
     {
         $this->authorize('mengajar', $kelasMapel);
-
-        $request->validate([
-            'semester' => 'required|in:1,2',
-            'nilai' => 'required|array',
-            'nilai.*.sum1' => 'nullable|numeric|min:0|max:100',
-            'nilai.*.sum2' => 'nullable|numeric|min:0|max:100',
-            'nilai.*.sum3' => 'nullable|numeric|min:0|max:100',
-            'nilai.*.sum4' => 'nullable|numeric|min:0|max:100',
-            'nilai.*.sts' => 'nullable|numeric|min:0|max:100',
-            'nilai.*.sas' => 'nullable|numeric|min:0|max:100',
-            'nilai.*.sat' => 'nullable|numeric|min:0|max:100',
-        ]);
 
         $this->saveNilaiForKelasMapel($kelasMapel, $request->semester, $request->input('nilai', []));
 
@@ -124,23 +117,8 @@ class NilaiController extends Controller
             ->with('success', 'Nilai berhasil disimpan.');
     }
 
-    public function storeBulk(Request $request)
+    public function storeBulk(StoreBulkNilaiRequest $request)
     {
-        $request->validate([
-            'semester' => 'required|in:1,2',
-            'kelas_mapel_ids' => 'required|array|min:1',
-            'kelas_mapel_ids.*' => 'integer',
-            'nilai' => 'required|array',
-            'nilai.*' => 'array',
-            'nilai.*.*.sum1' => 'nullable|numeric|min:0|max:100',
-            'nilai.*.*.sum2' => 'nullable|numeric|min:0|max:100',
-            'nilai.*.*.sum3' => 'nullable|numeric|min:0|max:100',
-            'nilai.*.*.sum4' => 'nullable|numeric|min:0|max:100',
-            'nilai.*.*.sts' => 'nullable|numeric|min:0|max:100',
-            'nilai.*.*.sas' => 'nullable|numeric|min:0|max:100',
-            'nilai.*.*.sat' => 'nullable|numeric|min:0|max:100',
-        ]);
-
         $kelasMapel = KelasMapel::with(['kelas', 'mataPelajaran'])
             ->where('guru_id', Auth::id())
             ->aktif()
@@ -155,21 +133,17 @@ class NilaiController extends Controller
             $this->saveNilaiForKelasMapel(
                 $item,
                 $request->semester,
-                $request->input('nilai.' . $item->id, [])
+                $request->input('nilai.'.$item->id, [])
             );
         }
 
         return redirect()->route('guru.nilai.index')
             ->with('success', 'Nilai berhasil disimpan untuk kelas yang dipilih.');
     }
-    //Bahan untuk merekap nilai siswa per kelas dan mata pelajaran yang diampu oleh guru
-    public function rekap(Request $request)
-    {
-        $request->validate([
-            'semester' => 'nullable|in:1,2',
-            'kelas_mapel_id' => 'nullable|integer',
-        ]);
 
+    // Bahan untuk merekap nilai siswa per kelas dan mata pelajaran yang diampu oleh guru
+    public function rekap(RekapNilaiRequest $request)
+    {
         $kelasMapel = KelasMapel::with(['kelas', 'mataPelajaran'])
             ->where('guru_id', Auth::id())
             ->aktif()
@@ -181,7 +155,7 @@ class NilaiController extends Controller
         $query = NilaiAkhir::with(['siswa.user', 'siswa.kelas', 'kelasMapel.mataPelajaran'])
             ->where('tahun_ajaran_id', $tahunAjaran?->id)
             ->where('semester', $semester)
-            ->whereHas('kelasMapel', fn($q) => $q->where('guru_id', Auth::id())->aktif($semester));
+            ->whereHas('kelasMapel', fn ($q) => $q->where('guru_id', Auth::id())->aktif($semester));
 
         if ($request->filled('kelas_mapel_id')) {
             $query->where('kelas_mapel_id', $request->kelas_mapel_id);
@@ -208,9 +182,9 @@ class NilaiController extends Controller
 
         return [
             'kelas_mapel_id' => $kelasMapel->id,
-            'kelas' => trim(($kelasMapel->kelas?->tingkat ? $kelasMapel->kelas->tingkat . ' ' : '') . ($kelasMapel->kelas?->nama_kelas ?? '-')),
+            'kelas' => trim(($kelasMapel->kelas?->tingkat ? $kelasMapel->kelas->tingkat.' ' : '').($kelasMapel->kelas?->nama_kelas ?? '-')),
             'mata_pelajaran' => $kelasMapel->mataPelajaran?->nama_mapel ?? '-',
-            'label' => trim(($kelasMapel->kelas?->tingkat ? $kelasMapel->kelas->tingkat . ' ' : '') . ($kelasMapel->kelas?->nama_kelas ?? '-') . ' - ' . ($kelasMapel->mataPelajaran?->nama_mapel ?? '-') . ' (Sem. ' . $kelasMapel->semester . ')'),
+            'label' => trim(($kelasMapel->kelas?->tingkat ? $kelasMapel->kelas->tingkat.' ' : '').($kelasMapel->kelas?->nama_kelas ?? '-').' - '.($kelasMapel->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$kelasMapel->semester.')'),
             'export_excel_url' => route('guru.nilai.export.excel', $kelasMapel),
             'export_pdf_url' => route('guru.nilai.export.pdf', $kelasMapel),
             'students' => $siswa->values()->map(function (Siswa $student, int $index) use ($nilaiList, $fields) {
@@ -235,10 +209,10 @@ class NilaiController extends Controller
     {
         return $kelasMapel->map(fn (KelasMapel $item) => [
             'id' => $item->id,
-            'kelas' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat . ' ' : '') . ($item->kelas?->nama_kelas ?? '-')),
+            'kelas' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat.' ' : '').($item->kelas?->nama_kelas ?? '-')),
             'mata_pelajaran' => $item->mataPelajaran?->nama_mapel ?? '-',
             'semester' => $item->semester,
-            'label' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat . ' ' : '') . ($item->kelas?->nama_kelas ?? '-') . ' - ' . ($item->mataPelajaran?->nama_mapel ?? '-') . ' (Sem. ' . $item->semester . ')'),
+            'label' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat.' ' : '').($item->kelas?->nama_kelas ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$item->semester.')'),
             'href' => route('guru.nilai.input', $item),
         ])->values();
     }
@@ -246,7 +220,7 @@ class NilaiController extends Controller
     private function saveNilaiForKelasMapel(KelasMapel $kelasMapel, string $semester, array $nilaiInput): void
     {
         $tahunAjaran = TahunAjaran::getAktif();
-        if (!$tahunAjaran) {
+        if (! $tahunAjaran) {
             throw ValidationException::withMessages([
                 'tahun_ajaran' => 'Tahun ajaran aktif belum diatur.',
             ]);
@@ -273,51 +247,53 @@ class NilaiController extends Controller
             ->get()
             ->keyBy('siswa_id');
 
-        foreach ($nilaiInput as $siswaId => $data) {
-            $nilaiData = collect($fields)
-                ->mapWithKeys(fn ($field) => [$field => ($data[$field] ?? null) === '' ? null : ($data[$field] ?? null)])
-                ->all();
+        DB::transaction(function () use ($nilaiInput, $fields, $existingNilai, $kelasMapel, $tahunAjaran, $semester, $siswas) {
+            foreach ($nilaiInput as $siswaId => $data) {
+                $nilaiData = collect($fields)
+                    ->mapWithKeys(fn ($field) => [$field => ($data[$field] ?? null) === '' ? null : ($data[$field] ?? null)])
+                    ->all();
 
-            $existing = $existingNilai->get((int) $siswaId);
-            $nilaiHarian = $existing?->nilai_harian;
+                $existing = $existingNilai->get((int) $siswaId);
+                $nilaiHarian = $existing?->nilai_harian;
 
-            if (collect($nilaiData)->filter(fn ($value) => !is_null($value))->isEmpty() && $nilaiHarian === null) {
-                NilaiAkhir::where([
-                    'siswa_id' => (int) $siswaId,
+                if (collect($nilaiData)->filter(fn ($value) => ! is_null($value))->isEmpty() && $nilaiHarian === null) {
+                    NilaiAkhir::where([
+                        'siswa_id' => (int) $siswaId,
+                        'kelas_mapel_id' => $kelasMapel->id,
+                        'tahun_ajaran_id' => $tahunAjaran->id,
+                        'semester' => $semester,
+                    ])->delete();
+
+                    continue;
+                }
+
+                $nilai = $this->nilaiService->simpanNilai([
+                    'siswa_id' => $siswaId,
                     'kelas_mapel_id' => $kelasMapel->id,
                     'tahun_ajaran_id' => $tahunAjaran->id,
                     'semester' => $semester,
-                ])->delete();
+                    'nilai_harian' => $nilaiHarian,
+                ] + $nilaiData);
 
-                continue;
+                $siswa = $siswas->get((int) $siswaId);
+                $nilaiChanged = $nilai->wasRecentlyCreated || $nilai->wasChanged($fields);
+
+                if ($siswa && $nilaiChanged) {
+                    $this->logNilaiChange($kelasMapel, $siswa, $semester, $fields, $existing, $nilai);
+                }
+
+                if ($siswa && $siswa->user_id && $nilaiChanged) {
+                    Notifikasi::firstOrCreate([
+                        'user_id' => $siswa->user_id,
+                        'tipe' => 'nilai_baru',
+                        'judul' => 'Nilai Diperbarui',
+                        'pesan' => "Nilai {$kelasMapel->mataPelajaran?->nama_mapel} semester {$semester} telah diinput.",
+                        'link' => route('siswa.nilai.index'),
+                        'is_read' => false,
+                    ]);
+                }
             }
-
-            $nilai = $this->nilaiService->simpanNilai([
-                'siswa_id' => $siswaId,
-                'kelas_mapel_id' => $kelasMapel->id,
-                'tahun_ajaran_id' => $tahunAjaran->id,
-                'semester' => $semester,
-                'nilai_harian' => $nilaiHarian,
-            ] + $nilaiData);
-
-            $siswa = $siswas->get((int) $siswaId);
-            $nilaiChanged = $nilai->wasRecentlyCreated || $nilai->wasChanged($fields);
-
-            if ($siswa && $nilaiChanged) {
-                $this->logNilaiChange($kelasMapel, $siswa, $semester, $fields, $existing, $nilai);
-            }
-
-            if ($siswa && $siswa->user_id && $nilaiChanged) {
-                Notifikasi::firstOrCreate([
-                    'user_id' => $siswa->user_id,
-                    'tipe' => 'nilai_baru',
-                    'judul' => 'Nilai Diperbarui',
-                    'pesan' => "Nilai {$kelasMapel->mataPelajaran?->nama_mapel} semester {$semester} telah diinput.",
-                    'link' => route('siswa.nilai.index'),
-                    'is_read' => false,
-                ]);
-            }
-        }
+        });
     }
 
     private function logNilaiChange(KelasMapel $kelasMapel, Siswa $siswa, string $semester, array $fields, ?NilaiAkhir $before, NilaiAkhir $after): void

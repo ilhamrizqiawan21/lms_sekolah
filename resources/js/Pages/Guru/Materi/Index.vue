@@ -21,6 +21,10 @@ const form = useForm({
 });
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     form.post(props.storeUrl, {
         preserveScroll: true,
         forceFormData: true,
@@ -122,7 +126,7 @@ async function destroy(item) {
                                     <td class="text-nowrap small">{{ item.tanggal }}</td>
                                     <td>
                                         <div class="d-inline-flex align-items-center gap-1">
-                                            <a v-if="item.download_url" :href="item.download_url" class="btn btn-sm btn-outline-primary btn-icon" target="_blank" rel="noopener" :title="`Download ${item.judul}`">
+                                            <a v-if="item.download_url" :href="item.download_url" class="btn btn-sm btn-outline-primary btn-icon" target="_blank" rel="noopener noreferrer" :title="`Download ${item.judul}`">
                                                 <i class="bi bi-download" aria-hidden="true"></i>
                                             </a>
                                             <IconButton icon="bi-trash" :label="`Hapus ${item.judul}`" color="outline-danger" @click="destroy(item)" />

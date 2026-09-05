@@ -59,6 +59,10 @@ function openEdit(item) {
 }
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     if (editingId.value && editingUpdateUrl.value) {
         form.put(editingUpdateUrl.value, {
             preserveScroll: true,
@@ -214,7 +218,7 @@ function remove(item) {
                     </div>
                     <p class="mt-3 mb-3 text-secondary" style="white-space: pre-line">{{ item.isi }}</p>
                     <div v-if="item.attachment" class="mb-3">
-                        <a v-if="item.attachment.url" :href="item.attachment.url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">
+                        <a v-if="item.attachment.url" :href="item.attachment.url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">
                             <i class="bi bi-paperclip me-1" aria-hidden="true"></i>{{ item.attachment.name }}
                             <span v-if="formatFileSize(item.attachment.size)" class="text-muted">({{ formatFileSize(item.attachment.size) }})</span>
                         </a>

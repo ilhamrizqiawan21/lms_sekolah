@@ -81,6 +81,10 @@ function validateSelectedFiles(files) {
 }
 
 function submit() {
+    if (form.processing) {
+        return;
+    }
+
     const files = selectedFiles(form.files);
     const uploadError = validateSelectedFiles(files);
 
@@ -161,7 +165,7 @@ function submit() {
                         <small class="text-muted">File yang diupload:</small>
                         <ul class="list-unstyled mb-0">
                             <li v-for="file in pengumpulan.files" :key="file.id">
-                                <a :href="file.url" target="_blank" rel="noopener" class="text-decoration-none">
+                                <a :href="file.url" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
                                     <i class="bi bi-paperclip me-1" aria-hidden="true"></i> {{ file.name }}
                                 </a>
                             </li>
@@ -169,7 +173,7 @@ function submit() {
                     </div>
                     <div v-else-if="pengumpulan.legacy_file_url" class="mb-2">
                         <small class="text-muted">File yang diupload:</small><br>
-                        <a :href="pengumpulan.legacy_file_url" target="_blank" rel="noopener" class="text-decoration-none">
+                        <a :href="pengumpulan.legacy_file_url" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
                             <i class="bi bi-paperclip me-1" aria-hidden="true"></i> Download File
                         </a>
                     </div>

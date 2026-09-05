@@ -12,20 +12,29 @@ class CheckRole
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+
             return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Akun Anda telah dinonaktifkan.'], 403);
+            }
+
             return redirect()->route('login')->with('error', 'Akun Anda telah dinonaktifkan.');
         }
 
