@@ -13,7 +13,10 @@ function profileIsInertia(role) { return ['admin', 'guru', 'siswa', 'kepala_seko
         <button class="topbar-toggle-btn" type="button" aria-label="Buka menu" aria-controls="sidebar" :aria-expanded="sidebarOpen.toString()" @click="$emit('toggle-sidebar')"><i class="bi bi-list" aria-hidden="true"></i></button>
         <div class="topbar-brand">
             <div class="topbar-logo-icon"><img :src="school.logo_url" :alt="`Logo ${school.name}`" class="app-logo-sm" width="32" height="32" decoding="async"></div>
-            <div class="topbar-title"><span class="topbar-title-main">{{ school.app_name }}</span><span class="topbar-title-sub">{{ school.name }}</span></div>
+            <div class="topbar-title">
+                <span class="topbar-title-main">LMS {{ school.name }}</span>
+                <span v-if="school.short_name && school.short_name !== school.name" class="topbar-title-sub">{{ school.short_name }}</span>
+            </div>
         </div>
         <div class="topbar-context"><span class="topbar-context-label">{{ user?.role_label ?? '-' }}</span><span class="topbar-context-title">{{ pageTitle }}</span></div>
         <button class="topbar-search" type="button" aria-label="Buka akses cepat" @click="emit('open-command')"><i class="bi bi-search" aria-hidden="true"></i><span>Cari kelas, tugas, siswa...</span><kbd>/</kbd></button>
