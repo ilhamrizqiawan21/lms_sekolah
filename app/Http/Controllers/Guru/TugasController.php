@@ -98,12 +98,13 @@ class TugasController extends Controller
         return Inertia::render('Guru/Tugas/List', [
             'kelasMapel' => [
                 'id' => $kelasMapel->id,
-                'kelas' => $kelasMapel->kelas?->nama_kelas ?? '-',
+                'kelas' => $kelasMapel->kelas?->displayName() ?? '-',
                 'mata_pelajaran' => $kelasMapel->mataPelajaran?->nama_mapel ?? '-',
                 'store_url' => route('guru.tugas.store', $kelasMapel),
                 'export_excel_url' => route('guru.tugas.export.excel', $kelasMapel),
                 'export_pdf_url' => route('guru.tugas.export.pdf', $kelasMapel),
                 'workspace_url' => route('guru.kelas-mapel.show', $kelasMapel),
+                'back_url' => route('guru.tugas.index'),
             ],
             'tugas' => $tugas->map(fn (Tugas $item) => [
                 'id' => $item->id,
@@ -223,7 +224,7 @@ class TugasController extends Controller
         return Inertia::render('Guru/Tugas/Pengumpulan', [
             'kelasMapel' => [
                 'id' => $kelasMapel->id,
-                'kelas' => $kelasMapel->kelas?->nama_kelas ?? '-',
+                'kelas' => $kelasMapel->kelas?->displayName() ?? '-',
                 'mata_pelajaran' => $kelasMapel->mataPelajaran?->nama_mapel ?? '-',
                 'back_url' => route('guru.tugas.list', $kelasMapel),
                 'workspace_url' => route('guru.kelas-mapel.show', $kelasMapel),
@@ -491,10 +492,10 @@ class TugasController extends Controller
     {
         return $kelasMapel->map(fn (KelasMapel $item) => [
             'id' => $item->id,
-            'kelas' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat.' ' : '').($item->kelas?->nama_kelas ?? '-')),
+            'kelas' => $item->kelas?->displayName() ?? '-',
             'mata_pelajaran' => $item->mataPelajaran?->nama_mapel ?? '-',
             'semester' => $item->semester,
-            'label' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat.' ' : '').($item->kelas?->nama_kelas ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$item->semester.')'),
+            'label' => ($item->kelas?->displayName() ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$item->semester.')',
             'href' => route('guru.tugas.list', $item),
         ])->values();
     }
@@ -514,7 +515,7 @@ class TugasController extends Controller
             'total_siswa' => $totalSiswa,
             'progress_percent' => $totalSiswa > 0 ? round((($item->sudah_mengumpulkan ?? 0) / $totalSiswa) * 100) : 0,
             'is_overdue' => $item->batas_waktu ? now()->startOfDay()->gt($item->batas_waktu->copy()->startOfDay()) : false,
-            'kelas' => trim(($kelasMapel?->kelas?->tingkat ? $kelasMapel->kelas->tingkat.' ' : '').($kelasMapel?->kelas?->nama_kelas ?? '-')),
+            'kelas' => $kelasMapel?->kelas?->displayName() ?? '-',
             'mata_pelajaran' => $kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
             'pengumpulan_url' => $kelasMapel ? route('guru.tugas.pengumpulan', [$kelasMapel, $item]) : null,
             'delete_url' => route('guru.tugas.destroy', $item),
