@@ -24,7 +24,7 @@ defineProps({
         </Card>
 
         <div v-else class="row gy-4">
-            <div class="col-12 col-xl-8">
+            <div class="col-12 col-xl-10">
                 <Card :title="`Kelas Wali ${waliKelas.kelas}`" icon="bi-building">
                     <div class="d-flex flex-column gap-3">
                         <div>
@@ -39,13 +39,16 @@ defineProps({
                         </div>
 
                         <div class="row g-2">
-                            <div class="col-md-4 d-grid">
-                                <Button :href="waliKelas.absensi_url" color="outline-primary" icon="bi-clipboard-check">Absensi Harian</Button>
+                            <div class="col-sm-6 col-xl-3 d-grid">
+                                <Button :href="`/guru/wali-kelas/${waliKelas.id}/biodata`" color="outline-primary" icon="bi-person-vcard">Biodata Siswa</Button>
                             </div>
-                            <div class="col-md-4 d-grid">
+                            <div class="col-sm-6 col-xl-3 d-grid">
+                                <Button :href="waliKelas.absensi_url" color="outline-success" icon="bi-clipboard-check">Absensi Harian</Button>
+                            </div>
+                            <div class="col-sm-6 col-xl-3 d-grid">
                                 <Button :href="waliKelas.pertemuan_url" color="outline-secondary" icon="bi-calendar-event">Pertemuan</Button>
                             </div>
-                            <div class="col-md-4 d-grid">
+                            <div class="col-sm-6 col-xl-3 d-grid">
                                 <Button :href="waliKelas.penanganan_url" color="outline-danger" icon="bi-heart-pulse">Penanganan Siswa</Button>
                             </div>
                         </div>
