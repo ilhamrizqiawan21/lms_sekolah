@@ -27,7 +27,7 @@ class ChatController extends Controller
             'rooms' => $kelasMapel->map(fn (KelasMapel $item) => [
                 'id' => $item->id,
                 'title' => $item->mataPelajaran?->nama_mapel ?? '-',
-                'subtitle' => $item->kelas?->nama_kelas ?? '-',
+                'subtitle' => $item->kelas?->displayName() ?? '-',
                 'url' => route('guru.chat.show', $item),
             ]),
             'emptyMessage' => 'Anda belum memiliki penugasan.',
@@ -53,7 +53,7 @@ class ChatController extends Controller
         return Inertia::render('Guru/Chat/Show', [
             'room' => [
                 'title' => $kelasMapel->mataPelajaran?->nama_mapel ?? '-',
-                'subtitle' => $kelasMapel->kelas?->nama_kelas ?? '-',
+                'subtitle' => $kelasMapel->kelas?->displayName() ?? '-',
             ],
             'messages' => $messages->map(fn (ChatMessage $message) => [
                 'id' => $message->id,
