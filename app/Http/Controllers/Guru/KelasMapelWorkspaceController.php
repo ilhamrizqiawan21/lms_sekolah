@@ -61,7 +61,7 @@ class KelasMapelWorkspaceController extends Controller
         return Inertia::render('Guru/KelasMapel/Show', [
             'course' => [
                 'title' => $kelasMapel->mataPelajaran?->nama_mapel ?? '-',
-                'kelas' => trim(($kelasMapel->kelas?->tingkat ? $kelasMapel->kelas->tingkat . ' ' : '') . ($kelasMapel->kelas?->nama_kelas ?? '-')),
+                'kelas' => $kelasMapel->kelas?->displayName() ?? '-',
                 'semester' => $kelasMapel->semester === '1' ? 'Ganjil' : 'Genap',
                 'tahun_ajaran' => $kelasMapel->tahunAjaran?->tahun ?? '-',
                 'back_url' => route('guru.dashboard'),
