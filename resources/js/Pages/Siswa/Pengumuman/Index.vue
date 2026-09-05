@@ -76,6 +76,7 @@ defineProps({
 }
 
 .announcement-main {
+    flex: 1 1 0;
     min-width: 0;
 }
 
@@ -83,6 +84,7 @@ defineProps({
     color: var(--text-strong);
     font-weight: 700;
     margin-bottom: 0.2rem;
+    overflow-wrap: anywhere;
 }
 
 .announcement-meta,
@@ -92,15 +94,31 @@ defineProps({
 }
 
 .announcement-text {
+    display: -webkit-box;
+    line-height: 1.55;
     margin-top: 0.5rem;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
 .announcement-side {
     align-items: flex-end;
     display: flex;
+    flex: 0 1 12rem;
     flex-direction: column;
-    flex-shrink: 0;
     gap: 0.5rem;
+    max-width: 12rem;
+    min-width: 0;
+}
+
+.announcement-side :deep(.app-badge) {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .read-link {
@@ -109,13 +127,33 @@ defineProps({
     font-weight: 700;
 }
 
-@media (max-width: 575.98px) {
+@media (max-width: 991.98px) {
     .announcement-item {
         flex-direction: column;
+        gap: 0.75rem;
     }
 
     .announcement-side {
-        align-items: flex-start;
+        align-items: center;
+        flex: 0 1 auto;
+        flex-direction: row;
+        justify-content: space-between;
+        max-width: none;
+        width: 100%;
+    }
+
+    .announcement-side :deep(.app-badge) {
+        max-width: 75%;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .announcement-item {
+        padding: 0.9rem;
+    }
+
+    .announcement-side :deep(.app-badge) {
+        max-width: 68%;
     }
 }
 </style>

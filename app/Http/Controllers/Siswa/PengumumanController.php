@@ -92,14 +92,25 @@ class PengumumanController extends Controller
                     ->orderBy('tingkat')
                     ->orderBy('nama_kelas')
                     ->get()
-                    ->map(fn (Kelas $kelas) => trim($kelas->tingkat . ' ' . $kelas->nama_kelas));
+                    ->map(fn (Kelas $kelas) => $kelas->displayName());
 
                 if ($labels->isNotEmpty()) {
-                    return $labels->join(', ');
+                    if ($labels->count() === 1) {
+                        return (string) $labels->first();
+                    }
+
+                    if ($labels->count() === 2) {
+                        return $labels->join(', ');
+                    }
+
+                    return $labels->count() . ' Kelas';
                 }
             }
 
-            return trim(($pengumuman->kelasMapel?->kelas?->nama_kelas ?? '-') . ' - ' . ($pengumuman->kelasMapel?->mataPelajaran?->nama_mapel ?? '-'));
+            $kelasLabel = $pengumuman->kelasMapel?->kelas?->displayName() ?? '-';
+            $mapelLabel = $pengumuman->kelasMapel?->mataPelajaran?->nama_mapel ?? '-';
+
+            return trim($kelasLabel . ' - ' . $mapelLabel);
         }
 
         return match ($pengumuman->target) {
