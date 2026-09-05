@@ -96,7 +96,12 @@ async function destroy(item) {
             tone="teacher"
         >
             <template #actions>
-                <QuickActionBar :actions="[{ label: 'Ringkasan', href: kelasMapel.workspace_url, icon: 'bi-grid-1x2', color: 'light' }]" />
+                <QuickActionBar
+                    :actions="[
+                        { label: 'Kembali', href: kelasMapel.back_url, icon: 'bi-arrow-left', color: 'light' },
+                        { label: 'Ringkasan', href: kelasMapel.workspace_url, icon: 'bi-grid-1x2', color: 'light' },
+                    ]"
+                />
             </template>
         </DashboardHero>
 
