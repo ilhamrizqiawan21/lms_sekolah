@@ -49,7 +49,7 @@ class MateriController extends Controller
         return Inertia::render('Guru/Materi/List', [
             'kelasMapel' => [
                 'id' => $kelasMapel->id,
-                'kelas' => $kelasMapel->kelas?->nama_kelas ?? '-',
+                'kelas' => $kelasMapel->kelas?->displayName() ?? '-',
                 'mata_pelajaran' => $kelasMapel->mataPelajaran?->nama_mapel ?? '-',
                 'store_url' => route('guru.materi.store', $kelasMapel),
                 'back_url' => route('guru.materi.index'),
@@ -215,10 +215,10 @@ class MateriController extends Controller
     {
         return $kelasMapel->map(fn (KelasMapel $item) => [
             'id' => $item->id,
-            'kelas' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat.' ' : '').($item->kelas?->nama_kelas ?? '-')),
+            'kelas' => $item->kelas?->displayName() ?? '-',
             'mata_pelajaran' => $item->mataPelajaran?->nama_mapel ?? '-',
             'semester' => $item->semester,
-            'label' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat.' ' : '').($item->kelas?->nama_kelas ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$item->semester.')'),
+            'label' => ($item->kelas?->displayName() ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$item->semester.')',
             'href' => route('guru.materi.list', $item),
         ])->values();
     }
@@ -233,7 +233,7 @@ class MateriController extends Controller
             'deskripsi' => $item->deskripsi,
             'deskripsi_ringkas' => Str::limit((string) $item->deskripsi, 60),
             'tanggal' => $item->created_at?->format('d M Y') ?? '-',
-            'kelas' => trim(($kelasMapel?->kelas?->tingkat ? $kelasMapel->kelas->tingkat.' ' : '').($kelasMapel?->kelas?->nama_kelas ?? '-')),
+            'kelas' => $kelasMapel?->kelas?->displayName() ?? '-',
             'mata_pelajaran' => $kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
             'download_url' => $item->file_path && $kelasMapel ? route('guru.materi.download', [$kelasMapel, $item]) : null,
             'delete_url' => $kelasMapel ? route('guru.materi.destroy', [$kelasMapel, $item]) : null,
