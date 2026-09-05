@@ -40,7 +40,7 @@ class SikapRekapController extends SikapController
             $first = $records->first();
             $values = collect($sosialFields)->mapWithKeys(fn ($field) => [$field => round((float) $records->avg($field), 1)]);
             return [
-                'siswa' => ['id' => $first->siswa?->id, 'nis' => $first->siswa?->nis, 'nama' => $first->siswa?->user?->nama_lengkap ?? $first->siswa?->nis, 'kelas' => $first->siswa?->kelas?->nama_kelas],
+                'siswa' => ['id' => $first->siswa?->id, 'nis' => $first->siswa?->nis, 'nama' => $first->siswa?->user?->nama_lengkap ?? $first->siswa?->nis, 'kelas' => $first->siswa?->kelas?->displayName()],
                 'nilai' => $values->all(),
                 'rata' => round((float) $values->avg(), 1),
             ];
@@ -57,7 +57,7 @@ class SikapRekapController extends SikapController
             $first = $records->first();
             $values = collect($spiritualFields)->mapWithKeys(fn ($field) => [$field => round((float) $records->avg($field), 1)]);
             return [
-                'siswa' => ['id' => $first->siswa?->id, 'nis' => $first->siswa?->nis, 'nama' => $first->siswa?->user?->nama_lengkap ?? $first->siswa?->nis, 'kelas' => $first->siswa?->kelas?->nama_kelas],
+                'siswa' => ['id' => $first->siswa?->id, 'nis' => $first->siswa?->nis, 'nama' => $first->siswa?->user?->nama_lengkap ?? $first->siswa?->nis, 'kelas' => $first->siswa?->kelas?->displayName()],
                 'nilai' => $values->all(),
                 'rata' => round((float) $values->avg(), 1),
             ];
@@ -68,7 +68,7 @@ class SikapRekapController extends SikapController
             'semester' => $semester,
             'kelasMapel' => $kelasMapel->map(fn (KelasMapel $item) => [
                 'id' => $item->id,
-                'label' => trim(($item->kelas?->tingkat ? $item->kelas->tingkat . ' ' : '') . ($item->kelas?->nama_kelas ?? '-') . ' — ' . ($item->mataPelajaran?->nama_mapel ?? '-')),
+                'label' => ($item->kelas?->displayName() ?? '-').' — '.($item->mataPelajaran?->nama_mapel ?? '-'),
             ])->values(),
             'sikapSpiritual' => $sikapSpiritual,
             'sikapSosial' => $sikapSosial,
