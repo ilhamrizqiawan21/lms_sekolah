@@ -69,17 +69,17 @@ class CalendarTimelineService
         $tasks = $query->orderBy('batas_waktu')->get();
 
         if ($user->isGuru()) {
-            return $this->groupTeacherTasks($tasks);
+            return $this->groupTeacherTasks($tasks, $user);
         }
 
         return $tasks->map(fn (Tugas $task) => $this->taskItem($task, $user));
     }
 
-    private function groupTeacherTasks(Collection $tasks): Collection
+    private function groupTeacherTasks(Collection $tasks, User $user): Collection
     {
         return $tasks
             ->groupBy(fn (Tugas $task) => $this->teacherTaskGroupKey($task))
-            ->map(function (Collection $group) {
+            ->map(function (Collection $group) use ($user) {
                 /** @var Tugas $first */
                 $first = $group->first();
                 $deadline = $first->batas_waktu;
@@ -102,7 +102,7 @@ class CalendarTimelineService
                     ->values();
 
                 if ($targets->count() <= 1) {
-                    return $this->taskItem($first, $first->kelasMapel?->guru ?? auth()->user());
+                    return $this->taskItem($first, $user);
                 }
 
                 $groupIds = $group->pluck('id')->sort()->implode('-');
@@ -138,9 +138,12 @@ class CalendarTimelineService
     private function teacherTaskGroupKey(Tugas $task): string
     {
         $description = preg_replace('/\s+/u', ' ', trim((string) $task->deskripsi));
+        $kelasMapel = $task->kelasMapel;
 
         return implode('|', [
-            (string) ($task->kelasMapel?->mapel_id ?? 0),
+            (string) ($kelasMapel?->mapel_id ?? 0),
+            (string) ($kelasMapel?->tahun_ajaran_id ?? 0),
+            (string) ($kelasMapel?->semester ?? ''),
             mb_strtolower(trim((string) $task->judul)),
             mb_strtolower($description ?? ''),
             $task->batas_waktu?->format('Y-m-d H:i:s') ?? '',
