@@ -1,9 +1,11 @@
-<script setup>
-defineProps({
-    label: { type: String, required: true },
-    value: { type: [String, Number], required: true },
-    icon: { type: String, default: 'bi-bar-chart-fill' },
-});
+<script setup lang="ts">
+interface Props {
+    label: string;
+    value: string | number;
+    icon?: string;
+}
+
+withDefaults(defineProps<Props>(), { icon: 'bi-bar-chart-fill' });
 </script>
 
 <template>

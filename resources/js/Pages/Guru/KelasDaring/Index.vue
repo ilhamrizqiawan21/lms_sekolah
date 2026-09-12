@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+interface OnlineSession  { id: number; judul: string; tanggal: string; pelajaran_ke: number; status: string; meeting_url: string; kelas_mapel: string; status_url: string; delete_url: string }
 import { Head, router, useForm } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { SearchableSelect, SelectInput, TextareaInput, TextInput } from '../../../Components/Form';
@@ -6,9 +8,9 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    kelasMapel: { type: Array, default: () => [] },
-    lessonSlots: { type: Array, default: () => [] },
-    sessions: { type: Array, default: () => [] },
+    kelasMapel: { type: Array as PropType<{ id: number; label: string }[]>, default: () => [] },
+    lessonSlots: { type: Array as PropType<{ value: number; label: string }[]>, default: () => [] },
+    sessions: { type: Array as PropType<OnlineSession[]>, default: () => [] },
     storeUrl: { type: String, required: true },
 });
 
@@ -39,17 +41,17 @@ function submit() {
     });
 }
 
-function statusColor(status) {
+function statusColor(status: string) {
     if (status === 'selesai') return 'success';
     if (status === 'dibatalkan') return 'danger';
     return 'primary';
 }
 
-function updateStatus(session, status) {
+function updateStatus(session: OnlineSession, status: string | number | boolean | null) {
     router.patch(session.status_url, { status }, { preserveScroll: true });
 }
 
-async function destroySession(session) {
+async function destroySession(session: OnlineSession) {
     const confirmed = await window.confirmDialog?.(`Hapus kelas daring ${session.judul}?`, {
         title: 'Hapus Kelas Daring',
         confirmText: 'Ya, hapus',

@@ -162,7 +162,7 @@
             --bs-link-hover-color: var(--primary-700);
         }
     </style>
-    @vite(['resources/css/app.css', 'resources/js/inertia.js'])
+    @vite(['resources/css/app.css', 'resources/js/inertia.ts'])
     <link rel="stylesheet" href="{{ asset('css/login-isolation.css') }}">
     @inertiaHead
 </head>

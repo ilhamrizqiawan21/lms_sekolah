@@ -92,7 +92,7 @@ class ProgressController extends Controller
             ->filter(fn ($value) => $value !== null)
             ->values();
         $rataNilai = $nilaiTersedia->isNotEmpty()
-            ? round((float) $nilaiTersedia->avg(), 2)
+            ? (float) round((float) $nilaiTersedia->avg(), 2)
             : null;
 
         $awalBulan = now()->copy()->startOfMonth()->toDateString();

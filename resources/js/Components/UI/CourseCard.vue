@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
 import { Link } from '@inertiajs/vue3';
 import Badge from './Badge.vue';
 
@@ -9,8 +11,8 @@ defineProps({
     href: { type: String, default: '' },
     icon: { type: String, default: 'bi-book' },
     accent: { type: String, default: '#2563eb' },
-    badges: { type: Array, default: () => [] },
-    stats: { type: Array, default: () => [] },
+    badges: { type: Array as PropType<(string | { label: string; color?: string })[]>, default: () => [] },
+    stats: { type: Array as PropType<{ label: string; value: string | number }[]>, default: () => [] },
 });
 </script>
 
@@ -32,10 +34,10 @@ defineProps({
             <span v-if="badges.length" class="course-card-badges">
                 <Badge
                     v-for="badge in badges"
-                    :key="badge.label || badge"
-                    :color="badge.color || 'secondary'"
+                    :key="typeof badge === 'string' ? badge : badge.label"
+                    :color="typeof badge === 'string' ? 'secondary' : badge.color || 'secondary'"
                 >
-                    {{ badge.label || badge }}
+                    {{ typeof badge === 'string' ? badge : badge.label }}
                 </Badge>
             </span>
             <span v-if="stats.length" class="course-card-stats">

@@ -211,9 +211,11 @@ class TeacherDashboardService
         $today = now()->startOfMonth();
         $startYear = $today->month >= 7 ? $today->year : $today->year - 1;
         $start = Carbon::create($startYear, 7, 1)->startOfMonth();
-        $monthsFromStart = max(0, (int) $start->diffInMonths($today));
 
-        return collect(range(0, $monthsFromStart))
+        // Keep a stable academic-year axis. Future months remain zero-filled,
+        // which prevents the dashboard chart shape from changing throughout
+        // the year and keeps the payload predictable for the Vue page.
+        return collect(range(0, 11))
             ->map(fn (int $offset) => $start->copy()->addMonths($offset));
     }
 

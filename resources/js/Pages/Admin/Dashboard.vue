@@ -1,14 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import AppShell from '../../Layouts/AppShell.vue';
 import { ActionQueue, Badge, DashboardHero, MetricStrip, QuickActionBar, TableWrapper } from '../../Components/UI';
 
-const props = defineProps({
-    statistik: { type: Object, default: () => ({}) },
-    loginTerbaru: { type: Array, default: () => [] },
-    pengumuman: { type: Array, default: () => [] },
-});
+interface AdminStats { total_siswa?: number; total_guru?: number; total_kelas?: number; total_mapel?: number; }
+interface LoginRecord { id: number; nama_lengkap: string; role: string; login_time?: string | null; ip_address?: string | null; }
+interface Announcement { id: number; judul: string; created_at?: string | null; creator?: string | null; }
+interface QuickAction { label: string; href: string; icon: string; color: string; }
+
+interface Props { statistik?: AdminStats; loginTerbaru?: LoginRecord[]; pengumuman?: Announcement[]; }
+const props = withDefaults(defineProps<Props>(), { statistik: () => ({}), loginTerbaru: () => [], pengumuman: () => [] });
 
 const metrics = computed(() => [
     { label: 'Siswa aktif', value: props.statistik.total_siswa ?? 0, icon: 'bi-mortarboard-fill', tone: 'success', href: '/admin/kelas-siswa' },
@@ -17,7 +19,7 @@ const metrics = computed(() => [
     { label: 'Mapel', value: props.statistik.total_mapel ?? 0, icon: 'bi-book-fill', tone: 'warning', href: '/admin/mata-pelajaran' },
 ]);
 
-const quickActions = [
+const quickActions: QuickAction[] = [
     { label: 'Tambah User', href: '/admin/users/create', icon: 'bi-person-plus', color: 'primary' },
     { label: 'Import Siswa', href: '/admin/kelas-siswa', icon: 'bi-upload', color: 'light' },
     { label: 'Kalender', href: '/admin/kalender', icon: 'bi-calendar3', color: 'light' },
@@ -30,7 +32,7 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({
     icon: 'bi-megaphone-fill', accent: '#f59e0b',
 })));
 
-function roleBadgeColor(role) {
+function roleBadgeColor(role: string): string {
     return { admin: 'danger', guru: 'primary', siswa: 'success', kepala_sekolah: 'warning' }[role] ?? 'secondary';
 }
 </script>

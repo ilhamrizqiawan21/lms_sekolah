@@ -112,7 +112,7 @@ class SiswaProgressTest extends TestCase
                 ->component('Siswa/Progress')
                 ->where('header.kelas', 'VII-A')
                 ->where('header.semester_label', 'Ganjil')
-                ->where('stats.rata_nilai', 85.0)
+                ->where('stats.rata_nilai', 85)
                 ->where('stats.rata_nilai_label', '85.00')
                 ->where('stats.mapel_dinilai', 1)
                 ->where('stats.total_mapel', 2)
@@ -122,21 +122,21 @@ class SiswaProgressTest extends TestCase
                 ->where('stats.tugas_dikumpulkan', 1)
                 ->where('stats.tugas_belum', 1)
                 ->where('stats.tugas_perlu_perbaikan', 1)
-                ->where('stats.batas_ketuntasan', 86.0)
+                ->where('stats.batas_ketuntasan', 86)
                 ->where('stats.bulan_label', now()->locale('id')->translatedFormat('F'))
-                ->where('stats.trend_delta', 10.0)
+                ->where('stats.trend_delta', 10)
                 ->has('subjectScores', 2)
                 ->where('subjectScores.0.nama_mapel', 'Matematika')
-                ->where('subjectScores.0.rata', 85.0)
+                ->where('subjectScores.0.rata', 85)
                 ->where('subjectScores.0.status_label', 'Perlu ditingkatkan')
                 ->where('subjectScores.1.nama_mapel', 'IPA')
                 ->where('subjectScores.1.rata', null)
                 ->where('subjectScores.1.status_label', 'Belum ada nilai')
                 ->has('scoreTrend', 2)
                 ->where('scoreTrend.0.label', 'Sumatif 1')
-                ->where('scoreTrend.0.value', 80.0)
+                ->where('scoreTrend.0.value', 80)
                 ->where('scoreTrend.1.label', 'Sumatif 2')
-                ->where('scoreTrend.1.value', 90.0)
+                ->where('scoreTrend.1.value', 90)
                 ->has('focusItems', 4)
                 ->where('focusItems.0.title', 'Tugas belum dikumpulkan')
                 ->where('focusItems.0.href', route('siswa.tugas.show', $tugasBelum))
@@ -195,8 +195,8 @@ class SiswaProgressTest extends TestCase
             ->get(route('siswa.progress'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
-                ->where('stats.rata_nilai', 70.0)
-                ->where('subjectScores.0.rata', 70.0)
+                ->where('stats.rata_nilai', 70)
+                ->where('subjectScores.0.rata', 70)
             );
     }
 
@@ -220,6 +220,7 @@ class SiswaProgressTest extends TestCase
         $student = Siswa::create([
             'user_id' => $studentUser->id,
             'nis' => '9301',
+            'nomor_whatsapp' => '6281234567890', 'whatsapp_opt_in' => true,
             'kelas_id' => $kelas->id,
             'status' => 'aktif',
         ]);

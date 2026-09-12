@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
 import { computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import PageHeader from '../../Components/AppShell/PageHeader.vue';
@@ -6,10 +8,10 @@ import AppShell from '../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, MetricStrip, TableWrapper } from '../../Components/UI';
 
 const props = defineProps({
-    summary: { type: Object, default: () => ({ total_guru: 0, rata_skor: 0, total_tugas: 0, perlu_dinilai: 0 }) },
-    teachers: { type: Array, default: () => [] },
-    earlyWarnings: { type: Array, default: () => [] },
-    exportUrls: { type: Object, default: () => ({}) },
+    summary: { type: Object as PropType<{ total_guru: number; rata_skor: number; total_tugas: number; perlu_dinilai: number }>, default: () => ({ total_guru: 0, rata_skor: 0, total_tugas: 0, perlu_dinilai: 0 }) },
+    teachers: { type: Array as PropType<{ id: number; nama: string; username: string; score: number; kategori: string; total_kelas_mapel: number; courses: string[]; total_tugas: number; pengumpulan_siswa: number; target_pengumpulan: number; persen_pengumpulan: number; sudah_dinilai: number; persen_dinilai: number; perlu_dinilai: number; persen_feedback: number; rata_nilai_tugas: number | null }[]>, default: () => [] },
+    earlyWarnings: { type: Array as PropType<{ id: number; nama: string; nis: string; kelas: string; reasons: string; average_grade: number | null }[]>, default: () => [] },
+    exportUrls: { type: Object as PropType<{ excel?: string; pdf?: string }>, default: () => ({}) },
 });
 
 const metrics = computed(() => [
@@ -19,7 +21,7 @@ const metrics = computed(() => [
     { label: 'Perlu Dinilai', value: props.summary.perlu_dinilai, icon: 'bi-pencil-square', tone: 'danger' },
 ]);
 
-function scoreColor(score) {
+function scoreColor(score: number) {
     if (score >= 85) return 'success';
     if (score >= 75) return 'primary';
     if (score >= 60) return 'warning text-dark';

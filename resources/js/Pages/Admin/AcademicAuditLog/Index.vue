@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { PaginationLink } from '../../../types/pagination';
 import { Head, router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -7,8 +9,8 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, Pagination, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    logs: { type: Object, default: () => ({ data: [], links: [] }) },
-    filters: { type: Object, default: () => ({}) },
+    logs: { type: Object as PropType<{ data: { id: number; created_at: string | null; module: string; actor: string; metadata: Record<string, unknown>; before_values: Record<string, unknown> | null; after_values: Record<string, unknown> | null }[]; links: PaginationLink[] }>, default: () => ({ data: [], links: [] }) },
+    filters: { type: Object as PropType<{ module?: string; search?: string }>, default: () => ({}) },
 });
 
 const filterForm = reactive({
@@ -17,7 +19,7 @@ const filterForm = reactive({
 });
 
 function applyFilters() {
-    const params = {};
+    const params: Record<string, string> = {};
     if (filterForm.module) params.module = filterForm.module;
     if (filterForm.search) params.search = filterForm.search;
 
@@ -38,11 +40,11 @@ function resetFilters() {
     });
 }
 
-function moduleColor(module) {
+function moduleColor(module: string) {
     return module === 'nilai' ? 'info text-dark' : 'success';
 }
 
-function formatValues(values) {
+function formatValues(values: Record<string, unknown> | null) {
     const entries = Object.entries(values ?? {}).filter(([, value]) => value !== null && value !== undefined && value !== '');
     if (!entries.length) return '-';
 

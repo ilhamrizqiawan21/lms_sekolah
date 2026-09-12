@@ -1,4 +1,7 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+type BioField = 'nama_lengkap' | 'nama_panggilan' | 'alamat' | 'tempat_lahir' | 'tanggal_lahir' | 'hobi' | 'cita_cita' | 'nama_ayah' | 'pekerjaan_ayah' | 'nama_ibu' | 'pekerjaan_ibu' | 'penghasilan_orangtua' | 'nama_wali' | 'pekerjaan_wali' | 'penyakit_kronis' | 'teman_dekat_sekolah' | 'teman_dekat_luar_sekolah' | 'jarak_rumah_km' | 'transportasi' | 'kegiatan_luar_sekolah';
+type StudentBio = Record<BioField, string | null> & { id: number; nis: string; update_url: string; total_fields: number; completed_fields: number };
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -7,14 +10,14 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState } from '../../../Components/UI';
 
 const props = defineProps({
-    waliKelas: { type: Object, required: true },
-    students: { type: Array, default: () => [] },
+    waliKelas: { type: Object as PropType<{ kelas: string; tahun_ajaran: string; back_url: string }>, required: true },
+    students: { type: Array as PropType<StudentBio[]>, default: () => [] },
 });
 
 const search = ref('');
 const selectedId = ref(props.students[0]?.id ?? null);
 
-function formValues(student = {}) {
+function formValues(student: Partial<StudentBio> = {}) {
     return {
         nama_lengkap: student.nama_lengkap ?? '',
         nama_panggilan: student.nama_panggilan ?? '',
@@ -59,7 +62,7 @@ const filteredStudents = computed(() => {
     ));
 });
 
-function selectStudent(student) {
+function selectStudent(student: StudentBio) {
     selectedId.value = student.id;
     form.clearErrors();
     Object.assign(form, formValues(student));
@@ -75,7 +78,7 @@ function save() {
     });
 }
 
-function completionColor(student) {
+function completionColor(student: StudentBio) {
     const ratio = student.total_fields ? student.completed_fields / student.total_fields : 0;
 
     if (ratio === 1) return 'success';

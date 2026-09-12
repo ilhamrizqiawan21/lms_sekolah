@@ -1,5 +1,8 @@
-<script setup>
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { SelectOption } from '../../types/ui';
+import type { ValidationMessage } from '../../types/forms';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import InputError from './InputError.vue';
 
 defineOptions({
@@ -10,35 +13,35 @@ const props = defineProps({
     modelValue: { type: [String, Number, Boolean], default: '' },
     name: { type: String, required: true },
     label: { type: String, default: '' },
-    options: { type: [Array, Object], default: () => [] },
+    options: { type: [Array, Object] as PropType<SelectOption[] | Record<string, string>>, default: () => [] },
     placeholder: { type: String, default: 'Pilih...' },
     searchPlaceholder: { type: String, default: 'Cari...' },
     emptyText: { type: String, default: 'Tidak ada pilihan' },
     help: { type: String, default: '' },
-    error: { type: [String, Array], default: '' },
+    error: { type: [String, Array] as PropType<ValidationMessage>, default: '' },
     wrapperClass: { type: String, default: 'mb-3' },
     required: { type: Boolean, default: false },
     clearable: { type: Boolean, default: true },
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits<{ 'update:modelValue': [value: string | number | boolean] }>();
 
 const open = ref(false);
 const query = ref('');
-const root = ref(null);
-const searchInput = ref(null);
+const root = ref<HTMLElement | null>(null);
+const searchInput = ref<HTMLInputElement | null>(null);
 const activeIndex = ref(-1);
 
 const inputId = computed(() => props.name.replaceAll('[', '_').replaceAll(']', '_'));
-const helpId = computed(() => props.help ? `${inputId.value}Help` : null);
-const errorId = computed(() => props.error ? `${inputId.value}Error` : null);
-const describedBy = computed(() => [helpId.value, errorId.value].filter(Boolean).join(' ') || null);
+const helpId = computed(() => props.help ? `${inputId.value}Help` : undefined);
+const errorId = computed(() => props.error ? `${inputId.value}Error` : undefined);
+const describedBy = computed(() => [helpId.value, errorId.value].filter(Boolean).join(' ') || undefined);
 const listboxId = computed(() => `${inputId.value}Listbox`);
 const activeOptionId = computed(() => {
-    if (activeIndex.value < 0) return null;
+    if (activeIndex.value < 0) return undefined;
     if (props.clearable && activeIndex.value === 0) return `${listboxId.value}Clear`;
     const option = filteredOptions.value[activeIndex.value - (props.clearable ? 1 : 0)];
-    return option ? optionId(option) : null;
+    return option ? optionId(option) : undefined;
 });
 
 const normalizedOptions = computed(() => Array.isArray(props.options)
@@ -74,20 +77,30 @@ function close() {
     open.value = false;
 }
 
-function selectOption(option) {
+watch(query, () => { activeIndex.value = -1; });
+
+function selectOption(option: SelectOption) {
     emit('update:modelValue', option.value);
     close();
 }
 
-function optionId(option) {
+function optionId(option: SelectOption) {
     return `${listboxId.value}-${String(option.value).replaceAll(/[^a-zA-Z0-9_-]/g, '-')}`;
 }
 
-function moveActive(direction) {
+function moveActive(direction: number) {
     const offset = props.clearable ? 1 : 0;
     const count = filteredOptions.value.length + offset;
     if (!count) return;
-    activeIndex.value = (activeIndex.value + direction + count) % count;
+    activeIndex.value = activeIndex.value < 0
+        ? (direction > 0 ? 0 : count - 1)
+        : (activeIndex.value + direction + count) % count;
+}
+
+async function openAndMove(direction: number) {
+    open.value = true;
+    await nextTick();
+    moveActive(direction);
 }
 
 function selectActive() {
@@ -101,13 +114,13 @@ function clearValue() {
     close();
 }
 
-function handleOutsideClick(event) {
-    if (root.value && !root.value.contains(event.target)) {
+function handleOutsideClick(event: MouseEvent) {
+    if (root.value && event.target instanceof Node && !root.value.contains(event.target)) {
         close();
     }
 }
 
-document.addEventListener('click', handleOutsideClick);
+onMounted(() => document.addEventListener('click', handleOutsideClick));
 
 onBeforeUnmount(() => {
     document.removeEventListener('click', handleOutsideClick);
@@ -131,11 +144,11 @@ onBeforeUnmount(() => {
                 :aria-controls="listboxId"
                 aria-haspopup="listbox"
                 :aria-describedby="describedBy"
-                :aria-invalid="error ? 'true' : null"
+                :aria-invalid="error ? 'true' : undefined"
                 v-bind="$attrs"
                 @click.stop="toggle"
-                @keydown.down.prevent="open = true; moveActive(1)"
-                @keydown.up.prevent="open = true; moveActive(-1)"
+                @keydown.down.prevent="openAndMove(1)"
+                @keydown.up.prevent="openAndMove(-1)"
                 @keydown.enter.prevent="open ? selectActive() : toggle()"
                 @keydown.esc.prevent="close"
             >
@@ -183,7 +196,7 @@ onBeforeUnmount(() => {
                     </button>
                     <button
                         v-for="(option, index) in filteredOptions"
-                        :key="option.value"
+                        :key="String(option.value)"
                         type="button"
                         class="searchable-select-option"
                         :class="{ active: String(option.value) === String(modelValue) || activeIndex === index + (clearable ? 1 : 0) }"

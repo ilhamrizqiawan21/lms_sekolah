@@ -1,4 +1,8 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { LaravelPaginator } from '../../../types/pagination';
+import type { Score } from '../../../types/assessment';
+import type { GradeReportRow, ReportOption, ExportUrls } from '../../../types/reports';
 import { Head, router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -7,13 +11,13 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Button, Card, EmptyState, Pagination, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    nilai: { type: Object, required: true },
-    kelasOptions: { type: Array, default: () => [] },
-    mapelOptions: { type: Array, default: () => [] },
-    filters: { type: Object, default: () => ({}) },
-    taAktif: { type: Object, default: null },
+    nilai: { type: Object as PropType<LaravelPaginator<GradeReportRow>>, required: true },
+    kelasOptions: { type: Array as PropType<ReportOption[]>, default: () => [] },
+    mapelOptions: { type: Array as PropType<ReportOption[]>, default: () => [] },
+    filters: { type: Object as PropType<Partial<Record<'kelas_id' | 'mapel_id' | 'semester', string>>>, default: () => ({}) },
+    taAktif: { type: Object as PropType<{ id: number; tahun: string } | null>, default: null },
     resetUrl: { type: String, required: true },
-    exportUrls: { type: Object, default: () => ({}) },
+    exportUrls: { type: Object as PropType<ExportUrls>, default: () => ({}) },
 });
 
 const filterForm = reactive({
@@ -51,11 +55,11 @@ function resetFilters() {
     });
 }
 
-function valueOrDash(value) {
+function valueOrDash(value: Score) {
     return value ?? '-';
 }
 
-function exportUrl(format) {
+function exportUrl(format: 'excel' | 'pdf') {
     const base = props.exportUrls[format];
     const params = new URLSearchParams(cleanFilters()).toString();
     return params ? `${base}?${params}` : base;

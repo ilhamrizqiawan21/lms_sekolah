@@ -1,20 +1,19 @@
-<script setup>
+<script setup lang="ts">
 import { router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Card, EmptyState } from '../UI';
+import type { ChatRoomSummary } from '../../types';
 
-const props = defineProps({
-    rooms: { type: Array, default: () => [] },
-    emptyMessage: { type: String, default: 'Belum ada data.' },
-});
+interface Props { rooms?: ChatRoomSummary[]; emptyMessage?: string }
+const props = withDefaults(defineProps<Props>(), { rooms: () => [], emptyMessage: 'Belum ada data.' });
 
 const selectedRoomUrl = ref('');
 
-function roomLabel(room) {
+function roomLabel(room: ChatRoomSummary): string {
     return [room.title, room.subtitle].filter(Boolean).join(' - ');
 }
 
-function openRoom() {
+function openRoom(): void {
     if (!selectedRoomUrl.value) {
         return;
     }

@@ -77,9 +77,16 @@ class LoginController extends Controller
         $username = $request->input('username');
         $ip = $request->ip();
         $throttleKey = Str::lower($username . '|' . $ip);
+        // Keep a second, account-based bucket so a distributed attack cannot
+        // bypass the per-IP limit by rotating source addresses.
+        $accountThrottleKey = 'login-account:'.sha1(Str::lower(trim($username)));
 
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
+        if (RateLimiter::tooManyAttempts($throttleKey, 5) || RateLimiter::tooManyAttempts($accountThrottleKey, 10)) {
+            $seconds = max(
+                RateLimiter::availableIn($throttleKey),
+                RateLimiter::availableIn($accountThrottleKey)
+            );
+
             return back()->with('error', "Terlalu banyak percobaan login. Silakan coba lagi dalam {$seconds} detik.");
         }
 
@@ -92,6 +99,7 @@ class LoginController extends Controller
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
+
                 return back()->with('error', 'Akun Anda telah dinonaktifkan. Silakan hubungi administrator.');
             }
 
@@ -108,6 +116,7 @@ class LoginController extends Controller
             ]);
 
             RateLimiter::clear($throttleKey);
+            RateLimiter::clear($accountThrottleKey);
 
             $defaultUrl = $this->redirectToByRole($user);
             $intendedUrl = $request->session()->pull('url.intended', $defaultUrl);
@@ -123,6 +132,7 @@ class LoginController extends Controller
         }
 
         RateLimiter::hit($throttleKey, 60);
+        RateLimiter::hit($accountThrottleKey, 60);
 
         return back()->with('error', 'Username atau password salah.')->withInput($request->only('username'));
     }

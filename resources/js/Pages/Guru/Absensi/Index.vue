@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, nextTick, reactive, watch } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -6,13 +6,18 @@ import { SearchableSelect, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, DashboardHero, EmptyState, QuickActionBar, TableWrapper } from '../../../Components/UI';
 
-const props = defineProps({
-    kelasMapel: { type: Array, default: () => [] },
-    filters: { type: Object, default: () => ({ kelas_mapel_id: '', bulan: '', siswa_id: '' }) },
-    highlightedSiswaId: { type: [Number, String], default: null },
-    selected: { type: Object, default: null },
-    weeks: { type: Array, default: () => [] },
-    students: { type: Array, default: () => [] },
+import type { AttendanceMeeting, AttendanceStatus, AttendanceStudent, GradeCourse } from '../../../types/assessment';
+
+const props = withDefaults(defineProps<{
+    kelasMapel?: { id: number; label: string }[];
+    filters?: { kelas_mapel_id?: string; bulan?: string; siswa_id?: string };
+    highlightedSiswaId?: number | string | null;
+    selected?: (GradeCourse & { has_schedule: boolean; schedule_url: string }) | null;
+    weeks?: AttendanceMeeting[];
+    students?: AttendanceStudent[];
+}>(), {
+    kelasMapel: () => [], filters: () => ({}), highlightedSiswaId: null,
+    selected: null, weeks: () => [], students: () => [],
 });
 
 const filterForm = reactive({
@@ -93,23 +98,27 @@ function cleanFilters() {
     return Object.fromEntries(Object.entries(filterForm).filter(([, value]) => value !== '' && value !== null));
 }
 
-function fillColumn(meetingKey, value) {
+function fillColumn(meetingKey: string | number, event: Event) {
+    if (!(event.target instanceof HTMLSelectElement)) return;
+    const value = event.target.value;
+    event.target.value = '';
+    if (!['hadir', 'sakit', 'izin', 'alpha'].includes(value)) return;
     if (!value) {
         return;
     }
 
     props.students.forEach((student) => {
         if (form.absensi[String(student.id)] && meetingHasDate(meetingKey)) {
-            form.absensi[String(student.id)][String(meetingKey)] = value;
+            form.absensi[String(student.id)][String(meetingKey)] = value as AttendanceStatus;
         }
     });
 }
 
-function meetingHasDate(meetingKey) {
+function meetingHasDate(meetingKey: string | number) {
     return props.weeks.some((week) => String(week.key) === String(meetingKey) && week.date);
 }
 
-function counts(studentId) {
+function counts(studentId: number) {
     const row = form.absensi[String(studentId)] ?? {};
 
     return meetingKeys.value.reduce((summary, meetingKey) => {
@@ -134,7 +143,7 @@ function submit() {
     });
 }
 
-function selectedExportUrl(format) {
+function selectedExportUrl(format: 'excel' | 'pdf') {
     if (!props.selected) {
         return '#';
     }
@@ -284,7 +293,7 @@ function selectedExportUrl(format) {
                                             <select
                                                 v-if="week.date"
                                                 class="form-select form-select-sm attendance-select"
-                                                @change="fillColumn(week.key, $event.target.value); $event.target.value = ''"
+                                                @change="fillColumn(week.key, $event)"
                                             >
                                                 <option
                                                     v-for="option in statusOptions"
@@ -404,6 +413,34 @@ function selectedExportUrl(format) {
 }
 
 @media (max-width: 767px) {
+    .attendance-table {
+        min-width: 760px;
+    }
+
+    .attendance-table th:nth-child(-n + 3),
+    .attendance-table td:nth-child(-n + 3) {
+        position: sticky;
+        z-index: 2;
+        background: var(--surface-card, #fff);
+    }
+
+    .attendance-table th:nth-child(1),
+    .attendance-table td:nth-child(1) { left: 0; min-width: 44px; }
+    .attendance-table th:nth-child(2),
+    .attendance-table td:nth-child(2) { left: 44px; min-width: 70px; }
+    .attendance-table th:nth-child(3),
+    .attendance-table td:nth-child(3) { left: 114px; min-width: 180px; }
+
+    .attendance-table thead th:nth-child(-n + 3) {
+        z-index: 4;
+        background: var(--surface-muted, #f8fafc);
+    }
+
+    .attendance-table tbody tr:hover > td:nth-child(-n + 3),
+    .attendance-table .attendance-row-highlighted > td:nth-child(-n + 3) {
+        background: var(--surface-hover, var(--surface-card, #fff)) !important;
+    }
+
     .attendance-select {
         min-width: 54px;
         padding: 0.25rem 0.35rem;

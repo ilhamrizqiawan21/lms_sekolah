@@ -1,16 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import AppShell from '../../Layouts/AppShell.vue';
 import { Badge, Card, DashboardHero, EmptyState, MetricStrip, TableWrapper } from '../../Components/UI';
+interface Stats { total_siswa?: number; total_guru?: number; total_kelas?: number; total_mapel?: number; }
+interface AttendanceMonth { bulan: string; bulan_label?: string; hadir: number; sakit: number; izin: number; alpha: number; persentase?: number; total?: number; }
+interface SubjectAverage { nama_mapel: string; rata_rata: number | string; }
+interface Announcement { id: number; judul: string; created_at: string; }
+interface LoginRecord { id: number; nama_lengkap: string; role: string; login_time?: string; ip_address?: string | null; }
 
-const props = defineProps({
-    statistik: { type: Object, default: () => ({}) },
-    absensiBulanan: { type: Array, default: () => [] },
-    rataNilaiPerMapel: { type: Array, default: () => [] },
-    pengumuman: { type: Array, default: () => [] },
-    loginTerbaru: { type: Array, default: () => [] },
-});
+interface Props { statistik?: Stats; absensiBulanan?: AttendanceMonth[]; rataNilaiPerMapel?: SubjectAverage[]; pengumuman?: Announcement[]; loginTerbaru?: LoginRecord[]; }
+const props = withDefaults(defineProps<Props>(), { statistik: () => ({}), absensiBulanan: () => [], rataNilaiPerMapel: () => [], pengumuman: () => [], loginTerbaru: () => [] });
 
 const metrics = computed(() => [
     { label: 'Total Siswa', value: props.statistik.total_siswa ?? 0, icon: 'bi-people-fill', tone: 'success' },
@@ -19,8 +19,8 @@ const metrics = computed(() => [
     { label: 'Mata Pelajaran', value: props.statistik.total_mapel ?? 0, icon: 'bi-book-fill', tone: 'warning' },
 ]);
 
-const absensiCanvas = ref(null);
-let absensiChart = null;
+const absensiCanvas = ref<HTMLCanvasElement | null>(null);
+let absensiChart: { destroy: () => void } | null = null;
 
 async function renderAbsensiChart() {
     if (!absensiCanvas.value || !props.absensiBulanan.length) {
@@ -49,7 +49,7 @@ async function renderAbsensiChart() {
     });
 }
 
-function roleBadgeColor(role) {
+function roleBadgeColor(role: string): string {
     return {
         admin: 'danger',
         guru: 'primary',

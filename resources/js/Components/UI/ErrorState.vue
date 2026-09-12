@@ -1,4 +1,5 @@
-<script setup>
+<script setup lang="ts">
+defineSlots<{ default?: () => unknown }>();
 defineProps({
     title: { type: String, default: 'Terjadi kesalahan' },
     message: { type: String, default: 'Data tidak dapat dimuat saat ini.' },
@@ -6,7 +7,7 @@ defineProps({
     showRetry: { type: Boolean, default: true },
 });
 
-defineEmits(['retry']);
+defineEmits<{ retry: [] }>();
 </script>
 
 <template>

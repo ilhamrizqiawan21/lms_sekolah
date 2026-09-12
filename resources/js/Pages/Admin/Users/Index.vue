@@ -1,32 +1,34 @@
-<script setup>
+<script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { SelectInput, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Card, EmptyState, IconButton, Pagination, TableWrapper } from '../../../Components/UI';
+import type { LaravelPaginator } from '../../../types';
 
-const props = defineProps({
-    users: { type: Object, default: () => ({ data: [], links: [], meta: {} }) },
-    roles: { type: Array, default: () => [] },
-    filters: { type: Object, default: () => ({}) },
-    exportUrl: { type: String, required: true },
-});
+interface Role { id: number; nama_role: string }
+interface UserRole { nama_role?: string }
+interface AdminUser { id: number; username: string; nama_lengkap: string; email?: string | null; role?: UserRole; password_is_default: boolean; password_status: string; is_active: boolean }
+interface Filters { search?: string; role_id?: string | number }
+interface Props { users?: LaravelPaginator<AdminUser>; roles?: Role[]; filters?: Filters; exportUrl: string }
+
+const props = withDefaults(defineProps<Props>(), { users: () => ({ data: [], links: [], current_page: 1, last_page: 1, per_page: 0, total: 0, from: null, to: null }), roles: () => [], filters: () => ({}) });
 
 const filterForm = reactive({
     search: props.filters.search ?? '',
     role_id: props.filters.role_id ?? '',
 });
 
-function roleLabel(role) {
+function roleLabel(role?: string): string {
     return role ? role.replaceAll('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase()) : '-';
 }
 
-function passwordStatusColor(isDefault) {
+function passwordStatusColor(isDefault: boolean): string {
     return isDefault ? 'warning text-dark' : 'success';
 }
 
-function applyFilters() {
+function applyFilters(): void {
     router.get('/admin/users', cleanFilters(), {
         preserveState: true,
         preserveScroll: true,
@@ -34,7 +36,7 @@ function applyFilters() {
     });
 }
 
-function resetFilters() {
+function resetFilters(): void {
     filterForm.search = '';
     filterForm.role_id = '';
     router.get('/admin/users', {}, {
@@ -44,18 +46,18 @@ function resetFilters() {
     });
 }
 
-function cleanFilters() {
-    return Object.fromEntries(Object.entries(filterForm).filter(([, value]) => value !== '' && value !== null));
+function cleanFilters(): Record<string, string> {
+    return Object.fromEntries(Object.entries(filterForm).filter(([, value]) => value !== '' && value !== null).map(([key, value]) => [key, String(value)]));
 }
 
-function exportExcelUrl() {
+function exportExcelUrl(): string {
     const params = new URLSearchParams(cleanFilters());
     const query = params.toString();
 
     return query ? `${props.exportUrl}?${query}` : props.exportUrl;
 }
 
-async function toggleActive(user) {
+async function toggleActive(user: AdminUser): Promise<void> {
     const action = user.is_active ? 'Nonaktifkan' : 'Aktifkan';
     const confirmed = await window.confirmDialog?.(`${action} user ini?`, {
         title: `${action} User`,
@@ -72,7 +74,7 @@ async function toggleActive(user) {
     });
 }
 
-async function resetPassword(user) {
+async function resetPassword(user: AdminUser): Promise<void> {
     const confirmed = await window.confirmDialog?.(`Reset password ${user.nama_lengkap} kembali ke 123456?`, {
         title: 'Reset Password',
         confirmText: 'Ya, reset ke 123456',
@@ -88,7 +90,7 @@ async function resetPassword(user) {
     });
 }
 
-async function destroy(user) {
+async function destroy(user: AdminUser): Promise<void> {
     const confirmed = await window.confirmDialog?.('Hapus user ini?', {
         title: 'Hapus User',
         confirmText: 'Ya, hapus',
@@ -216,8 +218,8 @@ async function destroy(user) {
 
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
                 <div class="text-muted small">
-                    <template v-if="users.meta?.total">
-                        Menampilkan {{ users.meta.from }}-{{ users.meta.to }} dari {{ users.meta.total }} data
+                    <template v-if="users.total">
+                        Menampilkan {{ users.from }}-{{ users.to }} dari {{ users.total }} data
                     </template>
                 </div>
                 <Pagination :links="users.links ?? []" />

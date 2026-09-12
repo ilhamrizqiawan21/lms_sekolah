@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+interface AttitudeStudent { id: number; no: number; nis: string; nama: string; sosial: Record<string, number | string | null>; spiritual: Record<string, number | string | null> }
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, watch } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -6,10 +8,10 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    kelasMapel: { type: Object, required: true },
-    tahunAjaran: { type: Object, default: null },
+    kelasMapel: { type: Object as PropType<{ id: number; kelas: string; mata_pelajaran: string; back_url: string; store_url: string; export_excel_url: string; export_pdf_url: string }>, required: true },
+    tahunAjaran: { type: Object as PropType<{ tahun: string } | null>, default: null },
     semester: { type: String, default: '1' },
-    students: { type: Array, default: () => [] },
+    students: { type: Array as PropType<AttitudeStudent[]>, default: () => [] },
 });
 
 const spiritualFields = [
@@ -43,14 +45,14 @@ watch(() => props.students, () => {
     form.spiritual = buildScores('spiritual');
 }, { deep: true });
 
-function buildScores(group) {
+function buildScores(group: 'sosial' | 'spiritual') {
     return Object.fromEntries(props.students.map((student) => [
         String(student.id),
         { ...student[group] },
     ]));
 }
 
-function average(group, studentId, fields) {
+function average(group: 'sosial' | 'spiritual', studentId: number, fields: { key: string }[]) {
     const values = fields
         .map((field) => form[group]?.[String(studentId)]?.[field.key])
         .filter((value) => value !== null && value !== undefined && value !== '')
@@ -63,14 +65,14 @@ function average(group, studentId, fields) {
     return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function averageClass(value) {
+function averageClass(value: number | null) {
     if (value === null) return '';
     if (value >= 4) return 'excellent';
     if (value >= 3) return 'fair';
     return 'low';
 }
 
-function formatAverage(value) {
+function formatAverage(value: number | null) {
     return value === null ? null : value.toFixed(1);
 }
 

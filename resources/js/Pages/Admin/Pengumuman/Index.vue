@@ -1,33 +1,36 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { Announcement } from '../../../types/announcements';
+import type { AppPageProps } from '../../../types/inertia';
 import { computed, ref } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { FileInput } from '../../../Components/Form';
 
-const page = usePage();
+const page = usePage<AppPageProps>();
 const props = defineProps({
-    pengumuman: { type: Object, default: () => ({ data: [] }) },
-    kelas: { type: Array, default: () => [] },
-    targetKelasOptions: { type: Array, default: () => [] },
+    pengumuman: { type: Object as PropType<{ data: Announcement[] }>, default: () => ({ data: [] }) },
+    kelas: { type: Array as PropType<{ id: number; nama_kelas: string }[]>, default: () => [] },
+    targetKelasOptions: { type: Array as PropType<{ id: number; tingkat: string | number; nama_kelas: string }[]>, default: () => [] },
     routePrefix: { type: String, default: 'admin.pengumuman' },
     storeUrl: { type: String, default: '/admin/pengumuman' },
 });
 
 const showForm = ref(false);
-const editingId = ref(null);
-const editingUpdateUrl = ref(null);
+const editingId = ref<number | null>(null);
+const editingUpdateUrl = ref<string | null>(null);
 const fileInputKey = ref(0);
 const form = useForm({
     judul: '',
     isi: '',
     target: 'semua',
-    target_kelas_ids: [],
+    target_kelas_ids: [] as number[],
     is_public_login: false,
-    public_file: null,
+    public_file: null as File | null,
     remove_public_file: false,
 });
 const isAdmin = computed(() => page.props.auth?.user?.role === 'admin');
-const canPublish = computed(() => ['admin', 'guru'].includes(page.props.auth?.user?.role));
+const canPublish = computed(() => ['admin', 'guru'].includes(page.props.auth?.user?.role ?? ''));
 
 function resetForm() {
     form.reset();
@@ -42,7 +45,7 @@ function openCreate() {
     showForm.value = true;
 }
 
-function openEdit(item) {
+function openEdit(item: Announcement) {
     form.clearErrors();
     form.judul = item.judul ?? '';
     form.isi = item.isi ?? '';
@@ -85,13 +88,13 @@ function submit() {
     });
 }
 
-function formatFileSize(bytes) {
+function formatFileSize(bytes: number | null) {
     if (!bytes) return '';
     const kb = bytes / 1024;
     return kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${Math.ceil(kb)} KB`;
 }
 
-function remove(item) {
+function remove(item: Announcement) {
     if (window.confirm('Hapus pengumuman ini?')) {
         form.delete(item.delete_url, { preserveScroll: true });
     }
@@ -178,7 +181,7 @@ function remove(item) {
                                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                                     <span class="small">
                                         <i class="bi bi-paperclip me-1" aria-hidden="true"></i>
-                                        {{ pengumuman.data.find((item) => item.id === editingId).attachment.name }}
+                                        {{ pengumuman.data.find((item) => item.id === editingId)?.attachment?.name }}
                                     </span>
                                     <div class="form-check mb-0">
                                         <input id="remove-public-file" v-model="form.remove_public_file" class="form-check-input" type="checkbox">

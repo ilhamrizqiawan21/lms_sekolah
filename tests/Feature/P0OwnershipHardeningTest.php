@@ -143,6 +143,7 @@ class P0OwnershipHardeningTest extends TestCase
         Siswa::create([
             'user_id' => $siswaUserA->id,
             'nis' => 'P0A001',
+            'nomor_whatsapp' => '6281234567890', 'whatsapp_opt_in' => true,
             'kelas_id' => $kelasA->id,
             'status' => 'aktif',
         ]);
@@ -150,6 +151,7 @@ class P0OwnershipHardeningTest extends TestCase
         Siswa::create([
             'user_id' => $siswaUserB->id,
             'nis' => 'P0B001',
+            'nomor_whatsapp' => '6281234567891', 'whatsapp_opt_in' => true,
             'kelas_id' => $kelasB->id,
             'status' => 'aktif',
         ]);

@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
 import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -6,11 +8,11 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Card, EmptyState, MetricStrip, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    kelas: { type: Object, required: true },
-    courses: { type: Array, default: () => [] },
+    kelas: { type: Object as PropType<{ nama: string }>, required: true },
+    courses: { type: Array as PropType<{ id: number; label: string; url: string }[]>, default: () => [] },
     selectedCourseId: { type: [Number, String], default: null },
-    sessions: { type: Array, default: () => [] },
-    links: { type: Object, default: () => ({}) },
+    sessions: { type: Array as PropType< { id: number; judul: string; tanggal: string; pelajaran_ke: number; status: string; meeting_url: string; is_upcoming: boolean; mata_pelajaran: string; guru: string; deskripsi: string | null; workspace_url: string | null }[]>, default: () => [] },
+    links: { type: Object as PropType<{ jadwal?: string; all?: string }>, default: () => ({}) },
 });
 
 const upcomingCount = computed(() => props.sessions.filter((item) => item.is_upcoming).length);
@@ -20,7 +22,7 @@ const metrics = computed(() => [
     { label: 'Mata pelajaran', value: props.courses.length, icon: 'bi-book-fill', tone: 'info' },
 ]);
 
-function statusColor(status) {
+function statusColor(status: string) {
     if (status === 'selesai') return 'success';
     if (status === 'dibatalkan') return 'danger';
     return 'primary';

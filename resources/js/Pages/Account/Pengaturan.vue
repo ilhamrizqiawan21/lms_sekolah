@@ -1,26 +1,43 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import PageHeader from '../../Components/AppShell/PageHeader.vue';
 import FileInput from '../../Components/Form/FileInput.vue';
 import TextInput from '../../Components/Form/TextInput.vue';
+import InputError from '../../Components/Form/InputError.vue';
 import AppShell from '../../Layouts/AppShell.vue';
 import { Badge, Button, Card } from '../../Components/UI';
+interface SiswaInfo { nis?: string; kelas?: string; angkatan?: string; status?: string; tinggal_kelas?: boolean; nomor_whatsapp?: string | null; whatsapp_opt_in?: boolean; phone_required?: boolean; }
+interface AccountProfile { username?: string; nama_lengkap?: string; email?: string; nip_nis?: string; jenis_kelamin?: string; created_at?: string; foto_url?: string | null; role?: string; role_label?: string; is_active?: boolean; is_password_default?: boolean; siswa?: SiswaInfo | null; }
+interface Props { profile: AccountProfile; updateUrl: string; avatarUpdateUrl: string; avatarDeleteUrl: string; phoneUpdateUrl?: string | null; }
+interface PasswordForm { current_password: string; password: string; password_confirmation: string; }
+interface AvatarForm { foto: File | File[] | null; }
 
-const props = defineProps({
-    profile: { type: Object, required: true },
-    updateUrl: { type: String, required: true },
-    avatarUpdateUrl: { type: String, required: true },
-    avatarDeleteUrl: { type: String, required: true },
+const props = defineProps<Props>();
+
+const phoneForm = useForm({
+    nomor_whatsapp: props.profile.siswa?.nomor_whatsapp ?? '',
+    whatsapp_opt_in: props.profile.siswa?.whatsapp_opt_in ?? false,
 });
 
-const form = useForm({
+function submitPhone(): void {
+    if (!props.phoneUpdateUrl || phoneForm.processing) return;
+    phoneForm.put(props.phoneUpdateUrl, {
+        preserveScroll: true,
+        onSuccess: () => {
+            phoneForm.nomor_whatsapp = props.profile.siswa?.nomor_whatsapp ?? '';
+            phoneForm.whatsapp_opt_in = props.profile.siswa?.whatsapp_opt_in ?? false;
+        },
+    });
+}
+
+const form = useForm<PasswordForm>({
     current_password: '',
     password: '',
     password_confirmation: '',
 });
 
-const avatarForm = useForm({
+const avatarForm = useForm<AvatarForm>({
     foto: null,
 });
 
@@ -47,7 +64,7 @@ const siswaRows = computed(() => {
     ];
 });
 
-function submit() {
+function submit(): void {
     if (form.processing) {
         return;
     }
@@ -58,7 +75,7 @@ function submit() {
     });
 }
 
-function submitAvatar() {
+function submitAvatar(): void {
     if (avatarForm.processing) {
         return;
     }
@@ -70,7 +87,7 @@ function submitAvatar() {
     });
 }
 
-async function deleteAvatar() {
+async function deleteAvatar(): Promise<void> {
     const confirmed = await window.confirmDialog?.('Hapus foto profil saat ini?', {
         title: 'Hapus Foto',
         confirmText: 'Ya, hapus',
@@ -92,6 +109,36 @@ async function deleteAvatar() {
 
     <AppShell title="Pengaturan Akun">
         <PageHeader title="Pengaturan Akun" icon="bi-person-gear" />
+
+        <section v-if="profile.role === 'siswa'" class="workspace-panel mb-4" aria-labelledby="phoneTitle">
+            <header class="workspace-panel-header">
+                <h2 id="phoneTitle" class="h6 mb-0"><i class="bi bi-telephone me-2" aria-hidden="true"></i>Nomor Telepon Siswa</h2>
+                <Badge v-if="profile.siswa?.phone_required" color="warning">Wajib dilengkapi</Badge>
+            </header>
+            <div class="workspace-panel-body">
+                <div v-if="!profile.siswa" class="alert alert-warning mb-0" role="alert">Data siswa belum tersedia. Hubungi administrator sekolah.</div>
+                <form v-else @submit.prevent="submitPhone">
+                    <TextInput
+                        v-model="phoneForm.nomor_whatsapp"
+                        name="nomor_whatsapp"
+                        label="Nomor Telepon / WhatsApp"
+                        type="tel"
+                        autocomplete="tel"
+                        inputmode="tel"
+                        maxlength="32"
+                        placeholder="08xxxxxxxxxx"
+                        required
+                        :error="phoneForm.errors.nomor_whatsapp"
+                    />
+                    <div class="form-check mb-3">
+                        <input id="whatsapp_opt_in" v-model="phoneForm.whatsapp_opt_in" type="checkbox" class="form-check-input" required :aria-invalid="phoneForm.errors.whatsapp_opt_in ? 'true' : undefined">
+                        <label for="whatsapp_opt_in" class="form-check-label">Saya setuju menerima informasi tugas dan pengingat sekolah melalui WhatsApp. <span class="text-danger">*</span></label>
+                        <InputError :message="phoneForm.errors.whatsapp_opt_in" />
+                    </div>
+                    <Button type="submit" color="success" icon="bi-save" :disabled="phoneForm.processing">{{ phoneForm.processing ? 'Menyimpan...' : 'Simpan Nomor Telepon' }}</Button>
+                </form>
+            </div>
+        </section>
 
         <div class="row">
             <div class="col-xl-7 mb-4">

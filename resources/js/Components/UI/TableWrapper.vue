@@ -1,9 +1,12 @@
-<script setup>
-defineProps({
-    responsive: { type: Boolean, default: true },
-    minWidth: { type: [String, Number], default: 720 },
-    scrollHint: { type: Boolean, default: true },
-});
+<script setup lang="ts">
+defineSlots<{ default?: () => unknown }>();
+interface Props {
+    responsive?: boolean;
+    minWidth?: string | number;
+    scrollHint?: boolean;
+}
+
+withDefaults(defineProps<Props>(), { responsive: true, minWidth: 720, scrollHint: true });
 </script>
 
 <template>

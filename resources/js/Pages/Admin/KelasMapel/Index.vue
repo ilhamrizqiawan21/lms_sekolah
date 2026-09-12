@@ -1,4 +1,9 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { PaginationLink } from '../../../types/pagination';
+interface Homeroom { id: number; kelas: string; guru: string; tahun_ajaran: string }
+interface Teaching extends Homeroom { mapel: string; mapel_kode: string; semester: string; pertemuan_per_minggu: number }
+interface Schedule { id: number; guru: string; hari: string; pelajaran_ke: number; kelas_mapel: string; delete_url: string }
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -18,13 +23,13 @@ import {
 } from '../../../Components/UI';
 
 const props = defineProps({
-    kelasMapel: { type: Object, default: () => ({ data: [], links: [] }) },
-    waliKelas: { type: Object, default: () => ({ data: [], links: [] }) },
-    jadwalMengajar: { type: Array, default: () => [] },
-    kelasOptions: { type: Array, default: () => [] },
-    mapelOptions: { type: Array, default: () => [] },
-    guruOptions: { type: Array, default: () => [] },
-    tahunAjaranOptions: { type: Array, default: () => [] },
+    kelasMapel: { type: Object as PropType<{ data: Teaching[]; links: PaginationLink[]; total?: number }>, default: () => ({ data: [], links: [] }) },
+    waliKelas: { type: Object as PropType<{ data: Homeroom[]; links: PaginationLink[]; total?: number }>, default: () => ({ data: [], links: [] }) },
+    jadwalMengajar: { type: Array as PropType<Schedule[]>, default: () => [] },
+    kelasOptions: { type: Array as PropType<{ value: number; label: string }[]>, default: () => [] },
+    mapelOptions: { type: Array as PropType<{ value: number; label: string }[]>, default: () => [] },
+    guruOptions: { type: Array as PropType<{ value: number; label: string }[]>, default: () => [] },
+    tahunAjaranOptions: { type: Array as PropType<{ value: number; label: string }[]>, default: () => [] },
 });
 
 const teachingForm = useForm({
@@ -93,7 +98,7 @@ function submitHomeroom() {
     });
 }
 
-async function destroyTeaching(item) {
+async function destroyTeaching(item: Teaching) {
     const confirmed = await window.confirmDialog?.(`Hapus penugasan ${item.mapel} untuk ${item.kelas}?`, {
         title: 'Hapus Pengajaran',
         confirmText: 'Ya, hapus',
@@ -109,7 +114,7 @@ async function destroyTeaching(item) {
     });
 }
 
-async function destroyHomeroom(item) {
+async function destroyHomeroom(item: Homeroom) {
     const confirmed = await window.confirmDialog?.(`Hapus wali kelas ${item.kelas}?`, {
         title: 'Hapus Wali Kelas',
         confirmText: 'Ya, hapus',
@@ -125,7 +130,7 @@ async function destroyHomeroom(item) {
     });
 }
 
-async function destroySchedule(item) {
+async function destroySchedule(item: Schedule) {
     const confirmed = await window.confirmDialog?.(`Hapus jadwal ${item.guru} pada ${item.hari} pelajaran ke-${item.pelajaran_ke}?`, {
         title: 'Hapus Jadwal Mengajar',
         confirmText: 'Ya, hapus',

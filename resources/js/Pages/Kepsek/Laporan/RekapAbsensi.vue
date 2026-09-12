@@ -1,15 +1,19 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
+
+import type { ExportUrls, ClassAttendanceSummary } from '../../../types/reports';
 import { Head } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Card, EmptyState } from '../../../Components/UI';
 
 defineProps({
-    rekap: { type: Array, default: () => [] },
-    exportUrls: { type: Object, default: () => ({}) },
+    rekap: { type: Array as PropType<ClassAttendanceSummary[]>, default: () => [] },
+    exportUrls: { type: Object as PropType<ExportUrls>, default: () => ({}) },
 });
 
-function progressColor(value) {
+function progressColor(value: number) {
     if (value >= 90) return 'bg-success';
     if (value >= 75) return 'bg-warning';
     return 'bg-danger';

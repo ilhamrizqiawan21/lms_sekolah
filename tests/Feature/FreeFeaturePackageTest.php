@@ -135,6 +135,22 @@ class FreeFeaturePackageTest extends TestCase
             );
     }
 
+    public function test_attendance_date_scope_updates_existing_record(): void
+    {
+        [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
+        $course = $this->course($guru, $kelas, $tahunAjaran, 'DATE');
+        $user = $this->createUser('siswa-date', 'Siswa Date', 'siswa');
+        $student = Siswa::create(['user_id' => $user->id, 'nis' => '8199', 'kelas_id' => $kelas->id, 'status' => 'aktif']);
+        $scope = ['siswa_id' => $student->id, 'kelas_mapel_id' => $course->id, 'tanggal' => '2026-09-07'];
+
+        $attendance = Absensi::create([...$scope, 'status' => 'hadir']);
+        $updated = Absensi::updateOrCreate($scope, ['status' => 'izin']);
+
+        $this->assertSame($attendance->id, $updated->id);
+        $this->assertDatabaseCount('absensi', 1);
+        $this->assertDatabaseHas('absensi', [...$scope, 'status' => 'izin']);
+    }
+
     public function test_guru_dashboard_trends_are_aggregated_by_month(): void
     {
         [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
@@ -208,9 +224,10 @@ class FreeFeaturePackageTest extends TestCase
     public function test_online_class_requires_schedule_and_is_visible_to_students(): void
     {
         [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
+        $tanggalKelasDaring = now()->next(Carbon::MONDAY)->toDateString();
         $kelasMapel = $this->course($guru, $kelas, $tahunAjaran, 'DRG');
         $siswaUser = $this->createUser('siswa-daring', 'Siswa Daring', 'siswa');
-        Siswa::create(['user_id' => $siswaUser->id, 'nis' => '8201', 'kelas_id' => $kelas->id, 'status' => 'aktif']);
+        Siswa::create(['user_id' => $siswaUser->id, 'nis' => '8201', 'kelas_id' => $kelas->id, 'status' => 'aktif', 'nomor_whatsapp' => '6281234567890', 'whatsapp_opt_in' => true]);
         JadwalMengajar::create([
             'guru_id' => $guru->id,
             'kelas_id' => $kelas->id,
@@ -223,7 +240,7 @@ class FreeFeaturePackageTest extends TestCase
             ->post(route('guru.kelas-daring.store'), [
                 'kelas_mapel_id' => $kelasMapel->id,
                 'judul' => 'Diskusi Daring',
-                'tanggal' => '2026-09-07',
+                'tanggal' => $tanggalKelasDaring,
                 'pelajaran_ke' => 2,
                 'meeting_url' => 'https://meet.google.com/abc-defg-hij',
             ])
@@ -244,12 +261,34 @@ class FreeFeaturePackageTest extends TestCase
             );
     }
 
+    public function test_student_dashboard_task_status_matches_submission_status(): void
+    {
+        [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
+        $course = $this->course($guru, $kelas, $tahunAjaran, 'STATUS');
+        $user = $this->createUser('siswa-status', 'Siswa Status', 'siswa');
+        $student = Siswa::create(['user_id' => $user->id, 'nis' => '8299', 'kelas_id' => $kelas->id, 'status' => 'aktif', 'nomor_whatsapp' => '6281234567890', 'whatsapp_opt_in' => true]);
+        $task = Tugas::create(['kelas_mapel_id' => $course->id, 'judul' => 'Status tugas', 'batas_waktu' => now()->addDay(), 'kategori_nilai' => 'NH']);
+        $submission = PengumpulanTugas::create(['tugas_id' => $task->id, 'siswa_id' => $student->id, 'status' => 'belum']);
+
+        foreach (['belum', ...PengumpulanTugas::STATUS_SUBMITTED] as $status) {
+            $submission->update(['status' => $status]);
+            $completed = $status !== 'belum';
+            $this->actingAs($user)->get(route('siswa.dashboard'))
+                ->assertOk()
+                ->assertInertia(fn ($page) => $page
+                    ->where('stats.tugas_selesai', (int) $completed)
+                    ->where('tugasTerbaru.0.selesai', $completed)
+                    ->where('tugasTerbaru.0.show_url', route('siswa.tugas.show', $task))
+                );
+        }
+    }
+
     public function test_student_can_open_schedule_and_online_class_menus(): void
     {
         [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
         $kelasMapel = $this->course($guru, $kelas, $tahunAjaran, 'MNS');
         $siswaUser = $this->createUser('siswa-menu-baru', 'Siswa Menu Baru', 'siswa');
-        Siswa::create(['user_id' => $siswaUser->id, 'nis' => '8251', 'kelas_id' => $kelas->id, 'status' => 'aktif']);
+        Siswa::create(['user_id' => $siswaUser->id, 'nis' => '8251', 'kelas_id' => $kelas->id, 'status' => 'aktif', 'nomor_whatsapp' => '6281234567890', 'whatsapp_opt_in' => true]);
         JadwalMengajar::create([
             'guru_id' => $guru->id,
             'kelas_id' => $kelas->id,
@@ -319,7 +358,7 @@ class FreeFeaturePackageTest extends TestCase
         [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
         $kelasMapel = $this->course($guru, $kelas, $tahunAjaran, 'CHT');
         $siswaUser = $this->createUser('siswa-chat-foto', 'Siswa Chat Foto', 'siswa');
-        Siswa::create(['user_id' => $siswaUser->id, 'nis' => '8301', 'kelas_id' => $kelas->id, 'status' => 'aktif']);
+        Siswa::create(['user_id' => $siswaUser->id, 'nis' => '8301', 'kelas_id' => $kelas->id, 'status' => 'aktif', 'nomor_whatsapp' => '6281234567890', 'whatsapp_opt_in' => true]);
 
         $guru->update(['foto' => 'avatars/guru-chat.jpg']);
         $siswaUser->update(['foto' => 'avatars/siswa-chat.jpg']);
@@ -380,7 +419,7 @@ class FreeFeaturePackageTest extends TestCase
     {
         $mapel = MataPelajaran::create([
             'kode' => $kode,
-            'nama_mapel' => 'Mapel ' . $kode,
+            'nama_mapel' => 'Mapel '.$kode,
             'urutan' => 1,
         ]);
 

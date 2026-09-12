@@ -1,29 +1,23 @@
-<script setup>
+<script setup lang="ts">
+defineSlots<{ default?: () => unknown }>();
 import { computed } from 'vue';
 import InputError from './InputError.vue';
+import type { ValidationMessage } from '../../types/forms';
 
 defineOptions({
     inheritAttrs: false,
 });
 
-const props = defineProps({
-    modelValue: { type: [String, Number, Boolean], default: '' },
-    name: { type: String, required: true },
-    label: { type: String, default: '' },
-    options: { type: [Array, Object], default: () => [] },
-    placeholder: { type: String, default: '' },
-    help: { type: String, default: '' },
-    error: { type: [String, Array], default: '' },
-    wrapperClass: { type: String, default: 'mb-3' },
-    required: { type: Boolean, default: false },
-});
+interface SelectOption { value: string | number; label: string; }
+interface Props { modelValue?: string | number | boolean; name: string; label?: string; options?: SelectOption[] | Record<string, string>; placeholder?: string; help?: string; error?: ValidationMessage; wrapperClass?: string; required?: boolean; }
+const props = withDefaults(defineProps<Props>(), { modelValue: '', label: '', options: () => [], placeholder: '', help: '', error: '', wrapperClass: 'mb-3', required: false });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits<{ 'update:modelValue': [value: string] }>();
 const inputId = computed(() => props.name.replaceAll('[', '_').replaceAll(']', '_'));
-const helpId = computed(() => props.help ? `${inputId.value}Help` : null);
-const errorId = computed(() => props.error ? `${inputId.value}Error` : null);
-const describedBy = computed(() => [helpId.value, errorId.value].filter(Boolean).join(' ') || null);
-const normalizedOptions = computed(() => Array.isArray(props.options)
+const helpId = computed(() => props.help ? `${inputId.value}Help` : undefined);
+const errorId = computed(() => props.error ? `${inputId.value}Error` : undefined);
+const describedBy = computed(() => [helpId.value, errorId.value].filter(Boolean).join(' ') || undefined);
+const normalizedOptions = computed<SelectOption[]>(() => Array.isArray(props.options)
     ? props.options
     : Object.entries(props.options).map(([value, label]) => ({ value, label })));
 </script>
@@ -42,9 +36,9 @@ const normalizedOptions = computed(() => Array.isArray(props.options)
             class="form-select"
             :class="{ 'is-invalid': error }"
             :aria-describedby="describedBy"
-            :aria-invalid="error ? 'true' : null"
+            :aria-invalid="error ? 'true' : undefined"
             v-bind="$attrs"
-            @change="emit('update:modelValue', $event.target.value)"
+            @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
         >
             <option v-if="placeholder" value="">{{ placeholder }}</option>
             <option

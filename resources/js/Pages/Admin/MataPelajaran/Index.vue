@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -6,17 +6,19 @@ import { TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, IconButton, TableWrapper } from '../../../Components/UI';
 
-const props = defineProps({
-    mapel: { type: Array, default: () => [] },
-});
+interface MataPelajaran { id: number; kode: string; nama_mapel: string; urutan?: number }
+interface MataPelajaranForm { kode: string; nama_mapel: string; urutan: number }
+interface Props { mapel?: MataPelajaran[] }
 
-const editing = ref(null);
-const createForm = useForm({
+const props = withDefaults(defineProps<Props>(), { mapel: () => [] });
+
+const editing = ref<MataPelajaran | null>(null);
+const createForm = useForm<MataPelajaranForm>({
     kode: '',
     nama_mapel: '',
     urutan: 0,
 });
-const editForm = useForm({
+const editForm = useForm<MataPelajaranForm>({
     kode: '',
     nama_mapel: '',
     urutan: 0,
@@ -24,7 +26,7 @@ const editForm = useForm({
 const formTitle = computed(() => editing.value ? 'Edit Mata Pelajaran' : 'Tambah Mata Pelajaran');
 const formIcon = computed(() => editing.value ? 'bi-pencil-square' : 'bi-plus-circle');
 
-function startEdit(item) {
+function startEdit(item: MataPelajaran): void {
     editing.value = item;
     editForm.clearErrors();
     editForm.defaults({
@@ -35,13 +37,13 @@ function startEdit(item) {
     editForm.reset();
 }
 
-function cancelEdit() {
+function cancelEdit(): void {
     editing.value = null;
     editForm.clearErrors();
     editForm.reset();
 }
 
-function submitCreate() {
+function submitCreate(): void {
     if (createForm.processing) {
         return;
     }
@@ -52,7 +54,7 @@ function submitCreate() {
     });
 }
 
-function submitEdit() {
+function submitEdit(): void {
     if (!editing.value || editForm.processing) {
         return;
     }
@@ -63,7 +65,7 @@ function submitEdit() {
     });
 }
 
-async function destroy(item) {
+async function destroy(item: MataPelajaran): Promise<void> {
     const confirmed = await window.confirmDialog?.(`Hapus ${item.nama_mapel}?`, {
         title: 'Hapus Mata Pelajaran',
         confirmText: 'Ya, hapus',

@@ -1,23 +1,28 @@
 const COLOR_MODE_KEY = 'lms.color-mode';
-const COLOR_MODES = ['light', 'dark'];
+type ColorMode = 'light' | 'dark';
+const COLOR_MODES: readonly ColorMode[] = ['light', 'dark'];
 let themeToggleReady = false;
 
-function storedColorMode() {
+function isColorMode(value: string | null): value is ColorMode {
+    return value !== null && COLOR_MODES.includes(value as ColorMode);
+}
+
+function storedColorMode(): ColorMode | null {
     try {
         const value = window.localStorage.getItem(COLOR_MODE_KEY);
-        return COLOR_MODES.includes(value) ? value : null;
+        return isColorMode(value) ? value : null;
     } catch {
         return null;
     }
 }
 
-function preferredColorMode() {
+function preferredColorMode(): ColorMode {
     return storedColorMode()
         || (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 }
 
-function setThemeMeta(mode) {
-    const meta = document.querySelector('meta[name="theme-color"]');
+function setThemeMeta(mode: ColorMode): void {
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
 
     if (!meta) {
         return;
@@ -30,8 +35,8 @@ function setThemeMeta(mode) {
     meta.setAttribute('content', mode === 'dark' ? '#0f172a' : meta.dataset.lightColor);
 }
 
-function syncThemeControls(mode) {
-    document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+function syncThemeControls(mode: ColorMode): void {
+    document.querySelectorAll<HTMLElement>('[data-theme-toggle]').forEach((button) => {
         const nextMode = mode === 'dark' ? 'light' : 'dark';
         const label = nextMode === 'dark' ? 'Aktifkan mode gelap' : 'Aktifkan mode terang';
         const icon = button.querySelector('[data-theme-toggle-icon]');
@@ -52,7 +57,7 @@ function syncThemeControls(mode) {
     });
 }
 
-export function applyColorMode(mode, persist = true) {
+export function applyColorMode(mode: ColorMode, persist = true): void {
     const colorMode = COLOR_MODES.includes(mode) ? mode : preferredColorMode();
 
     document.documentElement.setAttribute('data-bs-theme', colorMode);
@@ -69,7 +74,7 @@ export function applyColorMode(mode, persist = true) {
     }
 }
 
-export function initColorMode() {
+export function initColorMode(): void {
     applyColorMode(preferredColorMode(), false);
 
     if (themeToggleReady) {
@@ -78,7 +83,7 @@ export function initColorMode() {
 
     themeToggleReady = true;
     document.addEventListener('click', (event) => {
-        const button = event.target.closest('[data-theme-toggle]');
+        const button = (event.target as Element | null)?.closest('[data-theme-toggle]');
 
         if (!button) {
             return;

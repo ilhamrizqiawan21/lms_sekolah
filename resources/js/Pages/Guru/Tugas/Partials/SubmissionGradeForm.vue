@@ -1,23 +1,33 @@
-<script setup>
+<script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { Button } from '../../../../Components/UI';
 
-const props = defineProps({
-    item: { type: Object, required: true },
-    compact: { type: Boolean, default: false },
-    block: { type: Boolean, default: false },
-});
+interface SubmissionItem {
+    id?: number | string;
+    nilai?: number | string | null;
+    nilai_input?: number | string | null;
+    catatan?: string | null;
+    nilai_url: string;
+    status?: string;
+    penalty_terlambat?: number | string | null;
+}
+interface SaveResponse extends SubmissionItem { saved_at?: string; message?: string; errors?: Record<string, string[]> }
+interface Props { item: SubmissionItem; compact?: boolean; block?: boolean }
+
+const props = withDefaults(defineProps<Props>(), { compact: false, block: false });
 
 const nilai = ref(props.item.nilai_input ?? props.item.nilai ?? '');
 const catatan = ref(props.item.catatan ?? '');
 const localError = ref('');
-const saveState = ref('idle');
-const lastSavedAt = ref(null);
-let autosaveTimer = null;
+const saveState = ref<'idle' | 'pending' | 'saving' | 'saved' | 'error'>('idle');
+const lastSavedAt = ref<string | null>(null);
+let autosaveTimer: ReturnType<typeof setTimeout> | undefined;
 let activeSaveId = 0;
 let savedSnapshot = snapshot();
+const requestInFlight = ref(false);
+let disposed = false;
 
-const isSaving = computed(() => saveState.value === 'saving');
+const isSaving = computed(() => requestInFlight.value);
 const saveLabel = computed(() => {
     if (saveState.value === 'pending') return 'Menunggu autosave';
     if (saveState.value === 'saving') return 'Menyimpan...';
@@ -30,6 +40,8 @@ const saveLabel = computed(() => {
 watch(
     () => props.item,
     (item) => {
+        clearTimeout(autosaveTimer);
+        activeSaveId++;
         nilai.value = item.nilai_input ?? item.nilai ?? '';
         catatan.value = item.catatan ?? '';
         localError.value = '';
@@ -43,21 +55,23 @@ watch([nilai, catatan], () => {
 });
 
 onBeforeUnmount(() => {
+    disposed = true;
+    activeSaveId++;
     clearTimeout(autosaveTimer);
 });
 
-function snapshot() {
+function snapshot(): string {
     return JSON.stringify({
         nilai: String(nilai.value ?? '').trim(),
         catatan: String(catatan.value ?? '').trim(),
     });
 }
 
-function isBlank() {
+function isBlank(): boolean {
     return String(nilai.value ?? '').trim() === '' && String(catatan.value ?? '').trim() === '';
 }
 
-function validateDraft() {
+function validateDraft(): boolean {
     localError.value = '';
 
     const nilaiText = normalizedNilai();
@@ -75,29 +89,30 @@ function validateDraft() {
     return true;
 }
 
-function normalizedNilai() {
+function normalizedNilai(): string {
     return String(nilai.value ?? '').trim().replace(',', '.');
 }
 
-function normalizePastedScore(value) {
+function normalizePastedScore(value: unknown): string {
     const score = String(value ?? '').trim().replace(',', '.');
     return score === '' ? '' : score;
 }
 
-function pastedScores(event) {
+function pastedScores(event: ClipboardEvent): string[] {
     const text = event.clipboardData?.getData('text/plain') ?? '';
     if (!/[\r\n\t]/.test(text)) {
         return [];
     }
 
-    return text
-        .split(/\r\n|\n|\r/)
+    const rows = text.split(/\r\n|\n|\r/);
+    while (rows.length > 1 && rows.at(-1) === '') rows.pop();
+
+    return rows
         .flatMap((row) => row.split('\t'))
-        .map((cell) => normalizePastedScore(cell))
-        .filter((score) => score !== '');
+        .map((cell) => normalizePastedScore(cell));
 }
 
-function pasteScoresIntoRows(event) {
+function pasteScoresIntoRows(event: ClipboardEvent): void {
     if (!props.compact) {
         return;
     }
@@ -109,8 +124,8 @@ function pasteScoresIntoRows(event) {
 
     event.preventDefault();
 
-    const inputs = Array.from(document.querySelectorAll('.js-assignment-score-input'));
-    const startIndex = inputs.indexOf(event.currentTarget);
+    const inputs = Array.from(document.querySelectorAll<HTMLInputElement>('.js-assignment-score-input'));
+    const startIndex = inputs.indexOf(event.currentTarget as HTMLInputElement);
     if (startIndex < 0) {
         return;
     }
@@ -127,7 +142,7 @@ function pasteScoresIntoRows(event) {
     });
 }
 
-function scheduleAutosave() {
+function scheduleAutosave(): void {
     clearTimeout(autosaveTimer);
 
     if (snapshot() === savedSnapshot) {
@@ -148,8 +163,9 @@ function scheduleAutosave() {
     autosaveTimer = setTimeout(() => saveNow(), 700);
 }
 
-async function saveNow() {
+async function saveNow(): Promise<void> {
     clearTimeout(autosaveTimer);
+    if (disposed || requestInFlight.value) return;
     localError.value = '';
 
     if (isBlank()) {
@@ -163,6 +179,9 @@ async function saveNow() {
     }
 
     const saveId = ++activeSaveId;
+    const submittedSnapshot = snapshot();
+    const submittedItem = props.item;
+    requestInFlight.value = true;
     saveState.value = 'saving';
 
     try {
@@ -171,7 +190,7 @@ async function saveNow() {
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
                 'X-Requested-With': 'XMLHttpRequest',
             },
             body: JSON.stringify({
@@ -180,7 +199,7 @@ async function saveNow() {
             }),
         });
 
-        const data = await response.json().catch(() => ({}));
+        const data = await response.json().catch(() => ({})) as SaveResponse;
         if (!response.ok) {
             const errors = data.errors ?? {};
             throw new Error(errors.nilai?.[0] || errors.catatan?.[0] || data.message || 'Nilai gagal disimpan.');
@@ -190,10 +209,10 @@ async function saveNow() {
             return;
         }
 
-        savedSnapshot = snapshot();
-        saveState.value = 'saved';
+        savedSnapshot = submittedSnapshot;
+        saveState.value = snapshot() === submittedSnapshot ? 'saved' : 'pending';
         lastSavedAt.value = data.saved_at ?? new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-        Object.assign(props.item, {
+        Object.assign(submittedItem, {
             id: data.id ?? props.item.id,
             status: data.status ?? props.item.status,
             nilai: data.nilai ?? props.item.nilai,
@@ -201,13 +220,16 @@ async function saveNow() {
             catatan: data.catatan ?? props.item.catatan,
             penalty_terlambat: data.penalty_terlambat ?? props.item.penalty_terlambat,
         });
-    } catch (error) {
+    } catch (error: unknown) {
         if (saveId !== activeSaveId) {
             return;
         }
 
-        localError.value = error.message || 'Nilai gagal disimpan.';
+        localError.value = error instanceof Error ? error.message : 'Nilai gagal disimpan.';
         saveState.value = 'error';
+    } finally {
+        requestInFlight.value = false;
+        if (!disposed && snapshot() !== submittedSnapshot) scheduleAutosave();
     }
 }
 </script>
@@ -222,7 +244,7 @@ async function saveNow() {
                 name="nilai"
                 class="form-control form-control-sm js-assignment-score-input"
                 autocomplete="off"
-                pattern="^\\d{1,3}([,.]\\d{1,2})?$"
+                pattern="[0-9]{1,3}([,.][0-9]{1,2})?"
                 @paste="pasteScoresIntoRows"
             >
             <Button type="submit" color="success" size="sm" :disabled="isSaving" title="Simpan nilai" aria-label="Simpan nilai">
@@ -245,7 +267,7 @@ async function saveNow() {
                     name="nilai"
                     class="form-control"
                     autocomplete="off"
-                    pattern="^\\d{1,3}([,.]\\d{1,2})?$"
+                    pattern="[0-9]{1,3}([,.][0-9]{1,2})?"
                     placeholder="Nilai"
                 >
                 <div v-if="Number(item.penalty_terlambat || 0) > 0" class="form-text text-danger">

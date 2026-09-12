@@ -1,29 +1,30 @@
-<script setup>
+<script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { SearchableSelect, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, Pagination } from '../../../Components/UI';
+import type { PaginationLink, SelectOption } from '../../../types';
 
-const props = defineProps({
-    tugas: { type: Object, required: true },
-    kelasOptions: { type: Array, default: () => [] },
-    filters: { type: Object, default: () => ({}) },
-    resetUrl: { type: String, required: true },
-    exportUrls: { type: Object, default: () => ({}) },
-});
+interface TugasRekapItem { id: number; judul_ringkas: string; kategori_nilai?: string | null; mapel: string; kelas: string; guru: string; batas_waktu?: string | null; is_past_due: boolean; total_siswa: number; sudah_kumpul: number; belum_kumpul: number; rata_nilai?: number | string | null; persen_kumpul: number | null }
+interface TugasPaginator { data: TugasRekapItem[]; links?: PaginationLink[] }
+interface Filters { kelas_id?: string | number; search?: string }
+interface ExportUrls { excel?: string; pdf?: string; [format: string]: string | undefined }
+interface Props { tugas: TugasPaginator; kelasOptions?: SelectOption[]; filters?: Filters; resetUrl: string; exportUrls?: ExportUrls }
+
+const props = withDefaults(defineProps<Props>(), { kelasOptions: () => [], filters: () => ({}), exportUrls: () => ({}) });
 
 const filterForm = reactive({
     kelas_id: props.filters.kelas_id ?? '',
     search: props.filters.search ?? '',
 });
 
-function cleanFilters() {
-    return Object.fromEntries(Object.entries(filterForm).filter(([, value]) => value !== '' && value !== null));
+function cleanFilters(): Record<string, string> {
+    return Object.fromEntries(Object.entries(filterForm).filter(([, value]) => value !== '' && value !== null).map(([key, value]) => [key, String(value)]));
 }
 
-function applyFilters() {
+function applyFilters(): void {
     router.get(props.resetUrl, cleanFilters(), {
         preserveState: true,
         preserveScroll: true,
@@ -31,7 +32,7 @@ function applyFilters() {
     });
 }
 
-function resetFilters() {
+function resetFilters(): void {
     filterForm.kelas_id = '';
     filterForm.search = '';
 
@@ -42,14 +43,14 @@ function resetFilters() {
     });
 }
 
-function progressColor(value) {
+function progressColor(value: number): string {
     if (value >= 80) return 'bg-success';
     if (value >= 50) return 'bg-warning';
     return 'bg-danger';
 }
 
-function exportUrl(format) {
-    const base = props.exportUrls[format];
+function exportUrl(format: 'excel' | 'pdf'): string {
+    const base = props.exportUrls[format] ?? '#';
     const params = new URLSearchParams(cleanFilters()).toString();
     return params ? `${base}?${params}` : base;
 }

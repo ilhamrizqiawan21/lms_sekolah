@@ -1,15 +1,17 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
 import { Head } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, DashboardHero, EmptyState, QuickActionBar, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    tugas: { type: Array, default: () => [] },
+    tugas: { type: Array as PropType<{ id: number; show_url: string; judul: string; workspace_url: string | null; mata_pelajaran: string; batas_waktu: string; status: string | null; nilai: string | number | null }[]>, default: () => [] },
 });
 
 const openTasks = () => props.tugas.filter((item) => !item.status).length;
 
-const statusMap = {
+const statusMap: Record<string, { color: string; label: string }> = {
     belum: { color: 'warning text-dark', label: 'Belum Dikumpul' },
     sudah: { color: 'success', label: 'Sudah' },
     terlambat: { color: 'danger', label: 'Terlambat' },
@@ -17,12 +19,12 @@ const statusMap = {
     perlu_perbaikan: { color: 'warning', label: 'Perlu Perbaikan' },
 };
 
-function statusColor(status) {
-    return statusMap[status]?.color ?? 'warning text-dark';
+function statusColor(status: string | null) {
+    return statusMap[status ?? '']?.color ?? 'warning text-dark';
 }
 
-function statusLabel(status) {
-    return statusMap[status]?.label ?? (status ? status.replace(/\b\w/g, (char) => char.toUpperCase()) : 'Belum Dikumpul');
+function statusLabel(status: string | null) {
+    return statusMap[status ?? '']?.label ?? (status ? status.replace(/\b\w/g, (char) => char.toUpperCase()) : 'Belum Dikumpul');
 }
 </script>
 

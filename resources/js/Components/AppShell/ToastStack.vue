@@ -1,13 +1,17 @@
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import type { AppPageProps, FlashShare } from '../../types';
 
-const page = usePage();
-const toasts = ref([]);
-const flash = computed(() => page.props.flash ?? {});
+type ToastType = 'success' | 'error' | 'warning' | 'info';
+interface Toast { id: number; message: string; type: ToastType; removing: boolean }
+
+const page = usePage<AppPageProps>();
+const toasts = ref<Toast[]>([]);
+const flash = computed<FlashShare>(() => page.props.flash ?? { success: null, error: null, warning: null });
 let nextId = 1;
 
-function addToast(message, type = 'success') {
+function addToast(message?: string | null, type: ToastType = 'success'): void {
     if (!message) {
         return;
     }
@@ -18,7 +22,7 @@ function addToast(message, type = 'success') {
     setTimeout(() => removeToast(id), 4000);
 }
 
-function removeToast(id) {
+function removeToast(id: number): void {
     const toast = toasts.value.find((item) => item.id === id);
 
     if (!toast) {
@@ -31,7 +35,7 @@ function removeToast(id) {
     }, 400);
 }
 
-function consumeFlash(value) {
+function consumeFlash(value: FlashShare): void {
     addToast(value.success, 'success');
     addToast(value.error, 'error');
     addToast(value.warning, 'warning');

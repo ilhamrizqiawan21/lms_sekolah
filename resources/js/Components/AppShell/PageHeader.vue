@@ -1,4 +1,5 @@
-<script setup>
+<script setup lang="ts">
+defineSlots<{ actions?: () => unknown }>();
 defineProps({
     title: { type: String, required: true },
     subtitle: { type: String, default: '' },

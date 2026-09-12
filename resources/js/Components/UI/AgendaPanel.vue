@@ -1,9 +1,11 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { QueueItem } from '../../types/ui';
 import ActionQueue from './ActionQueue.vue';
 
 defineProps({
     title: { type: String, default: 'Agenda' },
-    items: { type: Array, default: () => [] },
+    items: { type: Array as PropType<QueueItem[]>, default: () => [] },
     emptyTitle: { type: String, default: 'Agenda kosong' },
 });
 </script>

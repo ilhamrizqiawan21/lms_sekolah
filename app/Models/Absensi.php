@@ -8,7 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Absensi extends Model
 {
     protected $table = 'absensi';
+
     public $timestamps = false;
+
+    protected $dateFormat = 'Y-m-d';
 
     protected $fillable = [
         'siswa_id',

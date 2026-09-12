@@ -1,4 +1,5 @@
-<script setup>
+<script setup lang="ts">
+defineSlots<{ actions?: () => unknown }>();
 defineProps({
     eyebrow: { type: String, default: '' },
     title: { type: String, required: true },

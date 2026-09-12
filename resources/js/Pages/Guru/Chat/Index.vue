@@ -1,13 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import RoomGrid from '../../../Components/Chat/RoomGrid.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
+import type { ChatRoomSummary } from '../../../types';
 
-defineProps({
-    rooms: { type: Array, default: () => [] },
-    emptyMessage: { type: String, default: 'Anda belum memiliki penugasan.' },
-});
+interface Props { rooms?: ChatRoomSummary[]; emptyMessage?: string }
+withDefaults(defineProps<Props>(), { rooms: () => [], emptyMessage: 'Anda belum memiliki penugasan.' });
 </script>
 
 <template>

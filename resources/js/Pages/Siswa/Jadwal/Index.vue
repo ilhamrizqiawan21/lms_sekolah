@@ -1,14 +1,16 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
 import { Head, Link } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Card, EmptyState, MetricStrip, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    kelas: { type: Object, required: true },
-    days: { type: Array, default: () => [] },
-    summary: { type: Object, required: true },
-    links: { type: Object, default: () => ({}) },
+    kelas: { type: Object as PropType<{ nama: string }>, required: true },
+    days: { type: Array as PropType<{ value: number; label: string; is_today: boolean; slots: { slot: number; course: { mata_pelajaran: string; guru: string; workspace_url: string | null; kelas_daring_url: string | null } | null }[] }[]>, default: () => [] },
+    summary: { type: Object as PropType<{ total_jadwal: number; total_mapel: number; hari_aktif: number }>, required: true },
+    links: { type: Object as PropType<Record<string, string>>, default: () => ({}) },
 });
 
 const metrics = [

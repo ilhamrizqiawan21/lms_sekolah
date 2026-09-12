@@ -1,15 +1,17 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { AppPageProps } from '../../types/inertia';
 import { computed } from 'vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
-    branding: { type: Object, required: true },
+    branding: { type: Object as PropType<{ school_short_name: string; school_name: string; school_motto: string; school_address: string; logo_url: string; support_contact: string | null }>, required: true },
     loginUrl: { type: String, required: true },
-    publicAnnouncements: { type: Array, default: () => [] },
+    publicAnnouncements: { type: Array as PropType<{ id: number; judul: string; isi: string; creator_name: string | null; created_at: string | null; attachment: { url: string; name: string; size: number | null } | null }[]>, default: () => [] },
     year: { type: [String, Number], required: true },
 });
 
-const page = usePage();
+const page = usePage<AppPageProps>();
 const form = useForm({
     username: '',
     password: '',
@@ -18,13 +20,25 @@ const form = useForm({
 
 const flash = computed(() => page.props.flash ?? {});
 const title = computed(() => `Login - ${props.branding.school_short_name} ${props.branding.school_name}`);
-const forgotPasswordUrl = 'https://wa.me/62895802329062?text=Assalamu%27alaikum%2C%20Bapa%20saya%20lupa%20password%20mohon%20bantu%20saya%20%20%3A%0ANama%20%3A%20........%0AKelas%20%3A%20.........%0ATerimakasih';
+const forgotPasswordUrl = computed(() => {
+    const rawContact = String(props.branding.support_contact ?? '').replace(/[^\d+]/g, '');
 
-function formatDate(value) {
+    if (!rawContact) {
+        return null;
+    }
+
+    const digits = rawContact.replace(/\D/g, '');
+    const whatsappNumber = digits.startsWith('0') ? `62${digits.slice(1)}` : digits;
+    const message = encodeURIComponent('Assalamu\'alaikum, saya lupa password. Mohon bantu saya. Nama: ........ Kelas: .........');
+
+    return `https://wa.me/${whatsappNumber}?text=${message}`;
+});
+
+function formatDate(value: string | null) {
     return value ? new Date(value).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
 }
 
-function formatFileSize(bytes) {
+function formatFileSize(bytes: number | null) {
     if (!bytes) return '';
     const kb = bytes / 1024;
     return kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${Math.ceil(kb)} KB`;
@@ -135,6 +149,7 @@ function submit() {
                         </div>
 
                         <a
+                            v-if="forgotPasswordUrl"
                             class="forgot-link"
                             :href="forgotPasswordUrl"
                             target="_blank"
@@ -151,7 +166,7 @@ function submit() {
                     </button>
 
                     <p class="login-help" role="note">
-                        Jika mengalami kendala akses, hubungi admin sekolah melalui tautan lupa password.
+                        Jika mengalami kendala akses, hubungi admin sekolah melalui kontak resmi.
                     </p>
                 </form>
             </section>

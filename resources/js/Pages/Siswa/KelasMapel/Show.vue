@@ -1,15 +1,17 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { MetricItem, QueueItem } from '../../../types/ui';
 import { Head, Link } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { AgendaPanel, DashboardHero, MetricStrip, QuickActionBar } from '../../../Components/UI';
 
 const props = defineProps({
-    course: { type: Object, required: true },
-    tabs: { type: Array, default: () => [] },
-    metrics: { type: Array, default: () => [] },
-    tasks: { type: Array, default: () => [] },
-    latestMessage: { type: Object, default: null },
-    onlineClasses: { type: Array, default: () => [] },
+    course: { type: Object as PropType<{ title: string; kelas: string; semester: string; tahun_ajaran: string; back_url: string }>, required: true },
+    tabs: { type: Array as PropType<{ label: string; href: string; icon: string; active?: boolean }[]>, default: () => [] },
+    metrics: { type: Array as PropType<MetricItem[]>, default: () => [] },
+    tasks: { type: Array as PropType<QueueItem[]>, default: () => [] },
+    latestMessage: { type: Object as PropType<{ href: string; author: string; message: string } | null>, default: null },
+    onlineClasses: { type: Array as PropType<{ id: number; meeting_url: string; judul: string; tanggal: string; pelajaran_ke: number }[]>, default: () => [] },
 });
 
 const quickActions = [

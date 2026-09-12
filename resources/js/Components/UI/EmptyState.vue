@@ -1,9 +1,14 @@
-<script setup>
-defineProps({
-    title: { type: String, default: 'Data belum tersedia' },
-    message: { type: String, default: '' },
-    icon: { type: String, default: 'bi-inbox' },
-    tone: { type: String, default: 'neutral' },
+<script setup lang="ts">
+defineSlots<{ default?: () => unknown }>();
+interface Props {
+    title?: string;
+    message?: string;
+    icon?: string;
+    tone?: string;
+}
+
+withDefaults(defineProps<Props>(), {
+    title: 'Data belum tersedia', message: '', icon: 'bi-inbox', tone: 'neutral',
 });
 </script>
 

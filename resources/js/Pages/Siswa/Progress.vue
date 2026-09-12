@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { Chart } from 'chart.js';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import PageHeader from '../../Components/AppShell/PageHeader.vue';
@@ -6,16 +8,16 @@ import AppShell from '../../Layouts/AppShell.vue';
 import { Badge, Card, EmptyState } from '../../Components/UI';
 
 const props = defineProps({
-    header: { type: Object, required: true },
-    stats: { type: Object, required: true },
-    subjectScores: { type: Array, default: () => [] },
-    focusItems: { type: Array, default: () => [] },
-    scoreTrend: { type: Array, default: () => [] },
+    header: { type: Object as PropType<{ nama: string; kelas: string; tahun_ajaran: string | null; semester_label: string }>, required: true },
+    stats: { type: Object as PropType<{ trend_delta: number | null; trend_delta_label: string; rata_nilai_label: string; mapel_dinilai: number; total_mapel: number; persen_hadir: number; bulan_label: string; hadir: number; sakit: number; izin: number; alpha: number; persen_pengumpulan: number; tugas_dikumpulkan: number; total_tugas: number; tugas_belum: number; tugas_perlu_perbaikan: number; batas_ketuntasan: number }>, required: true },
+    subjectScores: { type: Array as PropType<{ kelas_mapel_id: number; href: string; nama_mapel: string; rata: number | null; rata_label: string; status_tone: string; status_label: string }[]>, default: () => [] },
+    focusItems: { type: Array as PropType<{ type: string; tone: string; icon: string; title: string; description: string; href: string | null; action_label: string }[]>, default: () => [] },
+    scoreTrend: { type: Array as PropType<{ label: string; value: number }[]>, default: () => [] },
 });
 
-const trendCanvas = ref(null);
-let trendChart = null;
-let themeObserver = null;
+const trendCanvas = ref<HTMLCanvasElement | null>(null);
+let trendChart: Chart<'line'> | null = null;
+let themeObserver: MutationObserver | null = null;
 
 const subtitle = computed(() => [
     props.header.nama,
@@ -33,12 +35,12 @@ const trendDirection = computed(() => {
     return 'neutral';
 });
 
-function scoreWidth(value) {
+function scoreWidth(value: number | null) {
     if (value === null || value === undefined) return '0%';
     return `${Math.min(100, Math.max(0, Number(value)))}%`;
 }
 
-function cssVar(name, fallback) {
+function cssVar(name: string, fallback: string) {
     const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     return value || fallback;
 }
@@ -52,6 +54,7 @@ async function renderTrendChart() {
 
     const { Chart, registerables } = await import('chart.js');
     Chart.register(...registerables);
+    if (!trendCanvas.value || !hasTrend.value) return;
 
     const primary = cssVar('--app-primary', '#198754');
     const muted = cssVar('--bs-secondary-color', '#6c757d');

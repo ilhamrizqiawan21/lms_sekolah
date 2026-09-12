@@ -1,4 +1,7 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { Scores, Score } from '../../../types/assessment';
+interface GradeRow extends Scores { id: number; rata_akhir: Score; siswa: { user: { nama_lengkap: string } | null; nis: string; kelas: { nama_kelas: string } | null } | null; kelas_mapel?: { mata_pelajaran: { nama_mapel: string } | null } | null; kelasMapel?: { mataPelajaran: { nama_mapel: string } | null } | null }
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
@@ -8,8 +11,8 @@ import { Card, EmptyState, TableWrapper } from '../../../Components/UI';
 const props = defineProps({
     title: { type: String, default: 'Rekap Nilai Siswa' },
     semester: { type: String, default: '1' },
-    kelasMapel: { type: Array, default: () => [] },
-    nilai: { type: Object, default: () => ({ data: [], current_page: 1, last_page: 1, from: 0, total: 0 }) },
+    kelasMapel: { type: Array as PropType<{ id: number; label: string }[]>, default: () => [] },
+    nilai: { type: Object as PropType<{ data: GradeRow[]; current_page: number; last_page: number; from: number | null; total: number }>, default: () => ({ data: [], current_page: 1, last_page: 1, from: 0, total: 0 }) },
 });
 
 const selectedKelas = ref(new URLSearchParams(window.location.search).get('kelas_mapel_id') || '');
@@ -24,7 +27,7 @@ function reset() {
     router.get('/guru/rekap-nilai', { semester: selectedSemester.value }, { preserveState: true, replace: true });
 }
 
-function page(pageNumber) {
+function page(pageNumber: number) {
     router.get('/guru/rekap-nilai', {
         kelas_mapel_id: selectedKelas.value || undefined,
         semester: selectedSemester.value,
@@ -121,9 +124,9 @@ function page(pageNumber) {
                                 <span
                                     v-if="row.rata_akhir != null"
                                     class="badge"
-                                    :class="row.rata_akhir >= 92 ? 'text-bg-success' : row.rata_akhir >= 83 ? 'text-bg-primary' : row.rata_akhir >= 75 ? 'text-bg-warning' : 'text-bg-danger'"
+                                    :class="Number(row.rata_akhir) >= 92 ? 'text-bg-success' : Number(row.rata_akhir) >= 83 ? 'text-bg-primary' : Number(row.rata_akhir) >= 75 ? 'text-bg-warning' : 'text-bg-danger'"
                                 >
-                                    {{ row.rata_akhir >= 92 ? 'A' : row.rata_akhir >= 83 ? 'B' : row.rata_akhir >= 75 ? 'C' : 'D' }}
+                                    {{ Number(row.rata_akhir) >= 92 ? 'A' : Number(row.rata_akhir) >= 83 ? 'B' : Number(row.rata_akhir) >= 75 ? 'C' : 'D' }}
                                 </span>
                                 <span v-else>-</span>
                             </td>

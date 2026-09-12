@@ -1,11 +1,14 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { LaravelPaginator } from '../../../types/pagination';
+interface BlockedIp { id: number; ip_address: string; is_expired: boolean; blocked_until: string | null; reason: string | null; created_at: string | null; unblock_url: string }
 import { Head, router } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, EmptyState, MetricStrip, Pagination, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    ips: { type: Object, required: true },
+    ips: { type: Object as PropType<LaravelPaginator<BlockedIp>>, required: true },
 });
 
 const metrics = [
@@ -14,7 +17,7 @@ const metrics = [
     { label: 'Per Halaman', value: props.ips.per_page ?? 25, icon: 'bi-list-ol', tone: 'primary' },
 ];
 
-async function unblock(item) {
+async function unblock(item: BlockedIp) {
     const confirmed = await window.confirmDialog?.(`Unblock IP ${item.ip_address}?`, {
         title: 'Unblock IP',
         confirmText: 'Ya, unblock',

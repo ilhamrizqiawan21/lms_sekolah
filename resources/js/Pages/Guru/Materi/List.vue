@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { FileInput, TextareaInput, TextInput } from '../../../Components/Form';
@@ -6,15 +8,15 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Button, Card, DashboardHero, EmptyState, IconButton, QuickActionBar, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    kelasMapel: { type: Object, required: true },
-    materi: { type: Array, default: () => [] },
+    kelasMapel: { type: Object as PropType<{ id: number; kelas: string; mata_pelajaran: string; workspace_url: string; store_url: string }>, required: true },
+    materi: { type: Array as PropType<{ id: number; judul: string; deskripsi_ringkas: string | null; tanggal: string; download_url: string | null; delete_url: string }[]>, default: () => [] },
 });
 
 const fileInputKey = ref(0);
 const form = useForm({
     judul: '',
     deskripsi: '',
-    file_materi: null,
+    file_materi: null as File | null,
 });
 
 const courseTabs = [
@@ -41,7 +43,7 @@ function submit() {
     });
 }
 
-async function destroy(item) {
+async function destroy(item: { delete_url: string }) {
     const confirmed = await window.confirmDialog?.('Hapus materi ini?', {
         title: 'Hapus Materi',
         confirmText: 'Ya, hapus',

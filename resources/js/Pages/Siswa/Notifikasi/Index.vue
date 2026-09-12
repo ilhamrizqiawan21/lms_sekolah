@@ -1,16 +1,19 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { LaravelPaginator } from '../../../types/pagination';
+import type { NotificationRow } from '../../../types/notifications';
 import { Head, router } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Button, Card, EmptyState, IconButton, InfoListItem, Pagination } from '../../../Components/UI';
 
 const props = defineProps({
-    notifikasi: { type: Object, required: true },
+    notifikasi: { type: Object as PropType<LaravelPaginator<NotificationRow>>, required: true },
     unreadCount: { type: Number, default: 0 },
     markAllReadUrl: { type: String, required: true },
 });
 
-const iconMap = {
+const iconMap: Record<string, { icon: string; color: string }> = {
     tugas_baru: { icon: 'bi-journal-plus', color: '#3b82f6' },
     nilai_baru: { icon: 'bi-bar-chart-fill', color: '#22c55e' },
     chat_baru: { icon: 'bi-chat-dots-fill', color: '#8b5cf6' },
@@ -20,11 +23,11 @@ const iconMap = {
     pengumuman_baru: { icon: 'bi-megaphone-fill', color: '#f97316' },
 };
 
-function iconFor(type) {
+function iconFor(type: string) {
     return iconMap[type] ?? { icon: 'bi-bell-fill', color: '#6b7280' };
 }
 
-function markRead(item) {
+function markRead(item: NotificationRow) {
     router.post(item.mark_read_url, {}, { preserveScroll: true });
 }
 

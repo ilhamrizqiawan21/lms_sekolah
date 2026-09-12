@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Siswa extends Model
 {
     protected $table = 'siswa';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -19,10 +20,15 @@ class Siswa extends Model
         'angkatan',
         'status',
         'tinggal_kelas',
+        'nomor_whatsapp',
+        'whatsapp_opt_in',
+        'whatsapp_opted_in_at',
     ];
 
     protected $casts = [
         'tinggal_kelas' => 'boolean',
+        'whatsapp_opt_in' => 'boolean',
+        'whatsapp_opted_in_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

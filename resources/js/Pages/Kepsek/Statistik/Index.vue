@@ -1,32 +1,30 @@
-<script setup>
+<script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Card, EmptyState, StatCard, TableWrapper } from '../../../Components/UI';
+interface ClassStudents { label: string; jumlah: number; }
+interface MonthlyAttendance { bulan: string; bulan_label?: string; hadir: number; total: number; persentase: number; }
+interface MonthlySubmission { bulan: string; bulan_label?: string; total: number; tepat_waktu: number; terlambat: number; dinilai: number; }
+interface GradeDistribution { label: string; value: number; color: string; }
+interface LearningStats { total_tugas: number; total_pengumpulan: number; total_dinilai: number; persentase_dinilai: number; rata_nilai_tugas: number | null; }
 
-const props = defineProps({
-    siswaPerKelas: { type: Array, default: () => [] },
-    totalGuru: { type: Number, default: 0 },
-    totalSiswa: { type: Number, default: 0 },
-    totalKelas: { type: Number, default: 0 },
-    absensiBulanan: { type: Array, default: () => [] },
-    pengumpulanBulanan: { type: Array, default: () => [] },
-    distribusiNilai: { type: Array, default: () => [] },
-    pembelajaran: {
-        type: Object,
-        default: () => ({ total_tugas: 0, total_pengumpulan: 0, total_dinilai: 0, persentase_dinilai: 0, rata_nilai_tugas: null }),
-    },
+interface Props { siswaPerKelas?: ClassStudents[]; totalGuru?: number; totalSiswa?: number; totalKelas?: number; absensiBulanan?: MonthlyAttendance[]; pengumpulanBulanan?: MonthlySubmission[]; distribusiNilai?: GradeDistribution[]; pembelajaran?: LearningStats; }
+const props = withDefaults(defineProps<Props>(), {
+    siswaPerKelas: () => [], totalGuru: 0, totalSiswa: 0, totalKelas: 0, absensiBulanan: () => [], pengumpulanBulanan: () => [], distribusiNilai: () => [],
+    pembelajaran: () => ({ total_tugas: 0, total_pengumpulan: 0, total_dinilai: 0, persentase_dinilai: 0, rata_nilai_tugas: null }),
 });
 
-const siswaCanvas = ref(null);
-const nilaiCanvas = ref(null);
-const absensiCanvas = ref(null);
-const pengumpulanCanvas = ref(null);
-let siswaChart = null;
-let nilaiChart = null;
-let absensiChart = null;
-let pengumpulanChart = null;
+const siswaCanvas = ref<HTMLCanvasElement | null>(null);
+const nilaiCanvas = ref<HTMLCanvasElement | null>(null);
+const absensiCanvas = ref<HTMLCanvasElement | null>(null);
+const pengumpulanCanvas = ref<HTMLCanvasElement | null>(null);
+type ChartHandle = { destroy: () => void };
+let siswaChart: ChartHandle | null = null;
+let nilaiChart: ChartHandle | null = null;
+let absensiChart: ChartHandle | null = null;
+let pengumpulanChart: ChartHandle | null = null;
 
 async function chartJs() {
     const { Chart, registerables } = await import('chart.js');

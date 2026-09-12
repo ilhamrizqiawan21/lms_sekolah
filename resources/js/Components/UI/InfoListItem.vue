@@ -1,4 +1,5 @@
-<script setup>
+<script setup lang="ts">
+defineSlots<{ action?: () => unknown }>();
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Badge from './Badge.vue';

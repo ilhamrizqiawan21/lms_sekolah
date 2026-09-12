@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { watch } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -7,12 +9,12 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    waliKelas: { type: Object, required: true },
+    waliKelas: { type: Object as PropType<{ kelas: string; store_url: string; back_url: string }>, required: true },
     bulan: { type: String, required: true },
     bulanLabel: { type: String, default: '' },
-    bulanOptions: { type: Object, default: () => ({}) },
-    tanggalList: { type: Array, default: () => [] },
-    students: { type: Array, default: () => [] },
+    bulanOptions: { type: Object as PropType<Record<string, string>>, default: () => ({}) },
+    tanggalList: { type: Array as PropType<{ key: string; day: string; label: string }[]>, default: () => [] },
+    students: { type: Array as PropType<{ id: number; no: number; nis: string; nama: string; absensi: Record<string, string> }[]>, default: () => [] },
 });
 
 const filter = useForm({ bulan: props.bulan });
@@ -44,7 +46,10 @@ function filterMonth() {
     });
 }
 
-function fillColumn(tanggalKey, status) {
+function fillColumn(tanggalKey: string, event: Event) {
+    if (!(event.target instanceof HTMLSelectElement)) return;
+    const status = event.target.value;
+    event.target.value = '';
     if (!status) return;
 
     props.students.forEach((student) => {
@@ -52,7 +57,7 @@ function fillColumn(tanggalKey, status) {
     });
 }
 
-function statusClass(status) {
+function statusClass(status: string) {
     return status ? `status-${status}` : '';
 }
 
@@ -129,7 +134,7 @@ function submit() {
                                         <td v-for="tanggal in tanggalList" :key="`fill-${tanggal.key}`" class="text-center p-1">
                                             <select
                                                 class="form-select form-select-sm wali-attendance-select"
-                                                @change="fillColumn(tanggal.key, $event.target.value); $event.target.value = ''"
+                                                @change="fillColumn(tanggal.key, $event)"
                                             >
                                                 <option value="">-</option>
                                                 <option value="hadir">H</option>

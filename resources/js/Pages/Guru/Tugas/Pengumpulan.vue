@@ -1,20 +1,19 @@
-<script setup>
+<script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { router } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, DashboardHero, EmptyState, MetricStrip, QuickActionBar, TableWrapper } from '../../../Components/UI';
 import SubmissionGradeForm from './Partials/SubmissionGradeForm.vue';
 import SubmissionRow from './Partials/SubmissionRow.vue';
+import type { AssignmentContext, AssignmentSubmission, AssignmentSummary, SubmissionStatus } from '../../../types';
 
-const props = defineProps({
-    kelasMapel: { type: Object, required: true },
-    tugas: { type: Object, required: true },
-    pengumpulan: { type: Array, default: () => [] },
-});
+interface Props { kelasMapel: AssignmentContext; tugas: AssignmentSummary; pengumpulan?: AssignmentSubmission[] }
+const props = withDefaults(defineProps<Props>(), { pengumpulan: () => [] });
 
-const detail = ref(null);
+const detail = ref<AssignmentSubmission | null>(null);
 const search = ref('');
-const statusFilter = ref('semua');
+const statusFilter = ref<'semua' | SubmissionStatus>('semua');
 
 const filteredPengumpulan = computed(() => {
     const keyword = search.value.trim().toLowerCase();
@@ -46,7 +45,7 @@ const metrics = computed(() => {
     ];
 });
 
-const statusMap = {
+const statusMap: Record<string, { color: string; label: string }> = {
     belum: { color: 'secondary', label: 'Belum' },
     sudah: { color: 'success', label: 'Sudah' },
     terlambat: { color: 'danger', label: 'Terlambat' },
@@ -54,12 +53,26 @@ const statusMap = {
     perlu_perbaikan: { color: 'warning', label: 'Perlu Perbaikan' },
 };
 
-function statusColor(status) {
+function statusColor(status: SubmissionStatus): string {
     return statusMap[status]?.color ?? 'secondary';
 }
 
-function statusLabel(status) {
+function statusLabel(status: SubmissionStatus): string {
     return statusMap[status]?.label ?? (status ? status.replace(/\b\w/g, (char) => char.toUpperCase()) : '-');
+}
+
+async function prepareWhatsApp(item: AssignmentSubmission): Promise<void> {
+    if (!item.whatsapp_url) return;
+    const response = await fetch(item.whatsapp_url, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+    if (!response.ok) {
+        const error = await response.json().catch(() => null) as { message?: string } | null;
+        window.showToast?.(error?.message ?? 'Nomor WhatsApp belum valid atau belum disetujui.', 'error');
+        return;
+    }
+    const data = await response.json() as { url: string; log_id: number };
+    window.open(data.url, '_blank', 'noopener,noreferrer');
+    const confirmed = await window.confirmDialog?.('Sudah menekan tombol kirim di WhatsApp?', { title: 'Tandai Pengingat', confirmText: 'Ya, sudah dikirim' });
+    if (confirmed) router.post(`/guru/tugas/whatsapp/${data.log_id}/mark-sent`, {}, { preserveScroll: true });
 }
 </script>
 
@@ -120,6 +133,7 @@ function statusLabel(status) {
                             <th>Siswa</th>
                             <th>Status</th>
                             <th>Tanggal Kumpul</th>
+                            <th>Terlambat</th>
                             <th>File</th>
                             <th>Jawaban</th>
                             <th>Nilai</th>
@@ -135,6 +149,7 @@ function statusLabel(status) {
                             :status-color="statusColor"
                             :status-label="statusLabel"
                             @detail="detail = item"
+                            @whatsapp="prepareWhatsApp(item)"
                         />
                     </tbody>
                 </table>
@@ -151,6 +166,7 @@ function statusLabel(status) {
                     </div>
                     <div class="app-mobile-list-row mt-2">
                         <span class="app-mobile-list-meta">Kumpul {{ item.tanggal_kumpul ?? '-' }}</span>
+                        <span v-if="item.hari_terlambat" class="app-mobile-list-meta text-danger">Terlambat {{ item.hari_terlambat }} hari (perkiraan -{{ item.penalty_perkiraan }} poin)</span>
                         <span class="app-mobile-list-meta">Nilai {{ item.nilai ?? '-' }}</span>
                     </div>
                     <div v-if="item.files.length || item.legacy_file_url || item.teks_jawaban" class="d-flex flex-wrap gap-2 mt-3">
@@ -172,6 +188,7 @@ function statusLabel(status) {
                         </Button>
                     </div>
                     <div class="mt-3">
+                        <Button v-if="item.whatsapp_url" type="button" color="success" size="sm" class="mb-2" @click="prepareWhatsApp(item)"><i class="bi bi-whatsapp me-1" aria-hidden="true"></i>Kirim WhatsApp</Button>
                         <SubmissionGradeForm :item="item" />
                     </div>
                 </div>
@@ -186,6 +203,7 @@ function statusLabel(status) {
                 <div class="mb-3">
                     <p><strong>Status:</strong> <Badge :color="statusColor(detail.status)">{{ statusLabel(detail.status) }}</Badge></p>
                     <p><strong>Tanggal Kumpul:</strong> {{ detail.tanggal_kumpul ?? '-' }}</p>
+                    <p v-if="detail.hari_terlambat"><strong>Keterlambatan:</strong> {{ detail.hari_terlambat }} hari, perkiraan potongan {{ detail.penalty_perkiraan }} poin</p>
 
                     <div v-if="detail.files.length" class="mb-3">
                         <strong>File:</strong>

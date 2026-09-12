@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+interface AttitudeRow { siswa: { id: number; nama: string; kelas: string | null }; nilai: Record<string, number | null>; rata: number | null }
 import { router } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -7,14 +9,14 @@ import { Card, EmptyState, TableWrapper } from '../../../Components/UI';
 const props = defineProps({
     title: { type: String, default: 'Rekap Sikap Spiritual & Sosial' },
     semester: { type: String, default: '1' },
-    kelasMapel: { type: Array, default: () => [] },
-    sikapSpiritual: { type: Array, default: () => [] },
-    sikapSosial: { type: Array, default: () => [] },
+    kelasMapel: { type: Array as PropType<{ id: number; label: string }[]>, default: () => [] },
+    sikapSpiritual: { type: Array as PropType<AttitudeRow[]>, default: () => [] },
+    sikapSosial: { type: Array as PropType<AttitudeRow[]>, default: () => [] },
 });
 
 function filter() {
-    const kelas = document.querySelector('#kelas-mapel')?.value || undefined;
-    const semester = document.querySelector('#semester')?.value || '1';
+    const kelas = document.querySelector<HTMLSelectElement>('#kelas-mapel')?.value || undefined;
+    const semester = document.querySelector<HTMLSelectElement>('#semester')?.value || '1';
     router.get('/guru/rekap-sikap', { kelas_mapel_id: kelas, semester }, { preserveState: true, replace: true });
 }
 
@@ -29,8 +31,8 @@ const sosialFields = [
     ['empati', 'Empati'], ['kerjasama', 'Kerja Sama'], ['toleransi', 'Toleransi'], ['percaya_diri', 'Percaya Diri'], ['komunikasi', 'Komunikasi'],
 ];
 
-function badgeClass(value) {
-    return value >= 4 ? 'text-bg-success' : value >= 3 ? 'text-bg-warning' : 'text-bg-danger';
+function badgeClass(value: number | null) {
+    return Number(value) >= 4 ? 'text-bg-success' : Number(value) >= 3 ? 'text-bg-warning' : 'text-bg-danger';
 }
 </script>
 

@@ -1,17 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import ChatRoom from '../../../Components/Chat/ChatRoom.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Button } from '../../../Components/UI';
+import type { ChatMessage, ChatRoomPayload } from '../../../types';
 
-defineProps({
-    room: { type: Object, required: true },
-    messages: { type: Array, default: () => [] },
-    sendUrl: { type: String, required: true },
-    backUrl: { type: String, required: true },
-    emptyMessage: { type: String, default: 'Belum ada pesan. Mulai percakapan!' },
-});
+interface Room extends ChatRoomPayload { title: string; subtitle?: string }
+interface Props { room: Room; messages?: ChatMessage[]; sendUrl: string; backUrl: string; emptyMessage?: string }
+withDefaults(defineProps<Props>(), { messages: () => [], emptyMessage: 'Belum ada pesan. Mulai percakapan!' });
 </script>
 
 <template>

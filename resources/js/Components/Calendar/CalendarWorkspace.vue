@@ -1,32 +1,37 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import { SelectInput, TextareaInput, TextInput } from '../Form';
 import { Badge, Button, Card, EmptyState } from '../UI';
+import type { CalendarEvent, CalendarEventForm, CalendarPayload, SelectOption } from '../../types';
 
-const props = defineProps({
-    calendar: { type: Object, required: true },
-    monthEvents: { type: Array, default: () => [] },
-    storeUrl: { type: String, default: '' },
-    createTitle: { type: String, default: 'Tambah Event' },
-    fixedScope: { type: String, default: '' },
-    scopeOptions: { type: Array, default: () => [] },
-    readOnly: { type: Boolean, default: false },
+interface Props {
+    calendar: CalendarPayload;
+    monthEvents?: CalendarEvent[];
+    storeUrl?: string;
+    createTitle?: string;
+    fixedScope?: string;
+    scopeOptions?: SelectOption[];
+    readOnly?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+    monthEvents: () => [], storeUrl: '', createTitle: 'Tambah Event', fixedScope: '', scopeOptions: () => [], readOnly: false,
 });
 
-const selectedEvent = ref(null);
+const selectedEvent = ref<CalendarEvent | null>(null);
 const canCreate = computed(() => Boolean(props.storeUrl) && !props.readOnly);
 const selectedTitle = computed(() => selectedEvent.value?.can_manage ? 'Edit Event' : 'Detail Event');
 
-const createForm = useForm({
+const createForm = useForm<CalendarEventForm>({
     title: '',
     event_date: props.calendar.today,
     description: '',
     is_holiday: false,
     is_done: false,
-    scope: props.fixedScope || props.scopeOptions[0]?.value || 'user',
+    scope: props.fixedScope || String(props.scopeOptions[0]?.value || 'user'),
 });
-const editForm = useForm(blankEventForm());
+const editForm = useForm<CalendarEventForm>(blankEventForm());
 
 watch(selectedEvent, (event) => {
     if (!event) {
@@ -42,7 +47,7 @@ watch(selectedEvent, (event) => {
     editForm.scope = event.scope ?? props.fixedScope ?? 'user';
 });
 
-function blankEventForm() {
+function blankEventForm(): CalendarEventForm {
     return {
         title: '',
         event_date: '',
@@ -53,13 +58,13 @@ function blankEventForm() {
     };
 }
 
-function submitCreate() {
+function submitCreate(): void {
     const options = {
         preserveScroll: true,
         onSuccess: () => {
             createForm.reset();
             createForm.event_date = props.calendar.today;
-            createForm.scope = props.fixedScope || props.scopeOptions[0]?.value || 'user';
+            createForm.scope = props.fixedScope || String(props.scopeOptions[0]?.value || 'user');
         },
     };
 
@@ -69,7 +74,7 @@ function submitCreate() {
     })).post(props.storeUrl, options);
 }
 
-function submitEdit() {
+function submitEdit(): void {
     if (!selectedEvent.value?.update_url) {
         return;
     }
@@ -82,7 +87,7 @@ function submitEdit() {
     });
 }
 
-async function destroySelected() {
+async function destroySelected(): Promise<void> {
     if (!selectedEvent.value?.delete_url) {
         return;
     }
@@ -105,7 +110,7 @@ async function destroySelected() {
     });
 }
 
-function toggleDone(event) {
+function toggleDone(event: CalendarEvent): void {
     if (!event.toggle_done_url) {
         return;
     }
@@ -115,7 +120,7 @@ function toggleDone(event) {
     });
 }
 
-function eventClass(event) {
+function eventClass(event: CalendarEvent): Record<string, boolean> {
     return {
         'calendar-event-holiday': event.is_holiday,
         'calendar-event-normal': !event.is_holiday,
@@ -123,7 +128,7 @@ function eventClass(event) {
     };
 }
 
-function openEvent(event) {
+function openEvent(event: CalendarEvent): void {
     selectedEvent.value = event;
 }
 </script>

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 defineProps({
     title: { type: String, default: 'Memuat data...' },
     message: { type: String, default: '' },

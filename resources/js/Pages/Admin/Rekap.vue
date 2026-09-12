@@ -1,28 +1,30 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
 import { computed, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppShell from '../../Layouts/AppShell.vue';
 
 const props = defineProps({
     type: { type: String, required: true }, title: { type: String, required: true },
-    kelasList: { type: Array, default: () => [] }, kelasId: { type: [Number, String], default: null },
+    kelasList: { type: Array as PropType<{ id: number; tingkat: string | number; nama_kelas: string }[]>, default: () => [] }, kelasId: { type: [Number, String], default: null },
     semester: { type: [Number, String], default: 1 }, bulan: { type: String, default: '' }, kelasNama: { type: String, default: '' },
-    rekap: { type: Array, default: () => [] }, tanggalList: { type: Array, default: () => [] }, mapelList: { type: Array, default: () => [] }, tugasList: { type: Array, default: () => [] },
+    rekap: { type: Array as PropType<{ nis: string; nama: string; absensi?: Record<string, string>; hadir?: number; sakit?: number; izin?: number; alpha?: number; nilai?: Record<string, number | string | null>; rata?: number | null; spiritual?: Record<string, number | null>; sosial?: Record<string, number | null> }[]>, default: () => [] }, tanggalList: { type: Array as PropType<string[]>, default: () => [] }, mapelList: { type: Array as PropType<{ id: number; kelas_mapel_id: number; nama_mapel: string }[]>, default: () => [] }, tugasList: { type: Array as PropType<{ id: number; kelasMapel?: { mataPelajaran?: { nama_mapel: string }; guru?: { nama_lengkap: string } }; sudah_kumpul: number; total_siswa: number }[]>, default: () => [] },
 });
 const kelasId = ref(props.kelasId);
 const semester = ref(String(props.semester ?? 1));
 const bulan = ref(props.bulan || '');
 
 function reload() {
-    const params = { kelas_id: kelasId.value || undefined, semester: semester.value || undefined };
+    const params: Record<string, string | number | undefined> = { kelas_id: kelasId.value || undefined, semester: semester.value || undefined };
     if (props.type === 'absensi') params.bulan = bulan.value || undefined;
     router.get(window.location.pathname, params, { preserveState: true, replace: true });
 }
 
-function exportUrl(format) {
+function exportUrl(format: 'excel' | 'pdf') {
     const base = `/admin/export/${props.type}/${format}`;
     const params = new URLSearchParams();
-    if (kelasId.value) params.set('kelas_id', kelasId.value);
+    if (kelasId.value) params.set('kelas_id', String(kelasId.value));
     if (semester.value) params.set('semester', semester.value);
     if (props.type === 'absensi' && bulan.value) params.set('bulan', bulan.value);
     const query = params.toString();

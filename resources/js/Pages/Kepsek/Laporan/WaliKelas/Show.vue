@@ -1,4 +1,8 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
+
+import type { ReportOption, HomeroomAttendanceRow } from '../../../../types/reports';
 import { Head, router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 import PageHeader from '../../../../Components/AppShell/PageHeader.vue';
@@ -7,13 +11,13 @@ import AppShell from '../../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../../Components/UI';
 
 const props = defineProps({
-    waliKelas: { type: Object, required: true },
+    waliKelas: { type: Object as PropType<{ id: number; title: string; kelas: string; guru: string }>, required: true },
     bulan: { type: String, required: true },
-    bulanOptions: { type: Array, default: () => [] },
-    tanggalList: { type: Array, default: () => [] },
-    siswaRows: { type: Array, default: () => [] },
-    pertemuan: { type: Array, default: () => [] },
-    penanganan: { type: Array, default: () => [] },
+    bulanOptions: { type: Array as PropType<ReportOption[]>, default: () => [] },
+    tanggalList: { type: Array as PropType<{ date: string; day: string }[]>, default: () => [] },
+    siswaRows: { type: Array as PropType<HomeroomAttendanceRow[]>, default: () => [] },
+    pertemuan: { type: Array as PropType<{ id: number; tanggal: string; topik: string; hasil: string | null }[]>, default: () => [] },
+    penanganan: { type: Array as PropType<{ id: number; siswa: string; nis: string | null; kondisi: string; tindak_lanjut: string | null; status: string }[]>, default: () => [] },
     backUrl: { type: String, required: true },
     resetUrl: { type: String, required: true },
 });
@@ -30,17 +34,17 @@ function applyFilters() {
     });
 }
 
-function statusClass(status) {
+function statusClass(status: string | null) {
     return status ? `status-${status}` : '';
 }
 
-function penangananBadge(status) {
+function penangananBadge(status: string) {
     if (status === 'selesai') return 'success';
     if (status === 'proses') return 'warning text-dark';
     return 'danger';
 }
 
-function statusLabel(status) {
+function statusLabel(status: string | null) {
     return status ? status.charAt(0).toUpperCase() + status.slice(1) : '-';
 }
 </script>

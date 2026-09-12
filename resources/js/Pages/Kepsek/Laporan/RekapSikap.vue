@@ -1,4 +1,8 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
+
+import type { ReportOption, ExportUrls, AttitudeReportRow, SocialAspect, SpiritualAspect } from '../../../types/reports';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, reactive } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -7,28 +11,28 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    sikapSosial: { type: Array, default: () => [] },
-    sikapSpiritual: { type: Array, default: () => [] },
-    kelasOptions: { type: Array, default: () => [] },
-    filters: { type: Object, default: () => ({}) },
+    sikapSosial: { type: Array as PropType<AttitudeReportRow<SocialAspect>[]>, default: () => [] },
+    sikapSpiritual: { type: Array as PropType<AttitudeReportRow<SpiritualAspect>[]>, default: () => [] },
+    kelasOptions: { type: Array as PropType<ReportOption[]>, default: () => [] },
+    filters: { type: Object as PropType<{ kelas_id?: string }>, default: () => ({}) },
     semester: { type: [String, Number], default: '' },
-    taAktif: { type: Object, default: null },
+    taAktif: { type: Object as PropType<{ id: number; tahun: string } | null>, default: null },
     resetUrl: { type: String, required: true },
-    exportUrls: { type: Object, default: () => ({}) },
+    exportUrls: { type: Object as PropType<ExportUrls>, default: () => ({}) },
 });
 
 const filterForm = reactive({
     kelas_id: props.filters.kelas_id ?? '',
 });
 
-const sosialAspects = [
+const sosialAspects: { key: SocialAspect; label: string }[] = [
     { key: 'empati', label: 'Empati' },
     { key: 'kerjasama', label: 'Kerja Sama' },
     { key: 'toleransi', label: 'Toleransi' },
     { key: 'percaya_diri', label: 'Percaya Diri' },
     { key: 'komunikasi', label: 'Komunikasi' },
 ];
-const spiritualAspects = [
+const spiritualAspects: { key: SpiritualAspect; label: string }[] = [
     { key: 'taqwa', label: 'Taqwa' },
     { key: 'kejujuran', label: 'Kejujuran' },
     { key: 'disiplin', label: 'Disiplin' },
@@ -41,7 +45,7 @@ const sosialSummary = computed(() => averages(props.sikapSosial, sosialAspects))
 const spiritualSummary = computed(() => averages(props.sikapSpiritual, spiritualAspects));
 const hasSummary = computed(() => props.sikapSosial.length > 0 || props.sikapSpiritual.length > 0);
 
-function averages(rows, aspects) {
+function averages<K extends string>(rows: Record<K, number>[], aspects: { key: K; label: string }[]) {
     return aspects.map((aspect) => {
         const total = rows.reduce((sum, row) => sum + Number(row[aspect.key] ?? 0), 0);
         return {
@@ -68,13 +72,13 @@ function resetFilters() {
     });
 }
 
-function scoreBadge(value) {
+function scoreBadge(value: number) {
     if (value >= 4) return 'success';
     if (value >= 3) return 'warning text-dark';
     return 'danger';
 }
 
-function exportUrl(format) {
+function exportUrl(format: 'excel' | 'pdf') {
     const base = props.exportUrls[format];
     const params = filterForm.kelas_id ? new URLSearchParams({ kelas_id: filterForm.kelas_id }).toString() : '';
     return params ? `${base}?${params}` : base;

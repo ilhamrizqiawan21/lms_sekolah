@@ -1,22 +1,22 @@
-<script setup>
+<script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import PageHeader from '../../Components/AppShell/PageHeader.vue';
 import TextInput from '../../Components/Form/TextInput.vue';
 import AppShell from '../../Layouts/AppShell.vue';
 import { Badge, Button, Card } from '../../Components/UI';
+interface StudentProfile { nis: string; nama_lengkap: string; username: string; kelas: string; status: string; }
+interface Props { profile: StudentProfile; updateUrl: string; }
+interface PasswordForm { current_password: string; password: string; password_confirmation: string; }
 
-const props = defineProps({
-    profile: { type: Object, required: true },
-    updateUrl: { type: String, required: true },
-});
+const props = defineProps<Props>();
 
-const form = useForm({
+const form = useForm<PasswordForm>({
     current_password: '',
     password: '',
     password_confirmation: '',
 });
 
-function submit() {
+function submit(): void {
     if (form.processing) {
         return;
     }

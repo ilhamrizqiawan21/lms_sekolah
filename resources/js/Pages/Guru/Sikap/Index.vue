@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+interface AttitudeStudent { id: number; no: number; nis: string; nama: string; sosial: Record<string, number | string | null>; spiritual: Record<string, number | string | null> }
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -6,10 +8,10 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    kelasMapel: { type: Array, default: () => [] },
-    tahunAjaran: { type: Object, default: null },
+    kelasMapel: { type: Array as PropType<{ id: number; label: string }[]>, default: () => [] },
+    tahunAjaran: { type: Object as PropType<{ tahun: string } | null>, default: null },
     semester: { type: String, default: '1' },
-    groups: { type: Array, default: () => [] },
+    groups: { type: Array as PropType<{ kelas_mapel_id: number; kelas: string; mata_pelajaran: string; export_excel_url: string; export_pdf_url: string; students: AttitudeStudent[] }[]>, default: () => [] },
     storeUrl: { type: String, required: true },
 });
 
@@ -53,7 +55,7 @@ watch(selectedKelasMapelId, (value) => {
     form.kelas_mapel_ids = value ? [value] : [];
 });
 
-function buildScores(group) {
+function buildScores(group: 'sosial' | 'spiritual') {
     return Object.fromEntries(props.groups.map((kelasGroup) => [
         String(kelasGroup.kelas_mapel_id),
         Object.fromEntries(kelasGroup.students.map((student) => [
@@ -63,7 +65,7 @@ function buildScores(group) {
     ]));
 }
 
-function average(group, studentId, fields) {
+function average(group: 'sosial' | 'spiritual', studentId: number, fields: { key: string }[]) {
     const values = fields
         .map((field) => form[group]?.[String(activeGroup.value?.kelas_mapel_id)]?.[String(studentId)]?.[field.key])
         .filter((value) => value !== null && value !== undefined && value !== '')
@@ -76,14 +78,14 @@ function average(group, studentId, fields) {
     return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function averageClass(value) {
+function averageClass(value: number | null) {
     if (value === null) return '';
     if (value >= 4) return 'excellent';
     if (value >= 3) return 'fair';
     return 'low';
 }
 
-function formatAverage(value) {
+function formatAverage(value: number | null) {
     return value === null ? null : value.toFixed(1);
 }
 

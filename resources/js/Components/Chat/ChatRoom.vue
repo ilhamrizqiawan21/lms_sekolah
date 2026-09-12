@@ -1,22 +1,19 @@
-<script setup>
+<script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import InputError from '../Form/InputError.vue';
 import { Button, Card } from '../UI';
+import type { ChatMessage, ChatRoomPayload } from '../../types';
 
-const props = defineProps({
-    room: { type: Object, required: true },
-    messages: { type: Array, default: () => [] },
-    sendUrl: { type: String, required: true },
-    emptyMessage: { type: String, default: 'Belum ada pesan.' },
-});
+interface Props { room: ChatRoomPayload; messages?: ChatMessage[]; sendUrl: string; emptyMessage?: string }
+const props = withDefaults(defineProps<Props>(), { messages: () => [], emptyMessage: 'Belum ada pesan.' });
 
-const chatArea = ref(null);
-const form = useForm({
+const chatArea = ref<HTMLElement | null>(null);
+const form = useForm<{ message: string }>({
     message: '',
 });
 
-function scrollToLatest() {
+function scrollToLatest(): void {
     if (!chatArea.value) {
         return;
     }
@@ -24,7 +21,7 @@ function scrollToLatest() {
     chatArea.value.scrollTop = chatArea.value.scrollHeight;
 }
 
-function sendMessage() {
+function sendMessage(): void {
     form.post(props.sendUrl, {
         preserveScroll: true,
         onSuccess: () => {

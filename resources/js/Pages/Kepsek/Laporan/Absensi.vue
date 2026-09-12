@@ -1,4 +1,8 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { LaravelPaginator } from '../../../types/pagination';
+
+import type { AttendanceReportRow, ReportOption, ExportUrls } from '../../../types/reports';
 import { Head, router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -7,11 +11,11 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, Pagination, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    absensi: { type: Object, required: true },
-    kelasMapelOptions: { type: Array, default: () => [] },
-    filters: { type: Object, default: () => ({}) },
+    absensi: { type: Object as PropType<LaravelPaginator<AttendanceReportRow>>, required: true },
+    kelasMapelOptions: { type: Array as PropType<ReportOption[]>, default: () => [] },
+    filters: { type: Object as PropType<Partial<Record<'kelas_mapel_id' | 'tanggal_awal' | 'tanggal_akhir' | 'status', string>>>, default: () => ({}) },
     resetUrl: { type: String, required: true },
-    exportUrls: { type: Object, default: () => ({}) },
+    exportUrls: { type: Object as PropType<ExportUrls>, default: () => ({}) },
 });
 
 const filterForm = reactive({
@@ -53,20 +57,21 @@ function resetFilters() {
     });
 }
 
-function statusBadge(status) {
-    return {
+function statusBadge(status: string) {
+    const colors: Record<string, string> = {
         hadir: 'success',
         sakit: 'warning text-dark',
         izin: 'info text-dark',
         alpha: 'danger',
-    }[status] ?? 'secondary';
+    };
+    return colors[status] ?? 'secondary';
 }
 
-function statusLabel(status) {
+function statusLabel(status: string | null) {
     return status ? status.charAt(0).toUpperCase() + status.slice(1) : '-';
 }
 
-function exportUrl(format) {
+function exportUrl(format: 'excel' | 'pdf') {
     const base = props.exportUrls[format];
     const params = new URLSearchParams(cleanFilters()).toString();
     return params ? `${base}?${params}` : base;

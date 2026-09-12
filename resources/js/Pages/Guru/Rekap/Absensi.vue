@@ -1,4 +1,8 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
+
+import type { ExportUrls, AttendanceSummary } from '../../../types/reports';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -6,11 +10,11 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Card, EmptyState, MetricStrip, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    kelasMapel: { type: Array, default: () => [] },
-    filters: { type: Object, default: () => ({}) },
-    selected: { type: Object, default: null },
-    rekap: { type: Array, default: () => [] },
-    exportUrls: { type: Object, default: () => ({}) },
+    kelasMapel: { type: Array as PropType<{ id: number; label: string }[]>, default: () => [] },
+    filters: { type: Object as PropType<{ kelas_mapel_id?: string; mode?: string; bulan?: string }>, default: () => ({}) },
+    selected: { type: Object as PropType<{ id: number; kelas: string; mata_pelajaran: string; semester: string } | null>, default: null },
+    rekap: { type: Array as PropType<AttendanceSummary[]>, default: () => [] },
+    exportUrls: { type: Object as PropType<ExportUrls>, default: () => ({}) },
 });
 
 const kelasMapelId = ref(props.filters.kelas_mapel_id || '');
@@ -36,7 +40,7 @@ const metrics = computed(() => {
 });
 
 function currentParams() {
-    const params = {
+    const params: Record<string, string | undefined> = {
         kelas_mapel_id: kelasMapelId.value || undefined,
         mode: mode.value || 'bulanan',
     };
@@ -55,7 +59,7 @@ function reload() {
     });
 }
 
-function exportUrl(format) {
+function exportUrl(format: 'excel' | 'pdf') {
     const base = props.exportUrls?.[format];
     const params = new URLSearchParams();
 
@@ -68,7 +72,7 @@ function exportUrl(format) {
     return base && params.toString() ? `${base}?${params}` : base;
 }
 
-function progressColor(value) {
+function progressColor(value: number) {
     if (value >= 90) return 'bg-success';
     if (value >= 75) return 'bg-warning';
     return 'bg-danger';

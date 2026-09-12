@@ -48,6 +48,7 @@ use App\Http\Controllers\Siswa\NotifikasiController as SiswaNotifikasiController
 use App\Http\Controllers\Siswa\PengumumanController as SiswaPengumumanController;
 use App\Http\Controllers\Siswa\ProgressController;
 use App\Http\Controllers\Siswa\TugasController as SiswaTugasController;
+use App\Http\Middleware\RequireStudentPhone;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'showLogin'])->name('login');
@@ -181,6 +182,8 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
     Route::get('/tugas/{kelasMapel}/{tugas}/pengumpulan/{file}/download', [GuruTugasController::class, 'downloadFile'])->name('tugas.file.download')->middleware('can:mengajar,kelasMapel');
     Route::get('/tugas/{kelasMapel}/{tugas}/pengumpulan/{pengumpulan}/legacy-download', [GuruTugasController::class, 'downloadLegacyFile'])->name('tugas.pengumpulan.download')->middleware('can:mengajar,kelasMapel');
     Route::post('/tugas/{kelasMapel}/{tugas}/siswa/{siswa}/nilai', [GuruTugasController::class, 'nilai'])->name('tugas.nilai')->middleware('can:mengajar,kelasMapel');
+    Route::get('/tugas/{kelasMapel}/{tugas}/siswa/{siswa}/whatsapp', [GuruTugasController::class, 'whatsapp'])->name('tugas.whatsapp')->middleware('can:mengajar,kelasMapel');
+    Route::post('/tugas/whatsapp/{log}/mark-sent', [GuruTugasController::class, 'whatsappMarkSent'])->name('tugas.whatsapp.mark-sent');
     Route::delete('/tugas/{tugas}', [GuruTugasController::class, 'destroy'])->name('tugas.destroy')->middleware('can:mengajar-tugas,tugas');
     Route::get('/nilai', [NilaiController::class, 'index'])->name('nilai.index');
     Route::post('/nilai/store', [NilaiController::class, 'storeBulk'])->name('nilai.store.bulk');
@@ -220,7 +223,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
     Route::put('/profil', [AccountSettingsController::class, 'update'])->name('profil.update');
 });
 
-Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->group(function () {
+Route::middleware(['auth', 'role:siswa', RequireStudentPhone::class])->prefix('siswa')->name('siswa.')->group(function () {
     Route::get('/dashboard', [SiswaDashboardController::class, 'index'])->name('dashboard');
     Route::get('/kelas-mapel/{kelasMapel}', [SiswaKelasMapelWorkspaceController::class, 'show'])->name('kelas-mapel.show');
     Route::get('/progress', [ProgressController::class, 'index'])->name('progress');
@@ -245,6 +248,7 @@ Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->grou
     Route::post('/notifikasi/{notifikasi}/read', [SiswaNotifikasiController::class, 'markRead'])->name('notifikasi.mark-read');
     Route::post('/notifikasi/mark-all-read', [SiswaNotifikasiController::class, 'markAllRead'])->name('notifikasi.mark-all-read');
     Route::get('/pengaturan', [AccountSettingsController::class, 'edit'])->name('pengaturan');
+    Route::put('/pengaturan/telepon', [AccountSettingsController::class, 'updateStudentPhone'])->name('pengaturan.telepon');
     Route::put('/pengaturan', [AccountSettingsController::class, 'update'])->name('pengaturan.update');
     Route::post('/pengaturan/foto', [AccountSettingsController::class, 'uploadAvatar'])->name('pengaturan.foto');
     Route::delete('/pengaturan/foto', [AccountSettingsController::class, 'deleteAvatar'])->name('pengaturan.foto.delete');

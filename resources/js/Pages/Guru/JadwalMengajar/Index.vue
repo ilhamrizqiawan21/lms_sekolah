@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+interface Schedule { mapel: string; id: number; hari: number; hari_label: string; kelas: string; mata_pelajaran: string; pelajaran_ke: number; delete_url: string; workspace_url: string; kelas_mapel: string }
 import { computed } from 'vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -7,10 +9,10 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Button, Card, EmptyState } from '../../../Components/UI';
 
 const props = defineProps({
-    days: { type: Array, default: () => [] },
-    lessonSlots: { type: Array, default: () => [] },
-    kelasMapel: { type: Array, default: () => [] },
-    schedules: { type: Array, default: () => [] },
+    days: { type: Array as PropType<{ value: number; label: string }[]>, default: () => [] },
+    lessonSlots: { type: Array as PropType<{ value: number; label: string }[]>, default: () => [] },
+    kelasMapel: { type: Array as PropType<{ id: number; label: string }[]>, default: () => [] },
+    schedules: { type: Array as PropType<Schedule[]>, default: () => [] },
     storeUrl: { type: String, required: true },
 });
 
@@ -50,7 +52,7 @@ function submit() {
     });
 }
 
-async function destroySchedule(schedule) {
+async function destroySchedule(schedule: Schedule) {
     const confirmed = await window.confirmDialog?.(`Hapus jadwal ${schedule.hari_label} pelajaran ke-${schedule.pelajaran_ke}?`, {
         title: 'Hapus Jadwal',
         confirmText: 'Ya, hapus',

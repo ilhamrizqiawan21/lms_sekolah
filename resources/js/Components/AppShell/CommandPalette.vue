@@ -1,15 +1,18 @@
-<script setup>
+<script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 
-const props = defineProps({
-    open: { type: Boolean, default: false },
-    items: { type: Array, default: () => [] },
+import type { SidebarItem, SidebarMenuEntry } from '../../types/navigation';
+
+const props = withDefaults(defineProps<{ open?: boolean; items?: SidebarMenuEntry[] }>(), {
+    open: false, items: () => [],
 });
-const emit = defineEmits(['update:open']);
+const emit = defineEmits<{ 'update:open': [open: boolean] }>();
 const query = ref('');
-const input = ref(null);
+const input = ref<HTMLInputElement | null>(null);
 const activeIndex = ref(0);
+const dialog = ref<HTMLElement | null>(null);
+let previousFocus: HTMLElement | null = null;
 
 const results = computed(() => {
     const term = query.value.trim().toLowerCase();
@@ -18,7 +21,11 @@ const results = computed(() => {
 });
 
 watch(() => props.open, async (isOpen) => {
-    if (!isOpen) return;
+    if (!isOpen) {
+        previousFocus?.focus();
+        return;
+    }
+    previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     query.value = '';
     activeIndex.value = 0;
     await nextTick();
@@ -33,12 +40,13 @@ function close() {
     emit('update:open', false);
 }
 
-function visit(item) {
+function visit(item: SidebarItem) {
     close();
-    router.visit(item.href);
+    if (item.inertia) router.visit(item.href);
+    else window.location.assign(item.href);
 }
 
-function moveActive(direction) {
+function moveActive(direction: number) {
     if (!results.value.length) return;
     activeIndex.value = (activeIndex.value + direction + results.value.length) % results.value.length;
 }
@@ -47,11 +55,25 @@ function visitActive() {
     const item = results.value[activeIndex.value];
     if (item) visit(item);
 }
+
+function trapFocus(event: KeyboardEvent) {
+    const elements = dialog.value?.querySelectorAll<HTMLElement>('input, button');
+    if (!elements?.length) return;
+    const first = elements[0];
+    const last = elements[elements.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+    }
+}
 </script>
 
 <template>
     <div v-if="open" class="command-palette-backdrop" @click.self="close">
-        <section class="command-palette" role="dialog" aria-modal="true" aria-label="Akses cepat">
+        <section ref="dialog" class="command-palette" role="dialog" aria-modal="true" aria-label="Akses cepat" @keydown.esc.stop="close" @keydown.tab="trapFocus">
             <div class="command-palette-input">
                 <i class="bi bi-search" aria-hidden="true"></i>
                 <input
@@ -59,7 +81,6 @@ function visitActive() {
                     v-model="query"
                     type="search"
                     placeholder="Cari menu..."
-                    @keydown.esc="close"
                     @keydown.down.prevent="moveActive(1)"
                     @keydown.up.prevent="moveActive(-1)"
                     @keydown.enter.prevent="visitActive"

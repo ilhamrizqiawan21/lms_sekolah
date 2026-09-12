@@ -1,17 +1,19 @@
-<script setup>
+<script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, nextTick, ref, watch } from 'vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, DashboardHero, EmptyState, QuickActionBar, TableWrapper } from '../../../Components/UI';
 
-const props = defineProps({
-    kelasMapel: { type: Object, required: true },
-    tahunAjaran: { type: Object, default: null },
-    semester: { type: String, default: '1' },
-    students: { type: Array, default: () => [] },
-});
+import type { GradeCourse, GradeStudent, Score, ScoreField } from '../../../types/assessment';
 
-const fieldGroups = [
+const props = withDefaults(defineProps<{
+    kelasMapel: GradeCourse;
+    tahunAjaran?: { id: number; tahun: string } | null;
+    semester?: string;
+    students?: GradeStudent[];
+}>(), { tahunAjaran: null, semester: '1', students: () => [] });
+
+const fieldGroups: { key: ScoreField; label: string; readonly?: boolean }[] = [
     { key: 'sum1', label: 'SUM1' },
     { key: 'sum2', label: 'SUM2' },
     { key: 'sum3', label: 'SUM3' },
@@ -52,18 +54,18 @@ function buildNilai() {
     ]));
 }
 
-function scoreClass(value) {
+function scoreClass(value: Score | undefined) {
     if (value === null || value === undefined || value === '') {
         return '';
     }
 
-    if (value >= 92) return 'excellent';
-    if (value >= 83) return 'good';
-    if (value >= 75) return 'fair';
+    if (Number(value) >= 92) return 'excellent';
+    if (Number(value) >= 83) return 'good';
+    if (Number(value) >= 75) return 'fair';
     return 'low';
 }
 
-function formatScore(value) {
+function formatScore(value: Score | undefined) {
     if (value === null || value === undefined || value === '') {
         return null;
     }
@@ -71,11 +73,11 @@ function formatScore(value) {
     return Number(value).toFixed(1);
 }
 
-function normalizeScore(value) {
+function normalizeScore(value: Score | undefined) {
     return String(value ?? '').trim().replace(',', '.');
 }
 
-function parseClipboardHtml(html) {
+function parseClipboardHtml(html: string) {
     if (!html || typeof DOMParser === 'undefined') {
         return [];
     }
@@ -87,7 +89,7 @@ function parseClipboardHtml(html) {
         .filter((row) => row.length);
 }
 
-function parseScoreText(text) {
+function parseScoreText(text: string) {
     if (!/[\r\n\t\u2028\u2029]/.test(text)) {
         return [];
     }
@@ -103,8 +105,8 @@ function parseScoreText(text) {
     return rows.map((row) => row.split('\t').map(normalizeScore));
 }
 
-function parsePastedScoreGrid(event) {
-    const clipboard = event.clipboardData ?? window.clipboardData;
+function parsePastedScoreGrid(event: ClipboardEvent) {
+    const clipboard = event.clipboardData ?? (window as Window & { clipboardData?: DataTransfer }).clipboardData;
     const text = clipboard?.getData('text/plain') || clipboard?.getData('Text') || '';
     const textGrid = parseScoreText(text);
 
@@ -113,7 +115,7 @@ function parsePastedScoreGrid(event) {
         : parseClipboardHtml(clipboard?.getData('text/html') ?? '');
 }
 
-function setStudentScore(studentIndex, fieldKey, score) {
+function setStudentScore(studentIndex: number, fieldKey: ScoreField, score: string) {
     const student = props.students[studentIndex];
     if (!student || !editableFieldKeys.includes(fieldKey)) {
         return false;
@@ -133,7 +135,7 @@ function setStudentScore(studentIndex, fieldKey, score) {
     return true;
 }
 
-async function applyScoreGrid(grid, studentIndex, fieldKey) {
+async function applyScoreGrid(grid: string[][], studentIndex: number, fieldKey: ScoreField) {
     const startFieldIndex = editableFieldKeys.indexOf(fieldKey);
     if (startFieldIndex < 0) {
         return;
@@ -142,13 +144,13 @@ async function applyScoreGrid(grid, studentIndex, fieldKey) {
     const isSingleColumn = grid.every((row) => row.length === 1);
     const editableTargetFields = editableFieldKeys.slice(startFieldIndex);
     let pastedCount = 0;
-    let lastTarget = null;
+    const lastTarget: { value: { studentIndex: number; fieldKey: ScoreField } | null } = { value: null };
 
     grid.forEach((row, rowOffset) => {
         if (isSingleColumn) {
             if (setStudentScore(studentIndex + rowOffset, fieldKey, row[0])) {
                 pastedCount += 1;
-                lastTarget = { studentIndex: studentIndex + rowOffset, fieldKey };
+                lastTarget.value = { studentIndex: studentIndex + rowOffset, fieldKey };
             }
             return;
         }
@@ -161,7 +163,7 @@ async function applyScoreGrid(grid, studentIndex, fieldKey) {
 
             if (setStudentScore(studentIndex + rowOffset, targetFieldKey, score)) {
                 pastedCount += 1;
-                lastTarget = { studentIndex: studentIndex + rowOffset, fieldKey: targetFieldKey };
+                lastTarget.value = { studentIndex: studentIndex + rowOffset, fieldKey: targetFieldKey };
             }
         });
     });
@@ -169,14 +171,14 @@ async function applyScoreGrid(grid, studentIndex, fieldKey) {
     pasteStatus.value = pastedCount ? `${pastedCount} nilai ditempel` : '';
 
     await nextTick();
-    if (lastTarget) {
-        document.querySelector(
-            `.score-input[data-student-index="${lastTarget.studentIndex}"][data-field-key="${lastTarget.fieldKey}"]`,
+    if (lastTarget.value) {
+        document.querySelector<HTMLTextAreaElement>(
+            `.score-input[data-student-index="${lastTarget.value.studentIndex}"][data-field-key="${lastTarget.value.fieldKey}"]`,
         )?.focus();
     }
 }
 
-function handleScorePaste(event, studentIndex, fieldKey) {
+function handleScorePaste(event: ClipboardEvent, studentIndex: number, fieldKey: ScoreField) {
     const grid = parsePastedScoreGrid(event);
     if (!grid.length) {
         return;
@@ -186,21 +188,23 @@ function handleScorePaste(event, studentIndex, fieldKey) {
     applyScoreGrid(grid, studentIndex, fieldKey);
 }
 
-function handleScoreInput(event, studentIndex, fieldKey) {
+function handleScoreInput(event: Event, studentIndex: number, fieldKey: ScoreField) {
+    if (!(event.target instanceof HTMLTextAreaElement)) return;
     const grid = parseScoreText(event.target.value);
     if (grid.length) {
         applyScoreGrid(grid, studentIndex, fieldKey);
     }
 }
 
-function handleScoreKeyup(event) {
+function handleScoreKeyup(event: KeyboardEvent) {
     const input = event.target;
+    if (!(input instanceof HTMLTextAreaElement)) return;
 
     if (input.value.length < 3) {
         return;
     }
 
-    const inputs = Array.from(document.querySelectorAll('.score-input'));
+    const inputs = Array.from(document.querySelectorAll<HTMLTextAreaElement>('.score-input'));
     const next = inputs[inputs.indexOf(input) + 1];
 
     next?.focus();
@@ -342,7 +346,7 @@ function submit() {
                                         @keyup="handleScoreKeyup"
                                         @paste.stop="handleScorePaste($event, studentIndex, field.key)"
                                         @input="handleScoreInput($event, studentIndex, field.key)"
-                                        @focus="$event.target.select()"
+                                        @focus="($event.target as HTMLTextAreaElement).select()"
                                     ></textarea>
                                 </td>
                                 <td class="text-center">

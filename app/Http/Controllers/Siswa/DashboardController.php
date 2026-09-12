@@ -3,16 +3,13 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
-use App\Models\Absensi;
 use App\Models\KelasDaring;
 use App\Models\KelasMapel;
 use App\Models\Materi;
 use App\Models\Notifikasi;
 use App\Models\PengumpulanTugas;
 use App\Models\Pengumuman;
-use App\Models\Siswa;
 use App\Models\Tugas;
-use App\Services\StatistikService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -20,23 +17,14 @@ use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    protected StatistikService $statistikService;
-
-    public function __construct(StatistikService $statistikService)
-    {
-        $this->statistikService = $statistikService;
-    }
-
     public function index()
     {
         $user = Auth::user();
         $siswa = $user->siswa;
 
-        if (!$siswa) {
+        if (! $siswa) {
             return redirect()->route('login')->with('error', 'Data siswa tidak ditemukan.');
         }
-
-        $statistik = $this->statistikService->dashboardSiswa($siswa->id);
 
         $kelasMapel = KelasMapel::with(['mataPelajaran', 'guru', 'tahunAjaran'])
             ->withCount(['materi', 'tugas'])
@@ -49,14 +37,14 @@ class DashboardController extends Controller
         $totalTugas = Tugas::whereIn('kelas_mapel_id', $kelasMapelIds)->count();
         $tugasSelesai = PengumpulanTugas::where('siswa_id', $siswa->id)
             ->whereIn('status', PengumpulanTugas::STATUS_SUBMITTED)
-            ->whereHas('tugas', fn($q) => $q->whereIn('kelas_mapel_id', $kelasMapelIds))
+            ->whereHas('tugas', fn ($q) => $q->whereIn('kelas_mapel_id', $kelasMapelIds))
             ->count();
         $tugasBelum = max($totalTugas - $tugasSelesai, 0);
         $totalMateri = Materi::whereIn('kelas_mapel_id', $kelasMapelIds)->count();
 
         $tugasTerbaru = Tugas::with([
             'kelasMapel.mataPelajaran',
-            'pengumpulan' => fn($q) => $q->where('siswa_id', $siswa->id),
+            'pengumpulan' => fn ($q) => $q->where('siswa_id', $siswa->id),
         ])
             ->whereIn('kelas_mapel_id', $kelasMapelIds)
             ->orderBy('batas_waktu', 'asc')
@@ -66,14 +54,14 @@ class DashboardController extends Controller
         $pengumuman = Pengumuman::with('creator')
             ->where(function ($q) use ($kelasMapelIds, $siswa) {
                 $q->where('target', 'semua')
-                  ->orWhere('target', 'siswa')
-                  ->orWhere(function ($q) use ($kelasMapelIds, $siswa) {
-                      $q->where('target', 'kelas_mapel')
-                        ->where(function ($q) use ($kelasMapelIds, $siswa) {
-                            $q->whereIn('kelas_mapel_id', $kelasMapelIds)
-                              ->orWhere('target_kelas', 'like', '%"' . $siswa->kelas_id . '"%');
-                        });
-                  });
+                    ->orWhere('target', 'siswa')
+                    ->orWhere(function ($q) use ($kelasMapelIds, $siswa) {
+                        $q->where('target', 'kelas_mapel')
+                            ->where(function ($q) use ($kelasMapelIds, $siswa) {
+                                $q->whereIn('kelas_mapel_id', $kelasMapelIds)
+                                    ->orWhere('target_kelas', 'like', '%"'.$siswa->kelas_id.'"%');
+                            });
+                    });
             })
             ->orderBy('created_at', 'desc')
             ->take(5)
@@ -85,12 +73,6 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
-        $absensiTerbaru = Absensi::with('kelasMapel.mataPelajaran')
-            ->where('siswa_id', $siswa->id)
-            ->whereHas('kelasMapel', fn($q) => $q->aktif())
-            ->orderBy('tanggal', 'desc')
-            ->take(5)
-            ->get();
         $kelasDaring = KelasDaring::with('kelasMapel.mataPelajaran')
             ->whereIn('kelas_mapel_id', $kelasMapelIds)
             ->where('status', 'terjadwal')
@@ -115,14 +97,15 @@ class DashboardController extends Controller
                     'judul' => $tugas->judul,
                     'mata_pelajaran' => $tugas->kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
                     'batas_waktu' => $tugas->batas_waktu ? Carbon::parse($tugas->batas_waktu)->format('d/m/Y') : '-',
-                    'selesai' => (bool) $pengumpulan,
+                    'selesai' => in_array($pengumpulan?->status, PengumpulanTugas::STATUS_SUBMITTED, true),
+                    'show_url' => route('siswa.tugas.show', $tugas),
                 ];
             })->values(),
             'courses' => $kelasMapel->map(fn (KelasMapel $item) => [
                 'id' => $item->id,
                 'title' => $item->mataPelajaran?->nama_mapel ?? '-',
                 'subtitle' => $item->guru?->nama_lengkap ?? 'Guru belum ditetapkan',
-                'meta' => ($item->materi_count ?? 0) . ' materi · ' . ($item->tugas_count ?? 0) . ' tugas',
+                'meta' => ($item->materi_count ?? 0).' materi · '.($item->tugas_count ?? 0).' tugas',
                 'href' => route('siswa.kelas-mapel.show', $item),
                 'badges' => [['label' => 'Kelas saya', 'color' => 'primary']],
             ])->values(),

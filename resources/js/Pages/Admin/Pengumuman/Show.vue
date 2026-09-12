@@ -1,15 +1,17 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { Announcement } from '../../../types/announcements';
 import { Head, Link } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 
 const props = defineProps({
-    pengumuman: { type: Object, required: true },
-    targetKelasLabels: { type: Array, default: () => [] },
+    pengumuman: { type: Object as PropType<Announcement>, required: true },
+    targetKelasLabels: { type: Array as PropType<string[]>, default: () => [] },
     backUrl: { type: String, default: '/admin/pengumuman' },
 });
 
-function formatFileSize(bytes) {
+function formatFileSize(bytes: number | null) {
     if (!bytes) return '';
     const kb = bytes / 1024;
     return kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${Math.ceil(kb)} KB`;

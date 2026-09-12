@@ -1,4 +1,7 @@
-<script setup>
+<script setup lang="ts">
+defineSlots<{ actions?: () => unknown }>();
+import type { PropType } from 'vue';
+import type { QueueItem } from '../../types/ui';
 import { Link } from '@inertiajs/vue3';
 import Badge from './Badge.vue';
 import EmptyState from './EmptyState.vue';
@@ -6,7 +9,7 @@ import EmptyState from './EmptyState.vue';
 defineProps({
     title: { type: String, default: '' },
     icon: { type: String, default: 'bi-list-check' },
-    items: { type: Array, default: () => [] },
+    items: { type: Array as PropType<QueueItem[]>, default: () => [] },
     emptyTitle: { type: String, default: 'Tidak ada antrean' },
     emptyMessage: { type: String, default: '' },
 });

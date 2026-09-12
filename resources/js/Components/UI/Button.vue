@@ -1,18 +1,24 @@
-<script setup>
+<script setup lang="ts">
+defineSlots<{ default?: () => unknown }>();
 import { Link } from '@inertiajs/vue3';
+import type { Method } from '@inertiajs/core';
 
 defineOptions({
     inheritAttrs: false,
 });
 
-defineProps({
-    type: { type: String, default: 'button' },
-    color: { type: String, default: 'primary' },
-    size: { type: String, default: 'sm' },
-    icon: { type: String, default: '' },
-    href: { type: String, default: '' },
-    method: { type: String, default: 'get' },
-    as: { type: String, default: '' },
+interface Props {
+    type?: 'button' | 'submit' | 'reset';
+    color?: string;
+    size?: string;
+    icon?: string;
+    href?: string;
+    method?: Method;
+    as?: string;
+}
+
+withDefaults(defineProps<Props>(), {
+    type: 'button', color: 'primary', size: 'sm', icon: '', href: '', method: 'get', as: '',
 });
 </script>
 

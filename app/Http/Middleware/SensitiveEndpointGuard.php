@@ -122,8 +122,8 @@ class SensitiveEndpointGuard
             $query->orderBy('nama_lengkap')->chunk(500, function ($users) use ($output): void {
                 foreach ($users as $user) {
                     fputcsv($output, [
-                        $user->username,
-                        $user->nama_lengkap,
+                        $this->safeSpreadsheetValue($user->username),
+                        $this->safeSpreadsheetValue($user->nama_lengkap),
                         $user->role?->nama_role ?? '-',
                         $user->is_password_default ? 'Masih default/sementara' : 'Sudah diubah',
                     ]);
@@ -136,6 +136,17 @@ class SensitiveEndpointGuard
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
             'X-Content-Type-Options' => 'nosniff',
         ]);
+    }
+
+    /**
+     * Prevent spreadsheet applications from evaluating exported text as a
+     * formula when a user-controlled value begins with a formula character.
+     */
+    private function safeSpreadsheetValue(?string $value): string
+    {
+        $value = (string) $value;
+
+        return preg_match('/^[=+\-@]/', $value) === 1 ? "'{$value}" : $value;
     }
 
     private function authorizeAdmin(Request $request, Closure $next): ?Response

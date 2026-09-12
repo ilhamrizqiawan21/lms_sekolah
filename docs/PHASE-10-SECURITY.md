@@ -63,7 +63,8 @@ The Phase 10 feature tests are now part of that suite. Runtime execution must be
 - Generate a unique `APP_KEY`; never commit `.env`.
 - Use HTTPS and set `SESSION_SECURE_COOKIE=true`.
 - Keep `SESSION_HTTP_ONLY=true` and `SESSION_SAME_SITE=lax` unless the deployment architecture requires another value.
-- Set `FORCE_PASSWORD_CHANGE=true` until all seeded/default accounts have changed credentials.
+- Kebijakan ganti password wajib dinonaktifkan secara default. Aktifkan eksplisit
+  dengan `FORCE_PASSWORD_CHANGE=true` hanya bila diperlukan oleh instalasi.
 - Use a non-default database account with only the privileges required by the application.
 - Ensure `storage/` and `bootstrap/cache/` are writable by the application process, while `.env` and source files are not web-writable.
 - Keep private user/task files outside the public web root and serve them through authorized download controllers.

@@ -1,16 +1,18 @@
-<script setup>
-import { Head, Link, useForm } from '@inertiajs/vue3';
+<script setup lang="ts">
+import type { PropType } from 'vue';
+type SchoolField = 'school_name' | 'school_short_name' | 'address' | 'village' | 'district' | 'city' | 'province' | 'postal_code' | 'phone' | 'whatsapp' | 'email' | 'website' | 'npsn' | 'nsm' | 'accreditation' | 'school_status' | 'principal_name' | 'principal_nip' | 'principal_nuptk' | 'foundation_name' | 'school_year' | 'semester' | 'vision' | 'mission' | 'motto' | 'logo_url' | 'favicon_url';
+import { Head, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, CourseCard, MetricStrip, QuickActionBar } from '../../../Components/UI';
+import { Badge, Button, Card, MetricStrip, QuickActionBar } from '../../../Components/UI';
 import { FileInput, SelectInput, TextareaInput, TextInput } from '../../../Components/Form';
 
 const props = defineProps({
-    settings: { type: Object, default: () => ({}) },
-    tahunAjaranAktif: { type: Object, default: null },
-    schoolSetting: { type: Object, required: true },
-    urls: { type: Object, required: true },
+    settings: { type: Object as PropType<Partial<Record<'warna_tema' | 'semester_aktif' | 'mode_kenaikan' | 'penalty_terlambat_poin' | 'whatsapp_template_tugas_terlambat', string>>>, default: () => ({}) },
+    tahunAjaranAktif: { type: Object as PropType<{ tahun: string } | null>, default: null },
+    schoolSetting: { type: Object as PropType<Record<SchoolField, string | null>>, required: true },
+    urls: { type: Object as PropType<Record<'tahun_ajaran' | 'blocked_ips' | 'save_system' | 'save_school', string>>, required: true },
 });
 
 const themeOptions = [
@@ -26,6 +28,7 @@ const systemForm = useForm({
     semester_aktif: props.settings.semester_aktif ?? '1',
     mode_kenaikan: props.settings.mode_kenaikan ?? 'manual',
     penalty_terlambat_poin: props.settings.penalty_terlambat_poin ?? '1',
+    whatsapp_template_tugas_terlambat: props.settings.whatsapp_template_tugas_terlambat ?? '',
 });
 
 const schoolForm = useForm({
@@ -54,8 +57,8 @@ const schoolForm = useForm({
     vision: props.schoolSetting.vision ?? '',
     mission: props.schoolSetting.mission ?? '',
     motto: props.schoolSetting.motto ?? '',
-    logo: null,
-    favicon: null,
+    logo: null as File | null,
+    favicon: null as File | null,
 });
 
 const metrics = computed(() => [
@@ -325,6 +328,16 @@ function saveSchool() {
                             step="0.01"
                             help="Jumlah poin yang dipotong dari nilai untuk setiap hari keterlambatan (contoh: 1 hari telat = 1 poin)."
                             :error="systemForm.errors.penalty_terlambat_poin"
+                        />
+                    </div>
+                    <div class="col-md-8 mt-3">
+                        <TextareaInput
+                            v-model="systemForm.whatsapp_template_tugas_terlambat"
+                            name="whatsapp_template_tugas_terlambat"
+                            label="Template WhatsApp Tugas Terlambat"
+                            rows="7"
+                            help="Placeholder yang tersedia: {{nama_siswa}}, {{daftar_tugas}}, {{total_tugas}}, {{total_hari_terlambat}}, {{url_lms}}. Kosongkan untuk memakai template bawaan."
+                            :error="systemForm.errors.whatsapp_template_tugas_terlambat"
                         />
                     </div>
                 </div>

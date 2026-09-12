@@ -1,20 +1,17 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import SidebarLink from './SidebarLink.vue';
 import { sidebarMenu } from './sidebarMenu';
+import type { AppPageProps, AuthUser, Capabilities, SchoolBranding, SidebarItem } from '../../types';
 
-const props = defineProps({
-    open: { type: Boolean, default: false },
-    school: { type: Object, required: true },
-    user: { type: Object, default: null },
-    capabilities: { type: Object, default: () => ({}) },
-});
+interface Props { open?: boolean; school: SchoolBranding; user?: AuthUser | null; capabilities?: Capabilities; }
+const props = withDefaults(defineProps<Props>(), { open: false, user: null, capabilities: () => ({ has_wali_kelas: false }) });
 
-const page = usePage();
+const page = usePage<AppPageProps>();
 const menu = computed(() => sidebarMenu(props.user?.role, props.capabilities));
-const mobileMenu = computed(() => menu.value
-    .filter((entry) => entry.type === 'item' && entry.inertia && entry.href)
+const mobileMenu = computed<SidebarItem[]>(() => menu.value
+    .filter((entry): entry is SidebarItem => entry.type === 'item' && Boolean(entry.inertia && entry.href))
     .slice(0, 5));
 
 const currentPath = computed(() => {
@@ -22,7 +19,7 @@ const currentPath = computed(() => {
     return url.split('?')[0].split('#')[0] || '/';
 });
 
-function isActive(entry) {
+function isActive(entry: SidebarItem) {
     return entry.activePrefixes?.some((prefix) => currentPath.value === prefix || currentPath.value.startsWith(`${prefix}/`));
 }
 </script>

@@ -1,12 +1,13 @@
-<script setup>
+<script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Card, EmptyState, TableWrapper } from '../../../Components/UI';
 
-defineProps({
-    nilaiGroups: { type: Array, default: () => [] },
-});
+interface NilaiItem { id: number; mata_pelajaran: string; rata_akhir?: number | string | null; [key: string]: unknown }
+interface NilaiGroup { periode: string; nilai: NilaiItem[] }
+interface Props { nilaiGroups?: NilaiGroup[] }
+
+const props = withDefaults(defineProps<Props>(), { nilaiGroups: () => [] });
 
 const fields = [
     { key: 'sum1', label: 'SUM1' },
@@ -19,11 +20,11 @@ const fields = [
     { key: 'sat', label: 'SAT' },
 ];
 
-function display(value) {
-    return value ?? '-';
+function display(value: unknown): string | number {
+    return typeof value === 'string' || typeof value === 'number' ? value : '-';
 }
 
-function averageStyle(value) {
+function averageStyle(value: unknown): { color: string } {
     if (value === null || value === undefined || value === '') {
         return { color: '#ef4444' };
     }
@@ -41,9 +42,9 @@ function averageStyle(value) {
             <span class="text-muted small">Nilai yang terlihat di sini mengikuti data terakhir yang tersedia.</span>
         </div>
 
-        <template v-if="nilaiGroups.length">
+        <template v-if="props.nilaiGroups.length">
             <Card
-                v-for="group in nilaiGroups"
+                v-for="group in props.nilaiGroups"
                 :key="group.periode"
                 :title="group.periode"
                 icon="bi-calendar3"

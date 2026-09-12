@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { SelectInput, TextInput } from '../../../Components/Form';
@@ -6,8 +8,8 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Button, Card, DashboardHero } from '../../../Components/UI';
 
 const props = defineProps({
-    user: { type: Object, default: null },
-    roles: { type: Array, default: () => [] },
+    user: { type: Object as PropType<{ username: string; nama_lengkap: string; email: string | null; role_id: number; nip_nis: string | null; jenis_kelamin: string | null; is_active: boolean; update_url: string } | null>, default: null },
+    roles: { type: Array as PropType<{ id: number; nama_role: string }[]>, default: () => [] },
     storeUrl: { type: String, default: null },
 });
 
@@ -34,11 +36,12 @@ function submit() {
         return;
     }
 
-    if (isEdit.value) {
+    if (props.user) {
         form.put(props.user.update_url, { preserveScroll: true });
         return;
     }
 
+    if (!props.storeUrl) return;
     form.post(props.storeUrl, { preserveScroll: true });
 }
 </script>

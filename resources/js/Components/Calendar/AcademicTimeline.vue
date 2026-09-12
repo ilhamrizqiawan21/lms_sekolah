@@ -1,14 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { Badge, Card, EmptyState } from '../UI';
+import type { TimelineEvent, TimelineEventType } from '../../types';
 
-const props = defineProps({
-    events: { type: Array, default: () => [] },
-});
+interface Props { events?: TimelineEvent[] }
+const props = withDefaults(defineProps<Props>(), { events: () => [] });
 
-const filter = ref('all');
-const filters = [
+const filter = ref<'all' | TimelineEventType>('all');
+const filters: Array<{ value: 'all' | TimelineEventType; label: string }> = [
     { value: 'all', label: 'Semua' },
     { value: 'calendar', label: 'Event' },
     { value: 'task', label: 'Deadline' },
@@ -16,8 +16,8 @@ const filters = [
 ];
 
 const visibleEvents = computed(() => props.events.filter((event) => filter.value === 'all' || event.type === filter.value));
-const typeColor = (type) => ({ calendar: 'secondary', task: 'warning text-dark', announcement: 'info text-dark' }[type] || 'secondary');
-const typeIcon = (type) => ({ calendar: 'bi-calendar-event', task: 'bi-hourglass-split', announcement: 'bi-megaphone' }[type] || 'bi-calendar-event');
+const typeColor = (type: TimelineEventType): string => ({ calendar: 'secondary', task: 'warning text-dark', announcement: 'info text-dark' }[type]);
+const typeIcon = (type: TimelineEventType): string => ({ calendar: 'bi-calendar-event', task: 'bi-hourglass-split', announcement: 'bi-megaphone' }[type]);
 </script>
 
 <template>

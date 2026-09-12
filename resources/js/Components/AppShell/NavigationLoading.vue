@@ -1,10 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 
 const loading = ref(false);
-let removeStartListener = null;
-let removeFinishListener = null;
+let removeStartListener: (() => void) | null = null;
+let removeFinishListener: (() => void) | null = null;
 
 onMounted(() => {
     removeStartListener = router.on('start', () => {

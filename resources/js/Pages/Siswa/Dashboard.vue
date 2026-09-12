@@ -1,25 +1,25 @@
-<script setup>
+<script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import AppShell from '../../Layouts/AppShell.vue';
 import { computed } from 'vue';
 import { ActionQueue, CourseCard, DashboardHero, MetricStrip, QuickActionBar } from '../../Components/UI';
+interface StudentStats { total_tugas?: number; tugas_selesai?: number; tugas_belum?: number; total_materi?: number; }
+interface StudentCourse { id: number; title: string; subtitle: string; meta: string; href: string; badges?: Array<{ label: string; color?: string }>; }
+interface StudentTask { id: number; judul: string; mata_pelajaran: string; batas_waktu: string; show_url?: string | null; selesai?: boolean; }
+interface StudentNotification { id: number; judul: string; created_at: string; pesan: string; is_read: boolean; tipe: string; }
+interface StudentAnnouncement { id: number; judul: string; created_at: string; show_url?: string | null; }
+interface OnlineClass { id: number; judul: string; mata_pelajaran: string; tanggal: string; pelajaran_ke: number; workspace_url: string; }
+interface StudentLinks { tugas?: string; materi?: string; jadwal_pelajaran?: string; kelas_daring?: string; notifikasi?: string; pengumuman?: string; }
 
-const props = defineProps({
-    stats: { type: Object, required: true },
-    courses: { type: Array, default: () => [] },
-    tugasTerbaru: { type: Array, default: () => [] },
-    notifikasi: { type: Array, default: () => [] },
-    pengumuman: { type: Array, default: () => [] },
-    kelasDaring: { type: Array, default: () => [] },
-    links: { type: Object, default: () => ({}) },
-});
+interface Props { stats: StudentStats; courses?: StudentCourse[]; tugasTerbaru?: StudentTask[]; notifikasi?: StudentNotification[]; pengumuman?: StudentAnnouncement[]; kelasDaring?: OnlineClass[]; links?: StudentLinks; }
+const props = withDefaults(defineProps<Props>(), { courses: () => [], tugasTerbaru: () => [], notifikasi: () => [], pengumuman: () => [], kelasDaring: () => [], links: () => ({}) });
 
 const iconMap = {
     tugas_baru: { icon: 'bi-journal-plus', color: '#3b82f6' }, nilai_baru: { icon: 'bi-bar-chart-fill', color: '#22c55e' },
     chat_baru: { icon: 'bi-chat-dots-fill', color: '#8b5cf6' }, komentar_tugas: { icon: 'bi-chat-square-text-fill', color: '#f59e0b' },
     kumpul_tugas: { icon: 'bi-check-circle-fill', color: '#06b6d4' }, absensi: { icon: 'bi-clipboard-check-fill', color: '#ef4444' },
 };
-function iconFor(type) { return iconMap[type] ?? { icon: 'bi-bell-fill', color: '#6b7280' }; }
+function iconFor(type: string) { return iconMap[type as keyof typeof iconMap] ?? { icon: 'bi-bell-fill', color: '#6b7280' }; }
 
 const metrics = computed(() => [
     { label: 'Total tugas', value: props.stats.total_tugas ?? 0, icon: 'bi-journal-fill', tone: 'primary', href: props.links.tugas },

@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { TeacherTask } from '../../../types/tasks';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { TextareaInput, TextInput } from '../../../Components/Form';
@@ -6,8 +8,8 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, DashboardHero, EmptyState, IconButton, MetricStrip, QuickActionBar, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    kelasMapel: { type: Object, required: true },
-    tugas: { type: Array, default: () => [] },
+    kelasMapel: { type: Object as PropType<{ id: number; kelas: string; mata_pelajaran: string; workspace_url: string; store_url: string; back_url: string; export_excel_url: string; export_pdf_url: string }>, required: true },
+    tugas: { type: Array as PropType<TeacherTask[]>, default: () => [] },
     totalSiswa: { type: Number, default: 0 },
 });
 
@@ -67,7 +69,7 @@ function submit() {
     });
 }
 
-async function destroy(item) {
+async function destroy(item: TeacherTask) {
     const confirmed = await window.confirmDialog?.('Hapus tugas ini?', {
         title: 'Hapus Tugas',
         confirmText: 'Ya, hapus',

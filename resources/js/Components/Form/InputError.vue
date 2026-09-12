@@ -1,7 +1,8 @@
-<script setup>
-defineProps({
-    message: { type: [String, Array], default: '' },
-});
+<script setup lang="ts">
+import type { ValidationMessage } from '../../types/forms';
+
+interface Props { message?: ValidationMessage; }
+withDefaults(defineProps<Props>(), { message: '' });
 </script>
 
 <template>

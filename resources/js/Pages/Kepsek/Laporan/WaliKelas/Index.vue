@@ -1,11 +1,15 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { LaravelPaginator } from '../../../../types/pagination';
+
+import type { HomeroomReportRow } from '../../../../types/reports';
 import { Head } from '@inertiajs/vue3';
 import PageHeader from '../../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, Pagination, TableWrapper } from '../../../../Components/UI';
 
 defineProps({
-    waliKelas: { type: Object, required: true },
+    waliKelas: { type: Object as PropType<LaravelPaginator<HomeroomReportRow>>, required: true },
 });
 </script>
 

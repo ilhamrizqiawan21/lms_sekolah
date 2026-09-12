@@ -1,4 +1,5 @@
-<script setup>
+<script setup lang="ts">
+defineSlots<{ default?: () => unknown }>();
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import ConfirmDialog from '../Components/AppShell/ConfirmDialog.vue';
@@ -8,29 +9,31 @@ import Sidebar from '../Components/AppShell/Sidebar.vue';
 import ToastStack from '../Components/AppShell/ToastStack.vue';
 import Topbar from '../Components/AppShell/Topbar.vue';
 import { sidebarMenu } from '../Components/AppShell/sidebarMenu';
+import type { AppPageProps } from '../types';
 
-const props = defineProps({
-    title: { type: String, default: '' },
-});
+interface Props { title?: string; }
+const props = withDefaults(defineProps<Props>(), { title: '' });
 
-const page = usePage();
+const page = usePage<AppPageProps>();
 const sidebarOpen = ref(false);
+const isMobileViewport = ref(false);
 const commandOpen = ref(false);
-const school = computed(() => page.props.school ?? {});
+const school = computed(() => page.props.school);
 const user = computed(() => page.props.auth?.user ?? null);
-const notifications = computed(() => page.props.notifications ?? {});
-const capabilities = computed(() => page.props.capabilities ?? {});
+const notifications = computed(() => page.props.notifications);
+const capabilities = computed(() => page.props.capabilities);
 const pageTitle = computed(() => props.title || document.title.replace(' - LMS Sekolah', '') || 'Dashboard');
 const shellClass = computed(() => `app-shell app-shell-${user.value?.role ?? 'guest'}`);
+const sidebarOverlayVisible = computed(() => isMobileViewport.value && sidebarOpen.value);
 const commandItems = computed(() => sidebarMenu(user.value?.role, capabilities.value));
 
 function syncSidebarWithViewport() {
-    if (window.innerWidth >= 992) {
-        sidebarOpen.value = true;
-        return;
-    }
+    const isDesktop = window.matchMedia
+        ? window.matchMedia('(min-width: 992px)').matches
+        : window.innerWidth >= 992;
 
-    sidebarOpen.value = false;
+    isMobileViewport.value = !isDesktop;
+    sidebarOpen.value = isDesktop;
 }
 
 onMounted(() => {
@@ -44,9 +47,9 @@ onBeforeUnmount(() => {
     window.removeEventListener('keydown', openCommandShortcut);
 });
 
-function openCommandShortcut(event) {
-    const target = event.target;
-    const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName) || target?.isContentEditable;
+function openCommandShortcut(event: KeyboardEvent) {
+    const target = event.target as HTMLElement | null;
+    const typing = Boolean(target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable));
     if (!typing && (event.key === '/' || ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k'))) {
         event.preventDefault();
         commandOpen.value = true;
@@ -59,10 +62,10 @@ function closeSidebar() {
 </script>
 
 <template>
-    <div :class="shellClass" @keydown.esc.window="closeSidebar">
+    <div :class="[shellClass, { 'sidebar-is-open': sidebarOpen }]" @keydown.esc.window="closeSidebar">
         <a href="#mainContent" class="skip-link">Lewati ke konten utama</a>
 
-        <div class="sidebar-overlay" :class="{ show: sidebarOpen }" @click="closeSidebar"></div>
+        <div class="sidebar-overlay" :class="{ show: sidebarOverlayVisible }" @click="closeSidebar"></div>
 
         <Topbar
             :school="school"

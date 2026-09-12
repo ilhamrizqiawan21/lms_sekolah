@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -6,24 +6,26 @@ import { TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, IconButton, TableWrapper } from '../../../Components/UI';
 
-const props = defineProps({
-    tahunAjaran: { type: Array, default: () => [] },
-});
+interface TahunAjaran { id: number; tahun: string; is_active?: boolean }
+interface TahunAjaranForm { tahun: string; is_active: boolean }
+interface Props { tahunAjaran?: TahunAjaran[] }
 
-const editing = ref(null);
-const createForm = useForm(blankForm());
-const editForm = useForm(blankForm());
+const props = withDefaults(defineProps<Props>(), { tahunAjaran: () => [] });
+
+const editing = ref<TahunAjaran | null>(null);
+const createForm = useForm<TahunAjaranForm>(blankForm());
+const editForm = useForm<TahunAjaranForm>(blankForm());
 const formTitle = computed(() => editing.value ? 'Edit Tahun Ajaran' : 'Tambah Tahun Ajaran');
 const formIcon = computed(() => editing.value ? 'bi-pencil-square' : 'bi-plus-circle');
 
-function blankForm() {
+function blankForm(): TahunAjaranForm {
     return {
         tahun: '',
         is_active: false,
     };
 }
 
-function startEdit(item) {
+function startEdit(item: TahunAjaran): void {
     editing.value = item;
     editForm.clearErrors();
     editForm.defaults({
@@ -33,13 +35,13 @@ function startEdit(item) {
     editForm.reset();
 }
 
-function cancelEdit() {
+function cancelEdit(): void {
     editing.value = null;
     editForm.clearErrors();
     editForm.reset();
 }
 
-function submitCreate() {
+function submitCreate(): void {
     if (createForm.processing) {
         return;
     }
@@ -50,7 +52,7 @@ function submitCreate() {
     });
 }
 
-function submitEdit() {
+function submitEdit(): void {
     if (!editing.value || editForm.processing) {
         return;
     }
@@ -61,7 +63,7 @@ function submitEdit() {
     });
 }
 
-async function setAktif(item) {
+async function setAktif(item: TahunAjaran): Promise<void> {
     const confirmed = await window.confirmDialog?.('Aktifkan tahun ajaran ini? Semester aktif akan kembali ke Semester 1.', {
         title: 'Aktifkan Tahun Ajaran',
         confirmText: 'Ya, aktifkan',
@@ -76,7 +78,7 @@ async function setAktif(item) {
     });
 }
 
-async function destroy(item) {
+async function destroy(item: TahunAjaran): Promise<void> {
     const confirmed = await window.confirmDialog?.(`Hapus tahun ajaran ${item.tahun}?`, {
         title: 'Hapus Tahun Ajaran',
         confirmText: 'Ya, hapus',

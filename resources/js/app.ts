@@ -2,7 +2,9 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '../css/responsive-polish.css';
 import { initColorMode } from './theme';
 
-function initLegacySidebar() {
+interface ConfirmOptions { title?: string; confirmText?: string; cancelText?: string; danger?: boolean }
+
+function initLegacySidebar(): void {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
     const toggle = document.querySelector('[data-sidebar-toggle]');
@@ -11,7 +13,7 @@ function initLegacySidebar() {
         return;
     }
 
-    const setOpen = (open) => {
+    const setOpen = (open: boolean): void => {
         sidebar.classList.toggle('sidebar-open', open);
         overlay.classList.toggle('show', open);
         toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -27,23 +29,25 @@ function initLegacySidebar() {
     });
 }
 
-function escapeHtml(value) {
-    return String(value).replace(/[&<>"']/g, (match) => ({
+function escapeHtml(value: unknown): string {
+    const entities: Record<string, string> = {
         '&': '&amp;',
         '<': '&lt;',
         '>': '&gt;',
         '"': '&quot;',
         "'": '&#39;',
-    }[match]));
+    };
+
+    return String(value).replace(/[&<>"']/g, (match) => entities[match] ?? match);
 }
 
-window.confirmAction = function (message, callback, options = {}) {
+const confirmAction = (message: string, callback: (confirmed: boolean) => void, options: ConfirmOptions = {}): void => {
     const title = options.title || 'Konfirmasi';
     const confirmText = options.confirmText || 'Ya, lanjutkan';
     const cancelText = options.cancelText || 'Batal';
     const isDanger = options.danger === true;
     const overlay = document.createElement('div');
-    const previousFocus = document.activeElement;
+    const previousFocus = document.activeElement as HTMLElement | null;
 
     overlay.className = 'confirm-overlay';
     overlay.innerHTML = '<div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">' +
@@ -55,7 +59,7 @@ window.confirmAction = function (message, callback, options = {}) {
         `<button type="button" id="confirmOk" class="btn ${isDanger ? 'btn-danger' : 'btn-success'}">${escapeHtml(confirmText)}</button>` +
         '</div></div>';
 
-    const close = (result) => {
+    const close = (result: boolean): void => {
         if (overlay.parentNode) {
             overlay.remove();
         }
@@ -65,46 +69,50 @@ window.confirmAction = function (message, callback, options = {}) {
         }
         callback(result);
     };
-    const escapeHandler = (event) => {
+    const escapeHandler = (event: KeyboardEvent): void => {
         if (event.key === 'Escape') {
             close(false);
             return;
         }
 
         if (event.key === 'Tab') {
-            const focusable = overlay.querySelectorAll('button');
+            const focusable = overlay.querySelectorAll<HTMLButtonElement>('button');
             const first = focusable[0];
             const last = focusable[focusable.length - 1];
 
             if (event.shiftKey && document.activeElement === first) {
                 event.preventDefault();
-                last.focus();
+                last?.focus();
             } else if (!event.shiftKey && document.activeElement === last) {
                 event.preventDefault();
-                first.focus();
+                first?.focus();
             }
         }
     };
 
     document.body.appendChild(overlay);
-    document.getElementById('confirmOk').onclick = () => close(true);
-    document.getElementById('confirmCancel').onclick = () => close(false);
+    const confirmButton = overlay.querySelector<HTMLButtonElement>('#confirmOk');
+    const cancelButton = overlay.querySelector<HTMLButtonElement>('#confirmCancel');
+    if (!confirmButton || !cancelButton) return;
+    confirmButton.onclick = () => close(true);
+    cancelButton.onclick = () => close(false);
     overlay.onclick = (event) => {
         if (event.target === overlay) {
             close(false);
         }
     };
     document.addEventListener('keydown', escapeHandler);
-    document.getElementById('confirmOk').focus();
+    confirmButton.focus();
 };
+window.confirmAction = confirmAction;
 
-function setFormLoading(form) {
+function setFormLoading(form: HTMLFormElement | null): void {
     if (!form || form.dataset.loading === 'true' || form.dataset.noLoading === 'true') {
         return;
     }
 
     form.dataset.loading = 'true';
-    form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((button) => {
+    form.querySelectorAll<HTMLButtonElement | HTMLInputElement>('button[type="submit"], input[type="submit"]').forEach((button) => {
         button.dataset.originalHtml = button.innerHTML;
         button.disabled = true;
         button.classList.add('is-loading');
@@ -116,7 +124,7 @@ function setFormLoading(form) {
 }
 
 document.addEventListener('click', (event) => {
-    const el = event.target.closest('[data-confirm]');
+    const el = (event.target as Element | null)?.closest<HTMLElement>('[data-confirm]');
 
     if (!el) {
         return;
@@ -128,7 +136,7 @@ document.addEventListener('click', (event) => {
     const msg = el.getAttribute('data-confirm') || 'Anda yakin ingin melanjutkan?';
     const danger = el.className.indexOf('danger') !== -1 || el.getAttribute('data-danger') === 'true';
 
-    window.confirmAction(msg, (ok) => {
+    confirmAction(msg, (ok) => {
         if (!ok) {
             return;
         }
@@ -138,7 +146,7 @@ document.addEventListener('click', (event) => {
         const method = (el.getAttribute('data-method') || 'get').toUpperCase();
 
         if (parentForm) {
-            if (el.name) {
+            if (el instanceof HTMLButtonElement && el.name) {
                 const submitValue = document.createElement('input');
                 submitValue.type = 'hidden';
                 submitValue.name = el.name;
@@ -157,7 +165,7 @@ document.addEventListener('click', (event) => {
                 form.method = 'POST';
             }
 
-            const csrf = document.querySelector('meta[name="csrf-token"]');
+            const csrf = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]');
             if (csrf && method !== 'GET') {
                 const input = document.createElement('input');
                 input.type = 'hidden';
@@ -169,25 +177,27 @@ document.addEventListener('click', (event) => {
             document.body.appendChild(form);
             setFormLoading(form);
             form.submit();
-        } else if (el.href) {
+        } else if (el instanceof HTMLAnchorElement && el.href) {
             window.location.href = el.href;
         }
     }, { danger, title: el.getAttribute('data-title') || 'Konfirmasi' });
 });
 
 document.addEventListener('submit', (event) => {
-    const submitter = event.submitter;
+    const submitEvent = event as SubmitEvent;
+    const form = submitEvent.target as HTMLFormElement | null;
+    const submitter = submitEvent.submitter as HTMLButtonElement | HTMLInputElement | null;
 
-    if (submitter?.name && !event.target.querySelector(`input[type="hidden"][data-submit-proxy="${submitter.name}"]`)) {
+    if (form && submitter?.name && !form.querySelector(`input[type="hidden"][data-submit-proxy="${submitter.name}"]`)) {
         const submitValue = document.createElement('input');
         submitValue.type = 'hidden';
         submitValue.name = submitter.name;
         submitValue.value = submitter.value;
         submitValue.dataset.submitProxy = submitter.name;
-        event.target.appendChild(submitValue);
+        form.appendChild(submitValue);
     }
 
-    setFormLoading(event.target);
+    setFormLoading(form);
 });
 
 document.addEventListener('DOMContentLoaded', async () => {

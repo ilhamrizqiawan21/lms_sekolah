@@ -1,11 +1,13 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
 import { Head } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Card, EmptyState } from '../../../Components/UI';
 
 defineProps({
-    kelasMapel: { type: Array, default: () => [] },
+    kelasMapel: { type: Array as PropType<{ id: number; href: string; initials: string; mata_pelajaran: string; guru: string }[]>, default: () => [] },
 });
 </script>
 

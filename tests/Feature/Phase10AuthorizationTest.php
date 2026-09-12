@@ -12,6 +12,7 @@ use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Models\Tugas;
 use App\Models\User;
+use App\Models\WhatsAppMessageLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\RequiresPhpExtension;
@@ -183,6 +184,7 @@ class Phase10AuthorizationTest extends TestCase
         $commentOnlyStudent = Siswa::create([
             'user_id' => $commentOnlyUser->id,
             'nis' => '9202',
+            'nomor_whatsapp' => '6281234567890', 'whatsapp_opt_in' => true,
             'kelas_id' => $kelas->id,
             'status' => 'aktif',
         ]);
@@ -258,6 +260,63 @@ class Phase10AuthorizationTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->where('tugas.0.perlu_dinilai', 1)
             );
+    }
+
+    public function test_teacher_direct_grade_on_unsubmitted_task_applies_late_penalty(): void
+    {
+        [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
+        Pengaturan::setValue('penalty_terlambat_poin', '2');
+        $mapel = MataPelajaran::create(['kode' => 'DIR', 'nama_mapel' => 'Hafalan', 'urutan' => 1]);
+        $kelasMapel = KelasMapel::create(['kelas_id' => $kelas->id, 'mapel_id' => $mapel->id, 'guru_id' => $guru->id, 'tahun_ajaran_id' => $tahunAjaran->id, 'semester' => '1', 'pertemuan_per_minggu' => 1]);
+        $studentUser = $this->createUser('siswa-direct-grade', 'Siswa Direct Grade', 'siswa');
+        $student = Siswa::create(['user_id' => $studentUser->id, 'nis' => '9299', 'kelas_id' => $kelas->id, 'status' => 'aktif']);
+        $tugas = Tugas::create(['kelas_mapel_id' => $kelasMapel->id, 'judul' => 'Hafalan', 'batas_waktu' => now()->subDays(3), 'kategori_nilai' => 'NH']);
+
+        $this->actingAs($guru)->postJson(route('guru.tugas.nilai', [$kelasMapel, $tugas, $student]), ['nilai' => 90])
+            ->assertOk()
+            ->assertJsonPath('penalty_terlambat', '6.00')
+            ->assertJsonPath('nilai', '84.00');
+        $this->assertDatabaseHas('pengumpulan_tugas', [
+            'tugas_id' => $tugas->id, 'siswa_id' => $student->id,
+            'status' => 'dinilai', 'nilai_sebelum_penalty' => 90, 'nilai' => 84,
+        ]);
+    }
+
+    public function test_teacher_can_prepare_whatsapp_message_and_record_log(): void
+    {
+        [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
+        $mapel = MataPelajaran::create(['kode' => 'WA', 'nama_mapel' => 'WhatsApp', 'urutan' => 1]);
+        $kelasMapel = KelasMapel::create([
+            'kelas_id' => $kelas->id,
+            'mapel_id' => $mapel->id,
+            'guru_id' => $guru->id,
+            'tahun_ajaran_id' => $tahunAjaran->id,
+            'semester' => '1',
+            'pertemuan_per_minggu' => 1,
+        ]);
+        $tugas = Tugas::create(['kelas_mapel_id' => $kelasMapel->id, 'judul' => 'Pengingat', 'batas_waktu' => now()->subDays(2), 'kategori_nilai' => 'NH']);
+        $studentUser = $this->createUser('siswa-wa', 'Siswa WA', 'siswa');
+        $student = Siswa::create([
+            'user_id' => $studentUser->id,
+            'nis' => '9301',
+            'kelas_id' => $kelas->id,
+            'status' => 'aktif',
+            'nomor_whatsapp' => '081234567890',
+            'whatsapp_opt_in' => true,
+        ]);
+
+        $response = $this->actingAs($guru)
+            ->getJson(route('guru.tugas.whatsapp', [$kelasMapel, $tugas, $student]))
+            ->assertOk();
+        $this->assertStringStartsWith('https://wa.me/6281234567890?text=', $response->json('url'));
+
+        $this->assertDatabaseHas('whatsapp_message_logs', [
+            'siswa_id' => $student->id,
+            'guru_id' => $guru->id,
+            'jenis_template' => 'tugas_terlambat',
+        ]);
+        $this->assertSame('6281234567890', $student->fresh()->nomor_whatsapp);
+        $this->assertInstanceOf(WhatsAppMessageLog::class, WhatsAppMessageLog::latest()->first());
     }
 
     public function test_admin_student_password_reset_uses_default_password(): void

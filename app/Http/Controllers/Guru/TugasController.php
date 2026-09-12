@@ -14,8 +14,11 @@ use App\Models\PengumpulanTugas;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Models\Tugas;
+use App\Models\WhatsAppMessageLog;
 use App\Services\NilaiService;
 use App\Services\NotifikasiService;
+use App\Services\WhatsAppService;
+use App\Support\WhatsAppPhone;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -204,6 +207,14 @@ class TugasController extends Controller
             ->where('status', 'aktif')
             ->orderBy('nis')
             ->get();
+        $lastWhatsAppByStudent = WhatsAppMessageLog::query()
+            ->where('guru_id', Auth::id())
+            ->whereIn('siswa_id', $siswa->pluck('id'))
+            ->orderByDesc('prepared_at')
+            ->get()
+            ->unique('siswa_id')
+            ->keyBy('siswa_id');
+        $penaltyPerDay = max(0, round((float) Pengaturan::getValue('penalty_terlambat_poin', '1'), 2));
 
         $missingSubmittedStudentIds = $pengumpulan->keys()
             ->diff($siswa->pluck('id'))
@@ -237,8 +248,13 @@ class TugasController extends Controller
                 'deskripsi' => $tugas->deskripsi,
                 'batas_waktu' => $tugas->batas_waktu?->format('d/m/Y'),
             ],
-            'pengumpulan' => $siswa->map(function (Siswa $student, int $index) use ($pengumpulan, $kelasMapel, $tugas) {
+            'pengumpulan' => $siswa->map(function (Siswa $student, int $index) use ($pengumpulan, $kelasMapel, $tugas, $penaltyPerDay, $lastWhatsAppByStudent) {
                 $item = $pengumpulan->get($student->id);
+                $daysLate = $this->lateDays($item?->tanggal_kumpul, $tugas->batas_waktu);
+                // A reminder remains available for every overdue row, including
+                // direct-graded assignments that have no submission record.
+                $canPrepareWhatsApp = $daysLate > 0;
+                $lastWhatsApp = $lastWhatsAppByStudent->get($student->id);
 
                 return [
                     'id' => $item?->id,
@@ -246,14 +262,19 @@ class TugasController extends Controller
                     'no' => $index + 1,
                     'siswa' => $student->user?->nama_lengkap ?: ($student->user?->username ?: $student->nis),
                     'nis' => $student->nis,
-                    'status' => $item?->status ?? 'belum',
+                    'status' => ($daysLate > 0 && in_array($item?->status, ['sudah', 'dinilai'], true)) ? 'terlambat' : ($item?->status ?? 'belum'),
                     'tanggal_kumpul' => $item?->tanggal_kumpul?->format('d/m/Y H:i'),
+                    'hari_terlambat' => $daysLate,
+                    'penalty_perkiraan' => round($daysLate * $penaltyPerDay, 2),
                     'teks_jawaban' => $item?->teks_jawaban,
                     'catatan' => $item?->catatan,
                     'nilai' => $item?->nilai,
                     'nilai_input' => $item?->nilai_sebelum_penalty ?? $item?->nilai,
                     'penalty_terlambat' => $item?->penalty_terlambat ?? 0,
                     'nilai_url' => route('guru.tugas.nilai', [$kelasMapel, $tugas, $student]),
+                    'whatsapp_url' => $canPrepareWhatsApp ? route('guru.tugas.whatsapp', [$kelasMapel, $tugas, $student]) : null,
+                    'whatsapp_last_prepared_at' => $lastWhatsApp?->prepared_at?->format('d/m/Y H:i'),
+                    'whatsapp_last_sent_at' => $lastWhatsApp?->sent_marked_at?->format('d/m/Y H:i'),
                     'legacy_file_url' => $item?->file_upload ? route('guru.tugas.pengumpulan.download', [$kelasMapel, $tugas, $item]) : null,
                     'files' => $item?->files->map(fn (PengumpulanFile $file) => [
                         'id' => $file->id,
@@ -280,9 +301,7 @@ class TugasController extends Controller
         $nilaiInput = array_key_exists('nilai', $validated) && $validated['nilai'] !== null && $validated['nilai'] !== ''
             ? round((float) $validated['nilai'], 2)
             : null;
-        $isLate = $pengumpulan?->status === PengumpulanTugas::STATUS_TERLAMBAT
-            || ($pengumpulan?->tanggal_kumpul && $tugas->batas_waktu && $pengumpulan->tanggal_kumpul->gt($tugas->batas_waktu));
-        $penalty = $nilaiInput !== null && $isLate ? min($nilaiInput, $this->latePenaltyPoints($pengumpulan, $tugas)) : 0.0;
+        $penalty = $nilaiInput !== null ? min($nilaiInput, $this->latePenaltyPoints($pengumpulan, $tugas)) : 0.0;
         $nilaiFinal = $nilaiInput !== null ? max(0, round($nilaiInput - $penalty, 2)) : null;
 
         if ($nilaiInput === null && blank($validated['catatan'] ?? null)) {
@@ -350,6 +369,29 @@ class TugasController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+    public function whatsapp(KelasMapel $kelasMapel, Tugas $tugas, Siswa $siswa, WhatsAppService $service)
+    {
+        $this->authorize('mengajar', $kelasMapel);
+        $this->ensureTugasBelongsToKelasMapel($tugas, $kelasMapel);
+        $this->ensureSiswaBelongsToKelasMapel($siswa, $kelasMapel);
+        $normalizedPhone = WhatsAppPhone::normalize((string) $siswa->nomor_whatsapp);
+        abort_unless($normalizedPhone !== null, 422, 'Nomor WhatsApp siswa belum valid. Periksa format nomor di pengaturan siswa.');
+        abort_unless($siswa->whatsapp_opt_in, 422, 'Siswa belum menyetujui menerima informasi melalui WhatsApp.');
+        if ($siswa->nomor_whatsapp !== $normalizedPhone) {
+            $siswa->update(['nomor_whatsapp' => $normalizedPhone]);
+        }
+
+        return response()->json($service->prepareLateTaskMessage($siswa, $tugas, (int) Auth::id()));
+    }
+
+    public function whatsappMarkSent(WhatsAppMessageLog $log)
+    {
+        abort_unless((int) $log->guru_id === (int) Auth::id(), 403);
+        $log->update(['sent_marked_at' => now()]);
+
+        return back()->with('success', 'Pengingat WhatsApp ditandai sudah dikirim.');
     }
 
     public function downloadFile(KelasMapel $kelasMapel, Tugas $tugas, PengumpulanFile $file)
@@ -450,7 +492,8 @@ class TugasController extends Controller
 
     private function latePenaltyPoints(?PengumpulanTugas $pengumpulan, Tugas $tugas): float
     {
-        if (! $pengumpulan?->tanggal_kumpul || ! $tugas->batas_waktu) {
+        $daysLate = $this->lateDays($pengumpulan?->tanggal_kumpul, $tugas->batas_waktu);
+        if ($daysLate <= 0) {
             return 0.0;
         }
 
@@ -461,11 +504,20 @@ class TugasController extends Controller
 
         // Selisih hari kalender antara tanggal kumpul dan tanggal batas waktu.
         // 1 hari keterlambatan = 1 poin (atau sesuai pengaturan per hari).
-        $deadlineDay = $tugas->batas_waktu->copy()->startOfDay();
-        $submitDay = $pengumpulan->tanggal_kumpul->copy()->startOfDay();
-        $daysLate = (int) max(0, $deadlineDay->diffInDays($submitDay, false));
-
         return round($daysLate * $pointsPerDay, 2);
+    }
+
+    private function lateDays(?Carbon $submittedAt, ?Carbon $deadline): int
+    {
+        if (! $deadline) {
+            return 0;
+        }
+
+        // Jika guru menilai tanpa record pengumpulan, gunakan waktu penilaian
+        // sebagai batas efektif: tugas yang sudah lewat deadline tetap dipenalti.
+        $submittedAt ??= now();
+
+        return (int) max(0, $deadline->copy()->startOfDay()->diffInDays($submittedAt->copy()->startOfDay(), false));
     }
 
     private function downloadPengumpulanPath(?string $path, string $downloadName)

@@ -1,10 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import type { SidebarItem } from '../../types';
 
-defineProps({
-    entry: { type: Object, required: true },
-    active: { type: Boolean, default: false },
-});
+interface Props { entry: SidebarItem; active?: boolean; }
+withDefaults(defineProps<Props>(), { active: false });
 </script>
 
 <template>

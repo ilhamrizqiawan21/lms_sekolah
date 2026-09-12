@@ -1,11 +1,13 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
 import { Head } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState } from '../../../Components/UI';
 
 defineProps({
-    waliKelas: { type: Object, default: null },
+    waliKelas: { type: Object as PropType<{ id: number; kelas: string; tahun_ajaran: string; absensi_count: number; pertemuan_count: number; penanganan_aktif_count: number; absensi_url: string; pertemuan_url: string; penanganan_url: string } | null>, default: null },
 });
 </script>
 

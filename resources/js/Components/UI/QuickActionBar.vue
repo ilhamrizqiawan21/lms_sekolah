@@ -1,8 +1,10 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { QuickAction } from '../../types/ui';
 import Button from './Button.vue';
 
 defineProps({
-    actions: { type: Array, default: () => [] },
+    actions: { type: Array as PropType<QuickAction[]>, default: () => [] },
 });
 </script>
 

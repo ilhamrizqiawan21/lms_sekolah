@@ -1,11 +1,14 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { Announcement } from '../../../types/announcements';
+import type { PaginationLink } from '../../../types/pagination';
 import { Head, Link } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { EmptyState } from '../../../Components/UI';
 
 const props = defineProps({
-    pengumuman: { type: Object, default: () => ({ data: [] }) },
+    pengumuman: { type: Object as PropType<{ data: Announcement[]; links?: PaginationLink[] }>, default: () => ({ data: [] }) },
 });
 </script>
 
@@ -52,7 +55,7 @@ const props = defineProps({
             </article>
         </div>
 
-        <div v-if="pengumuman.links?.length > 3" class="d-flex flex-wrap gap-1 mt-4">
+        <div v-if="(pengumuman.links?.length ?? 0) > 3" class="d-flex flex-wrap gap-1 mt-4">
             <Link
                 v-for="(link, index) in pengumuman.links"
                 :key="index"

@@ -1,10 +1,15 @@
-<script setup>
-defineProps({
-    title: { type: String, default: '' },
-    icon: { type: String, default: '' },
-    headerClass: { type: String, default: '' },
-    bodyClass: { type: String, default: '' },
-    footerClass: { type: String, default: '' },
+<script setup lang="ts">
+defineSlots<{ default?: () => unknown; actions?: () => unknown; footer?: () => unknown }>();
+interface Props {
+    title?: string;
+    icon?: string;
+    headerClass?: string;
+    bodyClass?: string;
+    footerClass?: string;
+}
+
+withDefaults(defineProps<Props>(), {
+    title: '', icon: '', headerClass: '', bodyClass: '', footerClass: '',
 });
 </script>
 

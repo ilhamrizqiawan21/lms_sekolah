@@ -1,13 +1,18 @@
-<script setup>
+<script setup lang="ts">
 import Button from './Button.vue';
+import type { Method } from '@inertiajs/core';
 
-defineProps({
-    icon: { type: String, required: true },
-    label: { type: String, required: true },
-    color: { type: String, default: 'outline-secondary' },
-    href: { type: String, default: '' },
-    method: { type: String, default: 'get' },
-    type: { type: String, default: 'button' },
+interface Props {
+    icon: string;
+    label: string;
+    color?: string;
+    href?: string;
+    method?: Method;
+    type?: 'button' | 'submit' | 'reset';
+}
+
+withDefaults(defineProps<Props>(), {
+    color: 'outline-secondary', href: '', method: 'get', type: 'button',
 });
 </script>
 

@@ -1,11 +1,13 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
 import { Head } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Card, DashboardHero, EmptyState, QuickActionBar } from '../../../Components/UI';
 
 const props = defineProps({
-    kelasMapel: { type: Object, required: true },
-    materi: { type: Array, default: () => [] },
+    kelasMapel: { type: Object as PropType<{ mata_pelajaran: string; guru: string; workspace_url: string; tugas_url: string; chat_url: string }>, required: true },
+    materi: { type: Array as PropType<{ id: number; judul: string; deskripsi: string | null; tanggal: string; download_url: string | null }[]>, default: () => [] },
 });
 
 const courseTabs = [

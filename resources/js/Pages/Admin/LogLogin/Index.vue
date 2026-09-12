@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { PaginationLink } from '../../../types/pagination';
 import { Head, router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -7,8 +9,8 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, Pagination, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    logs: { type: Object, default: () => ({ data: [], links: [] }) },
-    filters: { type: Object, default: () => ({}) },
+    logs: { type: Object as PropType<{ data: { id: number; login_time: string | null; username: string; nama_lengkap: string; role: string | null; ip_address: string; user_agent: string }[]; links: PaginationLink[] }>, default: () => ({ data: [], links: [] }) },
+    filters: { type: Object as PropType<{ search?: string }>, default: () => ({}) },
     exportUrl: { type: String, required: true },
 });
 
@@ -41,11 +43,11 @@ function exportExcelUrl() {
     return query ? `${props.exportUrl}?${query}` : props.exportUrl;
 }
 
-function roleLabel(role) {
+function roleLabel(role: string | null) {
     return role ? role.replaceAll('_', ' ') : '-';
 }
 
-function truncate(value, length = 56) {
+function truncate(value: string | null, length = 56) {
     if (!value) return '-';
     return value.length > length ? `${value.slice(0, length)}...` : value;
 }

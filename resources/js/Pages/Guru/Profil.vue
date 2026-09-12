@@ -1,16 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import PageHeader from '../../Components/AppShell/PageHeader.vue';
 import TextInput from '../../Components/Form/TextInput.vue';
 import AppShell from '../../Layouts/AppShell.vue';
 import { Badge, Button, Card } from '../../Components/UI';
+interface GuruProfile { username: string; nama_lengkap: string; nip_nis?: string | null; role_label: string; is_active: boolean; }
+interface Props { profile: GuruProfile; updateUrl: string; }
+interface ProfileForm { username: string; nama_lengkap: string; nip_nis: string; current_password: string; password: string; password_confirmation: string; }
 
-const props = defineProps({
-    profile: { type: Object, required: true },
-    updateUrl: { type: String, required: true },
-});
+const props = defineProps<Props>();
 
-const form = useForm({
+const form = useForm<ProfileForm>({
     username: props.profile.username ?? '',
     nama_lengkap: props.profile.nama_lengkap ?? '',
     nip_nis: props.profile.nip_nis ?? '',
@@ -19,7 +19,7 @@ const form = useForm({
     password_confirmation: '',
 });
 
-function submit() {
+function submit(): void {
     if (form.processing) {
         return;
     }

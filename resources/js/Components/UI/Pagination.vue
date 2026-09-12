@@ -1,11 +1,11 @@
-<script setup>
+<script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import type { PaginationLink } from '../../types';
 
-defineProps({
-    links: { type: Array, default: () => [] },
-});
+interface Props { links?: PaginationLink[]; }
+const props = withDefaults(defineProps<Props>(), { links: () => [] });
 
-function cleanLabel(label) {
+function cleanLabel(label: string): string {
     return String(label)
         .replace('&laquo;', '‹')
         .replace('&raquo;', '›')
@@ -14,10 +14,10 @@ function cleanLabel(label) {
 </script>
 
 <template>
-    <nav v-if="links.length > 3" aria-label="Navigasi halaman">
+    <nav v-if="props.links.length > 3" aria-label="Navigasi halaman">
         <ul class="pagination mb-0">
             <li
-                v-for="(link, index) in links"
+                v-for="(link, index) in props.links"
                 :key="`${link.label}-${index}`"
                 class="page-item"
                 :class="{ active: link.active, disabled: !link.url }"

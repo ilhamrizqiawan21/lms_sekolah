@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { LaravelPaginator } from '../../../types/pagination';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { TextareaInput, TextInput } from '../../../Components/Form';
@@ -6,8 +8,8 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, Pagination, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    waliKelas: { type: Object, required: true },
-    pertemuan: { type: Object, required: true },
+    waliKelas: { type: Object as PropType<{ kelas: string; store_url: string }>, required: true },
+    pertemuan: { type: Object as PropType<LaravelPaginator<{ id: number; tanggal: string; topik: string; hasil: string | null; delete_url: string }>>, required: true },
 });
 
 const form = useForm({
@@ -27,7 +29,7 @@ function submit() {
     });
 }
 
-async function destroy(item) {
+async function destroy(item: { delete_url: string }) {
     const confirmed = await window.confirmDialog?.('Hapus pertemuan ini?', {
         title: 'Hapus Pertemuan',
         confirmText: 'Ya, hapus',

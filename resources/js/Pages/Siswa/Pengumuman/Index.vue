@@ -1,11 +1,14 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { StudentAnnouncement } from '../../../types/announcements';
+import type { PaginationLink } from '../../../types/pagination';
 import { Head, Link } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Card, EmptyState, Pagination } from '../../../Components/UI';
 
 defineProps({
-    pengumuman: { type: Object, default: () => ({ data: [], links: [] }) },
+    pengumuman: { type: Object as PropType<{ data: StudentAnnouncement[]; links?: PaginationLink[] }>, default: () => ({ data: [], links: [] }) },
 });
 </script>
 

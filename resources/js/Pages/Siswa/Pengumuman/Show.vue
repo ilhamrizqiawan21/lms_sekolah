@@ -1,11 +1,13 @@
-<script setup>
-import { Head, Link } from '@inertiajs/vue3';
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { StudentAnnouncement } from '../../../types/announcements';
+import { Head } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card } from '../../../Components/UI';
 
 defineProps({
-    pengumuman: { type: Object, required: true },
+    pengumuman: { type: Object as PropType<StudentAnnouncement>, required: true },
     backUrl: { type: String, required: true },
 });
 </script>

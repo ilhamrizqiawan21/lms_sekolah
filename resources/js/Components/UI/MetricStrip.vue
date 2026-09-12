@@ -1,8 +1,10 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { MetricItem } from '../../types/ui';
 import { Link } from '@inertiajs/vue3';
 
 defineProps({
-    items: { type: Array, default: () => [] },
+    items: { type: Array as PropType<MetricItem[]>, default: () => [] },
 });
 </script>
 

@@ -1,26 +1,28 @@
-<script setup>
+<script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { FileInput, TextareaInput, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Button, Card, EmptyState, IconButton, TableWrapper } from '../../../Components/UI';
 
-const props = defineProps({
-    kelasMapel: { type: Array, default: () => [] },
-    materi: { type: Array, default: () => [] },
-    storeUrl: { type: String, required: true },
-});
+interface KelasMapelOption { id: number; label: string }
+interface MateriItem { id: number; judul: string; deskripsi_ringkas?: string | null; kelas: string; mata_pelajaran: string; tanggal: string; download_url?: string | null; delete_url?: string | null }
+interface MateriForm { kelas_mapel_ids: number[]; judul: string; deskripsi: string; file_materi: File | null }
+interface Props { kelasMapel?: KelasMapelOption[]; materi?: MateriItem[]; storeUrl: string }
+
+const props = withDefaults(defineProps<Props>(), { kelasMapel: () => [], materi: () => [] });
 
 const fileInputKey = ref(0);
-const form = useForm({
+const form = useForm<MateriForm>({
     kelas_mapel_ids: [],
     judul: '',
     deskripsi: '',
     file_materi: null,
 });
+const uploadPercentage = computed(() => form.progress?.percentage ?? 0);
 
-function submit() {
+function submit(): void {
     if (form.processing) {
         return;
     }
@@ -35,7 +37,7 @@ function submit() {
     });
 }
 
-async function destroy(item) {
+async function destroy(item: MateriItem): Promise<void> {
     const confirmed = await window.confirmDialog?.('Hapus materi ini?', {
         title: 'Hapus Materi',
         confirmText: 'Ya, hapus',
@@ -98,6 +100,9 @@ async function destroy(item) {
                         <Button type="submit" color="success" size="" icon="bi-upload" class="w-100" :disabled="form.processing">
                             {{ form.processing ? 'Mengupload...' : 'Upload Materi' }}
                         </Button>
+                        <div v-if="form.processing && form.progress" class="progress mt-2" role="progressbar" :aria-valuenow="uploadPercentage" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar" :style="{ width: `${uploadPercentage}%` }">{{ uploadPercentage }}%</div>
+                        </div>
                     </form>
                 </Card>
             </div>

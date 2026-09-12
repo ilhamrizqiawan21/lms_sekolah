@@ -1,4 +1,7 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { PaginationLink } from '../../../types/pagination';
+interface Student { id: number; nis: string; nama_lengkap: string; kelas_id: number | null; jenis_kelamin: string | null; tinggal_kelas: boolean; kelas: string; status: string; password_is_default: boolean; password_status: string; is_active: boolean }
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { reactive, ref } from 'vue';
 import { FileInput, SelectInput, TextInput } from '../../../Components/Form';
@@ -6,12 +9,12 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, DashboardHero, EmptyState, IconButton, MetricStrip, Pagination, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    kelasList: { type: Array, default: () => [] },
-    siswa: { type: Object, default: () => ({ data: [], links: [] }) },
-    filters: { type: Object, default: () => ({}) },
-    metrics: { type: Object, default: () => ({}) },
-    importErrors: { type: Array, default: () => [] },
-    studentPassword: { type: Object, default: null },
+    kelasList: { type: Array as PropType<{ id: number; label: string; tingkat: string; nama_kelas: string; siswa_count: number }[]>, default: () => [] },
+    siswa: { type: Object as PropType<{ data: Student[]; links: PaginationLink[] }>, default: () => ({ data: [], links: [] }) },
+    filters: { type: Object as PropType<{ kelas_id?: string; search?: string; status?: string }>, default: () => ({}) },
+    metrics: { type: Object as PropType<{ total_siswa_aktif?: number; total_lulus?: number; total_keluar?: number }>, default: () => ({}) },
+    importErrors: { type: Array as PropType<string[]>, default: () => [] },
+    studentPassword: { type: Object as PropType<{ title: string; name: string; username: string; password: string } | null>, default: null },
     templateUrl: { type: String, required: true },
     exportUrl: { type: String, required: true },
 });
@@ -39,8 +42,8 @@ const metrics = () => [
     { label: 'Keluar', value: props.metrics.total_keluar ?? 0, icon: 'bi-person-dash-fill', tone: 'warning' },
 ];
 
-const editing = ref(null);
-const importForm = useForm({ file_siswa: null });
+const editing = ref<Student | null>(null);
+const importForm = useForm({ file_siswa: null as File | null });
 const createForm = useForm(blankStudent());
 const editForm = useForm({ ...blankStudent(), tinggal_kelas: false });
 
@@ -48,7 +51,7 @@ function blankStudent() {
     return {
         nis: '',
         nama_lengkap: '',
-        kelas_id: '',
+        kelas_id: '' as string | number,
         jenis_kelamin: '',
     };
 }
@@ -108,7 +111,7 @@ function submitCreate() {
     });
 }
 
-function startEdit(item) {
+function startEdit(item: Student) {
     editing.value = item;
     editForm.clearErrors();
     editForm.defaults({
@@ -127,7 +130,7 @@ function cancelEdit() {
     editForm.reset();
 }
 
-function submitEdit(item) {
+function submitEdit(item: Student) {
     if (editForm.processing) {
         return;
     }
@@ -138,7 +141,7 @@ function submitEdit(item) {
     });
 }
 
-async function resetPassword(item) {
+async function resetPassword(item: Student) {
     const confirmed = await window.confirmDialog?.('Reset password siswa ke password default 123456?', {
         title: 'Reset Password',
         confirmText: 'Ya, reset',
@@ -151,7 +154,7 @@ async function resetPassword(item) {
     });
 }
 
-async function destroyStudent(item) {
+async function destroyStudent(item: Student) {
     const confirmed = await window.confirmDialog?.(`Hapus siswa ${item.nama_lengkap ?? item.nis}?`, {
         title: 'Hapus Siswa',
         confirmText: 'Ya, hapus',
@@ -165,7 +168,7 @@ async function destroyStudent(item) {
     });
 }
 
-async function graduateClass(kelas) {
+async function graduateClass(kelas: { id: number; nama_kelas: string }) {
     const confirmed = await window.confirmDialog?.(`Luluskan semua siswa kelas ${kelas.nama_kelas}?`, {
         title: 'Luluskan Kelas',
         confirmText: 'Ya, luluskan',
@@ -178,7 +181,7 @@ async function graduateClass(kelas) {
     });
 }
 
-function passwordStatusColor(isDefault) {
+function passwordStatusColor(isDefault: boolean) {
     return isDefault ? 'warning text-dark' : 'success';
 }
 </script>

@@ -1,14 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { Badge, IconButton } from '../../../../Components/UI';
 import SubmissionGradeForm from './SubmissionGradeForm.vue';
+import type { AssignmentSubmission, SubmissionStatus } from '../../../../types';
 
-defineProps({
-    item: { type: Object, required: true },
-    statusColor: { type: Function, required: true },
-    statusLabel: { type: Function, required: true },
-});
+interface Props { item: AssignmentSubmission; statusColor: (status: SubmissionStatus) => string; statusLabel: (status: SubmissionStatus) => string }
+defineProps<Props>();
 
-defineEmits(['detail']);
+defineEmits<{ detail: []; whatsapp: [] }>();
 </script>
 
 <template>
@@ -20,6 +18,13 @@ defineEmits(['detail']);
         </td>
         <td><Badge :color="statusColor(item.status)">{{ statusLabel(item.status) }}</Badge></td>
         <td>{{ item.tanggal_kumpul ?? '-' }}</td>
+        <td>
+            <span v-if="item.hari_terlambat" class="text-danger small fw-semibold">
+                {{ item.hari_terlambat }} hari<br>
+                <span v-if="item.penalty_perkiraan">-{{ item.penalty_perkiraan }} poin</span>
+            </span>
+            <span v-else class="text-muted">-</span>
+        </td>
         <td>
             <template v-if="item.files.length">
                 <a
@@ -56,7 +61,10 @@ defineEmits(['detail']);
             <span v-else class="text-muted">-</span>
         </td>
         <td>
+            <button v-if="item.whatsapp_url" type="button" class="btn btn-sm btn-success me-1" title="Buka WhatsApp" @click="$emit('whatsapp')"><i class="bi bi-whatsapp" aria-hidden="true"></i></button>
             <IconButton icon="bi-eye" label="Lihat detail" color="info" @click="$emit('detail')" />
+            <small v-if="item.whatsapp_last_sent_at" class="d-block text-success mt-1">Diingatkan {{ item.whatsapp_last_sent_at }}</small>
+            <small v-else-if="item.whatsapp_last_prepared_at" class="d-block text-muted mt-1">Disiapkan {{ item.whatsapp_last_prepared_at }}</small>
         </td>
     </tr>
 </template>

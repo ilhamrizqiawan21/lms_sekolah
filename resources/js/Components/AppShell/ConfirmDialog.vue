@@ -1,13 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
 const visible = ref(false);
-const options = ref({});
-const dialog = ref(null);
-let resolver = null;
-let previousFocus = null;
+type ConfirmOptions = NonNullable<Parameters<NonNullable<Window['confirmDialog']>>[1]>;
+const options = ref<ConfirmOptions & { message?: string }>({});
+const dialog = ref<HTMLElement | null>(null);
+let resolver: ((result: boolean) => void) | null = null;
+let previousFocus: Element | null = null;
 
-function close(result) {
+function close(result: boolean) {
     visible.value = false;
 
     if (resolver) {
@@ -15,12 +16,13 @@ function close(result) {
         resolver = null;
     }
 
-    if (previousFocus && typeof previousFocus.focus === 'function') {
+    if (previousFocus instanceof HTMLElement) {
         previousFocus.focus();
     }
 }
 
-function confirm(message, config = {}) {
+function confirm(message: string, config: ConfirmOptions = {}): Promise<boolean> {
+    if (resolver) close(false);
     previousFocus = document.activeElement;
     options.value = {
         message,
@@ -31,12 +33,12 @@ function confirm(message, config = {}) {
     };
     visible.value = true;
 
-    return new Promise((resolve) => {
+    return new Promise<boolean>((resolve) => {
         resolver = resolve;
     });
 }
 
-function handleKeydown(event) {
+function handleKeydown(event: KeyboardEvent) {
     if (!visible.value) {
         return;
     }
@@ -50,7 +52,7 @@ function handleKeydown(event) {
         return;
     }
 
-    const focusable = [...dialog.value.querySelectorAll('button:not([disabled])')];
+    const focusable = [...dialog.value.querySelectorAll<HTMLButtonElement>('button:not([disabled])')];
     if (!focusable.length) return;
 
     const first = focusable[0];
@@ -74,15 +76,20 @@ watch(visible, async (isVisible) => {
     }
 });
 
+const confirmAction: NonNullable<Window['confirmAction']> = (message, callback, config = {}) => {
+    confirm(message, config).then(callback);
+};
+
 onMounted(() => {
-    window.confirmAction = (message, callback, config = {}) => {
-        confirm(message, config).then(callback);
-    };
+    window.confirmAction = confirmAction;
     window.confirmDialog = confirm;
     document.addEventListener('keydown', handleKeydown);
 });
 
 onUnmounted(() => {
+    close(false);
+    if (window.confirmDialog === confirm) delete window.confirmDialog;
+    if (window.confirmAction === confirmAction) delete window.confirmAction;
     document.body.classList.remove('modal-open');
     document.removeEventListener('keydown', handleKeydown);
 });

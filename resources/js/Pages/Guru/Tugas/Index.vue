@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { TeacherTask } from '../../../types/tasks';
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { TextareaInput, TextInput } from '../../../Components/Form';
@@ -6,13 +8,13 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Button, Card, DashboardHero, EmptyState, MetricStrip } from '../../../Components/UI';
 
 const props = defineProps({
-    kelasMapel: { type: Array, default: () => [] },
-    tugas: { type: Array, default: () => [] },
+    kelasMapel: { type: Array as PropType<{ id: number; kelas: string; mata_pelajaran: string; semester: string; label: string; href: string }[]>, default: () => [] },
+    tugas: { type: Array as PropType<TeacherTask[]>, default: () => [] },
     storeUrl: { type: String, required: true },
 });
 
 const form = useForm({
-    kelas_mapel_ids: [],
+    kelas_mapel_ids: [] as number[],
     judul: '',
     deskripsi: '',
     batas_waktu: '',

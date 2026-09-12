@@ -14,7 +14,7 @@ Dokumen ini adalah roadmap perubahan frontend LMS agar lebih modern, konsisten, 
 
 - [x] Pastikan semua halaman produksi memakai asset hasil `npm run build`.
 - [x] Kurangi ketergantungan CDN untuk Bootstrap, DataTables, Select2, dan icon.
-- [x] Pindahkan inline JavaScript global dari `resources/views/layouts/app.blade.php` ke `resources/js/app.js`.
+- [x] Pindahkan inline JavaScript global dari `resources/views/layouts/app.blade.php` ke `resources/js/app.ts`.
 - [x] Evaluasi inline CSS theme base; dipertahankan di Blade karena berisi token warna dinamis dari pengaturan sekolah.
 - [x] Tambahkan dokumentasi cara build frontend di README atau docs install.
 - [x] Audit halaman yang masih load Chart.js via CDN dan tentukan pola lazy-load.
@@ -24,7 +24,7 @@ Catatan Tahap 1:
 - `npm run build` berhasil dan `public/build/manifest.json` tersedia.
 - Bootstrap, Bootstrap Icons, jQuery, DataTables, dan Select2 sudah masuk bundle Vite untuk jalur produksi.
 - CDN fallback di layout masih dipertahankan hanya untuk kondisi build belum tersedia.
-- Bahasa DataTables tidak lagi mengambil JSON eksternal dari CDN; konfigurasi bahasa dasar dipasang lokal di `resources/js/app.js`.
+- Bahasa DataTables tidak lagi mengambil JSON eksternal dari CDN; konfigurasi bahasa dasar dipasang lokal di `resources/js/app.ts`.
 - Inline CSS theme base belum dipindah karena nilainya bergantung pada data sekolah dan pengaturan tema dari backend.
 - Chart.js masih dimuat per halaman via CDN karena belum menjadi dependency lokal. Pola lanjutannya: tambahkan `chart.js` ke dependency, lalu lazy-load hanya pada halaman dashboard/statistik/progress.
 
@@ -78,7 +78,7 @@ Catatan Tahap 4:
 - Form submit global mendapat loading state dan tombol submit otomatis disabled saat proses berjalan.
 - Submit button yang memiliki `name/value` diamankan dengan hidden proxy sebelum disabled.
 - Confirm dialog memakai class CSS (`confirm-overlay`, `confirm-dialog`) dan tetap mendukung `data-confirm`.
-- `showToast()` tetap tersedia global dari `resources/js/app.js`.
+- `showToast()` tetap tersedia global dari `resources/js/app.ts`.
 - `php artisan view:cache`, `npm run build`, dan `git diff --check` berhasil.
 
 ## Tahap 5 - Table & Data Density

@@ -417,3 +417,122 @@ textarea {
         max-width: 38vw;
     }
 }
+
+/* Final visual pass: keep the application calm and readable while retaining
+ * the school's dynamic color theme. These overrides apply to the modern
+ * Inertia shell and leave legacy Blade pages unchanged. */
+.app-shell .modern-topbar {
+    background: var(--surface-card, #fff) !important;
+    background-image: none !important;
+    backdrop-filter: none;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.12);
+}
+
+.app-shell .modern-sidebar {
+    background: var(--surface-card, #fff) !important;
+    background-image: none !important;
+    box-shadow: 4px 0 18px rgba(15, 23, 42, 0.1);
+}
+
+.modern-topbar .topbar-search,
+.modern-topbar .topbar-toggle-btn,
+.modern-topbar .topbar-icon-btn,
+.modern-topbar .topbar-account-btn {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.dashboard-hero {
+    background: var(--surface-card, #fff) !important;
+    background-image: none !important;
+    border: 1px solid var(--modern-border, rgba(148, 163, 184, 0.24));
+    box-shadow: var(--modern-shadow-sm, 0 8px 20px rgba(15, 23, 42, 0.06));
+}
+
+.dashboard-hero::before,
+.dashboard-hero::after {
+    opacity: 0.45;
+}
+
+.app-shell .card,
+.app-shell .workspace-panel,
+.app-shell .metric-tile {
+    box-shadow: var(--modern-shadow-sm, 0 8px 20px rgba(15, 23, 42, 0.06));
+}
+
+.app-shell .card:hover,
+.app-shell .stat-card:hover,
+.app-shell .metric-tile:hover {
+    transform: none;
+    box-shadow: var(--modern-shadow, 0 14px 36px rgba(15, 23, 42, 0.08));
+}
+
+.app-shell .btn-primary,
+.app-shell .btn-success {
+    background-image: none !important;
+    background-color: var(--primary-500, var(--app-primary)) !important;
+}
+
+.app-shell .btn-primary:hover,
+.app-shell .btn-success:hover {
+    background-image: none !important;
+    background-color: var(--primary-600, var(--app-primary)) !important;
+    transform: none;
+}
+
+.app-shell .page-header h1,
+.app-shell .page-header h4,
+.app-shell .dashboard-hero h1 {
+    letter-spacing: -0.02em;
+}
+
+@media (max-width: 767.98px) {
+    .app-shell .app-table-wrapper {
+        box-shadow: none;
+    }
+
+    .app-shell .app-table-wrapper .table-action-column {
+        position: sticky;
+        right: 0;
+        z-index: 3;
+        background: var(--surface-card, #fff);
+        box-shadow: -5px 0 8px rgba(15, 23, 42, 0.06);
+    }
+
+    .app-shell .app-table-wrapper thead .table-action-column {
+        background: var(--surface-muted, #f8fafc);
+    }
+
+    .content-summary-actions,
+    .app-page-actions {
+        gap: 0.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-shell .card:hover,
+    .app-shell .stat-card:hover,
+    .app-shell .metric-tile:hover,
+    .app-shell .btn-primary:hover,
+    .app-shell .btn-success:hover {
+        box-shadow: var(--modern-shadow-sm, 0 8px 20px rgba(15, 23, 42, 0.06));
+    }
+}
+
+/* Keep the mobile navigation and drawer mutually exclusive. The drawer sits
+ * above the page overlay, while the bottom navigation remains interactive
+ * above that overlay unless it is explicitly hidden in the open state. */
+@media (max-width: 991.98px) {
+    .app-shell.sidebar-is-open .mobile-bottom-nav {
+        display: none;
+    }
+}
+
+/* The overlay is a mobile drawer affordance. Keep it impossible to activate
+ * on desktop even if a stale component state or stylesheet cache remains. */
+@media (min-width: 992px) {
+    .app-shell .sidebar-overlay {
+        display: none !important;
+        pointer-events: none !important;
+        backdrop-filter: none !important;
+    }
+}

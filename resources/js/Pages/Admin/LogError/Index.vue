@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { PaginationLink } from '../../../types/pagination';
 import { Head, router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -7,9 +9,9 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, Pagination, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    errors: { type: Object, default: () => ({ data: [], links: [] }) },
-    levels: { type: Array, default: () => [] },
-    filters: { type: Object, default: () => ({}) },
+    errors: { type: Object as PropType<{ data: { id: number; error_level: string; created_at: string | null; message: string; file: string; line: number; url: string }[]; links: PaginationLink[] }>, default: () => ({ data: [], links: [] }) },
+    levels: { type: Array as PropType<string[]>, default: () => [] },
+    filters: { type: Object as PropType<{ level?: string }>, default: () => ({}) },
 });
 
 const filterForm = reactive({
@@ -33,14 +35,14 @@ function resetFilters() {
     });
 }
 
-function levelColor(level) {
+function levelColor(level: string) {
     if (level === 'EXCEPTION') return 'danger';
     if (level === 'WARNING') return 'warning text-dark';
     if (level === 'DEPRECATED') return 'secondary';
     return 'info text-dark';
 }
 
-function truncate(value, length = 72) {
+function truncate(value: string | null, length = 72) {
     if (!value) return '-';
     return value.length > length ? `${value.slice(0, length)}...` : value;
 }

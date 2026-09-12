@@ -1,34 +1,26 @@
-<script setup>
+<script setup lang="ts">
 import { computed, markRaw } from 'vue';
 import InputError from './InputError.vue';
+import type { ValidationMessage } from '../../types/forms';
 
 defineOptions({
     inheritAttrs: false,
 });
 
-const props = defineProps({
-    modelValue: { type: [Array, Object, String], default: null },
-    name: { type: String, required: true },
-    label: { type: String, default: '' },
-    help: { type: String, default: '' },
-    acceptLabel: { type: String, default: '' },
-    maxSize: { type: String, default: '' },
-    error: { type: [String, Array], default: '' },
-    wrapperClass: { type: String, default: 'mb-3' },
-    required: { type: Boolean, default: false },
-    multiple: { type: Boolean, default: false },
-});
+interface Props { modelValue?: File | File[] | string | null; name: string; label?: string; help?: string; acceptLabel?: string; maxSize?: string; error?: ValidationMessage; wrapperClass?: string; required?: boolean; multiple?: boolean; }
+const props = withDefaults(defineProps<Props>(), { modelValue: null, label: '', help: '', acceptLabel: '', maxSize: '', error: '', wrapperClass: 'mb-3', required: false, multiple: false });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits<{ 'update:modelValue': [value: File | File[] | null] }>();
 const inputId = computed(() => props.name.replaceAll('[', '_').replaceAll(']', '_'));
 const meta = computed(() => [props.acceptLabel, props.maxSize ? `Maks. ${props.maxSize}` : ''].filter(Boolean).join(' | '));
 const helpText = computed(() => props.help || meta.value);
-const helpId = computed(() => helpText.value ? `${inputId.value}Help` : null);
-const errorId = computed(() => props.error ? `${inputId.value}Error` : null);
-const describedBy = computed(() => [helpId.value, errorId.value].filter(Boolean).join(' ') || null);
+const helpId = computed(() => helpText.value ? `${inputId.value}Help` : undefined);
+const errorId = computed(() => props.error ? `${inputId.value}Error` : undefined);
+const describedBy = computed(() => [helpId.value, errorId.value].filter(Boolean).join(' ') || undefined);
 
-function updateFileValue(event) {
-    const files = Array.from(event.target.files ?? []).map((file) => markRaw(file));
+function updateFileValue(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []).map((file) => markRaw(file));
     emit('update:modelValue', props.multiple ? files : (files[0] ?? null));
 }
 </script>
@@ -48,7 +40,7 @@ function updateFileValue(event) {
             class="form-control"
             :class="{ 'is-invalid': error }"
             :aria-describedby="describedBy"
-            :aria-invalid="error ? 'true' : null"
+            :aria-invalid="error ? 'true' : undefined"
             :multiple="multiple"
             v-bind="$attrs"
             @change="updateFileValue"

@@ -1,14 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { SelectInput, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, DashboardHero, EmptyState, IconButton, MetricStrip, TableWrapper } from '../../../Components/UI';
 
-const props = defineProps({
-    kelas: { type: Array, default: () => [] },
-    metrics: { type: Object, default: () => ({}) },
-});
+interface Kelas { id: number; tingkat: string; nama_kelas: string; siswa_count?: number; kelas_mapel_count?: number; wali_kelas_count?: number; siswa_url?: string }
+interface KelasMetrics { total_kelas?: number; total_siswa?: number; total_penugasan?: number }
+interface KelasForm { tingkat: string; nama_kelas: string }
+interface Props { kelas?: Kelas[]; metrics?: KelasMetrics }
+
+const props = withDefaults(defineProps<Props>(), { kelas: () => [], metrics: () => ({}) });
 
 const metrics = computed(() => [
     { label: 'Kelas', value: props.metrics.total_kelas ?? 0, icon: 'bi-building', tone: 'primary' },
@@ -22,20 +24,20 @@ const tingkatOptions = [
     { value: 'IX', label: 'IX' },
 ];
 
-const editing = ref(null);
-const createForm = useForm(blankForm());
-const editForm = useForm(blankForm());
+const editing = ref<Kelas | null>(null);
+const createForm = useForm<KelasForm>(blankForm());
+const editForm = useForm<KelasForm>(blankForm());
 const formTitle = computed(() => editing.value ? 'Edit Kelas' : 'Tambah Kelas');
 const formIcon = computed(() => editing.value ? 'bi-pencil-square' : 'bi-plus-circle');
 
-function blankForm() {
+function blankForm(): KelasForm {
     return {
         tingkat: '',
         nama_kelas: '',
     };
 }
 
-function startEdit(item) {
+function startEdit(item: Kelas): void {
     editing.value = item;
     editForm.clearErrors();
     editForm.defaults({
@@ -45,13 +47,13 @@ function startEdit(item) {
     editForm.reset();
 }
 
-function cancelEdit() {
+function cancelEdit(): void {
     editing.value = null;
     editForm.clearErrors();
     editForm.reset();
 }
 
-function submitCreate() {
+function submitCreate(): void {
     if (createForm.processing) {
         return;
     }
@@ -62,7 +64,7 @@ function submitCreate() {
     });
 }
 
-function submitEdit() {
+function submitEdit(): void {
     if (!editing.value || editForm.processing) {
         return;
     }
@@ -73,7 +75,7 @@ function submitEdit() {
     });
 }
 
-async function destroy(item) {
+async function destroy(item: Kelas): Promise<void> {
     const confirmed = await window.confirmDialog?.(`Hapus kelas ${item.nama_kelas}?`, {
         title: 'Hapus Kelas',
         confirmText: 'Ya, hapus',

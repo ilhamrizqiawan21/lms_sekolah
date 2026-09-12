@@ -1,4 +1,7 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { LaravelPaginator } from '../../../types/pagination';
+interface StudentCase { id: number; siswa_id: number | null; siswa: string; nis: string; kondisi: string; deskripsi: string | null; tindak_lanjut: string | null; hasil: string | null; status: string; update_url: string; delete_url: string }
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -7,9 +10,9 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState, IconButton, Pagination, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
-    waliKelas: { type: Object, required: true },
-    siswaOptions: { type: Array, default: () => [] },
-    penanganan: { type: Object, required: true },
+    waliKelas: { type: Object as PropType<{ kelas: string; store_url: string }>, required: true },
+    siswaOptions: { type: Array as PropType<{ value: number; label: string }[]>, default: () => [] },
+    penanganan: { type: Object as PropType<LaravelPaginator<StudentCase>>, required: true },
 });
 
 const statusOptions = [
@@ -18,13 +21,13 @@ const statusOptions = [
     { value: 'selesai', label: 'Selesai' },
 ];
 
-const expandedId = ref(null);
+const expandedId = ref<number | null>(null);
 const createForm = useForm(blankForm('baru'));
 const editForm = useForm(blankForm('baru'));
 
 function blankForm(status = '') {
     return {
-        siswa_id: '',
+        siswa_id: '' as string | number,
         kondisi: '',
         deskripsi: '',
         tindak_lanjut: '',
@@ -44,7 +47,7 @@ function submitCreate() {
     });
 }
 
-function startEdit(item) {
+function startEdit(item: StudentCase) {
     expandedId.value = expandedId.value === item.id ? null : item.id;
     editForm.clearErrors();
     editForm.siswa_id = item.siswa_id ?? '';
@@ -55,7 +58,7 @@ function startEdit(item) {
     editForm.status = item.status ?? 'baru';
 }
 
-function submitEdit(item) {
+function submitEdit(item: StudentCase) {
     if (editForm.processing) {
         return;
     }
@@ -68,7 +71,7 @@ function submitEdit(item) {
     });
 }
 
-async function destroy(item) {
+async function destroy(item: StudentCase) {
     const confirmed = await window.confirmDialog?.('Hapus penanganan siswa ini?', {
         title: 'Hapus Penanganan',
         confirmText: 'Ya, hapus',
@@ -80,15 +83,16 @@ async function destroy(item) {
     router.delete(item.delete_url, { preserveScroll: true });
 }
 
-function statusColor(status) {
-    return {
+function statusColor(status: string) {
+    const colors: Record<string, string> = {
         selesai: 'success',
         proses: 'warning text-dark',
         baru: 'danger',
-    }[status] ?? 'secondary';
+    };
+    return colors[status] ?? 'secondary';
 }
 
-function statusLabel(status) {
+function statusLabel(status: string) {
     return status ? status.charAt(0).toUpperCase() + status.slice(1) : '-';
 }
 </script>

@@ -1,16 +1,13 @@
-<script setup>
+<script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import CalendarWorkspace from '../../../Components/Calendar/CalendarWorkspace.vue';
 import AcademicTimeline from '../../../Components/Calendar/AcademicTimeline.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
+import type { CalendarEvent, CalendarPayload, TimelineEvent } from '../../../types';
 
-defineProps({
-    calendar: { type: Object, required: true },
-    monthEvents: { type: Array, default: () => [] },
-    timelineEvents: { type: Array, default: () => [] },
-    pageTitle: { type: String, default: 'Kalender dan Monitoring Event Sekolah' },
-});
+interface Props { calendar: CalendarPayload; monthEvents?: CalendarEvent[]; timelineEvents?: TimelineEvent[]; pageTitle?: string }
+withDefaults(defineProps<Props>(), { monthEvents: () => [], timelineEvents: () => [], pageTitle: 'Kalender dan Monitoring Event Sekolah' });
 </script>
 
 <template>

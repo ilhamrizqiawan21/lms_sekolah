@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { SubmissionFile } from '../../../types/tasks';
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
@@ -7,13 +9,13 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card } from '../../../Components/UI';
 
 const props = defineProps({
-    tugas: { type: Object, required: true },
-    pengumpulan: { type: Object, default: null },
+    tugas: { type: Object as PropType<{ judul: string; kategori_nilai: string; mata_pelajaran: string; is_late: boolean; batas_waktu: string; deskripsi: string | null; store_url: string; back_url: string; guru: string; kelas: string }>, required: true },
+    pengumpulan: { type: Object as PropType<{ status: string; tanggal_kumpul: string | null; nilai: number | string | null; files: SubmissionFile[]; legacy_file_url: string | null; teks_jawaban: string | null; catatan: string | null } | null>, default: null },
     canSubmit: { type: Boolean, default: false },
 });
 
 const form = useForm({
-    files: [],
+    files: [] as File[],
     teks_jawaban: '',
 });
 const allowedUploadExtensions = ['jpg', 'jpeg', 'pdf'];
@@ -22,17 +24,17 @@ const fileInputKey = ref(0);
 
 const uploadFileError = computed(() => {
     const errors = [
-        form.errors.file_upload,
+        (form.errors as Record<string, string | undefined>).file_upload,
         form.errors.files,
         ...Object.entries(form.errors)
             .filter(([key]) => key.startsWith('files.'))
             .map(([, message]) => message),
-    ].filter(Boolean);
+    ].filter((message): message is string => Boolean(message));
 
     return errors.length > 1 ? errors : errors[0] ?? '';
 });
 
-const statusMap = {
+const statusMap: Record<string, { color: string; label: string }> = {
     belum: { color: 'secondary', label: 'Belum' },
     sudah: { color: 'success', label: 'Sudah' },
     terlambat: { color: 'danger', label: 'Terlambat' },
@@ -40,27 +42,28 @@ const statusMap = {
     perlu_perbaikan: { color: 'warning', label: 'Perlu Perbaikan' },
 };
 
-function statusColor(status) {
+function statusColor(status: string) {
     return statusMap[status]?.color ?? 'secondary';
 }
 
-function statusLabel(status) {
+function statusLabel(status: string) {
     return statusMap[status]?.label ?? (status ? status.replace(/\b\w/g, (char) => char.toUpperCase()) : '-');
 }
 
-function selectedFiles(files) {
+function selectedFiles(files: File[] | File | null) {
     return Array.isArray(files) ? files.filter(Boolean) : (files ? [files] : []);
 }
 
 function clearUploadErrors() {
-    form.clearErrors('file_upload', 'files');
+    delete (form.errors as Record<string, string | undefined>).file_upload;
+    form.clearErrors('files');
 
     Object.keys(form.errors)
         .filter((key) => key.startsWith('files.'))
-        .forEach((key) => form.clearErrors(key));
+        .forEach((key) => form.clearErrors(key as `files.${number}`));
 }
 
-function validateSelectedFiles(files) {
+function validateSelectedFiles(files: File[]) {
     if (files.length > 5) {
         return 'Maksimal 5 file untuk satu pengumpulan tugas.';
     }
@@ -68,7 +71,7 @@ function validateSelectedFiles(files) {
     const invalidFile = files.find((file) => {
         const extension = file.name.split('.').pop()?.toLowerCase();
 
-        return !allowedUploadExtensions.includes(extension);
+        return !allowedUploadExtensions.includes(extension ?? '');
     });
 
     if (invalidFile) {

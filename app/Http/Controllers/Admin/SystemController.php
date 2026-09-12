@@ -27,7 +27,7 @@ class SystemController extends Controller
 {
     public function logLogin(Request $request)
     {
-        //Mengecek aktivitas login user
+        // Mengecek aktivitas login user
         $query = $this->logLoginQuery($request);
 
         $logs = $query->paginate(25)
@@ -55,9 +55,9 @@ class SystemController extends Controller
             'search' => 'nullable|string|max:100',
         ]);
 
-        $writer = new Writer();
+        $writer = new Writer;
         $filePath = tempnam(sys_get_temp_dir(), 'log_login_');
-        $filename = 'log_login_' . date('Ymd_His') . '.xlsx';
+        $filename = 'log_login_'.date('Ymd_His').'.xlsx';
 
         $writer->openToFile($filePath);
         $sheet = $writer->getCurrentSheet();
@@ -105,7 +105,8 @@ class SystemController extends Controller
             ->download($filePath, $filename)
             ->deleteFileAfterSend(true);
     }
-    //Menampilkan riwayat login sistem
+
+    // Menampilkan riwayat login sistem
     public function logError(Request $request)
     {
         $query = SystemError::orderBy('created_at', 'desc');
@@ -133,7 +134,8 @@ class SystemController extends Controller
             'filters' => $request->only(['level']),
         ]);
     }
-    //Pengaturan sistem seperti warna tema, nama sekolah, semester aktif, tahun ajaran aktif, dan mode kenaikan kelas
+
+    // Pengaturan sistem seperti warna tema, nama sekolah, semester aktif, tahun ajaran aktif, dan mode kenaikan kelas
     public function pengaturan()
     {
         $settings = Pengaturan::pluck('value', 'key')->toArray();
@@ -146,6 +148,7 @@ class SystemController extends Controller
                 'semester_aktif' => $settings['semester_aktif'] ?? '1',
                 'mode_kenaikan' => $settings['mode_kenaikan'] ?? 'manual',
                 'penalty_terlambat_poin' => $settings['penalty_terlambat_poin'] ?? '1',
+                'whatsapp_template_tugas_terlambat' => $settings['whatsapp_template_tugas_terlambat'] ?? '',
             ],
             'tahunAjaranAktif' => $tahunAjaranAktif ? [
                 'id' => $tahunAjaranAktif->id,
@@ -160,7 +163,8 @@ class SystemController extends Controller
             ],
         ]);
     }
-    //Simpan pengaturan sistem
+
+    // Simpan pengaturan sistem
     public function savePengaturan(Request $request)
     {
         $data = $request->validate([
@@ -168,6 +172,7 @@ class SystemController extends Controller
             'semester_aktif' => 'nullable|in:1,2',
             'mode_kenaikan' => 'nullable|in:manual,auto',
             'penalty_terlambat_poin' => 'nullable|numeric|min:0|max:100',
+            'whatsapp_template_tugas_terlambat' => 'nullable|string|max:4000',
         ]);
 
         foreach ($data as $key => $value) {
@@ -178,7 +183,8 @@ class SystemController extends Controller
 
         return back()->with('success', 'Pengaturan berhasil disimpan.');
     }
-    //Memblokir IP tertentu agar tidak bisa mengakses sistem
+
+    // Memblokir IP tertentu agar tidak bisa mengakses sistem
     public function blockedIps()
     {
         $ips = BlockedIp::orderBy('created_at', 'desc')
@@ -197,10 +203,12 @@ class SystemController extends Controller
             'ips' => $ips,
         ]);
     }
-    //Membuka blokir IP tertentu agar bisa mengakses sistem kembali
+
+    // Membuka blokir IP tertentu agar bisa mengakses sistem kembali
     public function unblockIp(BlockedIp $blockedIp)
     {
         $blockedIp->delete();
+
         return back()->with('success', 'IP berhasil di-unblock.');
     }
 
@@ -268,7 +276,7 @@ class SystemController extends Controller
             new BorderPart(BorderName::LEFT, 'CBD5E1', BorderWidth::THIN),
         );
 
-        $base = (new Style())
+        $base = (new Style)
             ->withFontName('Arial')
             ->withFontSize(10)
             ->withShouldWrapText(true)

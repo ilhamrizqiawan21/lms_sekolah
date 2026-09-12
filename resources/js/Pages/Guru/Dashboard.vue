@@ -1,26 +1,28 @@
-<script setup>
+<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import AppShell from '../../Layouts/AppShell.vue';
 import { ActionQueue, Card, CourseCard, DashboardHero, EmptyState, MetricStrip, QuickActionBar } from '../../Components/UI';
+import type { AppPageProps } from '../../types';
 
-const page = usePage();
+interface GuruStats { total_kelas_mapel?: number; total_siswa?: number; }
+interface Course { id: number; kelas: string; mata_pelajaran: string; semester: string; workspace_url: string; materi_count: number; tugas_count: number; }
+interface GradingTask { id: number; judul: string; kelas: string; mata_pelajaran: string; total: number; url: string; }
+interface MissingTask { id: number; judul: string; kelas: string; mata_pelajaran: string; belum: number; total_siswa: number; batas_waktu: string; url: string; }
+interface AttendanceConcern { id: number; nama: string; kelas: string; nis: string; total_absensi: number; total_alpha: number; persen_hadir: number; url: string; }
+interface AttendanceChartPoint { bulan: string; bulan_label?: string; total: number; persen_hadir: number; }
+interface SubmissionChartPoint { bulan: string; bulan_label?: string; total: number; collected: number; persen_dikumpulkan: number; }
+
+const page = usePage<AppPageProps>();
 const user = page.props.auth?.user;
-const props = defineProps({
-    statistik: { type: Object, default: () => ({}) },
-    kelasMapel: { type: Array, default: () => [] },
-    tugasBelumDikumpulkan: { type: Array, default: () => [] },
-    siswaJarangMasuk: { type: Array, default: () => [] },
-    tugasPerluDinilai: { type: Array, default: () => [] },
-    kehadiranChart: { type: Array, default: () => [] },
-    pengumpulanTugasChart: { type: Array, default: () => [] },
-});
+interface Props { statistik?: GuruStats; kelasMapel?: Course[]; tugasBelumDikumpulkan?: MissingTask[]; siswaJarangMasuk?: AttendanceConcern[]; tugasPerluDinilai?: GradingTask[]; kehadiranChart?: AttendanceChartPoint[]; pengumpulanTugasChart?: SubmissionChartPoint[]; }
+const props = withDefaults(defineProps<Props>(), { statistik: () => ({}), kelasMapel: () => [], tugasBelumDikumpulkan: () => [], siswaJarangMasuk: () => [], tugasPerluDinilai: () => [], kehadiranChart: () => [], pengumpulanTugasChart: () => [] });
 
-const kehadiranCanvas = ref(null);
-const pengumpulanCanvas = ref(null);
-let kehadiranChartInstance = null;
-let pengumpulanChartInstance = null;
-let themeObserver = null;
+const kehadiranCanvas = ref<HTMLCanvasElement | null>(null);
+const pengumpulanCanvas = ref<HTMLCanvasElement | null>(null);
+let kehadiranChartInstance: { destroy: () => void } | null = null;
+let pengumpulanChartInstance: { destroy: () => void } | null = null;
+let themeObserver: MutationObserver | null = null;
 
 function currentMonthKey() {
     const today = new Date();
@@ -29,8 +31,8 @@ function currentMonthKey() {
 
 const latestKehadiran = computed(() => props.kehadiranChart.find((item) => item.bulan === currentMonthKey()) || props.kehadiranChart.at(-1));
 const latestPengumpulan = computed(() => props.pengumpulanTugasChart.find((item) => item.bulan === currentMonthKey()) || props.pengumpulanTugasChart.at(-1));
-const averageKehadiran = computed(() => averagePercentage(props.kehadiranChart, 'persen_hadir'));
-const averagePengumpulan = computed(() => averagePercentage(props.pengumpulanTugasChart, 'persen_dikumpulkan'));
+const averageKehadiran = computed(() => averagePercentage(props.kehadiranChart, (item) => item.persen_hadir));
+const averagePengumpulan = computed(() => averagePercentage(props.pengumpulanTugasChart, (item) => item.persen_dikumpulkan));
 const chartPeriodLabel = computed(() => {
     const items = props.kehadiranChart.length ? props.kehadiranChart : props.pengumpulanTugasChart;
     const first = items[0]?.bulan_label || items[0]?.bulan;
@@ -39,22 +41,22 @@ const chartPeriodLabel = computed(() => {
     return first && last ? `${first} - ${last}` : 'Tahun Pelajaran';
 });
 
-function averagePercentage(items, key) {
+function averagePercentage<T extends { total: number }>(items: T[], percentage: (item: T) => number): number {
     const filledItems = items.filter((item) => Number(item.total) > 0);
     if (!filledItems.length) {
         return 0;
     }
 
-    const total = filledItems.reduce((sum, item) => sum + Number(item[key] ?? 0), 0);
+    const total = filledItems.reduce((sum, item) => sum + Number(percentage(item) ?? 0), 0);
     return Math.round(total / filledItems.length);
 }
 
-function cssColor(variable, fallback) {
+function cssColor(variable: string, fallback: string): string {
     const value = window.getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
     return value || fallback;
 }
 
-function withAlpha(color, alpha) {
+function withAlpha(color: string, alpha: number): string {
     const normalized = color.trim().replace('#', '');
     const hex = normalized.length === 3
         ? normalized.split('').map((character) => `${character}${character}`).join('')
@@ -86,19 +88,19 @@ async function chartJs() {
     return Chart;
 }
 
-function trendChartOptions(title, tooltipTitleCallback = null) {
+function trendChartOptions(title: string, tooltipTitleCallback: ((items: Array<{ dataIndex?: number }>) => string) | null = null) {
     const palette = chartPalette();
 
     return {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
+        interaction: { mode: 'index' as const, intersect: false },
         plugins: {
             legend: { display: false },
             tooltip: {
                 callbacks: {
                     ...(tooltipTitleCallback ? { title: tooltipTitleCallback } : {}),
-                    label: (context) => `${title}: ${context.parsed.y}%`,
+                    label: (context: { parsed: { y: number | null } }) => `${title}: ${context.parsed.y ?? 0}%`,
                 },
             },
         },
@@ -119,7 +121,7 @@ function trendChartOptions(title, tooltipTitleCallback = null) {
                 ticks: {
                     color: palette.muted,
                     precision: 0,
-                    callback: (value) => `${value}%`,
+                    callback: (value: string | number) => `${value}%`,
                 },
             },
         },

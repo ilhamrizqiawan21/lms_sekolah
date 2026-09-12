@@ -1,16 +1,18 @@
-<script setup>
+<script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
+import type { AuthUser, NotificationsShare, SchoolBranding, UserRole } from '../../types';
 
-defineProps({ school: { type: Object, required: true }, user: { type: Object, default: null }, pageTitle: { type: String, default: 'Dashboard' }, notifications: { type: Object, default: () => ({}) }, sidebarOpen: { type: Boolean, default: false } });
-const emit = defineEmits(['toggle-sidebar', 'open-command']);
+interface Props { school: SchoolBranding; user?: AuthUser | null; pageTitle?: string; notifications?: NotificationsShare; sidebarOpen?: boolean; }
+const props = withDefaults(defineProps<Props>(), { user: null, pageTitle: 'Dashboard', notifications: () => ({ route: null, mark_all_route: null, unread_count: 0, latest: [] }), sidebarOpen: false });
+const emit = defineEmits<{ 'toggle-sidebar': []; 'open-command': [] }>();
 function logout() { router.post('/logout'); }
-function profileHref(role) { if (role === 'admin') return '/admin/pengaturan-akun'; if (role === 'guru') return '/guru/pengaturan'; if (role === 'siswa') return '/siswa/pengaturan'; if (role === 'kepala_sekolah') return '/kepsek/pengaturan'; return null; }
-function profileIsInertia(role) { return ['admin', 'guru', 'siswa', 'kepala_sekolah'].includes(role); }
+function profileHref(role: UserRole | null | undefined): string | undefined { if (role === 'admin') return '/admin/pengaturan-akun'; if (role === 'guru') return '/guru/pengaturan'; if (role === 'siswa') return '/siswa/pengaturan'; if (role === 'kepala_sekolah') return '/kepsek/pengaturan'; return undefined; }
+function profileIsInertia(role: UserRole | null | undefined): boolean { return ['admin', 'guru', 'siswa', 'kepala_sekolah'].includes(role as string); }
 </script>
 
 <template>
     <header class="topbar modern-topbar">
-        <button class="topbar-toggle-btn" type="button" aria-label="Buka menu" aria-controls="sidebar" :aria-expanded="sidebarOpen.toString()" @click="$emit('toggle-sidebar')"><i class="bi bi-list" aria-hidden="true"></i></button>
+        <button class="topbar-toggle-btn" type="button" :aria-label="sidebarOpen ? 'Tutup menu' : 'Buka menu'" aria-controls="sidebar" :aria-expanded="sidebarOpen" @click="emit('toggle-sidebar')"><i class="bi bi-list" aria-hidden="true"></i></button>
         <div class="topbar-brand">
             <div class="topbar-logo-icon"><img :src="school.logo_url" :alt="`Logo ${school.name}`" class="app-logo-sm" width="32" height="32" decoding="async"></div>
             <div class="topbar-title">
@@ -19,7 +21,7 @@ function profileIsInertia(role) { return ['admin', 'guru', 'siswa', 'kepala_seko
             </div>
         </div>
         <div class="topbar-context"><span class="topbar-context-label">{{ user?.role_label ?? '-' }}</span><span class="topbar-context-title">{{ pageTitle }}</span></div>
-        <button class="topbar-search" type="button" aria-label="Buka akses cepat" @click="emit('open-command')"><i class="bi bi-search" aria-hidden="true"></i><span>Cari kelas, tugas, siswa...</span><kbd>/</kbd></button>
+        <button class="topbar-search" type="button" aria-label="Buka akses cepat" @click="emit('open-command')"><i class="bi bi-search" aria-hidden="true"></i><span>Cari menu...</span><kbd>/</kbd></button>
         <div class="topbar-actions">
             <div v-if="notifications.route" class="dropdown">
                 <button class="btn btn-sm position-relative topbar-icon-btn" type="button" data-bs-toggle="dropdown" title="Notifikasi" aria-label="Notifikasi"><i class="bi bi-bell-fill" aria-hidden="true"></i><span v-if="notifications.unread_count > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-count">{{ notifications.unread_count > 99 ? '99+' : notifications.unread_count }}</span></button>
