@@ -20,7 +20,7 @@ const env = {
     CACHE_STORE: 'array', SESSION_DRIVER: 'database', SESSION_DOMAIN: '',
     SESSION_SECURE_COOKIE: 'false', SESSION_COOKIE: 'lms_browser_test',
     QUEUE_CONNECTION: 'sync', MAIL_MAILER: 'array', LOG_CHANNEL: 'stderr',
-    BCRYPT_ROUNDS: '4', BROWSER_BASE_URL: baseURL,
+    BCRYPT_ROUNDS: '4', REQUIRE_STUDENT_PHONE: 'false', BROWSER_BASE_URL: baseURL,
 };
 
 function run(command, args) {

@@ -16,6 +16,8 @@ use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Models\Tugas;
 use App\Models\User;
+use App\Models\WhatsAppMessageLog;
+use App\Services\WhatsAppService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -59,6 +61,55 @@ class FreeFeaturePackageTest extends TestCase
             ->get(route('kepsek.performa-guru'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page->component('PerformaGuru/Index'));
+    }
+
+    public function test_whatsapp_late_task_reminder_excludes_submitted_tasks(): void
+    {
+        [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
+        $kelasMapel = $this->course($guru, $kelas, $tahunAjaran, 'WAT');
+        $siswaUser = $this->createUser('siswa-wa-filter', 'Siswa WA Filter', 'siswa');
+        $siswa = Siswa::create([
+            'user_id' => $siswaUser->id,
+            'nis' => '8401',
+            'kelas_id' => $kelas->id,
+            'status' => 'aktif',
+            'nomor_whatsapp' => '6281234567890',
+            'whatsapp_opt_in' => true,
+        ]);
+        $submitted = Tugas::create([
+            'kelas_mapel_id' => $kelasMapel->id,
+            'judul' => 'Tugas Sudah Terkirim',
+            'batas_waktu' => now()->subDays(3),
+            'kategori_nilai' => 'NH',
+        ]);
+        $pending = Tugas::create([
+            'kelas_mapel_id' => $kelasMapel->id,
+            'judul' => 'Tugas Belum Terkirim',
+            'batas_waktu' => now()->subDays(2),
+            'kategori_nilai' => 'NH',
+        ]);
+        PengumpulanTugas::create([
+            'tugas_id' => $submitted->id,
+            'siswa_id' => $siswa->id,
+            'status' => PengumpulanTugas::STATUS_TERLAMBAT,
+            'tanggal_kumpul' => now()->subDay(),
+        ]);
+
+        $result = app(WhatsAppService::class)->prepareLateTaskMessage($siswa, $pending, $guru->id);
+
+        $this->assertStringNotContainsString($submitted->judul, $result['message']);
+        $this->assertStringContainsString($pending->judul, $result['message']);
+        $this->assertDatabaseHas('whatsapp_message_logs', [
+            'id' => $result['log_id'],
+            'siswa_id' => $siswa->id,
+            'guru_id' => $guru->id,
+        ]);
+        $this->assertSame([$pending->id], WhatsAppMessageLog::findOrFail($result['log_id'])->tugas_ids);
+
+        $submittedResult = app(WhatsAppService::class)->prepareLateTaskMessage($siswa, $submitted, $guru->id);
+
+        $this->assertStringNotContainsString($submitted->judul, $submittedResult['message']);
+        $this->assertSame([$pending->id], WhatsAppMessageLog::findOrFail($submittedResult['log_id'])->tugas_ids);
     }
 
     public function test_guru_schedule_rejects_teacher_and_class_slot_conflicts(): void

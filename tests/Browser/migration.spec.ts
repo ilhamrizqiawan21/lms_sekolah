@@ -206,15 +206,17 @@ test('searchable select opens upward at the last option', async ({ page }) => {
     await expect(page.locator('input[type="hidden"][name="kelas_id"]')).toHaveValue('1');
 });
 
-test('student must save a phone and explicitly accept WhatsApp consent', async ({ page }, testInfo) => {
+test('student phone settings validate consent when configured', async ({ page }, testInfo) => {
     await login(page, 'siswa-2');
-    await expect(page).toHaveURL(/\/siswa\/pengaturan$/);
+    await expect(page).toHaveURL(/\/siswa\/dashboard$/);
+    await page.goto('/siswa/pengaturan');
     const number = page.getByLabel('Nomor Telepon / WhatsApp');
     const consent = page.locator('#whatsapp_opt_in');
     await expect(consent).not.toBeChecked();
     await expect(consent).toHaveAttribute('required', '');
     await page.goto('/siswa/nilai');
-    await expect(page).toHaveURL(/\/siswa\/pengaturan$/);
+    await expect(page).toHaveURL(/\/siswa\/nilai$/);
+    await page.goto('/siswa/pengaturan');
     await number.fill('0812');
     await consent.check();
     await page.getByRole('button', { name: 'Simpan Nomor Telepon' }).click();

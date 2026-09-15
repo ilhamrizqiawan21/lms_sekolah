@@ -39,7 +39,8 @@ class AccountSettingsController extends Controller
                     'tinggal_kelas' => (bool) $user->siswa->tinggal_kelas,
                     'nomor_whatsapp' => $user->siswa->nomor_whatsapp,
                     'whatsapp_opt_in' => (bool) $user->siswa->whatsapp_opt_in,
-                    'phone_required' => ! WhatsAppPhone::isValid($user->siswa->nomor_whatsapp) || ! $user->siswa->whatsapp_opt_in,
+                    'phone_required' => config('security.require_student_phone', false)
+                        && (! WhatsAppPhone::isValid($user->siswa->nomor_whatsapp) || ! $user->siswa->whatsapp_opt_in),
                 ] : null,
             ],
             'updateUrl' => $this->updateRoute($role),

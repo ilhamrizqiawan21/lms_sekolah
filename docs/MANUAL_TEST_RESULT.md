@@ -23,10 +23,10 @@ Catatan penting: test MySQL pertama menemukan error nama index terlalu panjang p
 | `php artisan storage:link` | Lulus | Link sudah ada, tidak perlu dibuat ulang. |
 | `npm run build` | Lulus | Vite build sukses dan menghasilkan asset di `public/build`. |
 | `php artisan serve` | Lulus | Server berjalan di `http://127.0.0.1:8015`. |
-| Login admin | Lulus | `admin@demo.test / password` redirect ke `/admin/dashboard`. |
-| Login guru | Lulus | `guru@demo.test / password` redirect ke `/guru/dashboard`. |
-| Login siswa | Lulus | `siswa@demo.test / password` redirect ke `/siswa/dashboard`. |
-| Login kepala sekolah | Lulus | `kepsek@demo.test / password` redirect ke `/kepsek/dashboard`. |
+| Login admin | Lulus | akun demo dengan password dari `DEMO_PASSWORD` redirect ke `/admin/dashboard`. |
+| Login guru | Lulus | akun demo dengan password dari `DEMO_PASSWORD` redirect ke `/guru/dashboard`. |
+| Login siswa | Lulus | akun demo dengan password dari `DEMO_PASSWORD` redirect ke `/siswa/dashboard`. |
+| Login kepala sekolah | Lulus | akun demo dengan password dari `DEMO_PASSWORD` redirect ke `/kepsek/dashboard`. |
 | Ubah nama sekolah | Lulus | Nama berubah menjadi `Sekolah Demo Manual` dan tampil di login. |
 | Ubah logo | Lulus | Upload PNG berhasil, `logo_path` tersimpan di `school/...png`. |
 | Ubah favicon | Lulus | Upload ICO berhasil, `favicon_path` tersimpan di `school/...ico`. |

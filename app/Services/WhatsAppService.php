@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Pengaturan;
+use App\Models\PengumpulanTugas;
 use App\Models\Siswa;
 use App\Models\Tugas;
 use App\Models\WhatsAppMessageLog;
@@ -21,11 +22,13 @@ class WhatsAppService
         $course = $currentTask->kelasMapel;
         $tasks = Tugas::with(['kelasMapel.mataPelajaran', 'pengumpulan' => fn ($q) => $q->where('siswa_id', $siswa->id)])
             ->where('kelas_mapel_id', $course->id)->where('batas_waktu', '<', now())->orderBy('batas_waktu')->get();
-        $tasks = $tasks->filter(fn (Tugas $task) => ! in_array($task->pengumpulan->first()?->status, ['dinilai', 'perlu_perbaikan'], true));
-        if (! $tasks->contains('id', $currentTask->id)) {
-            $tasks->push($currentTask);
-        }
+        // Only remind students who have not submitted. A late submission is
+        // still a valid submission and must not be requested again.
+        $tasks = $tasks->filter(function (Tugas $task): bool {
+            $status = $task->pengumpulan->first()?->status;
 
+            return $status === null || $status === PengumpulanTugas::STATUS_BELUM;
+        });
         $items = $tasks->map(function (Tugas $task) {
             $submitted = $task->pengumpulan->first()?->tanggal_kumpul;
             $days = (int) max(0, $task->batas_waktu->copy()->startOfDay()->diffInDays(($submitted ?? now())->copy()->startOfDay(), false));

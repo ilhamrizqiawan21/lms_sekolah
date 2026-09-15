@@ -338,17 +338,27 @@ class TugasController extends Controller
             $values['graded_at'] = now();
         }
 
-        $savedPengumpulan = PengumpulanTugas::updateOrCreate(
-            [
-                'tugas_id' => $tugas->id,
-                'siswa_id' => $siswa->id,
-            ],
-            $values
-        );
+        $savedPengumpulan = DB::transaction(function () use (
+            $tugas,
+            $siswa,
+            $values,
+            $nilaiInput,
+            $kelasMapel
+        ): PengumpulanTugas {
+            $saved = PengumpulanTugas::updateOrCreate(
+                [
+                    'tugas_id' => $tugas->id,
+                    'siswa_id' => $siswa->id,
+                ],
+                $values
+            );
 
-        if ($nilaiInput !== null) {
-            $this->syncNilaiHarian($kelasMapel, $siswa);
-        }
+            if ($nilaiInput !== null) {
+                $this->syncNilaiHarian($kelasMapel, $siswa);
+            }
+
+            return $saved;
+        });
 
         $message = $nilaiInput !== null
             ? 'Nilai tugas berhasil disimpan dan nilai harian diperbarui.'

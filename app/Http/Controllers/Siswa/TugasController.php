@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
-use App\Models\KelasMapel;
 use App\Models\PengumpulanFile;
 use App\Models\PengumpulanTugas;
 use App\Models\Siswa;
 use App\Models\Tugas;
+use App\Services\NotifikasiService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,8 +18,11 @@ use Inertia\Inertia;
 class TugasController extends Controller
 {
     private const MAX_UPLOAD_FILES = 5;
+
     private const UPLOAD_MAX_KB = 5120;
+
     private const UPLOAD_TOTAL_MAX_KB = 20480;
+
     private const UPLOAD_EXTENSIONS = 'jpg,jpeg,pdf';
 
     /**
@@ -31,7 +34,7 @@ class TugasController extends Controller
      */
     public static function uploadFileRules(): string
     {
-        return 'nullable|file|extensions:' . self::UPLOAD_EXTENSIONS . '|max:' . self::UPLOAD_MAX_KB;
+        return 'nullable|file|extensions:'.self::UPLOAD_EXTENSIONS.'|max:'.self::UPLOAD_MAX_KB;
     }
 
     public function index()
@@ -39,7 +42,7 @@ class TugasController extends Controller
         $user = Auth::user();
         $siswa = $user->siswa;
 
-        if (!$siswa) {
+        if (! $siswa) {
             return redirect()->route('login')->with('error', 'Data siswa tidak ditemukan.');
         }
 
@@ -93,7 +96,7 @@ class TugasController extends Controller
                 'kategori_nilai' => $tugas->kategori_nilai ?? 'NH',
                 'mata_pelajaran' => $tugas->kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
                 'guru' => $tugas->kelasMapel?->guru?->nama_lengkap ?? '-',
-                'kelas' => trim(($tugas->kelasMapel?->kelas?->tingkat ? $tugas->kelasMapel?->kelas?->tingkat . ' ' : '') . ($tugas->kelasMapel?->kelas?->nama_kelas ?? '')),
+                'kelas' => trim(($tugas->kelasMapel?->kelas?->tingkat ? $tugas->kelasMapel?->kelas?->tingkat.' ' : '').($tugas->kelasMapel?->kelas?->nama_kelas ?? '')),
                 'batas_waktu' => $tugas->batas_waktu ? Carbon::parse($tugas->batas_waktu)->format('d M Y') : '-',
                 'is_late' => $tugas->batas_waktu ? now()->gt($tugas->batas_waktu) : false,
                 'deskripsi' => $tugas->deskripsi ?? 'Tidak ada deskripsi',
@@ -114,7 +117,7 @@ class TugasController extends Controller
                     'url' => route('siswa.tugas.file.download', [$tugas, $file]),
                 ])->values(),
             ] : null,
-            'canSubmit' => !$pengumpulan || in_array($pengumpulan->status, [
+            'canSubmit' => ! $pengumpulan || in_array($pengumpulan->status, [
                 PengumpulanTugas::STATUS_BELUM,
                 PengumpulanTugas::STATUS_PERLU_PERBAIKAN,
             ]),
@@ -128,7 +131,7 @@ class TugasController extends Controller
 
         $fileRules = self::uploadFileRules();
         $validated = $request->validate([
-            'files' => 'nullable|array|max:' . self::MAX_UPLOAD_FILES,
+            'files' => 'nullable|array|max:'.self::MAX_UPLOAD_FILES,
             'file_upload' => $fileRules,
             'files.*' => $fileRules,
             'teks_jawaban' => 'nullable|string|max:5000',
@@ -137,7 +140,7 @@ class TugasController extends Controller
             'file_upload.extensions' => 'Ekstensi file harus .jpg, .jpeg, atau .pdf.',
             'file_upload.max' => 'Ukuran file maksimal 5MB.',
             'files.array' => 'Upload file tidak valid. Silakan pilih file ulang.',
-            'files.max' => 'Maksimal ' . self::MAX_UPLOAD_FILES . ' file untuk satu pengumpulan tugas.',
+            'files.max' => 'Maksimal '.self::MAX_UPLOAD_FILES.' file untuk satu pengumpulan tugas.',
             'files.*.file' => 'Upload harus berupa file.',
             'files.*.extensions' => 'Ekstensi file harus .jpg, .jpeg, atau .pdf.',
             'files.*.max' => 'Ukuran setiap file maksimal 5MB.',
@@ -152,12 +155,12 @@ class TugasController extends Controller
         $hasMultipleFiles = collect($request->file('files', []))->filter()->isNotEmpty();
         $totalUploadedFiles = ($hasSingleFile ? 1 : 0) + collect($request->file('files', []))->filter()->count();
 
-        if (!$hasTextJawaban && !$hasSingleFile && !$hasMultipleFiles) {
+        if (! $hasTextJawaban && ! $hasSingleFile && ! $hasMultipleFiles) {
             return back()->withInput()->withErrors(['file_upload' => 'Upload file atau isi jawaban teks terlebih dahulu.']);
         }
 
         if ($totalUploadedFiles > self::MAX_UPLOAD_FILES) {
-            return back()->withInput()->withErrors(['files' => 'Maksimal ' . self::MAX_UPLOAD_FILES . ' file untuk satu pengumpulan tugas.']);
+            return back()->withInput()->withErrors(['files' => 'Maksimal '.self::MAX_UPLOAD_FILES.' file untuk satu pengumpulan tugas.']);
         }
 
         $totalUploadBytes = 0;
@@ -170,14 +173,15 @@ class TugasController extends Controller
 
         if ($totalUploadBytes > self::UPLOAD_TOTAL_MAX_KB * 1024) {
             $limitMb = (int) (self::UPLOAD_TOTAL_MAX_KB / 1024);
-            return back()->withInput()->withErrors(['files' => 'Total ukuran file melebihi batas maksimal ' . $limitMb . 'MB.']);
+
+            return back()->withInput()->withErrors(['files' => 'Total ukuran file melebihi batas maksimal '.$limitMb.'MB.']);
         }
 
         $existingPengumpulan = PengumpulanTugas::where('tugas_id', $tugas->id)
             ->where('siswa_id', $siswa->id)
             ->first();
 
-        if ($existingPengumpulan && !in_array($existingPengumpulan->status, [
+        if ($existingPengumpulan && ! in_array($existingPengumpulan->status, [
             PengumpulanTugas::STATUS_BELUM,
             PengumpulanTugas::STATUS_PERLU_PERBAIKAN,
         ])) {
@@ -192,6 +196,20 @@ class TugasController extends Controller
 
         try {
             DB::beginTransaction();
+            // Re-check the submission while holding the row lock. The check
+            // above is only an early response; concurrent requests must not
+            // both pass it and append duplicate files.
+            $lockedPengumpulan = PengumpulanTugas::where('tugas_id', $tugas->id)
+                ->where('siswa_id', $siswa->id)
+                ->lockForUpdate()
+                ->first();
+            if ($lockedPengumpulan && ! in_array($lockedPengumpulan->status, [
+                PengumpulanTugas::STATUS_BELUM,
+                PengumpulanTugas::STATUS_PERLU_PERBAIKAN,
+            ], true)) {
+                throw new \RuntimeException('Tugas ini sudah dikumpulkan dan tidak dapat diubah.');
+            }
+
             $pengumpulan = PengumpulanTugas::updateOrCreate(
                 ['tugas_id' => $tugas->id, 'siswa_id' => $siswa->id],
                 ['status' => $statusPengumpulan, 'file_upload' => null, 'teks_jawaban' => $validated['teks_jawaban'] ?? null, 'tanggal_kumpul' => now(), 'graded_at' => null]
@@ -199,14 +217,14 @@ class TugasController extends Controller
 
             if ($request->hasFile('file_upload')) {
                 $file = $request->file('file_upload');
-                $path = $file->store('tugas/' . $tugas->id . '/' . $siswa->id, 'local');
+                $path = $file->store('tugas/'.$tugas->id.'/'.$siswa->id, 'local');
                 $storedPaths[] = $path;
                 $uploadedFiles[] = ['pengumpulan_id' => $pengumpulan->id, 'file_name' => $file->getClientOriginalName(), 'file_path' => $path, 'uploaded_at' => now()];
             }
 
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $file) {
-                    $path = $file->store('tugas/' . $tugas->id . '/' . $siswa->id, 'local');
+                    $path = $file->store('tugas/'.$tugas->id.'/'.$siswa->id, 'local');
                     $storedPaths[] = $path;
                     $uploadedFiles[] = ['pengumpulan_id' => $pengumpulan->id, 'file_name' => $file->getClientOriginalName(), 'file_path' => $path, 'uploaded_at' => now()];
                 }
@@ -219,14 +237,19 @@ class TugasController extends Controller
 
             DB::commit();
         } catch (\Throwable $e) {
-            if (DB::transactionLevel() > 0) DB::rollBack();
-            foreach ($storedPaths as $path) Storage::disk('local')->delete($path);
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            foreach ($storedPaths as $path) {
+                Storage::disk('local')->delete($path);
+            }
             report($e);
+
             return back()->withInput()->with('error', 'Tugas gagal dikumpulkan. Silakan coba lagi.');
         }
 
         $guruId = $tugas->kelasMapel->guru_id;
-        app(\App\Services\NotifikasiService::class)->notifikasiUser(
+        app(NotifikasiService::class)->notifikasiUser(
             $guruId,
             'kumpul_tugas',
             'Siswa mengumpulkan tugas',
@@ -246,6 +269,7 @@ class TugasController extends Controller
         $file->loadMissing('pengumpulan');
         abort_unless($file->pengumpulan, 404);
         $this->ensurePengumpulanMilikSiswaDanTugas($file->pengumpulan, $tugas, $siswa);
+
         return $this->downloadPengumpulanPath($file->file_path, $file->file_name);
     }
 
@@ -256,6 +280,7 @@ class TugasController extends Controller
         $tugas->loadMissing('kelasMapel.tahunAjaran');
         $this->ensureTugasAktifUntukSiswa($tugas, $siswa);
         $this->ensurePengumpulanMilikSiswaDanTugas($pengumpulan, $tugas, $siswa);
+
         return $this->downloadPengumpulanPath($pengumpulan->file_upload, basename((string) $pengumpulan->file_upload));
     }
 
@@ -273,8 +298,11 @@ class TugasController extends Controller
     {
         abort_unless($path, 404);
         $disk = Storage::disk('local');
-        if (!$disk->exists($path)) $disk = Storage::disk('public');
+        if (! $disk->exists($path)) {
+            $disk = Storage::disk('public');
+        }
         abort_unless($disk->exists($path), 404);
+
         return response()->download($disk->path($path), basename($downloadName));
     }
 }

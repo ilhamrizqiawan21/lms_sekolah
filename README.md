@@ -147,7 +147,9 @@ Panduan lengkap: [`docs/INSTALLATION.md`](docs/INSTALLATION.md).
 
 ## Demo Account
 
-Seeder demo menyediakan akun untuk empat role utama:
+Seeder demo menyediakan akun demo standar untuk pengujian. Jangan gunakan akun demo pada
+production. Untuk instalasi produk kosong, gunakan `EmptyProductSeeder` dan konfigurasi
+`DEFAULT_ADMIN_PASSWORD` yang kuat melalui environment.
 
 | Role | Email | Password |
 |---|---|---|
@@ -155,8 +157,6 @@ Seeder demo menyediakan akun untuk empat role utama:
 | Guru | `guru@demo.test` | `password` |
 | Siswa | `siswa@demo.test` | `password` |
 | Kepala Sekolah | `kepsek@demo.test` | `password` |
-
-**Jangan gunakan credential demo pada production.** Untuk instalasi produk kosong, gunakan `EmptyProductSeeder` dan konfigurasi akun admin melalui environment.
 
 ## Testing & CI
 

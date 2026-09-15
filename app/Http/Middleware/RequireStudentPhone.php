@@ -11,6 +11,10 @@ class RequireStudentPhone
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if (! config('security.require_student_phone', false)) {
+            return $next($request);
+        }
+
         if ($request->routeIs('siswa.pengaturan', 'siswa.pengaturan.*', 'siswa.profil', 'siswa.profil.update')) {
             return $next($request);
         }

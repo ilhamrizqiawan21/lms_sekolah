@@ -167,8 +167,8 @@ http://127.0.0.1:8000
 Jika memakai seeder demo:
 
 ```text
-Email: admin@demo.test
-Password: password
+Email: nilai `DEFAULT_ADMIN_EMAIL`
+Password: nilai rahasia `DEFAULT_ADMIN_PASSWORD` dari environment
 ```
 
 Jika memakai `EmptyProductSeeder`, akun admin awal mengikuti nilai `DEFAULT_ADMIN_*` di `.env`:
@@ -176,7 +176,7 @@ Jika memakai `EmptyProductSeeder`, akun admin awal mengikuti nilai `DEFAULT_ADMI
 ```text
 Username: DEFAULT_ADMIN_USERNAME
 Email: DEFAULT_ADMIN_EMAIL
-Password: DEFAULT_ADMIN_PASSWORD
+Password: nilai rahasia `DEFAULT_ADMIN_PASSWORD` dari environment
 ```
 
 Segera ubah password setelah login pertama.

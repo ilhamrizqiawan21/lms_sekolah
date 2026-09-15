@@ -335,7 +335,7 @@ function saveSchool() {
                             v-model="systemForm.whatsapp_template_tugas_terlambat"
                             name="whatsapp_template_tugas_terlambat"
                             label="Template WhatsApp Tugas Terlambat"
-                            rows="7"
+                            :rows="7"
                             help="Placeholder yang tersedia: {{nama_siswa}}, {{daftar_tugas}}, {{total_tugas}}, {{total_hari_terlambat}}, {{url_lms}}. Kosongkan untuk memakai template bawaan."
                             :error="systemForm.errors.whatsapp_template_tugas_terlambat"
                         />

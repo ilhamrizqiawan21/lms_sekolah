@@ -43,7 +43,10 @@ class EmptyProductSeeder extends Seeder
     {
         $username = env('DEFAULT_ADMIN_USERNAME') ?: 'admin';
         $email = env('DEFAULT_ADMIN_EMAIL') ?: 'admin@demo.test';
-        $password = env('DEFAULT_ADMIN_PASSWORD') ?: 'password';
+        $password = (string) env('DEFAULT_ADMIN_PASSWORD', '');
+        if (strlen($password) < 12) {
+            throw new \RuntimeException('DEFAULT_ADMIN_PASSWORD wajib diisi dan minimal 12 karakter.');
+        }
 
         User::updateOrCreate(
             ['username' => $username],
@@ -58,9 +61,6 @@ class EmptyProductSeeder extends Seeder
             ]
         );
 
-        if ($password === 'password') {
-            $this->command?->warn('DEFAULT_ADMIN_PASSWORD belum diatur. Segera ubah password admin setelah login pertama.');
-        }
     }
 
     private function seedAcademicDefaults(): void
