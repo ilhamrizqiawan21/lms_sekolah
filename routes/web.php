@@ -184,6 +184,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
     Route::post('/tugas/{kelasMapel}/{tugas}/siswa/{siswa}/nilai', [GuruTugasController::class, 'nilai'])->name('tugas.nilai')->middleware('can:mengajar,kelasMapel');
     Route::get('/tugas/{kelasMapel}/{tugas}/siswa/{siswa}/whatsapp', [GuruTugasController::class, 'whatsapp'])->name('tugas.whatsapp')->middleware('can:mengajar,kelasMapel');
     Route::post('/tugas/whatsapp/{log}/mark-sent', [GuruTugasController::class, 'whatsappMarkSent'])->name('tugas.whatsapp.mark-sent');
+    Route::post('/tugas/whatsapp/{log}/send-queue', [GuruTugasController::class, 'whatsappSendQueue'])->name('tugas.whatsapp.send-queue');
     Route::delete('/tugas/{tugas}', [GuruTugasController::class, 'destroy'])->name('tugas.destroy')->middleware('can:mengajar-tugas,tugas');
     Route::get('/nilai', [NilaiController::class, 'index'])->name('nilai.index');
     Route::post('/nilai/store', [NilaiController::class, 'storeBulk'])->name('nilai.store.bulk');
@@ -229,6 +230,7 @@ Route::middleware(['auth', 'role:siswa', RequireStudentPhone::class])->prefix('s
     Route::get('/progress', [ProgressController::class, 'index'])->name('progress');
     Route::get('/jadwal-pelajaran', [SiswaJadwalController::class, 'index'])->name('jadwal-pelajaran');
     Route::get('/kelas-daring', [SiswaJadwalController::class, 'kelasDaring'])->name('kelas-daring');
+    Route::post('/kelas-daring/{kelasDaring}/presensi', [SiswaJadwalController::class, 'presensiDaring'])->name('kelas-daring.presensi');
     Route::get('/kalender', [SiswaKalenderController::class, 'index'])->name('kalender');
     Route::get('/pengumuman', [SiswaPengumumanController::class, 'index'])->name('pengumuman.index');
     Route::get('/pengumuman/{pengumuman}', [SiswaPengumumanController::class, 'show'])->name('pengumuman.show');

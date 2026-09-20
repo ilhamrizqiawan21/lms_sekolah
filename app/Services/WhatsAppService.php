@@ -45,4 +45,35 @@ class WhatsAppService
 
         return ['url' => 'https://wa.me/'.$phone.'?text='.rawurlencode($message), 'log_id' => $log->id, 'message' => $message];
     }
+
+    public function dispatchReminderJob(int $logId, string $phone, string $message): void
+    {
+        \App\Jobs\SendWhatsAppReminderJob::dispatch($logId, $phone, $message);
+    }
+
+    public function sendDirectMessage(string $phone, string $message): bool
+    {
+        $gatewayUrl = config('services.whatsapp.gateway_url');
+        $apiKey = config('services.whatsapp.api_key');
+
+        // Jika gateway belum dikonfigurasi (default/MVP), lakukan log sebagai mock gateway berhasil
+        if (blank($gatewayUrl) || blank($apiKey)) {
+            \Illuminate\Support\Facades\Log::info("WhatsApp Simulated Send to {$phone}: {$message}");
+            return true;
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => $apiKey,
+            ])->timeout(10)->post($gatewayUrl, [
+                'target' => $phone,
+                'message' => $message,
+            ]);
+
+            return $response->successful();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("WhatsApp send error to {$phone}: " . $e->getMessage());
+            return false;
+        }
+    }
 }

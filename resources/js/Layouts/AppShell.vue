@@ -4,7 +4,6 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import ConfirmDialog from '../Components/AppShell/ConfirmDialog.vue';
 import CommandPalette from '../Components/AppShell/CommandPalette.vue';
-import NavigationLoading from '../Components/AppShell/NavigationLoading.vue';
 import Sidebar from '../Components/AppShell/Sidebar.vue';
 import ToastStack from '../Components/AppShell/ToastStack.vue';
 import Topbar from '../Components/AppShell/Topbar.vue';
@@ -98,7 +97,6 @@ function closeSidebar() {
         <ToastStack />
         <ConfirmDialog />
         <CommandPalette v-model:open="commandOpen" :items="commandItems" />
-        <NavigationLoading />
     </div>
 </template>
 

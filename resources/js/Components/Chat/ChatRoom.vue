@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { router, useForm } from '@inertiajs/vue3';
 import InputError from '../Form/InputError.vue';
 import { Button, Card } from '../UI';
 import type { ChatMessage, ChatRoomPayload } from '../../types';
@@ -9,6 +9,7 @@ interface Props { room: ChatRoomPayload; messages?: ChatMessage[]; sendUrl: stri
 const props = withDefaults(defineProps<Props>(), { messages: () => [], emptyMessage: 'Belum ada pesan.' });
 
 const chatArea = ref<HTMLElement | null>(null);
+let pollTimer: ReturnType<typeof setInterval> | null = null;
 const form = useForm<{ message: string }>({
     message: '',
 });
@@ -31,7 +32,49 @@ function sendMessage(): void {
     });
 }
 
-onMounted(() => nextTick(scrollToLatest));
+function startPolling(): void {
+    if (pollTimer) return;
+    pollTimer = setInterval(() => {
+        // Jangan reload jika dokumen sedang tersembunyi (tab tidak aktif) atau form sedang submit
+        if (document.hidden || form.processing) {
+            return;
+        }
+
+        router.reload({
+            only: ['messages'],
+        });
+    }, 4000);
+}
+
+function stopPolling(): void {
+    if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+    }
+}
+
+function handleVisibilityChange(): void {
+    if (document.hidden) {
+        stopPolling();
+    } else {
+        // Saat tab aktif kembali, langsung refresh pesan dan jalankan polling
+        router.reload({
+            only: ['messages'],
+        });
+        startPolling();
+    }
+}
+
+onMounted(() => {
+    nextTick(scrollToLatest);
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+});
+
+onUnmounted(() => {
+    stopPolling();
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+});
 
 watch(
     () => props.messages.length,

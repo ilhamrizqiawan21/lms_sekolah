@@ -693,3 +693,13 @@
         padding: 1.5rem 0.75rem;
     }
 }
+
+/* Sembunyikan loading bar progress bawaan */
+#nprogress,
+.nprogress-busy #nprogress {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+

@@ -19,10 +19,13 @@ class Absensi extends Model
         'tanggal',
         'status',
         'keterangan',
+        'is_daring',
+        'kelas_daring_id',
     ];
 
     protected $casts = [
         'tanggal' => 'date',
+        'is_daring' => 'boolean',
     ];
 
     public function siswa(): BelongsTo
@@ -33,5 +36,10 @@ class Absensi extends Model
     public function kelasMapel(): BelongsTo
     {
         return $this->belongsTo(KelasMapel::class, 'kelas_mapel_id');
+    }
+
+    public function kelasDaring(): BelongsTo
+    {
+        return $this->belongsTo(KelasDaring::class, 'kelas_daring_id');
     }
 }

@@ -38,4 +38,9 @@ class KelasDaring extends Model
     {
         return $this->belongsTo(KelasMapel::class, 'kelas_mapel_id');
     }
+
+    public function absensis(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Absensi::class, 'kelas_daring_id');
+    }
 }

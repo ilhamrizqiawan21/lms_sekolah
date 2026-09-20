@@ -237,7 +237,7 @@ const metrics = computed(() => [
 ]);
 const quickActions = [
     { label: 'Buat Materi', href: '/guru/materi', icon: 'bi-file-earmark-plus', color: 'primary' },
-    { label: 'Buat Tugas', href: '/guru/tugas', icon: 'bi-journal-plus', color: 'light' },
+    { label: 'Buat Tugas', href: '/guru/tugas', icon: 'bi-journal-check', color: 'light' },
     { label: 'Absensi', href: '/guru/absensi', icon: 'bi-clipboard-check', color: 'light' },
     { label: 'Chat', href: '/guru/chat', icon: 'bi-chat-dots', color: 'light' },
 ];

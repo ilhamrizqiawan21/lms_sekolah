@@ -16,7 +16,7 @@ const props = defineProps({
 
 const quickActions = [
     { label: 'Tambah Materi', href: props.tabs.find((tab) => tab.label === 'Materi')?.href, icon: 'bi-file-earmark-plus', color: 'primary' },
-    { label: 'Buat Tugas', href: props.tabs.find((tab) => tab.label === 'Tugas')?.href, icon: 'bi-journal-plus', color: 'light' },
+    { label: 'Buat Tugas', href: props.tabs.find((tab) => tab.label === 'Tugas')?.href, icon: 'bi-journal-check', color: 'light' },
     { label: 'Isi Absensi', href: props.attendance.href, icon: 'bi-clipboard-check', color: 'light' },
 ];
 </script>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
+use App\Models\Absensi;
 use App\Models\JadwalMengajar;
 use App\Models\KelasDaring;
 use App\Models\KelasMapel;
@@ -93,6 +94,11 @@ class JadwalController extends Controller
             ->orderBy('pelajaran_ke')
             ->get();
 
+        $absensiDaringSiswa = Absensi::where('siswa_id', $siswa->id)
+            ->whereIn('kelas_daring_id', $sessions->pluck('id'))
+            ->get()
+            ->keyBy('kelas_daring_id');
+
         return Inertia::render('Siswa/KelasDaring/Index', [
             'kelas' => [
                 'nama' => trim(($siswa->kelas?->tingkat ? $siswa->kelas->tingkat . ' ' : '') . ($siswa->kelas?->nama_kelas ?? '-')),
@@ -103,25 +109,75 @@ class JadwalController extends Controller
                 'url' => route('siswa.kelas-daring', ['kelas_mapel_id' => $item->id]),
             ])->values(),
             'selectedCourseId' => $selectedCourseId,
-            'sessions' => $sessions->map(fn (KelasDaring $item) => [
-                'id' => $item->id,
-                'judul' => $item->judul,
-                'deskripsi' => $item->deskripsi,
-                'mata_pelajaran' => $item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
-                'guru' => $item->guru?->nama_lengkap ?? '-',
-                'tanggal' => $item->tanggal?->format('d M Y'),
-                'tanggal_iso' => $item->tanggal?->format('Y-m-d'),
-                'pelajaran_ke' => $item->pelajaran_ke,
-                'meeting_url' => $item->meeting_url,
-                'status' => $item->status,
-                'workspace_url' => $item->kelasMapel ? route('siswa.kelas-mapel.show', $item->kelasMapel) : null,
-                'is_upcoming' => $item->status === KelasDaring::STATUS_TERJADWAL && $item->tanggal && $item->tanggal->toDateString() >= now()->toDateString(),
-            ])->values(),
+            'sessions' => $sessions->map(function (KelasDaring $item) use ($absensiDaringSiswa) {
+                $myAbsen = $absensiDaringSiswa->get($item->id);
+                $isToday = $item->tanggal && $item->tanggal->toDateString() === now()->toDateString();
+                $canPresensi = $item->status === KelasDaring::STATUS_TERJADWAL && $isToday && ! $myAbsen;
+
+                return [
+                    'id' => $item->id,
+                    'judul' => $item->judul,
+                    'deskripsi' => $item->deskripsi,
+                    'mata_pelajaran' => $item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
+                    'guru' => $item->guru?->nama_lengkap ?? '-',
+                    'tanggal' => $item->tanggal?->format('d M Y'),
+                    'tanggal_iso' => $item->tanggal?->format('Y-m-d'),
+                    'pelajaran_ke' => $item->pelajaran_ke,
+                    'meeting_url' => $item->meeting_url,
+                    'status' => $item->status,
+                    'workspace_url' => $item->kelasMapel ? route('siswa.kelas-mapel.show', $item->kelasMapel) : null,
+                    'is_upcoming' => $item->status === KelasDaring::STATUS_TERJADWAL && $item->tanggal && $item->tanggal->toDateString() >= now()->toDateString(),
+                    'sudah_presensi' => $myAbsen !== null,
+                    'can_presensi' => $canPresensi,
+                    'presensi_url' => route('siswa.kelas-daring.presensi', $item),
+                ];
+            })->values(),
             'links' => [
                 'all' => route('siswa.kelas-daring'),
                 'jadwal' => route('siswa.jadwal-pelajaran'),
             ],
         ]);
+    }
+
+    public function presensiDaring(Request $request, KelasDaring $kelasDaring)
+    {
+        $siswa = Auth::user()?->siswa;
+
+        if (! $siswa) {
+            return redirect()->route('login')->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        $kelasMapel = $kelasDaring->kelasMapel;
+
+        if (! $kelasMapel || (int) $siswa->kelas_id !== (int) $kelasMapel->kelas_id) {
+            abort(403, 'Anda tidak terdaftar di kelas daring ini.');
+        }
+
+        if ($kelasDaring->status !== KelasDaring::STATUS_TERJADWAL) {
+            return back()->with('error', 'Sesi kelas daring tidak sedang aktif atau sudah selesai.');
+        }
+
+        $sessionDate = $kelasDaring->tanggal?->toDateString();
+        if ($sessionDate !== now()->toDateString()) {
+            return back()->with('error', 'Presensi daring hanya dapat dilakukan pada tanggal pelaksanaan sesi.');
+        }
+
+        // Simpan / update status kehadiran daring
+        Absensi::updateOrCreate(
+            [
+                'siswa_id' => $siswa->id,
+                'kelas_mapel_id' => $kelasMapel->id,
+                'tanggal' => $sessionDate,
+            ],
+            [
+                'status' => 'h',
+                'is_daring' => true,
+                'kelas_daring_id' => $kelasDaring->id,
+                'keterangan' => 'Hadir via Pembelajaran Daring',
+            ]
+        );
+
+        return back()->with('success', 'Presensi daring berhasil dicatat sebagai Hadir.');
     }
 
     private function scheduleProps(JadwalMengajar $schedule): array

@@ -1,19 +1,49 @@
 <script setup lang="ts">
 import type { PropType } from 'vue';
 
-import { computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Card, EmptyState, MetricStrip, TableWrapper } from '../../../Components/UI';
+import { Badge, Button, Card, EmptyState, MetricStrip, TableWrapper } from '../../../Components/UI';
+
+interface DaringSession {
+    id: number;
+    judul: string;
+    tanggal: string;
+    pelajaran_ke: number;
+    status: string;
+    meeting_url: string;
+    is_upcoming: boolean;
+    mata_pelajaran: string;
+    guru: string;
+    deskripsi: string | null;
+    workspace_url: string | null;
+    sudah_presensi?: boolean;
+    can_presensi?: boolean;
+    presensi_url?: string;
+}
 
 const props = defineProps({
     kelas: { type: Object as PropType<{ nama: string }>, required: true },
     courses: { type: Array as PropType<{ id: number; label: string; url: string }[]>, default: () => [] },
     selectedCourseId: { type: [Number, String], default: null },
-    sessions: { type: Array as PropType< { id: number; judul: string; tanggal: string; pelajaran_ke: number; status: string; meeting_url: string; is_upcoming: boolean; mata_pelajaran: string; guru: string; deskripsi: string | null; workspace_url: string | null }[]>, default: () => [] },
+    sessions: { type: Array as PropType<DaringSession[]>, default: () => [] },
     links: { type: Object as PropType<{ jadwal?: string; all?: string }>, default: () => ({}) },
 });
+
+const processingPresensiId = ref<number | null>(null);
+
+function doPresensi(session: DaringSession) {
+    if (!session.presensi_url || processingPresensiId.value !== null) return;
+    processingPresensiId.value = session.id;
+    router.post(session.presensi_url, {}, {
+        preserveScroll: true,
+        onFinish: () => {
+            processingPresensiId.value = null;
+        },
+    });
+}
 
 const upcomingCount = computed(() => props.sessions.filter((item) => item.is_upcoming).length);
 const metrics = computed(() => [
@@ -68,6 +98,7 @@ function statusColor(status: string) {
                             <th>Sesi</th>
                             <th>Jadwal</th>
                             <th>Status</th>
+                            <th>Presensi</th>
                             <th class="text-end">Akses</th>
                         </tr>
                     </thead>
@@ -80,6 +111,22 @@ function statusColor(status: string) {
                             </td>
                             <td>{{ session.tanggal }}<div class="text-muted small">Pelajaran ke-{{ session.pelajaran_ke }}</div></td>
                             <td><Badge :color="statusColor(session.status)">{{ session.status }}</Badge></td>
+                            <td>
+                                <span v-if="session.sudah_presensi" class="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i> Hadir
+                                </span>
+                                <Button
+                                    v-else-if="session.can_presensi"
+                                    color="primary"
+                                    size="sm"
+                                    icon="bi-fingerprint"
+                                    :disabled="processingPresensiId === session.id"
+                                    @click="doPresensi(session)"
+                                >
+                                    {{ processingPresensiId === session.id ? 'Menyimpan...' : 'Presensi Hadir' }}
+                                </Button>
+                                <span v-else class="text-muted small">-</span>
+                            </td>
                             <td class="text-end">
                                 <a
                                     v-if="session.status === 'terjadwal'"

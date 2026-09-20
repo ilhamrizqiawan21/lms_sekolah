@@ -404,6 +404,22 @@ class TugasController extends Controller
         return back()->with('success', 'Pengingat WhatsApp ditandai sudah dikirim.');
     }
 
+    public function whatsappSendQueue(Request $request, WhatsAppMessageLog $log, WhatsAppService $service)
+    {
+        abort_unless((int) $log->guru_id === (int) Auth::id(), 403);
+        $log->loadMissing('siswa');
+
+        $phone = $log->siswa?->nomor_whatsapp;
+        if (blank($phone)) {
+            return back()->with('error', 'Nomor WhatsApp siswa tidak ditemukan.');
+        }
+
+        $message = $request->input('message', 'Pengingat tugas LMS Sekolah.');
+        $service->dispatchReminderJob($log->id, (string) $phone, (string) $message);
+
+        return back()->with('success', 'Pengiriman pengingat WhatsApp dijadwalkan ke background queue.');
+    }
+
     public function downloadFile(KelasMapel $kelasMapel, Tugas $tugas, PengumpulanFile $file)
     {
         $this->authorize('mengajar', $kelasMapel);
