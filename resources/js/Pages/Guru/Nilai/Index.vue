@@ -20,7 +20,6 @@ const fieldGroups: { key: ScoreField; label: string; readonly?: boolean }[] = [
     { key: 'sum2', label: 'SUM2' },
     { key: 'sum3', label: 'SUM3' },
     { key: 'sum4', label: 'SUM4' },
-    { key: 'nilai_harian', label: 'Dari Tugas', readonly: true },
     { key: 'sts', label: 'Nilai' },
     { key: 'sas', label: 'Nilai' },
     { key: 'sat', label: 'Nilai' },
@@ -37,6 +36,7 @@ const form = useForm({
 });
 
 const activeGroup = computed(() => props.groups.find((group) => group.kelas_mapel_id === selectedKelasMapelId.value) ?? null);
+const taskFields = computed(() => activeGroup.value?.tugas_harian ?? []);
 
 watch(() => props.groups, () => {
     form.semester = props.semester;
@@ -260,6 +260,7 @@ function submit() {
                             <col class="grade-col-nis">
                             <col class="grade-col-student">
                             <col v-for="field in fieldGroups" :key="`col-${field.key}`" class="grade-col-score">
+                            <col v-for="task in taskFields" :key="`col-${task.id}`" class="grade-col-score">
                             <col class="grade-col-total">
                         </colgroup>
                         <thead class="table-light">
@@ -268,7 +269,7 @@ function submit() {
                                 <th class="min-w-nis">NIS</th>
                                 <th class="min-w-student">Nama Siswa</th>
                                 <th colspan="4" class="text-center bg-soft-success">Sumatif Harian</th>
-                                <th class="text-center bg-soft-success">Nilai Harian</th>
+                                <th :colspan="Math.max(taskFields.length, 1)" class="text-center bg-soft-success">Nilai Harian</th>
                                 <th class="text-center bg-soft-warning">STS</th>
                                 <th class="text-center bg-soft-warning">SAS</th>
                                 <th class="text-center bg-soft-danger">SAT</th>
@@ -278,7 +279,13 @@ function submit() {
                                 <th></th>
                                 <th></th>
                                 <th></th>
-                                <th v-for="field in fieldGroups" :key="field.key" class="text-center w-score">
+                                <th v-for="field in fieldGroups.slice(0, 4)" :key="field.key" class="text-center w-score">
+                                    {{ field.label }}
+                                </th>
+                                <th v-for="task in taskFields" :key="task.id" class="text-center w-score" :title="task.judul">
+                                    {{ task.label }}
+                                </th>
+                                <th v-for="field in fieldGroups.slice(4)" :key="field.key" class="text-center w-score">
                                     {{ field.label }}
                                 </th>
                                 <th class="text-center w-score-total">Auto</th>
@@ -289,7 +296,8 @@ function submit() {
                                 <td class="text-center text-muted">{{ student.no }}</td>
                                 <td><code>{{ student.nis }}</code></td>
                                 <td>{{ student.nama }}</td>
-                                <td v-for="field in fieldGroups" :key="`${activeGroup.kelas_mapel_id}-${student.id}-${field.key}`" class="text-center">
+                                <template v-for="field in fieldGroups.slice(0, 4)" :key="`${activeGroup.kelas_mapel_id}-${student.id}-${field.key}`">
+                                <td class="text-center">
                                     <span
                                         v-if="field.readonly"
                                         class="score-result readonly-score"
@@ -313,6 +321,30 @@ function submit() {
                                         @focus="($event.target as HTMLTextAreaElement).select()"
                                     ></textarea>
                                 </td>
+                                </template>
+                                <td v-for="task in taskFields" :key="`${activeGroup.kelas_mapel_id}-${student.id}-${task.id}`" class="text-center">
+                                    <span class="score-result readonly-score" :class="scoreClass(student.task_scores?.[task.label])" :title="task.judul">
+                                        {{ formatScore(student.task_scores?.[task.label]) ?? '-' }}
+                                    </span>
+                                </td>
+                                <template v-for="field in fieldGroups.slice(4)" :key="`${activeGroup.kelas_mapel_id}-${student.id}-${field.key}`">
+                                <td class="text-center">
+                                    <textarea
+                                        v-model="form.nilai[String(activeGroup.kelas_mapel_id)][String(student.id)][field.key]"
+                                        rows="1"
+                                        inputmode="decimal"
+                                        class="form-control form-control-sm score-input"
+                                        autocomplete="off"
+                                        placeholder="-"
+                                        :data-student-index="studentIndex"
+                                        :data-field-key="field.key"
+                                        @keyup="handleScoreKeyup"
+                                        @paste.stop="handleScorePaste($event, studentIndex, field.key)"
+                                        @input="handleScoreInput($event, studentIndex, field.key)"
+                                        @focus="($event.target as HTMLTextAreaElement).select()"
+                                    ></textarea>
+                                </td>
+                                </template>
                                 <td class="text-center">
                                     <strong v-if="formatScore(student.rata_akhir)" class="score-result" :class="scoreClass(student.rata_akhir)">
                                         {{ formatScore(student.rata_akhir) }}
@@ -321,7 +353,7 @@ function submit() {
                                 </td>
                             </tr>
                             <tr v-if="!activeGroup.students.length">
-                                <td colspan="12">
+                                <td :colspan="12 + taskFields.length">
                                     <EmptyState title="Tidak ada siswa di kelas ini." icon="bi-people" />
                                 </td>
                             </tr>

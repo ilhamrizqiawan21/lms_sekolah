@@ -13,6 +13,7 @@ use App\Models\Notifikasi;
 use App\Models\Pengaturan;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
+use App\Models\Tugas;
 use App\Services\NilaiService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -88,7 +89,7 @@ class NilaiController extends Controller
                 'tahun' => $tahunAjaran->tahun,
             ] : null,
             'semester' => $semester,
-            'students' => $siswa->values()->map(function (Siswa $student, int $index) use ($nilaiList, $fields) {
+            'students' => $siswa->values()->map(function (Siswa $student, int $index) use ($nilaiList, $fields, $tugasHarian) {
                 $nilai = $nilaiList->get($student->id);
                 $scores = collect($fields)
                     ->mapWithKeys(fn (string $field) => [$field => $nilai?->$field])
@@ -180,6 +181,13 @@ class NilaiController extends Controller
             ->get()
             ->keyBy('siswa_id');
 
+        $tugasHarian = Tugas::with(['pengumpulan' => fn ($query) => $query->whereNotNull('nilai')])
+            ->where('kelas_mapel_id', $kelasMapel->id)
+            ->where('kategori_nilai', 'NH')
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
+
         $kelasLabel = $kelasMapel->kelas?->displayName() ?? '-';
 
         return [
@@ -189,7 +197,12 @@ class NilaiController extends Controller
             'label' => $kelasLabel.' - '.($kelasMapel->mataPelajaran?->nama_mapel ?? '-').' (Sem. '.$kelasMapel->semester.')',
             'export_excel_url' => route('guru.nilai.export.excel', $kelasMapel),
             'export_pdf_url' => route('guru.nilai.export.pdf', $kelasMapel),
-            'students' => $siswa->values()->map(function (Siswa $student, int $index) use ($nilaiList, $fields) {
+            'tugas_harian' => $tugasHarian->values()->map(fn (Tugas $tugas, int $index) => [
+                'id' => $tugas->id,
+                'label' => 'NH'.($index + 1),
+                'judul' => $tugas->judul,
+            ])->values(),
+            'students' => $siswa->values()->map(function (Siswa $student, int $index) use ($nilaiList, $fields, $tugasHarian) {
                 $nilai = $nilaiList->get($student->id);
                 $scores = collect($fields)
                     ->mapWithKeys(fn (string $field) => [$field => $nilai?->$field])
@@ -201,10 +214,18 @@ class NilaiController extends Controller
                     'nis' => $student->nis,
                     'nama' => $student->user?->nama_lengkap ?? $student->nis,
                     'scores' => $scores,
+                    'task_scores' => $this->taskScores($student->id, $tugasHarian),
                     'rata_akhir' => $nilai?->rata_akhir,
                 ];
             })->values(),
         ];
+    }
+
+    private function taskScores(int $siswaId, $tugasHarian): array
+    {
+        return $tugasHarian->values()->mapWithKeys(fn (Tugas $tugas, int $index) => [
+            'NH'.($index + 1) => $tugas->pengumpulan->firstWhere('siswa_id', $siswaId)?->nilai,
+        ])->all();
     }
 
     private function formatKelasMapelOptions($kelasMapel)

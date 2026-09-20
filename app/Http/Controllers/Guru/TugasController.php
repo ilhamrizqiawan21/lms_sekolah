@@ -519,13 +519,12 @@ class TugasController extends Controller
 
     private function lateDays(?Carbon $submittedAt, ?Carbon $deadline): int
     {
-        if (! $deadline) {
+        // Penilaian langsung oleh guru tidak memiliki waktu pengumpulan.
+        // Jangan memakai waktu sekarang sebagai waktu pengumpulan karena
+        // tugas seperti hafalan akan terus dianggap terlambat.
+        if (! $deadline || ! $submittedAt) {
             return 0;
         }
-
-        // Jika guru menilai tanpa record pengumpulan, gunakan waktu penilaian
-        // sebagai batas efektif: tugas yang sudah lewat deadline tetap dipenalti.
-        $submittedAt ??= now();
 
         return (int) max(0, $deadline->copy()->startOfDay()->diffInDays($submittedAt->copy()->startOfDay(), false));
     }

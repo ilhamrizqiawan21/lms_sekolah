@@ -262,7 +262,7 @@ class Phase10AuthorizationTest extends TestCase
             );
     }
 
-    public function test_teacher_direct_grade_on_unsubmitted_task_applies_late_penalty(): void
+    public function test_teacher_direct_grade_on_unsubmitted_task_is_not_marked_late(): void
     {
         [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
         Pengaturan::setValue('penalty_terlambat_poin', '2');
@@ -274,12 +274,21 @@ class Phase10AuthorizationTest extends TestCase
 
         $this->actingAs($guru)->postJson(route('guru.tugas.nilai', [$kelasMapel, $tugas, $student]), ['nilai' => 90])
             ->assertOk()
-            ->assertJsonPath('penalty_terlambat', '6.00')
-            ->assertJsonPath('nilai', '84.00');
+            ->assertJsonPath('penalty_terlambat', '0.00')
+            ->assertJsonPath('nilai', '90.00');
         $this->assertDatabaseHas('pengumpulan_tugas', [
             'tugas_id' => $tugas->id, 'siswa_id' => $student->id,
-            'status' => 'dinilai', 'nilai_sebelum_penalty' => 90, 'nilai' => 84,
+            'status' => 'dinilai', 'nilai_sebelum_penalty' => 90, 'nilai' => 90,
         ]);
+
+        $this->actingAs($guru)
+            ->get(route('guru.tugas.pengumpulan', [$kelasMapel, $tugas]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('pengumpulan.0.status', 'dinilai')
+                ->where('pengumpulan.0.hari_terlambat', 0)
+                ->where('pengumpulan.0.penalty_perkiraan', 0)
+            );
     }
 
     public function test_teacher_can_prepare_whatsapp_message_and_record_log(): void

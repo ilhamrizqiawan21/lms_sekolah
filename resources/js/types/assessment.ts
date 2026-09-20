@@ -7,6 +7,7 @@ export interface GradeStudent {
     nis: string;
     nama: string;
     scores: Scores;
+    task_scores?: Record<string, Score>;
     rata_akhir: Score;
 }
 export interface GradeCourse {
@@ -25,6 +26,7 @@ export interface GradeGroup {
     label: string;
     export_excel_url: string;
     export_pdf_url: string;
+    tugas_harian?: { id: number; label: string; judul: string }[];
     students: GradeStudent[];
 }
 export type AttendanceStatus = '' | 'hadir' | 'sakit' | 'izin' | 'alpha';
