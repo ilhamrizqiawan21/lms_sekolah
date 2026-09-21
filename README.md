@@ -1,251 +1,121 @@
 # LMS Sekolah
 
-> **Single-school Learning Management System** untuk sekolah, madrasah, dan lembaga pendidikan yang membutuhkan platform pembelajaran digital mandiri.
+LMS Sekolah adalah Learning Management System single-school untuk mengelola pengguna, kelas, siswa, guru, mata pelajaran, materi, tugas, pengumpulan, nilai, absensi, komunikasi, kalender, laporan, dan branding sekolah.
+
+> Project ini ditujukan untuk satu sekolah per instalasi. Multi-tenant SaaS, billing, dan subscription belum termasuk scope.
 
 [![CI](https://github.com/ilhamrizqiawan21/lms_sekolah/actions/workflows/ci.yml/badge.svg)](https://github.com/ilhamrizqiawan21/lms_sekolah/actions/workflows/ci.yml)
 
-LMS Sekolah adalah aplikasi web yang menangani alur akademik sekolah dari satu instalasi: pengguna dan role, kelas, siswa, guru-mapel, materi, tugas, pengumpulan, penilaian, absensi, komunikasi, notifikasi, kalender, laporan, dan branding sekolah.
+## Fitur utama
 
-**Scope produk:** single-school. Project ini belum dirancang sebagai SaaS atau multi-tenant.
+- Role-based access untuk Admin, Kepala Sekolah, Guru, dan Siswa.
+- Master akademik: tahun ajaran, semester, kelas, siswa, mata pelajaran, guru-mapel, kelas-mapel, wali kelas, dan jadwal.
+- Pembelajaran: materi, tugas, tenggat, submission teks/multi-file, penilaian, dan catatan perbaikan.
+- Akademik: absensi, kelas daring, nilai akhir, sikap spiritual/sosial, progress, rekap, dan export.
+- Komunikasi: chat kelas, pengumuman, notifikasi, kalender, dan log persiapan pesan WhatsApp.
+- Branding sekolah: identitas, logo, favicon, warna tema, visi, misi, kontak, dan data legal.
+- Security foundation: authorization server-side, middleware keamanan, rate limiting, blocked IP, security headers, dan audit logging.
 
----
+## Tech stack
 
-## Highlights
-
-- Role-based application untuk **Admin, Kepala Sekolah, Guru, dan Siswa**.
-- Manajemen akademik: tahun ajaran, semester, kelas, siswa, mata pelajaran, guru pengampu, dan kelas-mapel.
-- Pembelajaran: materi, tugas, submission, multi-file submission, penilaian, dan catatan guru.
-- Akademik: absensi, nilai akademik, sikap spiritual, sikap sosial, rekap, dan laporan.
-- Komunikasi: chat kelas, notifikasi, pengumuman, dan kalender akademik.
-- Import siswa dari Excel dengan template.
-- Export laporan ke Excel dan PDF dengan identitas sekolah dinamis.
-- Branding sekolah dari dashboard: nama, logo, favicon, kontak, kepala sekolah, warna tema, visi, misi, dan data legal.
-- Security foundation: policy/authorization, security middleware, rate limiting, sensitive endpoint guard, security headers, dan audit logging.
-- Automated test suite dan CI untuk validasi backend serta frontend build.
-- Dokumentasi instalasi, arsitektur, audit, security, testing, branding, dan kesiapan komersial.
-
-## Tech Stack
-
-| Layer | Technology |
+| Layer | Teknologi |
 |---|---|
 | Backend | PHP 8.3+, Laravel 13 |
 | Frontend | Vue 3, Inertia.js, Blade |
-| UI | Bootstrap 5, Bootstrap Icons |
-| Build | Vite, Node.js |
-| Database | MySQL 8 / MariaDB 10.6+ |
-| Charts | Chart.js |
-| PDF | DomPDF |
-| Spreadsheet | OpenSpout |
-| Testing | PHPUnit / Laravel Test Suite |
-| CI | GitHub Actions |
+| UI/build | Bootstrap 5, Bootstrap Icons, Vite |
+| Database | MySQL 8+ atau MariaDB 10.6+ |
+| Export | DomPDF, OpenSpout |
+| Testing | PHPUnit/Laravel Test Suite, Playwright |
+| Local environment | Lerd; konfigurasi project memakai PHP 8.5 dan Node 22 |
 
-## Architecture
+## Quick start dengan Lerd
 
-```text
-Browser
-   │
-   ├── Vue 3 + Inertia
-   │
-   ▼
-Laravel Application
-   ├── Controllers       HTTP orchestration
-   ├── Policies          Authorization
-   ├── Services          Business logic
-   ├── Models            Domain/data access
-   ├── Middleware        Security & request controls
-   └── Helpers           Shared application utilities
-   │
-   ▼
-MySQL / MariaDB
-```
+    git clone https://github.com/ilhamrizqiawan21/lms_sekolah.git
+    cd lms_sekolah
+    lerd site:list
+    lerd env:setup
+    lerd setup
 
-Business logic yang dapat digunakan lintas controller ditempatkan pada service layer. Authorization ditangani melalui policy dan middleware, sedangkan migration menjadi sumber perubahan schema yang versioned.
+Untuk development, gunakan worker Vite Lerd atau jalankan npm install dan npm run dev. Domain utama checkout ini saat ini adalah https://lms_sekolah.test; selalu verifikasi dengan lerd site:list.
 
-## User Roles
+## Instalasi manual
 
-| Role | Fokus |
+    composer install
+    npm install
+    cp .env.example .env
+    php artisan key:generate
+
+Konfigurasikan MySQL/MariaDB di .env, lalu pilih salah satu:
+
+    # Demo development/testing
+    php artisan migrate --seed
+
+    # Instalasi kosong dengan admin dari DEFAULT_ADMIN_*
+    php artisan migrate --seed --seeder=EmptyProductSeeder
+
+Lanjutkan dengan:
+
+    php artisan storage:link
+    npm run build
+    php artisan serve
+
+Panduan lengkap ada di docs/INSTALLATION.md.
+
+## Akun demo
+
+Seeder demo memakai password password untuk development/testing saja:
+
+| Role | Email |
 |---|---|
-| **Admin** | User, kelas, siswa, mapel, penugasan guru, pengaturan sekolah, sistem, rekap, dan export |
-| **Kepala Sekolah** | Dashboard, statistik, kalender, pengumuman, dan laporan akademik |
-| **Guru** | Absensi, materi, tugas, nilai, sikap, chat, dan notifikasi kelas yang diampu |
-| **Siswa** | Materi, pengumpulan tugas, nilai/progress, chat, kalender, dan notifikasi |
+| Admin | admin@demo.test |
+| Guru | guru@demo.test |
+| Siswa | siswa@demo.test |
+| Kepala Sekolah | kepsek@demo.test |
 
-## Project Structure
+Jangan deploy akun atau password demo ke production. Untuk instalasi kosong, isi DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PASSWORD (minimal 12 karakter), dan DEFAULT_ADMIN_NAME di .env.
 
-```text
-app/
-├── Helpers/
-├── Http/
-│   ├── Controllers/
-│   └── Middleware/
-├── Models/
-├── Policies/
-├── Providers/
-└── Services/
+## Development dan testing
 
-database/
-├── factories/
-├── migrations/
-└── seeders/
+    composer lint
+    composer test
+    npm run typecheck
+    npm run build
 
-resources/
-├── css/
-├── js/
-│   ├── Components/
-│   ├── Layouts/
-│   └── Pages/
-└── views/
+Test Laravel memakai SQLite :memory: yang diatur di phpunit.xml, jadi tidak boleh menyentuh database development. Untuk UI, gunakan Playwright pada domain Lerd yang benar dan credential yang memang tersedia.
 
-tests/
-├── Feature/
-└── Unit/
+## Dokumentasi
 
-docs/
-└── project, architecture, security, installation, testing, and product documentation
-```
+### Produk dan data
 
-## Quick Start
+- docs/PRD.md — tujuan, persona, scope, modul, aturan domain, dan acceptance baseline.
+- docs/ERD.md — ERD Mermaid, katalog tabel, relasi, dan constraint penting.
+- AI_RULES.md — aturan kerja AI agent di repository.
 
-### Requirements
+### Setup dan arsitektur
 
-- PHP 8.3+
-- Composer 2+
-- Node.js 20+
-- MySQL 8.0+ atau MariaDB 10.6+
+- docs/INSTALLATION.md — instalasi Lerd/manual, seeder, asset, dan production checklist.
+- docs/ARCHITECTURE.md — penempatan kode dan pola arsitektur.
+- docs/IMPORT_SISWA.md — import siswa melalui Excel.
+- docs/CUSTOM_BRANDING.md — konfigurasi identitas sekolah.
 
-### Installation
+### Engineering dan quality
 
-```bash
-git clone https://github.com/ilhamrizqiawan21/lms_sekolah.git
-cd lms_sekolah
+- docs/PHASE-10-SECURITY.md — security hardening.
+- docs/SECURITY_CHECK_RESULT.md — hasil security verification.
+- docs/MANUAL_TEST_RESULT.md — hasil pengujian manual.
+- docs/COMMERCIAL_READY_CHECKLIST.md — checklist kesiapan produk.
+- docs/FRONTEND_CONTRAST_CHECKLIST.md — checklist contrast/accessibility.
 
-composer install
-npm install
+Dokumen phase, audit, roadmap, dan TODO lainnya tersedia di folder docs/.
 
-cp .env.example .env
-php artisan key:generate
-```
+## Prinsip kontribusi
 
-Configure database pada `.env`, lalu jalankan:
-
-```bash
-php artisan migrate --seed
-php artisan storage:link
-npm run build
-php artisan serve
-```
-
-Untuk development dengan Vite:
-
-```bash
-npm run dev
-```
-
-> Untuk production, gunakan environment terpisah, `APP_DEBUG=false`, credential database dengan privilege minimal, dan deployment asset hasil `npm run build`.
-
-Panduan lengkap: [`docs/INSTALLATION.md`](docs/INSTALLATION.md).
-
-## Demo Account
-
-Seeder demo menyediakan akun demo standar untuk pengujian. Jangan gunakan akun demo pada
-production. Untuk instalasi produk kosong, gunakan `EmptyProductSeeder` dan konfigurasi
-`DEFAULT_ADMIN_PASSWORD` yang kuat melalui environment.
-
-| Role | Email | Password |
-|---|---|---|
-| Admin | `admin@demo.test` | `password` |
-| Guru | `guru@demo.test` | `password` |
-| Siswa | `siswa@demo.test` | `password` |
-| Kepala Sekolah | `kepsek@demo.test` | `password` |
-
-## Testing & CI
-
-Jalankan test suite secara lokal:
-
-```bash
-composer test
-```
-
-Format/lint PHP untuk area hardening:
-
-```bash
-composer format
-composer lint
-```
-
-Build frontend:
-
-```bash
-npm run build
-```
-
-CI menjalankan Composer validate, lint PHP, test suite Laravel, dan frontend build melalui GitHub Actions.
-
-## Security
-
-Project memiliki fondasi security yang mencakup authorization policy, security headers, rate limiting, sensitive endpoint protection, password-change enforcement, dan academic audit logging.
-
-Security-related documentation tersedia di:
-
-- [`docs/PHASE-10-SECURITY.md`](docs/PHASE-10-SECURITY.md)
-- [`docs/SECURITY_CHECK_RESULT.md`](docs/SECURITY_CHECK_RESULT.md)
-
-## Documentation
-
-### Setup & Development
-
-- [`docs/INSTALLATION.md`](docs/INSTALLATION.md) — instalasi dan deployment
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — struktur dan pola arsitektur
-- [`docs/IMPORT_SISWA.md`](docs/IMPORT_SISWA.md) — import siswa melalui Excel
-
-### Engineering & Quality
-
-- [`docs/CODE_AUDIT.md`](docs/CODE_AUDIT.md) — audit codebase
-- [`docs/PHASE_0_AUDIT.md`](docs/PHASE_0_AUDIT.md) — baseline audit
-- [`docs/PHASE_1_CORE_STABILITY.md`](docs/PHASE_1_CORE_STABILITY.md) — stabilitas core
-- [`docs/PHASE-10-SECURITY.md`](docs/PHASE-10-SECURITY.md) — security hardening
-- [`docs/SECURITY_CHECK_RESULT.md`](docs/SECURITY_CHECK_RESULT.md) — security verification
-- [`docs/MANUAL_TEST_RESULT.md`](docs/MANUAL_TEST_RESULT.md) — hasil pengujian manual
-- [`docs/FRONTEND_CONTRAST_CHECKLIST.md`](docs/FRONTEND_CONTRAST_CHECKLIST.md) — checklist contrast/accessibility
-
-### Product
-
-- [`docs/CUSTOM_BRANDING.md`](docs/CUSTOM_BRANDING.md) — konfigurasi identitas sekolah
-- [`docs/COMMERCIAL_READY_CHECKLIST.md`](docs/COMMERCIAL_READY_CHECKLIST.md) — kesiapan produk
-- [`docs/FRONTEND_TODO.md`](docs/FRONTEND_TODO.md) — pekerjaan frontend yang tersisa
-- [`docs/LMS_MODERN_UI_TODO.md`](docs/LMS_MODERN_UI_TODO.md) — roadmap polish UI
-
-## Engineering Notes
-
-Project ini dikembangkan sebagai aplikasi production-oriented. Fokus utamanya adalah menjaga **stabilitas fungsi, backward compatibility, data integrity, security, dan maintainability** sebelum menambahkan fitur baru.
-
-Beberapa keputusan engineering penting:
-
-- Migration digunakan untuk perubahan schema yang terkontrol dan versioned.
-- Business logic yang reusable dipisahkan ke service layer.
-- Authorization tidak hanya bergantung pada visibility UI.
-- Export dan import dipisahkan dari controller melalui service khusus.
-- Environment secrets tidak disimpan di repository.
-- Dependency lock files dipertahankan untuk reproducible installation.
-
-## Scope & Roadmap
-
-Saat ini project berfokus pada single-school deployment. Pengembangan berikutnya diprioritaskan pada:
-
-1. UI/UX consistency dan responsive polish.
-2. Dark/light theme system.
-3. Test coverage dan regression prevention.
-4. Performance dan production hardening.
-5. Dokumentasi deployment dan operasional yang lebih lengkap.
-
-Multi-tenant SaaS, billing, dan subscription management **belum menjadi scope project saat ini**.
+- Schema diubah melalui migration.
+- Business logic reusable ditempatkan di service.
+- Authorization ditegakkan di server, bukan hanya di UI.
+- Secret dan data pribadi tidak masuk repository.
+- Perubahan feature/schema/role/setup harus memperbarui dokumentasi terkait.
 
 ## License
 
-MIT. Lihat [`LICENSE`](LICENSE).
-
-## Developer
-
-**Ilham Rizqiawan**
-
-Repository ini juga berfungsi sebagai portfolio engineering project: menunjukkan pengembangan aplikasi domain-specific dari feature implementation, database evolution, security hardening, testing, hingga deployment.
+MIT. Lihat LICENSE.

@@ -201,7 +201,7 @@ class MateriController extends Controller
 
         $local = Storage::disk('local');
 
-        return $local->exists($path) ? $local : (Storage::disk('public')->exists($path) ? Storage::disk('public') : null);
+        return $local->exists($path) ? $local : null;
     }
 
     private function assignedKelasMapelQuery()

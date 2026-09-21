@@ -298,9 +298,6 @@ class TugasController extends Controller
     {
         abort_unless($path, 404);
         $disk = Storage::disk('local');
-        if (! $disk->exists($path)) {
-            $disk = Storage::disk('public');
-        }
         abort_unless($disk->exists($path), 404);
 
         return response()->download($disk->path($path), basename($downloadName));

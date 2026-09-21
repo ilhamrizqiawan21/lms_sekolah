@@ -1,208 +1,160 @@
-# INSTALLATION.md
+# Instalasi LMS Sekolah
 
-Panduan ini menjelaskan instalasi LMS Sekolah dari nol untuk satu sekolah.
+Panduan ini mencakup instalasi lokal dengan Lerd, instalasi manual, pilihan database demo/kosong, dan checklist production.
 
-## Requirement Server
+## 1. Prasyarat
 
-- PHP 8.3 atau lebih baru
-- Composer
-- Node.js 20+ atau 22+ dan npm
-- MySQL 8.0 / MariaDB 10.6+
-- Web server Nginx/Apache untuk production
-- Extension PHP: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `gd`, `hash`, `json`, `mbstring`, `openssl`, `pcre`, `pdo`, `pdo_mysql`, `session`, `tokenizer`, `xml`, `zip`
+| Komponen | Versi |
+|---|---|
+| PHP | 8.3+; konfigurasi repository Lerd saat ini memakai 8.5 |
+| Laravel | 13 |
+| Composer | 2+ |
+| Node.js | 20 LTS atau 22 LTS; repository saat ini mematok 22 |
+| Package manager | npm (package-lock.json) |
+| Database | MySQL 8+ atau MariaDB 10.6+ |
+| PHP extensions | bcmath, ctype, curl, dom, fileinfo, filter, gd, hash, json, mbstring, openssl, pcre, pdo, pdo_mysql, session, tokenizer, xml, zip |
 
-> Catatan: Vite, `@vitejs/plugin-vue`, dan Laravel Vite Plugin tidak menargetkan Node 19. Gunakan Node 20 LTS atau 22 LTS agar `npm install`/`npm run build` tidak memunculkan warning engine.
+## 2. Cara yang direkomendasikan: Lerd
 
-## Clone Project
+Project memiliki .lerd.yaml untuk Laravel 13, PHP 8.5, Node 22, MySQL, Redis, dan Mailpit.
 
-```bash
-git clone <repository-url> lms_school
-cd lms_school
-```
+    git clone <repository-url> lms_sekolah
+    cd lms_sekolah
+    lerd site:list
+    lerd env:setup
+    lerd setup
 
-## Install Dependency PHP
+Jika checkout baru masih menggunakan SQLite atau database belum dipilih, pilih database project terlebih dahulu melalui Lerd, lalu ulangi setup environment dan framework. Gunakan lerd site:list untuk memastikan domain; checkout utama saat ini adalah https://lms_sekolah.test.
 
-```bash
-composer install
-```
+Perintah pengembangan yang umum:
 
-Untuk production:
+    lerd shell
+    composer install
+    npm install
+    php artisan migrate --seed
+    npm run build
 
-```bash
-composer install --no-dev --optimize-autoloader
-```
+Lerd juga menyediakan worker Vite. Gunakan worker yang terdaftar untuk HMR, atau jalankan npm run dev sesuai kebutuhan project.
 
-## Install Dependency Frontend
+## 3. Instalasi manual
 
-```bash
-npm install
-```
+### 3.1 Clone dan dependency
 
-Dependency frontend aktif:
-
-- `@inertiajs/vue3`
-- `vue`
-- `@vitejs/plugin-vue`
-- `bootstrap`
-- `bootstrap-icons`
-- `chart.js`
-
-Dependency lama seperti Alpine.js, jQuery, Select2, dan DataTables sudah tidak dipakai.
-
-## Siapkan Environment
-
-```bash
-cp .env.example .env
-php artisan key:generate
-```
-
-> Catatan: file `.env` berisi konfigurasi lingkungan, kunci aplikasi, dan kredensial database. File ini tidak dikomit ke repositori untuk menjaga kerahasiaan dan keamanan.
-
-## Setting Database
-
-Buat database MySQL:
-
-```sql
-CREATE DATABASE lms_school CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-Atur `.env`:
-
-```env
-APP_NAME="LMS Sekolah"
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://localhost
-
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=lms_school
-DB_USERNAME=lms_app
-DB_PASSWORD=change-this-db-password
-
-DEFAULT_ADMIN_USERNAME=admin
-DEFAULT_ADMIN_EMAIL=admin@example.test
-DEFAULT_ADMIN_PASSWORD=ganti-password-kuat
-DEFAULT_ADMIN_NAME="Administrator"
-```
-
-Gunakan user database khusus aplikasi dengan privilege minimal pada database LMS. Jangan memakai user `root` untuk production.
-
-Untuk production, gunakan:
-
-```env
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://domain-sekolah.example
-```
-
-## Migrasi dan Seeder
-
-Untuk instalasi dengan data demo aman:
-
-```bash
-php artisan migrate --seed
-```
-
-Untuk instalasi kosong siap input data sekolah:
-
-```bash
-php artisan migrate:fresh --seeder=EmptyProductSeeder
-```
-
-## Build Asset
-
-Untuk development dengan hot reload:
-
-```bash
-npm run dev
-```
+    git clone <repository-url> lms_sekolah
+    cd lms_sekolah
+    composer install
+    npm install
 
 Untuk production:
 
-```bash
-npm run build
-```
+    composer install --no-dev --optimize-autoloader
 
-Pastikan `public/build/manifest.json` terbentuk setelah command ini. Layout aplikasi akan memakai asset lokal dari Vite jika manifest tersedia. Fallback CDN hanya memuat Bootstrap saat build belum tersedia; plugin lama seperti jQuery, Select2, dan DataTables tidak lagi dimuat.
+### 3.2 Environment
 
-Asset entry utama:
+    cp .env.example .env
+    php artisan key:generate
 
-```text
-resources/css/app.css
-resources/js/app.ts
-resources/js/inertia.ts
-```
+Atur minimal nilai berikut:
 
-`resources/js/app.ts` dipakai layout Blade legacy untuk Bootstrap, sidebar, confirm dialog, dan loading submit. `resources/js/inertia.ts` memuat app Inertia + Vue untuk halaman yang sudah dimigrasikan.
+    APP_NAME="LMS Sekolah"
+    APP_ENV=local
+    APP_DEBUG=true
+    APP_URL=http://127.0.0.1:8000
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=lms_school
+    DB_USERNAME=lms_app
+    DB_PASSWORD=<password-kuat>
 
-## Storage Link
+Jangan commit .env. Untuk production, gunakan APP_ENV=production, APP_DEBUG=false, HTTPS, dan credential database dengan privilege minimal.
 
-```bash
-php artisan storage:link
-```
+### 3.3 Database
 
-Pastikan folder berikut writable:
+Buat database dan user aplikasi, misalnya:
 
-```bash
-storage
-bootstrap/cache
-```
+    CREATE DATABASE lms_school CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CREATE USER 'lms_app'@'localhost' IDENTIFIED BY '<password-kuat>';
+    GRANT ALL PRIVILEGES ON lms_school.* TO 'lms_app'@'localhost';
+    FLUSH PRIVILEGES;
 
-## Jalankan Aplikasi
+## 4. Pilihan data awal
 
-```bash
-php artisan serve
-```
+### Demo untuk development/testing
 
-Buka:
+    php artisan migrate --seed
 
-```text
-http://127.0.0.1:8000
-```
+DatabaseSeeder membuat role, branding demo, akun demo, data akademik, dan data LMS. Password semua akun demo adalah password; jangan gunakan data ini pada production.
 
-## Login Admin
+| Role | Email |
+|---|---|
+| Admin | admin@demo.test |
+| Guru | guru@demo.test |
+| Siswa | siswa@demo.test |
+| Kepala Sekolah | kepsek@demo.test |
 
-Jika memakai seeder demo:
+### Instalasi kosong untuk sekolah
 
-```text
-Email: nilai `DEFAULT_ADMIN_EMAIL`
-Password: nilai rahasia `DEFAULT_ADMIN_PASSWORD` dari environment
-```
+Isi nilai rahasia terlebih dahulu:
 
-Jika memakai `EmptyProductSeeder`, akun admin awal mengikuti nilai `DEFAULT_ADMIN_*` di `.env`:
+    DEFAULT_ADMIN_USERNAME=admin
+    DEFAULT_ADMIN_EMAIL=admin@sekolah.example
+    DEFAULT_ADMIN_PASSWORD=<minimal-12-karakter>
+    DEFAULT_ADMIN_NAME="Administrator"
 
-```text
-Username: DEFAULT_ADMIN_USERNAME
-Email: DEFAULT_ADMIN_EMAIL
-Password: nilai rahasia `DEFAULT_ADMIN_PASSWORD` dari environment
-```
+Lalu jalankan:
 
-Segera ubah password setelah login pertama.
+    php artisan migrate --seed --seeder=EmptyProductSeeder
 
-## Ubah Identitas Sekolah
+Seeder ini membuat role, branding awal, admin, tahun ajaran aktif, semester aktif, dan konfigurasi akademik dasar tanpa data demo. Jangan memakai migrate:fresh pada database yang berisi data penting.
 
-Setelah login admin:
+## 5. Asset, storage, dan menjalankan aplikasi
 
-1. Buka menu `Pengaturan`.
-2. Isi nama sekolah, alamat, kepala sekolah, tahun ajaran, semester, dan kontak.
-3. Upload logo dan favicon.
-4. Simpan pengaturan.
-5. Refresh halaman dan cek login, navbar, sidebar, footer, laporan, PDF, dan Excel.
+    php artisan storage:link
+    npm run build
+    php artisan serve
 
-## Production Checklist Singkat
+Buka http://127.0.0.1:8000 atau APP_URL. Untuk hot reload:
 
-- Set `APP_ENV=production`
-- Set `APP_DEBUG=false`
-- Gunakan `APP_KEY` baru hasil `php artisan key:generate`
-- Gunakan database dan user database khusus aplikasi
-- Jalankan `composer install --no-dev --optimize-autoloader`
-- Jalankan `npm install` lalu `npm run build`
-- Jalankan verifikasi lokal: `composer lint`, `composer test`, dan `npm run build`
-- Pastikan `public/build/manifest.json` ikut terdeploy
-- Jalankan `php artisan storage:link`
-- Jalankan `php artisan optimize`
-- Pastikan backup database aktif
-- Pastikan `DEFAULT_ADMIN_PASSWORD` sudah diganti dari nilai contoh sebelum menjalankan `EmptyProductSeeder`
-- Pastikan `.env` hanya ada di server produksi, bukan di repositori
+    npm run dev
+
+Pastikan storage/ dan bootstrap/cache/ writable. Hasil build production harus menghasilkan public/build/manifest.json.
+
+## 6. Konfigurasi awal setelah login
+
+1. Login menggunakan akun admin.
+2. Buka Pengaturan dan isi identitas sekolah, tahun ajaran, semester, kontak, logo, dan favicon.
+3. Buat atau import data kelas, siswa, mata pelajaran, guru, dan kelas-mapel.
+4. Verifikasi dashboard, permission tiap role, export PDF/Excel, serta link file upload.
+5. Ganti password awal dan hapus/disable akun demo bila pernah digunakan.
+
+## 7. Verifikasi lokal
+
+    composer validate
+    composer lint
+    composer test
+    npm run typecheck
+    npm run build
+
+Test Laravel dikonfigurasi memakai SQLite :memory: melalui phpunit.xml, sehingga tidak menggunakan database aplikasi lokal. Jangan mengganti konfigurasi test menjadi database development.
+
+## 8. Checklist production
+
+- [ ] APP_ENV=production, APP_DEBUG=false, dan APP_URL HTTPS.
+- [ ] APP_KEY baru dan secret tidak berada di repository.
+- [ ] User database khusus dengan privilege minimal; jangan memakai root.
+- [ ] composer install --no-dev --optimize-autoloader selesai.
+- [ ] npm install dan npm run build selesai; manifest terdeploy.
+- [ ] storage:link sudah dibuat dan directory writable.
+- [ ] Admin dibuat lewat EmptyProductSeeder dengan password minimal 12 karakter.
+- [ ] Backup database, rotasi log, HTTPS, dan monitoring disiapkan.
+- [ ] Queue/scheduler diaktifkan sesuai kebutuhan deployment.
+- [ ] php artisan optimize dijalankan setelah konfigurasi final.
+
+## 9. Troubleshooting singkat
+
+- Asset tidak muncul: jalankan npm run build dan cek public/build/manifest.json.
+- Database gagal tersambung: cek host, port, database, user, password, dan service MySQL/MariaDB.
+- Upload gagal: cek php artisan storage:link serta permission storage/.
+- Login instalasi kosong gagal: pastikan DEFAULT_ADMIN_PASSWORD terisi dan minimal 12 karakter.
+- Domain Lerd tidak terbuka: jalankan lerd site:list dan lerd diag:status; gunakan domain yang benar.

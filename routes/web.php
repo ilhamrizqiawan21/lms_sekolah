@@ -183,8 +183,8 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
     Route::get('/tugas/{kelasMapel}/{tugas}/pengumpulan/{pengumpulan}/legacy-download', [GuruTugasController::class, 'downloadLegacyFile'])->name('tugas.pengumpulan.download')->middleware('can:mengajar,kelasMapel');
     Route::post('/tugas/{kelasMapel}/{tugas}/siswa/{siswa}/nilai', [GuruTugasController::class, 'nilai'])->name('tugas.nilai')->middleware('can:mengajar,kelasMapel');
     Route::get('/tugas/{kelasMapel}/{tugas}/siswa/{siswa}/whatsapp', [GuruTugasController::class, 'whatsapp'])->name('tugas.whatsapp')->middleware('can:mengajar,kelasMapel');
-    Route::post('/tugas/whatsapp/{log}/mark-sent', [GuruTugasController::class, 'whatsappMarkSent'])->name('tugas.whatsapp.mark-sent');
-    Route::post('/tugas/whatsapp/{log}/send-queue', [GuruTugasController::class, 'whatsappSendQueue'])->name('tugas.whatsapp.send-queue');
+    Route::post('/tugas/whatsapp/{log}/mark-sent', [GuruTugasController::class, 'whatsappMarkSent'])->name('tugas.whatsapp.mark-sent')->middleware('can:manage-whatsapp-log,log');
+    Route::post('/tugas/whatsapp/{log}/send-queue', [GuruTugasController::class, 'whatsappSendQueue'])->name('tugas.whatsapp.send-queue')->middleware('can:manage-whatsapp-log,log');
     Route::delete('/tugas/{tugas}', [GuruTugasController::class, 'destroy'])->name('tugas.destroy')->middleware('can:mengajar-tugas,tugas');
     Route::get('/nilai', [NilaiController::class, 'index'])->name('nilai.index');
     Route::post('/nilai/store', [NilaiController::class, 'storeBulk'])->name('nilai.store.bulk');

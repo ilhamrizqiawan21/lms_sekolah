@@ -2,14 +2,14 @@
 
 namespace App\Providers;
 
-use App\Models\KelasMapel;
-use App\Policies\KelasMapelPolicy;
-use App\Policies\TugasPolicy;
-use App\Policies\WaliKelasPolicy;
 use App\Http\Controllers\Guru\NilaiController;
 use App\Http\Controllers\Guru\NilaiRekapController;
 use App\Http\Controllers\Guru\SikapController;
 use App\Http\Controllers\Guru\SikapRekapController;
+use App\Models\WhatsAppMessageLog;
+use App\Policies\KelasMapelPolicy;
+use App\Policies\TugasPolicy;
+use App\Policies\WaliKelasPolicy;
 use App\Services\CalendarTimelineService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -30,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('mengajar-tugas', [TugasPolicy::class, 'mengajar']);
         Gate::define('kelola-wali-kelas', [WaliKelasPolicy::class, 'kelola']);
         Gate::define('lihat-laporan-wali-kelas', [WaliKelasPolicy::class, 'lihatLaporan']);
+        Gate::define('manage-whatsapp-log', function ($user, WhatsAppMessageLog $log): bool {
+            return $user->isGuru() && (int) $log->guru_id === (int) $user->id;
+        });
 
         Inertia::share('timelineEvents', function () {
             $routeName = request()->route()?->getName();

@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Kelas;
 use App\Models\KelasMapel;
 use App\Models\MataPelajaran;
+use App\Models\Materi;
 use App\Models\Pengaturan;
+use App\Models\PengumpulanFile;
 use App\Models\PengumpulanTugas;
 use App\Models\Role;
 use App\Models\Siswa;
@@ -15,6 +17,8 @@ use App\Models\User;
 use App\Models\WhatsAppMessageLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use Tests\TestCase;
 
@@ -326,6 +330,73 @@ class Phase10AuthorizationTest extends TestCase
         ]);
         $this->assertSame('6281234567890', $student->fresh()->nomor_whatsapp);
         $this->assertInstanceOf(WhatsAppMessageLog::class, WhatsAppMessageLog::latest()->first());
+    }
+
+    public function test_whatsapp_mutations_use_log_policy_middleware(): void
+    {
+        foreach (['guru.tugas.whatsapp.mark-sent', 'guru.tugas.whatsapp.send-queue'] as $routeName) {
+            $middleware = Route::getRoutes()->getByName($routeName)->gatherMiddleware();
+
+            $this->assertContains('can:manage-whatsapp-log,log', $middleware, $routeName);
+        }
+    }
+
+    public function test_student_downloads_never_fallback_to_public_disk(): void
+    {
+        [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
+        Storage::fake('local');
+        Storage::fake('public');
+
+        $mapel = MataPelajaran::create(['kode' => 'PRV', 'nama_mapel' => 'Private Files', 'urutan' => 1]);
+        $kelasMapel = KelasMapel::create([
+            'kelas_id' => $kelas->id,
+            'mapel_id' => $mapel->id,
+            'guru_id' => $guru->id,
+            'tahun_ajaran_id' => $tahunAjaran->id,
+            'semester' => '1',
+            'pertemuan_per_minggu' => 1,
+        ]);
+        $tugas = Tugas::create([
+            'kelas_mapel_id' => $kelasMapel->id,
+            'judul' => 'File Private',
+            'batas_waktu' => now()->addDay(),
+            'kategori_nilai' => 'NH',
+        ]);
+        $studentUser = $this->createUser('siswa-private-file', 'Siswa Private File', 'siswa');
+        $student = Siswa::create([
+            'user_id' => $studentUser->id,
+            'nis' => '9302',
+            'kelas_id' => $kelas->id,
+            'status' => 'aktif',
+        ]);
+        $pengumpulan = PengumpulanTugas::create([
+            'tugas_id' => $tugas->id,
+            'siswa_id' => $student->id,
+            'status' => 'sudah',
+            'file_upload' => 'tugas/'.$tugas->id.'/'.$student->id.'/legacy.pdf',
+            'tanggal_kumpul' => now(),
+        ]);
+        $file = PengumpulanFile::create([
+            'pengumpulan_id' => $pengumpulan->id,
+            'file_name' => 'legacy.pdf',
+            'file_path' => 'tugas/'.$tugas->id.'/'.$student->id.'/legacy.pdf',
+        ]);
+        Storage::disk('public')->put($file->file_path, 'must not be served');
+
+        $this->actingAs($studentUser)
+            ->get(route('siswa.tugas.file.download', [$tugas, $file]))
+            ->assertNotFound();
+
+        $materi = Materi::create([
+            'kelas_mapel_id' => $kelasMapel->id,
+            'judul' => 'Materi Private',
+            'file_path' => 'materi/'.$kelasMapel->id.'/public-only.pdf',
+        ]);
+        Storage::disk('public')->put($materi->file_path, 'must not be served');
+
+        $this->actingAs($studentUser)
+            ->get(route('siswa.materi.download', [$kelasMapel, $materi]))
+            ->assertRedirect();
     }
 
     public function test_admin_student_password_reset_uses_default_password(): void
