@@ -78,6 +78,53 @@ test('grade paste and attendance save', async ({ page }) => {
     await expect(page.locator('tbody select').first()).toHaveValue('izin');
 });
 
+test('grade Enter moves down the same column without submitting', async ({ page }) => {
+    await login(page, 'guru');
+    let saves = 0;
+    page.on('request', request => {
+        if (request.method() === 'POST' && request.url().includes('/nilai/')) saves++;
+    });
+    for (const route of ['/guru/nilai', '/guru/nilai/1/input']) {
+        await page.goto(route);
+        for (const field of ['sum1', 'sts', 'sat']) {
+            const cells = page.locator(`.score-input[data-field-key="${field}"]`);
+            await cells.nth(0).fill('');
+            await cells.nth(0).pressSequentially('100');
+            await expect(cells.nth(0)).toBeFocused();
+            await cells.nth(0).press('Enter');
+            await expect(cells.nth(1)).toBeFocused();
+            await expect(cells.nth(0)).toHaveValue('100');
+            await cells.nth(1).fill('82,5');
+            await cells.nth(1).press('Enter');
+            await expect(cells.nth(2)).toBeFocused();
+            await expect(cells.nth(1)).toHaveValue('82,5');
+            await cells.nth(2).fill('');
+            await cells.nth(2).press('Enter');
+            await expect(cells.nth(2)).toBeFocused();
+            await expect(cells.nth(2)).toHaveValue('');
+        }
+    }
+    expect(saves).toBe(0);
+});
+
+test('grade save keeps the selected class after refreshing scores', async ({ page }) => {
+    await login(page, 'guru');
+    await page.goto('/guru/nilai');
+    const classes = page.getByLabel('Kelas Aktif');
+    const selected = await classes.locator('option').filter({ hasText: 'VII-B' }).getAttribute('value');
+    expect(selected).not.toBeNull();
+    await classes.selectOption(selected!);
+    const score = page.locator('.score-input[data-field-key="sum1"]').first();
+    await score.fill('87');
+    await page.getByRole('button', { name: 'Simpan Nilai' }).first().click();
+    await expect(page.locator('.toast-item').first()).toContainText('berhasil');
+    await expect(classes).toHaveValue(selected!);
+    await expect(score).toHaveValue(/87(\.0+)?/);
+    await page.reload();
+    await classes.selectOption(selected!);
+    await expect(score).toHaveValue(/87(\.0+)?/);
+});
+
 test('teacher can create a task from the task menu', async ({ page }) => {
     await login(page, 'guru');
     await page.goto('/guru/tugas/1/list');

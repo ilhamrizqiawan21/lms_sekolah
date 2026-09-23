@@ -251,9 +251,13 @@ class TugasController extends Controller
             'pengumpulan' => $siswa->map(function (Siswa $student, int $index) use ($pengumpulan, $kelasMapel, $tugas, $penaltyPerDay, $lastWhatsAppByStudent) {
                 $item = $pengumpulan->get($student->id);
                 $daysLate = $this->lateDays($item?->tanggal_kumpul, $tugas->batas_waktu);
-                // A reminder remains available for every overdue row, including
-                // direct-graded assignments that have no submission record.
-                $canPrepareWhatsApp = $daysLate > 0;
+                // lateDays() returns 0 when there is no submission timestamp (by
+                // design, to avoid over-penalizing), so it cannot gate the reminder
+                // button on its own. A reminder remains available for every overdue
+                // row that has not been validly submitted yet, including rows with
+                // no submission record at all.
+                $notSubmitted = $item === null || $item->status === PengumpulanTugas::STATUS_BELUM;
+                $canPrepareWhatsApp = $tugas->batas_waktu?->isPast() && ($daysLate > 0 || $notSubmitted);
                 $lastWhatsApp = $lastWhatsAppByStudent->get($student->id);
 
                 return [

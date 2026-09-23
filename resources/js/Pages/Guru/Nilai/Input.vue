@@ -196,18 +196,13 @@ function handleScoreInput(event: Event, studentIndex: number, fieldKey: ScoreFie
     }
 }
 
-function handleScoreKeyup(event: KeyboardEvent) {
-    const input = event.target;
-    if (!(input instanceof HTMLTextAreaElement)) return;
+function handleScoreEnter(event: KeyboardEvent, studentIndex: number, fieldKey: ScoreField) {
+    if (event.isComposing) return;
 
-    if (input.value.length < 3) {
-        return;
-    }
-
-    const inputs = Array.from(document.querySelectorAll<HTMLTextAreaElement>('.score-input'));
-    const next = inputs[inputs.indexOf(input) + 1];
-
-    next?.focus();
+    event.preventDefault();
+    document.querySelector<HTMLTextAreaElement>(
+        `.score-input[data-student-index="${studentIndex + 1}"][data-field-key="${fieldKey}"]`,
+    )?.focus();
 }
 
 function submit() {
@@ -276,7 +271,7 @@ function submit() {
                 <TableWrapper>
                     <div class="p-3 border-bottom bg-light-subtle">
                         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
-                            <span class="text-muted small">Input nilai per siswa, gunakan tombol Enter untuk berpindah kolom.</span>
+                            <span class="text-muted small">Tekan Enter untuk ke siswa berikutnya pada kolom nilai yang sama.</span>
                             <div class="d-flex align-items-center gap-2">
                                 <span v-if="pasteStatus" class="badge bg-soft-success">{{ pasteStatus }}</span>
                                 <span class="badge bg-soft-primary">{{ students.length }} siswa</span>
@@ -343,7 +338,7 @@ function submit() {
                                         placeholder="-"
                                         :data-student-index="studentIndex"
                                         :data-field-key="field.key"
-                                        @keyup="handleScoreKeyup"
+                                        @keydown.enter="handleScoreEnter($event, studentIndex, field.key)"
                                         @paste.stop="handleScorePaste($event, studentIndex, field.key)"
                                         @input="handleScoreInput($event, studentIndex, field.key)"
                                         @focus="($event.target as HTMLTextAreaElement).select()"

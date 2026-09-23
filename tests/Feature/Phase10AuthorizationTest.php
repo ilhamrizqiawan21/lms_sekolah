@@ -332,6 +332,37 @@ class Phase10AuthorizationTest extends TestCase
         $this->assertInstanceOf(WhatsAppMessageLog::class, WhatsAppMessageLog::latest()->first());
     }
 
+    public function test_whatsapp_reminder_button_shows_for_overdue_student_with_no_submission(): void
+    {
+        [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
+        $mapel = MataPelajaran::create(['kode' => 'WA2', 'nama_mapel' => 'WhatsApp Belum Kumpul', 'urutan' => 1]);
+        $kelasMapel = KelasMapel::create([
+            'kelas_id' => $kelas->id,
+            'mapel_id' => $mapel->id,
+            'guru_id' => $guru->id,
+            'tahun_ajaran_id' => $tahunAjaran->id,
+            'semester' => '1',
+            'pertemuan_per_minggu' => 1,
+        ]);
+        $tugas = Tugas::create(['kelas_mapel_id' => $kelasMapel->id, 'judul' => 'Belum Dikumpulkan', 'batas_waktu' => now()->subDays(2), 'kategori_nilai' => 'NH']);
+        $studentUser = $this->createUser('siswa-wa-belum', 'Siswa WA Belum', 'siswa');
+        Siswa::create([
+            'user_id' => $studentUser->id,
+            'nis' => '9303',
+            'kelas_id' => $kelas->id,
+            'status' => 'aktif',
+        ]);
+
+        $this->actingAs($guru)
+            ->get(route('guru.tugas.pengumpulan', [$kelasMapel, $tugas]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('pengumpulan.0.status', 'belum')
+                ->where('pengumpulan.0.hari_terlambat', 0)
+                ->whereNot('pengumpulan.0.whatsapp_url', null)
+            );
+    }
+
     public function test_whatsapp_mutations_use_log_policy_middleware(): void
     {
         foreach (['guru.tugas.whatsapp.mark-sent', 'guru.tugas.whatsapp.send-queue'] as $routeName) {
@@ -439,6 +470,63 @@ class Phase10AuthorizationTest extends TestCase
         $this->actingAs($studentUser)
             ->post(route('admin.kelas-siswa.reset-password', $target))
             ->assertForbidden();
+    }
+
+    public function test_teacher_can_open_and_save_all_final_score_columns(): void
+    {
+        [, $guru, , $kelas, $tahunAjaran] = $this->fixture();
+        $mapel = MataPelajaran::create(['kode' => 'NIL', 'nama_mapel' => 'Nilai Regression', 'urutan' => 1]);
+        $kelasMapel = KelasMapel::create([
+            'kelas_id' => $kelas->id,
+            'mapel_id' => $mapel->id,
+            'guru_id' => $guru->id,
+            'tahun_ajaran_id' => $tahunAjaran->id,
+            'semester' => '1',
+            'pertemuan_per_minggu' => 2,
+        ]);
+        $studentUser = $this->createUser('siswa-nilai-regression', 'Siswa Nilai Regression', 'siswa');
+        $student = Siswa::create([
+            'user_id' => $studentUser->id,
+            'nis' => '9401',
+            'kelas_id' => $kelas->id,
+            'status' => 'aktif',
+        ]);
+
+        $this->actingAs($guru)
+            ->get(route('guru.nilai.input', $kelasMapel))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->component('Guru/Nilai/Input'));
+
+        $this->actingAs($guru)
+            ->post(route('guru.nilai.store', $kelasMapel), [
+                'semester' => '1',
+                'nilai' => [
+                    $student->id => [
+                        'sum1' => 81,
+                        'sum2' => 82,
+                        'sum3' => 83,
+                        'sum4' => 84,
+                        'sts' => 85,
+                        'sas' => 86,
+                        'sat' => 87,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('guru.nilai.input', $kelasMapel));
+
+        $this->assertDatabaseHas('nilai_akhir', [
+            'siswa_id' => $student->id,
+            'kelas_mapel_id' => $kelasMapel->id,
+            'tahun_ajaran_id' => $tahunAjaran->id,
+            'semester' => '1',
+            'sum1' => 81,
+            'sum2' => 82,
+            'sum3' => 83,
+            'sum4' => 84,
+            'sts' => 85,
+            'sas' => 86,
+            'sat' => 87,
+        ]);
     }
 
     private function fixture(): array

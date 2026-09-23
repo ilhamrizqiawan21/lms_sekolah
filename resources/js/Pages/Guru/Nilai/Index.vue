@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, nextTick, ref, watch } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
@@ -13,6 +13,7 @@ const props = withDefaults(defineProps<{
     semester?: string;
     groups?: GradeGroup[];
     storeUrl: string;
+    indexUrl: string;
 }>(), { kelasMapel: () => [], tahunAjaran: null, semester: '1', groups: () => [] });
 
 const fieldGroups: { key: ScoreField; label: string; readonly?: boolean }[] = [
@@ -40,7 +41,9 @@ const taskFields = computed(() => activeGroup.value?.tugas_harian ?? []);
 
 watch(() => props.groups, () => {
     form.semester = props.semester;
-    selectedKelasMapelId.value = props.kelasMapel[0]?.id ?? null;
+    if (!props.kelasMapel.some((item) => item.id === selectedKelasMapelId.value)) {
+        selectedKelasMapelId.value = props.kelasMapel[0]?.id ?? null;
+    }
     form.kelas_mapel_ids = selectedKelasMapelId.value ? [selectedKelasMapelId.value] : [];
     form.nilai = buildNilai();
 }, { deep: true });
@@ -169,14 +172,26 @@ function handleScoreInput(event: Event, studentIndex: number, fieldKey: ScoreFie
     if (grid.length) applyScoreGrid(grid, studentIndex, fieldKey);
 }
 
-function handleScoreKeyup(event: KeyboardEvent) {
-    const input = event.target;
-    if (!(input instanceof HTMLTextAreaElement)) return;
-    if (input.value.length < 3) return;
+function onKelasMapelChange() {
+    if (!selectedKelasMapelId.value) return;
 
-    const inputs = Array.from(document.querySelectorAll<HTMLTextAreaElement>('.score-input'));
-    const next = inputs[inputs.indexOf(input) + 1];
-    next?.focus();
+    // Fetch only the newly-selected class's roster/scores instead of
+    // shipping every class's data up front on the initial page load.
+    router.get(props.indexUrl, { kelas_mapel_id: selectedKelasMapelId.value }, {
+        only: ['groups'],
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    });
+}
+
+function handleScoreEnter(event: KeyboardEvent, studentIndex: number, fieldKey: ScoreField) {
+    if (event.isComposing) return;
+
+    event.preventDefault();
+    document.querySelector<HTMLTextAreaElement>(
+        `.score-input[data-student-index="${studentIndex + 1}"][data-field-key="${fieldKey}"]`,
+    )?.focus();
 }
 
 function submit() {
@@ -193,7 +208,7 @@ function submit() {
         });
     });
 
-    form.post(props.storeUrl, { preserveScroll: true });
+    form.post(props.storeUrl, { preserveScroll: true, preserveState: true });
 }
 </script>
 
@@ -218,7 +233,7 @@ function submit() {
         <form v-if="kelasMapel.length" @submit.prevent="submit">
             <Card title="Kelas dan Mata Pelajaran" icon="bi-funnel" class="mb-4">
                 <label for="kelas-mapel" class="form-label">Kelas Aktif</label>
-                <select id="kelas-mapel" v-model="selectedKelasMapelId" class="form-select">
+                <select id="kelas-mapel" v-model="selectedKelasMapelId" class="form-select" @change="onKelasMapelChange">
                     <option v-for="item in kelasMapel" :key="item.id" :value="item.id">
                         {{ item.label }}
                     </option>
@@ -243,7 +258,6 @@ function submit() {
             >
                 <template #actions>
                     <div class="d-flex align-items-center gap-2">
-                        <span v-if="pasteStatus" class="badge bg-soft-success">{{ pasteStatus }}</span>
                         <a :href="activeGroup.export_excel_url" class="btn btn-sm btn-outline-success">
                             <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
                         </a>
@@ -254,6 +268,15 @@ function submit() {
                 </template>
 
                 <TableWrapper>
+                    <div class="p-3 border-bottom bg-light-subtle">
+                        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                            <span class="text-muted small">Tekan Enter untuk ke siswa berikutnya pada kolom nilai yang sama.</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span v-if="pasteStatus" class="badge bg-soft-success">{{ pasteStatus }}</span>
+                                <span class="badge bg-soft-primary">{{ activeGroup.students.length }} siswa</span>
+                            </div>
+                        </div>
+                    </div>
                     <table class="table table-bordered table-hover app-table grade-table mb-0">
                         <colgroup>
                             <col class="grade-col-no">
@@ -315,7 +338,7 @@ function submit() {
                                         placeholder="-"
                                         :data-student-index="studentIndex"
                                         :data-field-key="field.key"
-                                        @keyup="handleScoreKeyup"
+                                        @keydown.enter="handleScoreEnter($event, studentIndex, field.key)"
                                         @paste.stop="handleScorePaste($event, studentIndex, field.key)"
                                         @input="handleScoreInput($event, studentIndex, field.key)"
                                         @focus="($event.target as HTMLTextAreaElement).select()"
@@ -338,7 +361,7 @@ function submit() {
                                         placeholder="-"
                                         :data-student-index="studentIndex"
                                         :data-field-key="field.key"
-                                        @keyup="handleScoreKeyup"
+                                        @keydown.enter="handleScoreEnter($event, studentIndex, field.key)"
                                         @paste.stop="handleScorePaste($event, studentIndex, field.key)"
                                         @input="handleScoreInput($event, studentIndex, field.key)"
                                         @focus="($event.target as HTMLTextAreaElement).select()"
@@ -445,5 +468,13 @@ function submit() {
     border-radius: 6px;
     background: var(--surface-muted);
     font-weight: 700;
+}
+
+@media (max-width: 767px) {
+    .score-input {
+        min-width: 56px;
+        padding: 0.25rem 0.35rem;
+        font-size: 0.78rem;
+    }
 }
 </style>

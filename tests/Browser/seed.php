@@ -76,6 +76,20 @@ foreach ([2, 3] as $number) {
     ]);
 }
 WaliKelas::create(['kelas_id' => $class->id, 'guru_id' => $users['guru']->id, 'tahun_ajaran_id' => $year->id]);
+$secondClass = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'VII-B']);
+KelasMapel::create([
+    'kelas_id' => $secondClass->id, 'mapel_id' => $subject->id, 'guru_id' => $users['guru']->id,
+    'tahun_ajaran_id' => $year->id, 'semester' => '1', 'pertemuan_per_minggu' => 1,
+]);
+$secondClassUser = User::create([
+    'username' => 'browser-siswa-kelas-b', 'nama_lengkap' => 'Siswa Kelas B',
+    'email' => 'siswa-b@browser.test', 'password' => Hash::make('browser-test-password'),
+    'role_id' => $users['siswa']->role_id, 'is_active' => true, 'is_password_default' => false,
+]);
+Siswa::create([
+    'user_id' => $secondClassUser->id, 'nis' => '9010',
+    'kelas_id' => $secondClass->id, 'status' => 'aktif',
+]);
 JadwalMengajar::create([
     'guru_id' => $users['guru']->id, 'kelas_id' => $class->id,
     'kelas_mapel_id' => $course->id, 'hari' => 1, 'pelajaran_ke' => 1,

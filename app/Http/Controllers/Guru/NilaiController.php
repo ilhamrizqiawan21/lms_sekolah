@@ -15,6 +15,7 @@ use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Models\Tugas;
 use App\Services\NilaiService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -29,7 +30,7 @@ class NilaiController extends Controller
         $this->nilaiService = $nilaiService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $kelasMapel = KelasMapel::with(['kelas', 'mataPelajaran'])
             ->where('guru_id', Auth::id())
@@ -40,6 +41,9 @@ class NilaiController extends Controller
         $semester = Pengaturan::getValue('semester_aktif', '1');
         $fields = ['sum1', 'sum2', 'sum3', 'sum4', 'nilai_harian', 'sts', 'sas', 'sat'];
 
+        $activeKelasMapel = $kelasMapel->firstWhere('id', (int) $request->input('kelas_mapel_id'))
+            ?? $kelasMapel->first();
+
         return Inertia::render('Guru/Nilai/Index', [
             'kelasMapel' => $this->formatKelasMapelOptions($kelasMapel),
             'tahunAjaran' => $tahunAjaran ? [
@@ -47,8 +51,14 @@ class NilaiController extends Controller
                 'tahun' => $tahunAjaran->tahun,
             ] : null,
             'semester' => $semester,
-            'groups' => $kelasMapel->map(fn (KelasMapel $item) => $this->buildNilaiGroup($item, $tahunAjaran, $semester, $fields))->values(),
+            // Only the selected class's roster/scores are built here; switching
+            // classes on the client re-requests this action with a partial
+            // reload instead of shipping every class's full data up front.
+            'groups' => $activeKelasMapel
+                ? [$this->buildNilaiGroup($activeKelasMapel, $tahunAjaran, $semester, $fields)]
+                : [],
             'storeUrl' => route('guru.nilai.store.bulk'),
+            'indexUrl' => route('guru.nilai.index'),
         ]);
     }
 
@@ -89,7 +99,7 @@ class NilaiController extends Controller
                 'tahun' => $tahunAjaran->tahun,
             ] : null,
             'semester' => $semester,
-            'students' => $siswa->values()->map(function (Siswa $student, int $index) use ($nilaiList, $fields, $tugasHarian) {
+            'students' => $siswa->values()->map(function (Siswa $student, int $index) use ($nilaiList, $fields) {
                 $nilai = $nilaiList->get($student->id);
                 $scores = collect($fields)
                     ->mapWithKeys(fn (string $field) => [$field => $nilai?->$field])
@@ -138,7 +148,7 @@ class NilaiController extends Controller
             );
         }
 
-        return redirect()->route('guru.nilai.index')
+        return redirect()->route('guru.nilai.index', ['kelas_mapel_id' => $kelasMapel->first()?->id])
             ->with('success', 'Nilai berhasil disimpan untuk kelas yang dipilih.');
     }
 

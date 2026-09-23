@@ -16,6 +16,18 @@ use Tests\TestCase;
 
 class UploadValidationTest extends TestCase
 {
+    public function test_public_announcement_attachment_rejects_a_renamed_non_document(): void
+    {
+        $validator = Validator::make([
+            'public_file' => UploadedFile::fake()->create('not-a-document.pdf', 1, 'text/plain'),
+        ], [
+            'public_file' => 'required|file|mimes:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|extensions:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|max:5120',
+        ]);
+
+        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->errors()->has('public_file'));
+    }
+
     public function test_tugas_upload_accepts_jpeg_and_pdf_extensions_without_mime_guessing(): void
     {
         $fileRule = str_replace('nullable', 'required', TugasController::uploadFileRules());

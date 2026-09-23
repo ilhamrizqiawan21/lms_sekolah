@@ -28,7 +28,7 @@ class PengumumanController extends Controller
                     ->orWhere(function ($q) use ($guruKelasIds) {
                         $q->where('target', 'kelas_mapel')->where(function ($q) use ($guruKelasIds) {
                             $q->whereIn('kelas_mapel_id', KelasMapel::where('guru_id', Auth::id())->select('id'));
-                            foreach ($guruKelasIds as $id) $q->orWhere('target_kelas', 'like', '%\"'.$id.'\"%');
+                            foreach ($guruKelasIds as $id) $q->orWhereJsonContains('target_kelas', (string) $id);
                         });
                     });
             });
@@ -113,7 +113,7 @@ class PengumumanController extends Controller
             'target_kelas_ids' => 'nullable|required_if:target,kelas_mapel|array',
             'target_kelas_ids.*' => 'integer|exists:kelas,id',
             'is_public_login' => 'nullable|boolean',
-            'public_file' => 'nullable|file|extensions:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|max:5120',
+            'public_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|extensions:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|max:5120',
         ]);
         $v = $this->prepareTarget($v);
         $v['is_public_login'] = $request->boolean('is_public_login');
@@ -135,7 +135,7 @@ class PengumumanController extends Controller
             'target_kelas_ids' => 'nullable|required_if:target,kelas_mapel|array',
             'target_kelas_ids.*' => 'integer|exists:kelas,id',
             'is_public_login' => 'nullable|boolean',
-            'public_file' => 'nullable|file|extensions:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|max:5120',
+            'public_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|extensions:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|max:5120',
             'remove_public_file' => 'nullable|boolean',
         ]);
         $v = $this->prepareTarget($v);

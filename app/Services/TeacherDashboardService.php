@@ -23,7 +23,7 @@ class TeacherDashboardService
             ->withCount(['materi', 'tugas'])
             ->where('guru_id', $guruId)
             ->aktif()
-            ->get();
+            ->get(['id', 'kelas_id', 'mapel_id', 'tahun_ajaran_id', 'semester']);
 
         $kelasMapelIds = $kelasMapel->pluck('id');
         $kelasIds = $kelasMapel->pluck('kelas_id')->unique()->values();
@@ -31,7 +31,9 @@ class TeacherDashboardService
         $chartMonths = $this->chartMonths();
 
         return [
-            'statistik' => $this->statistikService->dashboardGuru($guruId),
+            // Reuse the already-loaded courses. Previously this issued a
+            // second kelas_mapel query for every teacher-dashboard request.
+            'statistik' => $this->statistikService->dashboardGuruForKelasMapel($kelasMapel, $guruId),
             'kelasMapel' => $kelasMapel->map(fn (KelasMapel $item) => [
                 'id' => $item->id,
                 'kelas' => $item->kelas?->nama_kelas ?? '-',

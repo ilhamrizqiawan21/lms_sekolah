@@ -8,6 +8,7 @@ use App\Models\MataPelajaran;
 use App\Models\NilaiAkhir;
 use App\Models\Siswa;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class StatistikService
@@ -29,14 +30,15 @@ class StatistikService
     /**
      * Statistik dashboard guru.
      */
-    public function dashboardGuru(int $guruId): array
+    public function dashboardGuruForKelasMapel(Collection $kelasMapels, int $guruId): array
     {
-        $kelasMapels = \App\Models\KelasMapel::where('guru_id', $guruId)->get();
         $kelasMapelIds = $kelasMapels->pluck('id');
 
         return [
             'total_kelas_mapel' => $kelasMapels->count(),
-            'total_siswa' => Siswa::whereIn('kelas_id', $kelasMapels->pluck('kelas_id'))->where('status', 'aktif')->count(),
+            'total_siswa' => Siswa::whereIn('kelas_id', $kelasMapels->pluck('kelas_id')->unique())
+                ->where('status', 'aktif')
+                ->count(),
             'total_materi' => \App\Models\Materi::whereIn('kelas_mapel_id', $kelasMapelIds)->count(),
             'total_tugas' => \App\Models\Tugas::whereIn('kelas_mapel_id', $kelasMapelIds)->count(),
             'total_pengumuman' => \App\Models\Pengumuman::where('created_by', $guruId)->count(),

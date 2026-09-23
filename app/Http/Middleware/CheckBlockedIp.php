@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\BlockedIp;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -33,8 +34,15 @@ class CheckBlockedIp
                     403
                 );
             }
-        } catch (Throwable) {
-            return $next($request);
+        } catch (Throwable $exception) {
+            // Do not bypass the blocklist when its backing store is
+            // unavailable. Returning a temporary error is safer than
+            // allowing requests that cannot be checked.
+            Log::critical('Pemeriksaan IP terblokir tidak tersedia.', [
+                'exception' => get_class($exception),
+            ]);
+
+            return response('Layanan keamanan sedang tidak tersedia. Silakan coba lagi nanti.', 503);
         }
 
         return $next($request);
