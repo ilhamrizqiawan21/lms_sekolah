@@ -49,10 +49,17 @@ class ExportController extends Controller
     // ─────────────────────────────────────────────
     public function excelAbsensi(Request $request, AbsensiExportService $exportService)
     {
-        $filters = $this->validatedExportFilters($request, withMonth: true);
-        [$path, $filename] = $exportService->export($filters['kelas_id'], $filters['semester'], $filters['bulan']);
+        $filters = $this->validatedAbsensiExportFilters($request);
 
-        return response()->download($path, $filename)->deleteFileAfterSend(true);
+        if ($filters['kelas_id'] && $filters['bulan']) {
+            [$path, $filename] = $exportService->export($filters['kelas_id'], $filters['semester'], $filters['bulan']);
+
+            return response()->download($path, $filename)->deleteFileAfterSend(true);
+        }
+
+        $dataset = $this->adminAbsensiMultiDataset($filters);
+
+        return $this->multiTableExcel('rekap_absensi_' . $dataset['slug'] . '.xlsx', 'REKAP ABSENSI', $dataset['sections'], $dataset['taAktif'], $filters['semester']);
     }
 
     // ─────────────────────────────────────────────
@@ -110,10 +117,19 @@ class ExportController extends Controller
     // ─────────────────────────────────────────────
     public function pdfAbsensi(Request $request)
     {
-        $filters = $this->validatedExportFilters($request, withMonth: true);
-        $kelasId = $filters['kelas_id'];
-        $bulan = $filters['bulan'];
-        $semester = $filters['semester'];
+        $filters = $this->validatedAbsensiExportFilters($request);
+
+        if ($filters['kelas_id'] && $filters['bulan']) {
+            return $this->pdfAbsensiSingleKelasBulan((int) $filters['kelas_id'], $filters['bulan'], $filters['semester']);
+        }
+
+        $dataset = $this->adminAbsensiMultiDataset($filters);
+
+        return $this->multiTablePdf('rekap_absensi_' . $dataset['slug'] . '.pdf', 'REKAP ABSENSI', $dataset['sections'], $dataset['taAktif'], $filters['semester'], null, $filters['bulan'] ? 'landscape' : 'portrait');
+    }
+
+    private function pdfAbsensiSingleKelasBulan(int $kelasId, string $bulan, string $semester)
+    {
         $taAktif = TahunAjaran::getAktif();
 
         $kelas = Kelas::findOrFail($kelasId);
@@ -156,6 +172,122 @@ class ExportController extends Controller
         $pdf->setPaper('A4', 'landscape');
 
         return $pdf->download("rekap_absensi_{$kelas->tingkat}_{$kelas->nama_kelas}_{$bulan}.pdf");
+    }
+
+    /** Filter export absensi admin: kelas_id & bulan sama-sama nullable ("Semua Kelas" / "Semua Bulan"). */
+    private function validatedAbsensiExportFilters(Request $request): array
+    {
+        $validated = $request->validate([
+            'kelas_id' => 'nullable|integer|exists:kelas,id',
+            'semester' => 'nullable|in:1,2',
+            'bulan' => 'nullable|date_format:Y-m',
+        ]);
+
+        return [
+            'kelas_id' => isset($validated['kelas_id']) ? (int) $validated['kelas_id'] : null,
+            'semester' => $validated['semester'] ?? Pengaturan::getValue('semester_aktif', '1'),
+            'bulan' => $validated['bulan'] ?? null,
+        ];
+    }
+
+    /** Bangun section per kelas untuk export absensi admin saat kelas_id/bulan kosong ("Semua"). */
+    private function adminAbsensiMultiDataset(array $filters): array
+    {
+        $taAktif = TahunAjaran::getAktif();
+        $semester = $filters['semester'];
+        $bulan = $filters['bulan'];
+
+        $kelasList = $filters['kelas_id']
+            ? Kelas::where('id', $filters['kelas_id'])->get()
+            : Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
+
+        abort_if($kelasList->isEmpty(), 404);
+
+        $sections = $kelasList->map(fn(Kelas $kelas) => $bulan
+            ? $this->adminAbsensiHarianSection($kelas, $bulan, $semester, $taAktif)
+            : $this->adminAbsensiRingkasanSection($kelas, $semester, $taAktif)
+        )->all();
+
+        $slugBase = $filters['kelas_id'] ? "{$kelasList->first()->tingkat}_{$kelasList->first()->nama_kelas}" : 'semua_kelas';
+
+        return [
+            'sections' => $sections,
+            'taAktif' => $taAktif,
+            'slug' => $this->slug($slugBase . ($bulan ? "_{$bulan}" : '_semua_bulan')),
+        ];
+    }
+
+    private function adminAbsensiHarianSection(Kelas $kelas, string $bulan, string $semester, ?TahunAjaran $taAktif): array
+    {
+        $siswaList = Siswa::with('user')->where('kelas_id', $kelas->id)->where('status', 'aktif')->orderBy('nis')->get();
+        $scope = fn($q) => $q->where('kelas_id', $kelas->id)->where('tahun_ajaran_id', $taAktif?->id)->where('semester', $semester);
+
+        $tanggalList = Absensi::whereHas('kelasMapel', $scope)
+            ->whereBetween('tanggal', ["{$bulan}-01", date('Y-m-t', strtotime("{$bulan}-01"))])
+            ->orderBy('tanggal')->pluck('tanggal')->unique()->map(fn($d) => $d->format('Y-m-d'))->values();
+
+        $absensiData = Absensi::whereIn('siswa_id', $siswaList->pluck('id'))
+            ->whereHas('kelasMapel', $scope)
+            ->whereBetween('tanggal', ["{$bulan}-01", date('Y-m-t', strtotime("{$bulan}-01"))])
+            ->get()->groupBy('siswa_id');
+
+        $rows = $siswaList->values()->map(function (Siswa $siswa, int $index) use ($tanggalList, $absensiData) {
+            $sa = $absensiData->get($siswa->id, collect());
+            $row = [$index + 1, $siswa->nis, $siswa->user?->nama_lengkap ?? '-'];
+            $counts = ['hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0];
+            foreach ($tanggalList as $tgl) {
+                $status = $sa->firstWhere('tanggal', $tgl)?->status;
+                $row[] = ['hadir' => 'H', 'sakit' => 'S', 'izin' => 'I', 'alpha' => 'A'][$status] ?? '-';
+                if ($status && isset($counts[$status])) {
+                    $counts[$status]++;
+                }
+            }
+
+            return array_merge($row, array_values($counts));
+        })->all();
+
+        return [
+            'headers' => array_merge(['No', 'NIS', 'Nama'], $tanggalList->map(fn($tgl) => date('d/m', strtotime($tgl)))->all(), ['H', 'S', 'I', 'A']),
+            'rows' => $rows,
+            'context' => "Kelas {$kelas->tingkat} {$kelas->nama_kelas} - Bulan {$bulan}",
+        ];
+    }
+
+    private function adminAbsensiRingkasanSection(Kelas $kelas, string $semester, ?TahunAjaran $taAktif): array
+    {
+        $siswaList = Siswa::with('user')->where('kelas_id', $kelas->id)->where('status', 'aktif')->orderBy('nis')->get();
+        $scope = fn($q) => $q->where('kelas_id', $kelas->id)->where('tahun_ajaran_id', $taAktif?->id)->where('semester', $semester);
+
+        $absensiData = Absensi::whereIn('siswa_id', $siswaList->pluck('id'))
+            ->whereHas('kelasMapel', $scope)
+            ->get()->groupBy('siswa_id');
+
+        $rows = $siswaList->values()->map(function (Siswa $siswa, int $index) use ($absensiData) {
+            $records = $absensiData->get($siswa->id, collect());
+            $hadir = $records->where('status', 'hadir')->count();
+            $sakit = $records->where('status', 'sakit')->count();
+            $izin = $records->where('status', 'izin')->count();
+            $alpha = $records->where('status', 'alpha')->count();
+            $total = $hadir + $sakit + $izin + $alpha;
+
+            return [
+                $index + 1,
+                $siswa->nis,
+                $siswa->user?->nama_lengkap ?? '-',
+                $hadir,
+                $sakit,
+                $izin,
+                $alpha,
+                $total,
+                $total > 0 ? round(($hadir / $total) * 100, 2) . '%' : '0%',
+            ];
+        })->all();
+
+        return [
+            'headers' => ['No', 'NIS', 'Nama', 'Hadir', 'Sakit', 'Izin', 'Alpha', 'Total', 'Persen Hadir'],
+            'rows' => $rows,
+            'context' => "Kelas {$kelas->tingkat} {$kelas->nama_kelas} - Semua Bulan",
+        ];
     }
 
     // ─────────────────────────────────────────────
@@ -212,7 +344,7 @@ class ExportController extends Controller
     public function kepsekAbsensiPdf(Request $request)
     {
         $dataset = $this->kepsekAbsensiDataset($request);
-        return $this->tablePdf('laporan_absensi.pdf', 'LAPORAN ABSENSI', $dataset['context'], $dataset['headers'], $dataset['rows']);
+        return $this->tablePdf('laporan_absensi.pdf', 'LAPORAN ABSENSI', $dataset['context'], $dataset['headers'], $dataset['rows'], null, null, null, 'portrait');
     }
 
     public function kepsekNilaiExcel(Request $request)
@@ -248,7 +380,7 @@ class ExportController extends Controller
     public function kepsekRekapAbsensiPdf(Request $request)
     {
         $dataset = $this->kepsekRekapAbsensiDataset();
-        return $this->tablePdf('rekap_absensi.pdf', 'REKAP ABSENSI', $dataset['context'], $dataset['headers'], $dataset['rows']);
+        return $this->tablePdf('rekap_absensi.pdf', 'REKAP ABSENSI', $dataset['context'], $dataset['headers'], $dataset['rows'], null, null, null, 'portrait');
     }
 
     public function kepsekRekapSikapExcel(Request $request)
@@ -293,19 +425,34 @@ class ExportController extends Controller
     public function guruAbsensiPdf(Request $request, KelasMapel $kelasMapel)
     {
         $dataset = $this->guruAbsensiDataset($request, $kelasMapel);
-        return $this->tablePdf('absensi_' . $dataset['slug'] . '.pdf', 'DAFTAR ABSENSI', $dataset['context'], $dataset['headers'], $dataset['rows'], null, null, $this->teacherSigner($request));
+        return $this->tablePdf('absensi_' . $dataset['slug'] . '.pdf', 'DAFTAR ABSENSI', $dataset['context'], $dataset['headers'], $dataset['rows'], null, null, $this->teacherSigner($request), 'landscape');
+    }
+
+    // ─────────────────────────────────────────────
+    // EXPORT - DAFTAR ABSENSI (semua kelas / semua bulan)
+    // ─────────────────────────────────────────────
+    public function guruAbsensiExportExcel(Request $request)
+    {
+        $dataset = $this->guruAbsensiMultiDataset($request);
+        return $this->multiTableExcel('absensi_' . $dataset['slug'] . '.xlsx', 'DAFTAR ABSENSI', $dataset['sections']);
+    }
+
+    public function guruAbsensiExportPdf(Request $request)
+    {
+        $dataset = $this->guruAbsensiMultiDataset($request);
+        return $this->multiTablePdf('absensi_' . $dataset['slug'] . '.pdf', 'DAFTAR ABSENSI', $dataset['sections'], null, null, $this->teacherSigner($request), $dataset['orientation']);
     }
 
     public function guruRekapAbsensiExcel(Request $request)
     {
-        $dataset = $this->guruRekapAbsensiDataset($request);
-        return $this->tableExcel('rekap_absensi_' . $dataset['slug'] . '.xlsx', 'REKAP ABSENSI', $dataset['context'], $dataset['headers'], $dataset['rows']);
+        $dataset = $this->guruRekapAbsensiMultiDataset($request);
+        return $this->multiTableExcel('rekap_absensi_' . $dataset['slug'] . '.xlsx', 'REKAP ABSENSI', $dataset['sections']);
     }
 
     public function guruRekapAbsensiPdf(Request $request)
     {
-        $dataset = $this->guruRekapAbsensiDataset($request);
-        return $this->tablePdf('rekap_absensi_' . $dataset['slug'] . '.pdf', 'REKAP ABSENSI', $dataset['context'], $dataset['headers'], $dataset['rows'], null, null, $this->teacherSigner($request));
+        $dataset = $this->guruRekapAbsensiMultiDataset($request);
+        return $this->multiTablePdf('rekap_absensi_' . $dataset['slug'] . '.pdf', 'REKAP ABSENSI', $dataset['sections'], null, null, $this->teacherSigner($request), 'portrait');
     }
 
     public function guruSikapExcel(Request $request, KelasMapel $kelasMapel)
@@ -672,8 +819,14 @@ class ExportController extends Controller
     private function guruAbsensiDataset(Request $request, KelasMapel $kelasMapel): array
     {
         $request->validate(['bulan' => 'nullable|date_format:Y-m']);
-
         $bulan = $request->input('bulan', date('Y-m'));
+
+        return $this->guruAbsensiHarianSection($kelasMapel, $bulan)
+            + ['slug' => $this->slug($this->kelasMapelContext($kelasMapel) . "_{$bulan}")];
+    }
+
+    private function guruAbsensiHarianSection(KelasMapel $kelasMapel, string $bulan): array
+    {
         $meetings = $this->attendanceMeetings($bulan, (int) $kelasMapel->pertemuan_per_minggu);
         $students = Siswa::with('user')->where('kelas_id', $kelasMapel->kelas_id)->where('status', 'aktif')->orderBy('nis')->get();
         $absensiRaw = Absensi::where('kelas_mapel_id', $kelasMapel->id)
@@ -703,23 +856,15 @@ class ExportController extends Controller
             'headers' => array_merge(['No', 'NIS', 'Nama'], $meetings->map(fn($meeting) => $meeting['title'] . ' ' . $meeting['label'])->all(), ['H', 'S', 'I', 'A']),
             'rows' => $rows,
             'context' => $this->kelasMapelContext($kelasMapel) . " - {$bulan}",
-            'slug' => $this->slug($this->kelasMapelContext($kelasMapel) . "_{$bulan}"),
         ];
     }
 
-    private function guruRekapAbsensiDataset(Request $request): array
+    /**
+     * Tabel ringkasan Hadir/Sakit/Izin/Alpha per siswa untuk satu kelas_mapel.
+     * $bulan null berarti "Semua Bulan" (agregat seluruh riwayat absensi kelas ini).
+     */
+    private function absensiRingkasanSection(KelasMapel $kelasMapel, ?string $bulan, string $periodLabel): array
     {
-        $validated = $request->validate([
-            'kelas_mapel_id' => 'required|integer|exists:kelas_mapel,id',
-            'mode' => 'nullable|in:bulanan,keseluruhan',
-            'bulan' => 'nullable|date_format:Y-m',
-        ]);
-        $mode = $validated['mode'] ?? 'bulanan';
-        $bulan = $validated['bulan'] ?? date('Y-m');
-        $kelasMapel = KelasMapel::with(['kelas', 'mataPelajaran'])
-            ->where('guru_id', $request->user()?->id)
-            ->aktif()
-            ->findOrFail((int) $validated['kelas_mapel_id']);
         $students = Siswa::with('user')
             ->where('kelas_id', $kelasMapel->kelas_id)
             ->where('status', 'aktif')
@@ -728,7 +873,7 @@ class ExportController extends Controller
         $query = Absensi::where('kelas_mapel_id', $kelasMapel->id)
             ->whereIn('siswa_id', $students->pluck('id'));
 
-        if ($mode === 'bulanan') {
+        if ($bulan) {
             $query->whereBetween('tanggal', ["{$bulan}-01", date('Y-m-t', strtotime("{$bulan}-01"))]);
         }
 
@@ -753,13 +898,73 @@ class ExportController extends Controller
                 $total > 0 ? round(($hadir / $total) * 100, 2) . '%' : '0%',
             ];
         })->all();
-        $period = $mode === 'bulanan' ? "Bulan {$bulan}" : 'Keseluruhan';
 
         return [
             'headers' => ['No', 'NIS', 'Nama', 'Hadir', 'Sakit', 'Izin', 'Alpha', 'Total', 'Persen Hadir'],
             'rows' => $rows,
-            'context' => $this->kelasMapelContext($kelasMapel) . " - {$period}",
-            'slug' => $this->slug($this->kelasMapelContext($kelasMapel) . "_{$mode}_{$bulan}"),
+            'context' => $this->kelasMapelContext($kelasMapel) . " - {$periodLabel}",
+        ];
+    }
+
+    /** Section absensi untuk satu kelas: tabel harian bila $bulan diisi, ringkasan bila "Semua Bulan". */
+    private function guruAbsensiSection(KelasMapel $kelasMapel, ?string $bulan): array
+    {
+        return $bulan
+            ? $this->guruAbsensiHarianSection($kelasMapel, $bulan)
+            : $this->absensiRingkasanSection($kelasMapel, null, 'Semua Bulan');
+    }
+
+    /** Daftar Absensi guru: mendukung kelas_mapel_id kosong ("Semua Kelas") & bulan kosong ("Semua Bulan"). */
+    private function guruAbsensiMultiDataset(Request $request): array
+    {
+        $validated = $request->validate([
+            'kelas_mapel_id' => 'nullable|integer|exists:kelas_mapel,id',
+            'bulan' => 'nullable|date_format:Y-m',
+        ]);
+        $bulan = $validated['bulan'] ?? null;
+        $kelasMapelId = $validated['kelas_mapel_id'] ?? null;
+
+        $kelasMapelList = $kelasMapelId
+            ? KelasMapel::with(['kelas', 'mataPelajaran'])->where('guru_id', $request->user()?->id)->aktif()->where('id', $kelasMapelId)->get()
+            : KelasMapel::with(['kelas', 'mataPelajaran'])->where('guru_id', $request->user()?->id)->aktif()->get();
+
+        abort_if($kelasMapelList->isEmpty(), 404);
+
+        $sections = $kelasMapelList->map(fn(KelasMapel $km) => $this->guruAbsensiSection($km, $bulan))->all();
+        $slugBase = $kelasMapelId ? $this->kelasMapelContext($kelasMapelList->first()) : 'semua_kelas';
+
+        return [
+            'sections' => $sections,
+            'orientation' => $bulan ? 'landscape' : 'portrait',
+            'slug' => $this->slug($slugBase . ($bulan ? "_{$bulan}" : '_semua_bulan')),
+        ];
+    }
+
+    /** Rekap Absensi guru: mendukung kelas_mapel_id kosong ("Semua Kelas") & mode keseluruhan ("Semua Bulan"). */
+    private function guruRekapAbsensiMultiDataset(Request $request): array
+    {
+        $validated = $request->validate([
+            'kelas_mapel_id' => 'nullable|integer|exists:kelas_mapel,id',
+            'mode' => 'nullable|in:bulanan,keseluruhan',
+            'bulan' => 'nullable|date_format:Y-m',
+        ]);
+        $mode = $validated['mode'] ?? 'bulanan';
+        $bulan = $mode === 'bulanan' ? ($validated['bulan'] ?? date('Y-m')) : null;
+        $periodLabel = $bulan ? "Bulan {$bulan}" : 'Semua Bulan';
+        $kelasMapelId = $validated['kelas_mapel_id'] ?? null;
+
+        $kelasMapelList = $kelasMapelId
+            ? KelasMapel::with(['kelas', 'mataPelajaran'])->where('guru_id', $request->user()?->id)->aktif()->where('id', $kelasMapelId)->get()
+            : KelasMapel::with(['kelas', 'mataPelajaran'])->where('guru_id', $request->user()?->id)->aktif()->get();
+
+        abort_if($kelasMapelList->isEmpty(), 404);
+
+        $sections = $kelasMapelList->map(fn(KelasMapel $km) => $this->absensiRingkasanSection($km, $bulan, $periodLabel))->all();
+        $slugBase = $kelasMapelId ? $this->kelasMapelContext($kelasMapelList->first()) : 'semua_kelas';
+
+        return [
+            'sections' => $sections,
+            'slug' => $this->slug($slugBase . '_' . $mode . ($bulan ? "_{$bulan}" : '')),
         ];
     }
 
@@ -856,28 +1061,49 @@ class ExportController extends Controller
 
     private function tableExcel(string $filename, string $title, string $context, array $headers, array $rows, ?TahunAjaran $tahunAjaran = null, ?string $semester = null)
     {
+        return $this->multiTableExcel($filename, $title, [
+            ['context' => $context, 'headers' => $headers, 'rows' => $rows],
+        ], $tahunAjaran, $semester);
+    }
+
+    private function multiTableExcel(string $filename, string $title, array $sections, ?TahunAjaran $tahunAjaran = null, ?string $semester = null)
+    {
         $writer = new Writer();
         $filePath = $this->temporaryExcelPath('export_');
         $writer->openToFile($filePath);
-        $this->prepareWorksheet($writer, count($headers));
+        $maxColumns = max(1, collect($sections)->max(fn(array $section) => count($section['headers'])));
+        $this->prepareWorksheet($writer, $maxColumns);
 
-        $this->writeExcelReportHeader($writer, $title, $this->reportSchool($tahunAjaran ?? TahunAjaran::getAktif(), $semester ?? Pengaturan::getValue('semester_aktif', '1')), $context);
-
-        $this->writeExcelTableHeader($writer, $headers);
-        foreach ($rows as $index => $row) {
-            $this->writeExcelDataRow($writer, $row, $index);
+        $reportSchool = $this->reportSchool($tahunAjaran ?? TahunAjaran::getAktif(), $semester ?? Pengaturan::getValue('semester_aktif', '1'));
+        foreach ($sections as $index => $section) {
+            $this->writeExcelReportHeader($writer, $title, $reportSchool, $section['context']);
+            $this->writeExcelTableHeader($writer, $section['headers']);
+            foreach ($section['rows'] as $rowIndex => $row) {
+                $this->writeExcelDataRow($writer, $row, $rowIndex);
+            }
+            if ($index < count($sections) - 1) {
+                $writer->addRow(Row::fromValues([]));
+            }
         }
         $writer->close();
 
         return response()->download($filePath, $filename)->deleteFileAfterSend(true);
     }
 
-    private function tablePdf(string $filename, string $title, string $context, array $headers, array $rows, ?TahunAjaran $tahunAjaran = null, ?string $semester = null, ?array $signer = null)
+    private function tablePdf(string $filename, string $title, string $context, array $headers, array $rows, ?TahunAjaran $tahunAjaran = null, ?string $semester = null, ?array $signer = null, ?string $orientation = null)
+    {
+        return $this->multiTablePdf($filename, $title, [
+            ['context' => $context, 'headers' => $headers, 'rows' => $rows],
+        ], $tahunAjaran, $semester, $signer, $orientation);
+    }
+
+    private function multiTablePdf(string $filename, string $title, array $sections, ?TahunAjaran $tahunAjaran = null, ?string $semester = null, ?array $signer = null, ?string $orientation = null)
     {
         $reportSchool = $this->reportSchool($tahunAjaran ?? TahunAjaran::getAktif(), $semester ?? Pengaturan::getValue('semester_aktif', '1'));
         $signer ??= $this->principalSigner($reportSchool);
-        $pdf = Pdf::loadView('exports.pdf.table', compact('title', 'context', 'headers', 'rows', 'reportSchool', 'signer'));
-        $pdf->setPaper('A4', count($headers) > 8 ? 'landscape' : 'portrait');
+        $maxHeaders = max(1, collect($sections)->max(fn(array $section) => count($section['headers'])));
+        $pdf = Pdf::loadView('exports.pdf.table', compact('title', 'sections', 'reportSchool', 'signer'));
+        $pdf->setPaper('A4', $orientation ?? ($maxHeaders > 8 ? 'landscape' : 'portrait'));
 
         return $pdf->download($filename);
     }

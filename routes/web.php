@@ -154,6 +154,8 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
     Route::get('/absensi/{kelasMapel}/rekap', [AbsensiController::class, 'rekap'])->name('absensi.rekap')->middleware('can:mengajar,kelasMapel');
     Route::get('/absensi/{kelasMapel}/export/excel', [ExportController::class, 'guruAbsensiExcel'])->name('absensi.export.excel')->middleware('can:mengajar,kelasMapel');
     Route::get('/absensi/{kelasMapel}/export/pdf', [ExportController::class, 'guruAbsensiPdf'])->name('absensi.export.pdf')->middleware('can:mengajar,kelasMapel');
+    Route::get('/absensi-export/excel', [ExportController::class, 'guruAbsensiExportExcel'])->name('absensi.export-all.excel');
+    Route::get('/absensi-export/pdf', [ExportController::class, 'guruAbsensiExportPdf'])->name('absensi.export-all.pdf');
     Route::get('/rekap-absensi', [AbsensiController::class, 'rekapAbsensi'])->name('rekap-absensi');
     Route::get('/rekap-absensi/export/excel', [ExportController::class, 'guruRekapAbsensiExcel'])->name('rekap-absensi.export.excel');
     Route::get('/rekap-absensi/export/pdf', [ExportController::class, 'guruRekapAbsensiPdf'])->name('rekap-absensi.export.pdf');

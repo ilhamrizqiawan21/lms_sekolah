@@ -26,6 +26,8 @@
         .printed { margin-top: 12px; text-align: right; color: #64748b; font-size: 8px; }
         .signature { width: 230px; margin-left: auto; margin-top: 20px; font-size: 8px; text-align: left; }
         .signature-space { height: 38px; }
+        .section-heading { font-size: 11px; font-weight: 700; color: #1e3a8a; margin: 14px 0 6px; }
+        .section-break { page-break-before: always; }
     </style>
 </head>
 <body>
@@ -46,7 +48,9 @@
 
     <div class="title-box">
         <h1>{{ $title }}</h1>
-        <div class="context">{{ $context }}</div>
+        @if(count($sections) === 1)
+            <div class="context">{{ $sections[0]['context'] }}</div>
+        @endif
         <div class="chips">
             <span class="chip">TA {{ $reportSchool['school_year'] }}</span>
             <span class="chip">Semester {{ $reportSchool['semester'] }}</span>
@@ -54,28 +58,35 @@
         </div>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                @foreach($headers as $header)
-                    <th>{{ $header }}</th>
-                @endforeach
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($rows as $row)
-                <tr>
-                    @foreach($row as $cell)
-                        <td>{{ $cell ?? '-' }}</td>
-                    @endforeach
-                </tr>
-            @empty
-                <tr>
-                    <td class="empty" colspan="{{ count($headers) }}">Tidak ada data.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+    @foreach($sections as $sectionIndex => $section)
+        <div @if($sectionIndex > 0) class="section-break" @endif>
+            @if(count($sections) > 1)
+                <div class="section-heading">{{ $section['context'] }}</div>
+            @endif
+            <table>
+                <thead>
+                    <tr>
+                        @foreach($section['headers'] as $header)
+                            <th>{{ $header }}</th>
+                        @endforeach
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($section['rows'] as $row)
+                        <tr>
+                            @foreach($row as $cell)
+                                <td>{{ $cell ?? '-' }}</td>
+                            @endforeach
+                        </tr>
+                    @empty
+                        <tr>
+                            <td class="empty" colspan="{{ count($section['headers']) }}">Tidak ada data.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    @endforeach
 
     <div class="printed">Dicetak pada: {{ date('d/m/Y H:i') }}</div>
     <div class="signature">

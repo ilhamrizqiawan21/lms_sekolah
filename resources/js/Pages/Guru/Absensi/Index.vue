@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { computed, nextTick, reactive, watch } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { SearchableSelect, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
@@ -24,6 +24,14 @@ const filterForm = reactive({
     kelas_mapel_id: props.filters.kelas_mapel_id ?? '',
     bulan: props.filters.bulan ?? '',
 });
+
+const semuaBulan = ref(!filterForm.bulan);
+
+function onToggleSemuaBulan() {
+    if (semuaBulan.value) {
+        filterForm.bulan = '';
+    }
+}
 
 const form = useForm({
     bulan: props.filters.bulan ?? '',
@@ -152,6 +160,15 @@ function selectedExportUrl(format: 'excel' | 'pdf') {
     const params = new URLSearchParams({ bulan: filterForm.bulan || props.filters.bulan || '' }).toString();
     return params ? `${base}?${params}` : base;
 }
+
+function exportAllUrl(format: 'excel' | 'pdf') {
+    const base = `/guru/absensi-export/${format}`;
+    const params = new URLSearchParams();
+    if (filterForm.kelas_mapel_id) params.set('kelas_mapel_id', String(filterForm.kelas_mapel_id));
+    if (!semuaBulan.value && filterForm.bulan) params.set('bulan', filterForm.bulan);
+    const query = params.toString();
+    return query ? `${base}?${query}` : base;
+}
 </script>
 
 <template>
@@ -190,7 +207,7 @@ function selectedExportUrl(format: 'excel' | 'pdf') {
                                 placeholder="-- Pilih --"
                                 search-placeholder="Cari kelas atau mapel..."
                                 wrapper-class="mb-0"
-                                :options="kelasMapel.map((item) => ({ value: item.id, label: item.label }))"
+                                :options="[{ value: '', label: 'Semua Kelas dan Mapel' }, ...kelasMapel.map((item) => ({ value: item.id, label: item.label }))]"
                             />
                         </div>
                         <div class="col-md-3">
@@ -200,10 +217,23 @@ function selectedExportUrl(format: 'excel' | 'pdf') {
                                 name="bulan"
                                 label="Bulan"
                                 wrapper-class="mb-0"
+                                :disabled="semuaBulan"
                             />
+                            <div class="form-check mt-1">
+                                <input id="guru-absensi-semua-bulan" v-model="semuaBulan" class="form-check-input" type="checkbox" @change="onToggleSemuaBulan">
+                                <label class="form-check-label small" for="guru-absensi-semua-bulan">Semua Bulan</label>
+                            </div>
                         </div>
                         <div class="col-md-3 d-grid">
                             <Button type="submit" color="primary" icon="bi-search">Tampilkan</Button>
+                        </div>
+                        <div class="col-12 d-flex flex-wrap gap-2">
+                            <a :href="exportAllUrl('excel')" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Export Excel ({{ filterForm.kelas_mapel_id ? 'Kelas Terpilih' : 'Semua Kelas' }}{{ semuaBulan ? ' - Semua Bulan' : '' }})
+                            </a>
+                            <a :href="exportAllUrl('pdf')" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i> Export PDF ({{ filterForm.kelas_mapel_id ? 'Kelas Terpilih' : 'Semua Kelas' }}{{ semuaBulan ? ' - Semua Bulan' : '' }})
+                            </a>
                         </div>
                     </form>
                 </Card>

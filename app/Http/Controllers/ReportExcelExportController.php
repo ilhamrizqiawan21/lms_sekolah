@@ -23,11 +23,11 @@ final class ReportExcelExportController extends Controller
         return response()->download($path, $filename)->deleteFileAfterSend(true);
     }
 
-    public function absensi(Request $request)
+    public function absensi(Request $request, ExportController $exportController)
     {
-        $filters = $this->filters($request, true);
-        [$path, $filename] = $this->absensi->export($filters['kelas_id'], $filters['semester'], $filters['bulan']);
-        return response()->download($path, $filename)->deleteFileAfterSend(true);
+        // kelas_id/bulan kosong berarti "Semua Kelas"/"Semua Bulan" — didelegasikan ke
+        // ExportController::excelAbsensi() yang menangani kedua mode (single & multi-section).
+        return $exportController->excelAbsensi($request, $this->absensi);
     }
 
     public function tugas(Request $request)

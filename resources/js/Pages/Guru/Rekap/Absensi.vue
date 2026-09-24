@@ -94,7 +94,7 @@ function progressColor(value: number) {
                 <div class="col-md-5">
                     <label class="form-label">Kelas dan Mata Pelajaran</label>
                     <select v-model="kelasMapelId" class="form-select" @change="reload">
-                        <option value="">Pilih kelas</option>
+                        <option value="">Semua Kelas</option>
                         <option v-for="item in kelasMapel" :key="item.id" :value="String(item.id)">
                             {{ item.label }}
                         </option>
@@ -104,7 +104,7 @@ function progressColor(value: number) {
                     <label class="form-label">Metode Rekap</label>
                     <select v-model="mode" class="form-select" @change="reload">
                         <option value="bulanan">Per bulan</option>
-                        <option value="keseluruhan">Keseluruhan</option>
+                        <option value="keseluruhan">Semua Bulan</option>
                     </select>
                 </div>
                 <div v-if="mode === 'bulanan'" class="col-md-2">
@@ -113,14 +113,14 @@ function progressColor(value: number) {
                 </div>
                 <div class="col-md-2 d-flex gap-2">
                     <a
-                        v-if="selected"
+                        v-if="kelasMapel.length"
                         :href="exportUrl('excel')"
                         class="btn btn-outline-success flex-fill"
                     >
                         <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Excel
                     </a>
                     <a
-                        v-if="selected"
+                        v-if="kelasMapel.length"
                         :href="exportUrl('pdf')"
                         class="btn btn-outline-danger flex-fill"
                     >

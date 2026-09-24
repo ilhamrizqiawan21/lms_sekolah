@@ -14,6 +14,14 @@ const props = defineProps({
 const kelasId = ref(props.kelasId);
 const semester = ref(String(props.semester ?? 1));
 const bulan = ref(props.bulan || '');
+const semuaBulan = ref(props.type === 'absensi' && !props.bulan);
+
+function onToggleSemuaBulan() {
+    if (semuaBulan.value) {
+        bulan.value = '';
+    }
+    reload();
+}
 
 function reload() {
     const params: Record<string, string | number | undefined> = { kelas_id: kelasId.value || undefined, semester: semester.value || undefined };
@@ -38,12 +46,19 @@ const empty = computed(() => props.rekap.length === 0 && props.tugasList.length 
     <AppShell :title="title">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
             <div><h1 class="h3 mb-1">{{ title }}</h1><p class="text-muted mb-0">Rekap akademik terintegrasi untuk administrasi sekolah.</p></div>
-            <div v-if="kelasId" class="d-flex gap-2"><a :href="exportUrl('excel')" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a><a :href="exportUrl('pdf')" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a></div>
+            <div v-if="kelasId || type === 'absensi'" class="d-flex gap-2"><a :href="exportUrl('excel')" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a><a :href="exportUrl('pdf')" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a></div>
         </div>
         <div class="card border-0 shadow-sm mb-4"><div class="card-body"><div class="row g-3 align-items-end">
-            <div class="col-md-5"><label class="form-label">Kelas</label><select v-model="kelasId" class="form-select" @change="reload"><option :value="null">Pilih kelas</option><option v-for="k in kelasList" :key="k.id" :value="k.id">{{ k.tingkat }} {{ k.nama_kelas }}</option></select></div>
+            <div class="col-md-5"><label class="form-label">Kelas</label><select v-model="kelasId" class="form-select" @change="reload"><option :value="null">{{ type === 'absensi' ? 'Semua Kelas' : 'Pilih kelas' }}</option><option v-for="k in kelasList" :key="k.id" :value="k.id">{{ k.tingkat }} {{ k.nama_kelas }}</option></select></div>
             <div class="col-md-3"><label class="form-label">Semester</label><select v-model="semester" class="form-select" @change="reload"><option value="1">Semester 1</option><option value="2">Semester 2</option></select></div>
-            <div v-if="type === 'absensi'" class="col-md-3"><label class="form-label">Bulan</label><input v-model="bulan" type="month" class="form-control" @change="reload"></div>
+            <div v-if="type === 'absensi'" class="col-md-3">
+                <label class="form-label">Bulan</label>
+                <input v-model="bulan" type="month" class="form-control" :disabled="semuaBulan" @change="reload">
+                <div class="form-check mt-1">
+                    <input id="admin-rekap-semua-bulan" v-model="semuaBulan" class="form-check-input" type="checkbox" @change="onToggleSemuaBulan">
+                    <label class="form-check-label small" for="admin-rekap-semua-bulan">Semua Bulan</label>
+                </div>
+            </div>
         </div></div></div>
         <div v-if="kelasNama" class="alert alert-light border mb-3"><strong>{{ kelasNama }}</strong> · Semester {{ semester }}</div>
         <div v-if="empty" class="card border-0 shadow-sm"><div class="card-body text-center py-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-3"></i>Belum ada data untuk filter yang dipilih.</div></div>
