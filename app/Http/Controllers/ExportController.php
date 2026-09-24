@@ -14,6 +14,7 @@ use App\Models\TahunAjaran;
 use App\Models\Tugas;
 use App\Models\Pengaturan;
 use App\Models\PengumpulanTugas;
+use App\Services\AttendanceScheduleService;
 use App\Services\Reports\Exports\AbsensiExportService;
 use App\Services\Reports\Exports\NilaiExportService;
 use App\Services\Reports\Exports\TugasExportService;
@@ -827,7 +828,7 @@ class ExportController extends Controller
 
     private function guruAbsensiHarianSection(KelasMapel $kelasMapel, string $bulan): array
     {
-        $meetings = $this->attendanceMeetings($bulan, (int) $kelasMapel->pertemuan_per_minggu);
+        $meetings = AttendanceScheduleService::meetings($bulan, $kelasMapel);
         $students = Siswa::with('user')->where('kelas_id', $kelasMapel->kelas_id)->where('status', 'aktif')->orderBy('nis')->get();
         $absensiRaw = Absensi::where('kelas_mapel_id', $kelasMapel->id)
             ->whereIn('siswa_id', $students->pluck('id'))
@@ -1173,41 +1174,6 @@ class ExportController extends Controller
         }
 
         return $dates;
-    }
-
-    private function attendanceMeetings(string $bulan, int $meetingsPerWeek): \Illuminate\Support\Collection
-    {
-        $meetingsPerWeek = max(1, min($meetingsPerWeek, 6));
-        $monthNumber = (int) substr($bulan, 5, 2);
-        $firstDay = \Carbon\Carbon::create((int) substr($bulan, 0, 4), $monthNumber, 1);
-        $firstMonday = $firstDay->copy();
-
-        if ($firstDay->dayOfWeek !== 1) {
-            $firstMonday->addDays((8 - $firstDay->dayOfWeek) % 7);
-        }
-
-        $meetings = [];
-
-        for ($week = 1; $week <= 5; $week++) {
-            $weekStart = $firstMonday->copy()->addDays(($week - 1) * 7);
-
-            for ($meeting = 1; $meeting <= $meetingsPerWeek; $meeting++) {
-                $offset = (int) round((($meeting - 1) * 6) / $meetingsPerWeek);
-                $date = $weekStart->copy()->addDays($offset);
-
-                if ((int) $date->format('m') !== $monthNumber) {
-                    continue;
-                }
-
-                $meetings[] = [
-                    'date' => $date->format('Y-m-d'),
-                    'label' => $date->format('d/m'),
-                    'title' => $meetingsPerWeek > 1 ? "M{$week} P{$meeting}" : "M{$week}",
-                ];
-            }
-        }
-
-        return collect($meetings);
     }
 
     private function slug(string $value): string

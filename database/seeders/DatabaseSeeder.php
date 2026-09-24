@@ -20,7 +20,9 @@ class DatabaseSeeder extends Seeder
             SchoolSettingSeeder::class,
             DemoUserSeeder::class,
             DemoAcademicSeeder::class,
+            JadwalMengajarSeeder::class,
             DemoLmsSeeder::class,
+            DemoSupportSeeder::class,
         ]);
     }
 }

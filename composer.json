@@ -4,7 +4,7 @@
     "type": "project",
     "description": "Single-school Learning Management System built with Laravel.",
     "keywords": ["lms", "school", "laravel", "education"],
-    "license": "MIT",
+    "license": "proprietary",
     "require": {
         "php": "^8.3",
         "barryvdh/laravel-dompdf": "^3.1",

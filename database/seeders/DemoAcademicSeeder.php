@@ -10,6 +10,7 @@ use App\Models\Pengaturan;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Models\User;
+use App\Models\WaliKelas;
 use Illuminate\Database\Seeder;
 
 class DemoAcademicSeeder extends Seeder
@@ -31,9 +32,16 @@ class DemoAcademicSeeder extends Seeder
 
         $kelasList = collect([
             ['tingkat' => '7', 'nama_kelas' => '7A'],
+            ['tingkat' => '7', 'nama_kelas' => '7B'],
             ['tingkat' => '8', 'nama_kelas' => '8A'],
+            ['tingkat' => '8', 'nama_kelas' => '8B'],
             ['tingkat' => '9', 'nama_kelas' => '9A'],
+            ['tingkat' => '9', 'nama_kelas' => '9B'],
         ])->map(fn ($kelas) => Kelas::firstOrCreate($kelas));
+
+        // pertemuan_per_minggu per mapel dibuat bervariasi (bukan seragam) agar
+        // jadwal mengajar dan rekap absensi punya pola yang realistis.
+        $pertemuanPerMinggu = ['BIN' => 2, 'MAT' => 2, 'IPA' => 2, 'IPS' => 1, 'BIG' => 1];
 
         $mapelList = collect([
             ['kode' => 'BIN', 'nama_mapel' => 'Bahasa Indonesia', 'urutan' => 1],
@@ -46,7 +54,12 @@ class DemoAcademicSeeder extends Seeder
             $mapel
         ));
 
-        $gurus = User::where('role_id', 2)->whereIn('username', ['guru', 'guru2', 'guru3'])->get()->values();
+        // Satu guru tetap per mapel (bukan round-robin) supaya jadwal mengajar
+        // konsisten dan mudah dites lintas kelas.
+        $gurus = collect(['guru', 'guru2', 'guru3', 'guru4', 'guru5'])
+            ->map(fn ($username) => User::where('username', $username)->first())
+            ->filter()
+            ->values();
 
         foreach ($mapelList as $index => $mapel) {
             $guru = $gurus[$index % max($gurus->count(), 1)];
@@ -66,10 +79,23 @@ class DemoAcademicSeeder extends Seeder
                     ],
                     [
                         'guru_id' => $guru->id,
-                        'pertemuan_per_minggu' => $mapel->kode === 'IPA' ? 2 : 1,
+                        'pertemuan_per_minggu' => $pertemuanPerMinggu[$mapel->kode] ?? 1,
                     ]
                 );
             }
+        }
+
+        // Wali kelas: satu guru mapel merangkap wali kelas per rombel.
+        foreach ($kelasList as $index => $kelas) {
+            $guru = $gurus[$index % max($gurus->count(), 1)];
+
+            WaliKelas::updateOrCreate(
+                [
+                    'kelas_id' => $kelas->id,
+                    'tahun_ajaran_id' => $tahunAjaran->id,
+                ],
+                ['guru_id' => $guru->id]
+            );
         }
 
         User::where('role_id', 3)

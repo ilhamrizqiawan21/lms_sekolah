@@ -47,6 +47,22 @@ class DemoUserSeeder extends Seeder
                 'role_id' => 2,
             ],
             [
+                'username' => 'guru4',
+                'email' => 'guru4@demo.test',
+                'nama_lengkap' => 'Guru Demo Empat',
+                'nip_nis' => 'GR-DEMO-004',
+                'jenis_kelamin' => 'P',
+                'role_id' => 2,
+            ],
+            [
+                'username' => 'guru5',
+                'email' => 'guru5@demo.test',
+                'nama_lengkap' => 'Guru Demo Lima',
+                'nip_nis' => 'GR-DEMO-005',
+                'jenis_kelamin' => 'L',
+                'role_id' => 2,
+            ],
+            [
                 'username' => 'kepsek',
                 'email' => 'kepsek@demo.test',
                 'nama_lengkap' => 'Kepala Sekolah Demo',
@@ -66,7 +82,7 @@ class DemoUserSeeder extends Seeder
             );
         }
 
-        for ($i = 1; $i <= 10; $i++) {
+        for ($i = 1; $i <= 36; $i++) {
             $number = str_pad((string) $i, 2, '0', STR_PAD_LEFT);
 
             User::updateOrCreate(

@@ -207,6 +207,7 @@ function exportAllUrl(format: 'excel' | 'pdf') {
                                 placeholder="-- Pilih --"
                                 search-placeholder="Cari kelas atau mapel..."
                                 wrapper-class="mb-0"
+                                :clearable="false"
                                 :options="[{ value: '', label: 'Semua Kelas dan Mapel' }, ...kelasMapel.map((item) => ({ value: item.id, label: item.label }))]"
                             />
                         </div>
@@ -219,13 +220,16 @@ function exportAllUrl(format: 'excel' | 'pdf') {
                                 wrapper-class="mb-0"
                                 :disabled="semuaBulan"
                             />
-                            <div class="form-check mt-1">
-                                <input id="guru-absensi-semua-bulan" v-model="semuaBulan" class="form-check-input" type="checkbox" @change="onToggleSemuaBulan">
-                                <label class="form-check-label small" for="guru-absensi-semua-bulan">Semua Bulan</label>
-                            </div>
                         </div>
                         <div class="col-md-3 d-grid">
                             <Button type="submit" color="primary" icon="bi-search">Tampilkan</Button>
+                        </div>
+                        <div class="col-md-6 d-none d-md-block" aria-hidden="true"></div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input id="guru-absensi-semua-bulan" v-model="semuaBulan" class="form-check-input" type="checkbox" @change="onToggleSemuaBulan">
+                                <label class="form-check-label small" for="guru-absensi-semua-bulan">Semua Bulan</label>
+                            </div>
                         </div>
                         <div class="col-12 d-flex flex-wrap gap-2">
                             <a :href="exportAllUrl('excel')" class="btn btn-sm btn-outline-success">
