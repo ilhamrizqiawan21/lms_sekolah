@@ -83,6 +83,19 @@ Jadikan detail kelas/mapel sebagai fondasi navigasi kerja guru dan siswa.
 - Review contrast dan mobile spacing untuk semua role setelah halaman utama ikut dimodernisasi.
 - Pindahkan CSS per komponen atau per halaman terlebih dahulu; hindari memindahkan seluruh stylesheet dalam satu perubahan besar.
 
+## Visual Style Refresh (Review 2026-09-25)
+
+Hasil review gaya visual saat ini: fondasi sudah baik (dark mode, token, komponen reusable, aksesibilitas dasar), tetapi tampilan masih condong ke pola admin-template lama (gradient tebal, animasi masuk serentak, kartu statistik berat bayangan). Todo berikut untuk menyegarkan tampilan tanpa mengubah struktur navigasi/komponen yang sudah bekerja.
+
+- [ ] Kurangi gradient pada sidebar dan topbar (`.sidebar`, `.topbar` di `public/css/lms-app.css`); ganti ke surface flat dengan satu warna aksen yang dipakai selektif (active state, CTA).
+- [ ] Hapus gradient-text pada judul halaman (`.page-header h1/h4`, `background-clip: text`); ganti warna solid dengan bobot font agar konsisten di light/dark dan lebih aman untuk kontras/print/select.
+- [ ] Kurangi animasi masuk otomatis (`fadeInUp`, stagger delay per stat-card, `fadeIn` di `.page-content`) menjadi opsional/lebih halus, atau hilangkan di halaman dengan data banyak agar terasa tenang, bukan "template demo".
+- [ ] Sederhanakan `.stat-card`: kurangi `border-left` tebal + shadow besar, pertimbangkan border tipis + shadow minim sesuai tren surface flat.
+- [ ] Audit dan kurangi penggunaan `!important` di `public/css/lms-app.css`, `resources/css/app.css`, `resources/css/responsive-polish.css`; pindahkan override menjadi styling berbasis token sejak awal (selaras dengan item "Design System Cleanup" di atas).
+- [ ] Konsolidasikan token warna/spacing dari 3 file CSS (`app.css`, `responsive-polish.css`, `lms-app.css`) menjadi satu sumber sebelum menambah token baru.
+- [ ] Setelah token/gradient disederhanakan, review ulang badge status (`bg-soft-*`) dan tabel agar tetap kontras cukup di kedua tema.
+- [ ] Uji visual sebelum/sesudah pada Dashboard Admin, Guru, dan Siswa (desktop + mobile) sebelum menyebar perubahan ke halaman lain.
+
 ## Security/Dependency
 
 - `npm audit fix` telah memperbarui `postcss` beserta dependency transitifnya; audit ulang menunjukkan `0 vulnerabilities`.
