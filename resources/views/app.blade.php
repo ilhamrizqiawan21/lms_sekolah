@@ -86,7 +86,7 @@
             --primary-300: color-mix(in srgb, {{ $inertiaActiveTheme['primary'] }} 70%, white);
             --sidebar-bg: {{ $inertiaActiveTheme['sidebar'] }};
             --navbar-bg: {{ $inertiaActiveTheme['navbar'] }};
-            --toast-success-bg: linear-gradient(135deg, {{ $inertiaActiveTheme['primary'] }}, {{ $inertiaActiveTheme['sidebar'] }});
+            --toast-success-bg: {{ $inertiaActiveTheme['primary'] }};
             --gold-400: #fbbf24;
             --gold-500: #f59e0b;
             --gold-600: #d97706;

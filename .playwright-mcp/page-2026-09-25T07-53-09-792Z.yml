@@ -1,0 +1,8 @@
+- main [ref=f3e2]:
+  - generic [ref=f3e3]: "500"
+  - heading "Terjadi kesalahan sistem" [level=1] [ref=f3e7]
+  - paragraph [ref=f3e8]: Tim kami sedang memeriksa kendala ini. Silakan coba lagi beberapa saat lagi.
+  - generic [ref=f3e9]:
+    - link "Ke Halaman Utama" [ref=f3e10] [cursor=pointer]:
+      - /url: https://lms_sekolah.test
+    - button "Kembali" [ref=f3e11] [cursor=pointer]

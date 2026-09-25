@@ -231,7 +231,7 @@ watch(
 
 :global([data-bs-theme="dark"]) .chat-message.is-mine .chat-bubble {
     border-color: color-mix(in srgb, var(--primary-500) 70%, var(--surface-card));
-    background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+    background: var(--primary-600);
     color: #fff;
 }
 </style>

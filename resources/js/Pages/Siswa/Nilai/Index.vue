@@ -23,14 +23,6 @@ const fields = [
 function display(value: unknown): string | number {
     return typeof value === 'string' || typeof value === 'number' ? value : '-';
 }
-
-function averageStyle(value: unknown): { color: string } {
-    if (value === null || value === undefined || value === '') {
-        return { color: '#ef4444' };
-    }
-
-    return { color: Number(value) >= 75 ? '#16a34a' : '#ef4444' };
-}
 </script>
 
 <template>
@@ -55,8 +47,8 @@ function averageStyle(value: unknown): { color: string } {
                     <div class="p-3 border-bottom bg-light-subtle">
                         <span class="text-muted small">Periode {{ group.periode }}</span>
                     </div>
-                    <table class="table table-hover mb-0" style="font-size:0.82rem;">
-                        <thead style="background:var(--primary-100);">
+                    <table class="table table-hover mb-0 nilai-table">
+                        <thead class="nilai-thead">
                             <tr>
                                 <th>Mata Pelajaran</th>
                                 <th v-for="field in fields" :key="field.key" class="text-center">{{ field.label }}</th>
@@ -69,7 +61,10 @@ function averageStyle(value: unknown): { color: string } {
                                 <td v-for="field in fields" :key="`${item.id}-${field.key}`" class="text-center">
                                     {{ display(item[field.key]) }}
                                 </td>
-                                <td class="text-center fw-bold" :style="averageStyle(item.rata_akhir)">
+                                <td
+                                    class="text-center fw-bold"
+                                    :class="Number(item.rata_akhir) >= 75 ? 'text-success' : 'text-danger'"
+                                >
                                     {{ display(item.rata_akhir) }}
                                 </td>
                             </tr>
@@ -86,6 +81,14 @@ function averageStyle(value: unknown): { color: string } {
 </template>
 
 <style scoped>
+.nilai-table {
+    font-size: 0.82rem;
+}
+
+.nilai-thead {
+    background: var(--surface-muted);
+}
+
 .average-head {
     background: var(--primary-500);
     color: white;

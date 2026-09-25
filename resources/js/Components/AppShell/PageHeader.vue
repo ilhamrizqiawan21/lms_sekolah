@@ -8,7 +8,7 @@ defineProps({
 </script>
 
 <template>
-    <div class="page-header">
+    <div class="page-header app-page-header">
         <div>
             <h4>
                 <i v-if="icon" class="bi me-2" :class="icon" aria-hidden="true"></i>
@@ -16,6 +16,8 @@ defineProps({
             </h4>
             <p v-if="subtitle" class="text-muted mb-0">{{ subtitle }}</p>
         </div>
-        <slot name="actions" />
+        <div v-if="$slots.actions" class="app-page-actions">
+            <slot name="actions" />
+        </div>
     </div>
 </template>

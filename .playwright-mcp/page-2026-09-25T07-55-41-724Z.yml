@@ -1,0 +1,40 @@
+- main [ref=f7e3]:
+  - generic [ref=f7e4]:
+    - region [ref=f7e5]:
+      - img "Logo Nama Sekolah" [ref=f7e7]
+      - generic [ref=f7e8]:
+        - generic [ref=f7e9]: LMS
+        - heading "Nama Sekolah" [level=1] [ref=f7e10]
+        - paragraph [ref=f7e11]: Learning Management System
+        - paragraph [ref=f7e12]: Alamat sekolah belum diatur
+    - region "Form login" [ref=f7e13]:
+      - generic [ref=f7e14]:
+        - generic [ref=f7e15]:
+          - generic [ref=f7e16]: Akses LMS
+          - heading "Selamat datang" [level=2] [ref=f7e17]
+        - paragraph [ref=f7e18]: Masuk menggunakan akun sekolah Anda.
+      - generic [ref=f7e19]:
+        - generic [ref=f7e20]:
+          - generic [ref=f7e21]: Username
+          - generic [ref=f7e22]:
+            - generic [aria-hidden] [ref=f7e23]: 
+            - textbox "Username" [ref=f7e24]:
+              - /placeholder: Masukkan username
+              - text: siswa
+        - generic [ref=f7e25]:
+          - generic [ref=f7e26]: Password
+          - generic [ref=f7e27]:
+            - generic [aria-hidden] [ref=f7e28]: 
+            - textbox "Password" [active] [ref=f7e29]:
+              - /placeholder: Masukkan password
+              - text: password
+        - generic [ref=f7e31]:
+          - checkbox "Ingat saya" [ref=f7e32]
+          - generic [ref=f7e33]: Ingat saya
+        - button "Masuk ke LMS" [ref=f7e34] [cursor=pointer]:
+          - generic [aria-hidden] [ref=f7e36]: 
+        - note [ref=f7e37]: Jika mengalami kendala akses, hubungi admin sekolah melalui kontak resmi.
+    - generic [ref=f7e38]:
+      - generic [ref=f7e39]: © 2026 Nama Sekolah
+      - generic [aria-hidden] [ref=f7e40]: •
+      - generic [ref=f7e41]: LMS

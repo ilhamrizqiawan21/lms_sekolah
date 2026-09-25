@@ -1,0 +1,283 @@
+- generic [ref=f1e3]:
+  - link "Lewati ke konten utama" [ref=f1e4] [cursor=pointer]:
+    - /url: "#mainContent"
+  - banner [ref=f1e5]:
+    - text: 
+    - generic [ref=f1e6]:
+      - generic [ref=f1e7]: Admin
+      - generic [ref=f1e8]: Dashboard Admin
+    - button "Buka akses cepat" [ref=f1e9] [cursor=pointer]:
+      - generic [aria-hidden] [ref=f1e10]: 
+      - generic [ref=f1e11]: Cari menu...
+      - generic [ref=f1e12]: /
+    - generic [ref=f1e13]:
+      - button "Notifikasi" [ref=f1e15] [cursor=pointer]:
+        - generic [aria-hidden]: 
+      - button "Aktifkan mode gelap" [ref=f1e16] [cursor=pointer]:
+        - generic [aria-hidden]: 
+      - generic [ref=f1e17]: Administrator Demo
+      - generic [ref=f1e18]:
+        - button "Menu akun" [ref=f1e19] [cursor=pointer]:
+          - generic [aria-hidden]: 
+          - text: Administrator Demo
+        - text:  
+  - complementary [ref=f1e20]:
+    - generic [ref=f1e21]:
+      - img "Logo Nama Sekolah" [ref=f1e23]
+      - generic [ref=f1e24]:
+        - generic [ref=f1e25]: LMS Sekolah
+        - generic [ref=f1e26]: Nama Sekolah
+    - generic [ref=f1e27]:
+      - generic [aria-hidden] [ref=f1e29]: 
+      - generic [ref=f1e30]:
+        - generic [ref=f1e31]: Administrator Demo
+        - generic [ref=f1e32]: Admin
+    - navigation "Navigasi utama" [ref=f1e33]:
+      - list [ref=f1e34]:
+        - listitem [ref=f1e35]:
+          - generic [ref=f1e36]: Master Data
+        - listitem [ref=f1e37]:
+          - link "Dashboard" [ref=f1e38] [cursor=pointer]:
+            - /url: /admin/dashboard
+            - generic [aria-hidden] [ref=f1e39]: 
+        - listitem [ref=f1e41]:
+          - link "Guru dan Staf" [ref=f1e42] [cursor=pointer]:
+            - /url: /admin/users
+            - generic [aria-hidden] [ref=f1e43]: 
+        - listitem [ref=f1e45]:
+          - link "Data Kelas" [ref=f1e46] [cursor=pointer]:
+            - /url: /admin/kelas
+            - generic [aria-hidden] [ref=f1e47]: 
+        - listitem [ref=f1e49]:
+          - link "Kelas & Siswa" [ref=f1e50] [cursor=pointer]:
+            - /url: /admin/kelas-siswa
+            - generic [aria-hidden] [ref=f1e51]: 
+        - listitem [ref=f1e53]:
+          - link "Mata Pelajaran" [ref=f1e54] [cursor=pointer]:
+            - /url: /admin/mata-pelajaran
+            - generic [aria-hidden] [ref=f1e55]: 
+        - listitem [ref=f1e57]:
+          - link "Penugasan Guru" [ref=f1e58] [cursor=pointer]:
+            - /url: /admin/kelas-mapel
+            - generic [aria-hidden] [ref=f1e59]: 
+        - listitem [ref=f1e61]:
+          - link "Tahun Ajaran" [ref=f1e62] [cursor=pointer]:
+            - /url: /admin/tahun-ajaran
+            - generic [aria-hidden] [ref=f1e63]: 
+        - listitem [ref=f1e65]:
+          - link "Pengaturan Akun" [ref=f1e66] [cursor=pointer]:
+            - /url: /admin/pengaturan-akun
+            - generic [aria-hidden] [ref=f1e67]: 
+        - listitem [ref=f1e69]:
+          - generic [ref=f1e70]: Aktivitas
+        - listitem [ref=f1e71]:
+          - link "Pengumuman" [ref=f1e72] [cursor=pointer]:
+            - /url: /admin/pengumuman
+            - generic [aria-hidden] [ref=f1e73]: 
+        - listitem [ref=f1e75]:
+          - link "Kalender" [ref=f1e76] [cursor=pointer]:
+            - /url: /admin/kalender
+            - generic [aria-hidden] [ref=f1e77]: 
+        - listitem [ref=f1e79]:
+          - generic [ref=f1e80]: Laporan
+        - listitem [ref=f1e81]:
+          - link "Performa Guru" [ref=f1e82] [cursor=pointer]:
+            - /url: /admin/performa-guru
+            - generic [aria-hidden] [ref=f1e83]: 
+        - listitem [ref=f1e85]:
+          - link "Absensi" [ref=f1e86] [cursor=pointer]:
+            - /url: /admin/rekap/absensi
+            - generic [aria-hidden] [ref=f1e87]: 
+        - listitem [ref=f1e89]:
+          - link "Nilai" [ref=f1e90] [cursor=pointer]:
+            - /url: /admin/rekap/nilai
+            - generic [aria-hidden] [ref=f1e91]: 
+        - listitem [ref=f1e93]:
+          - link "Sikap" [ref=f1e94] [cursor=pointer]:
+            - /url: /admin/rekap/sikap
+            - generic [aria-hidden] [ref=f1e95]: 
+        - listitem [ref=f1e97]:
+          - link "Tugas" [ref=f1e98] [cursor=pointer]:
+            - /url: /admin/rekap/tugas
+            - generic [aria-hidden] [ref=f1e99]: 
+        - listitem [ref=f1e101]:
+          - generic [ref=f1e102]: Sistem
+        - listitem [ref=f1e103]:
+          - link "Pengaturan" [ref=f1e104] [cursor=pointer]:
+            - /url: /admin/pengaturan
+            - generic [aria-hidden] [ref=f1e105]: 
+        - listitem [ref=f1e107]:
+          - link "Log Login" [ref=f1e108] [cursor=pointer]:
+            - /url: /admin/log-login
+            - generic [aria-hidden] [ref=f1e109]: 
+        - listitem [ref=f1e111]:
+          - link "Log Error" [ref=f1e112] [cursor=pointer]:
+            - /url: /admin/log-error
+            - generic [aria-hidden] [ref=f1e113]: 
+        - listitem [ref=f1e115]:
+          - link "Log Akademik" [ref=f1e116] [cursor=pointer]:
+            - /url: /admin/log-akademik
+            - generic [aria-hidden] [ref=f1e117]: 
+        - listitem [ref=f1e119]:
+          - link "IP Diblokir" [ref=f1e120] [cursor=pointer]:
+            - /url: /admin/blocked-ips
+            - generic [aria-hidden] [ref=f1e121]: 
+    - generic [ref=f1e123]:
+      - generic [ref=f1e124]: LMS
+      - generic [ref=f1e125]: Tahun 2026
+  - text:     
+  - main [ref=f1e126]:
+    - generic [ref=f1e127]:
+      - generic [ref=f1e128]:
+        - generic [ref=f1e129]:
+          - generic [ref=f1e130]: Health Operasional
+          - heading "Pusat Kendali Sekolah" [level=1] [ref=f1e131]
+          - paragraph [ref=f1e132]: Pantau data inti, aktivitas login, dan pengumuman dari satu layar operasional.
+          - generic [ref=f1e134]:
+            - link "Tambah User" [ref=f1e135] [cursor=pointer]:
+              - /url: /admin/users/create
+              - generic [aria-hidden]: 
+              - text: Tambah User
+            - link "Import Siswa" [ref=f1e136] [cursor=pointer]:
+              - /url: /admin/kelas-siswa
+              - generic [aria-hidden]: 
+              - text: Import Siswa
+            - link "Kalender" [ref=f1e137] [cursor=pointer]:
+              - /url: /admin/kalender
+              - generic [aria-hidden]: 
+              - text: Kalender
+            - link "Log Error" [ref=f1e138] [cursor=pointer]:
+              - /url: /admin/log-error
+              - generic [aria-hidden]: 
+              - text: Log Error
+        - generic [ref=f1e140]: 
+      - generic [ref=f1e141]:
+        - link "36 Siswa aktif" [ref=f1e142] [cursor=pointer]:
+          - /url: /admin/kelas-siswa
+          - generic [aria-hidden] [ref=f1e144]: 
+          - generic [ref=f1e145]:
+            - strong [ref=f1e146]: "36"
+            - generic [ref=f1e147]: Siswa aktif
+        - link "5 Guru dan staf" [ref=f1e148] [cursor=pointer]:
+          - /url: /admin/users
+          - generic [aria-hidden] [ref=f1e150]: 
+          - generic [ref=f1e151]:
+            - strong [ref=f1e152]: "5"
+            - generic [ref=f1e153]: Guru dan staf
+        - link "6 Kelas" [ref=f1e154] [cursor=pointer]:
+          - /url: /admin/kelas
+          - generic [aria-hidden] [ref=f1e156]: 
+          - generic [ref=f1e157]:
+            - strong [ref=f1e158]: "6"
+            - generic [ref=f1e159]: Kelas
+        - link "5 Mapel" [ref=f1e160] [cursor=pointer]:
+          - /url: /admin/mata-pelajaran
+          - generic [aria-hidden] [ref=f1e162]: 
+          - generic [ref=f1e163]:
+            - strong [ref=f1e164]: "5"
+            - generic [ref=f1e165]: Mapel
+      - generic [ref=f1e166]:
+        - generic [ref=f1e167]:
+          - generic [ref=f1e168]:
+            - generic [ref=f1e169]:
+              - generic [aria-hidden] [ref=f1e170]: 
+              - text: Login Terbaru
+            - link "Lihat Semua" [ref=f1e171] [cursor=pointer]:
+              - /url: /admin/log-login
+          - generic "Tabel dapat digeser secara horizontal pada layar kecil" [ref=f1e173]:
+            - text: 
+            - table [ref=f1e174]:
+              - rowgroup [ref=f1e175]:
+                - row [ref=f1e176]:
+                  - columnheader "Nama" [ref=f1e177]
+                  - columnheader "Role" [ref=f1e178]
+                  - columnheader "Waktu" [ref=f1e179]
+                  - columnheader "IP" [ref=f1e180]
+              - rowgroup [ref=f1e181]:
+                - row [ref=f1e182]:
+                  - cell [ref=f1e183]:
+                    - strong [ref=f1e184]: Administrator Demo
+                  - cell "admin" [ref=f1e185]
+                  - cell "0 detik yang lalu" [ref=f1e187]
+                  - cell "10.89.0.26" [ref=f1e188]
+                - row [ref=f1e189]:
+                  - cell [ref=f1e190]:
+                    - strong [ref=f1e191]: Administrator Demo
+                  - cell "admin" [ref=f1e192]
+                  - cell "2 jam yang lalu" [ref=f1e194]
+                  - cell "10.89.0.17" [ref=f1e195]
+                - row [ref=f1e196]:
+                  - cell [ref=f1e197]:
+                    - strong [ref=f1e198]: Guru Demo Satu
+                  - cell "guru" [ref=f1e199]
+                  - cell "6 jam yang lalu" [ref=f1e201]
+                  - cell "10.89.0.3" [ref=f1e202]
+                - row [ref=f1e203]:
+                  - cell [ref=f1e204]:
+                    - strong [ref=f1e205]: Siswa Demo 01
+                  - cell "siswa" [ref=f1e206]
+                  - cell "7 jam yang lalu" [ref=f1e208]
+                  - cell "10.89.0.3" [ref=f1e209]
+                - row [ref=f1e210]:
+                  - cell [ref=f1e211]:
+                    - strong [ref=f1e212]: Guru Demo Satu
+                  - cell "guru" [ref=f1e213]
+                  - cell "7 jam yang lalu" [ref=f1e215]
+                  - cell "10.89.0.3" [ref=f1e216]
+                - row [ref=f1e217]:
+                  - cell [ref=f1e218]:
+                    - strong [ref=f1e219]: Guru Demo Satu
+                  - cell "guru" [ref=f1e220]
+                  - cell "18 jam yang lalu" [ref=f1e222]
+                  - cell "10.89.0.3" [ref=f1e223]
+                - row [ref=f1e224]:
+                  - cell [ref=f1e225]:
+                    - strong [ref=f1e226]: Guru Demo Satu
+                  - cell "guru" [ref=f1e227]
+                  - cell "1 hari yang lalu" [ref=f1e229]
+                  - cell "10.89.0.3" [ref=f1e230]
+                - row [ref=f1e231]:
+                  - cell [ref=f1e232]:
+                    - strong [ref=f1e233]: Guru Demo Satu
+                  - cell "guru" [ref=f1e234]
+                  - cell "1 hari yang lalu" [ref=f1e236]
+                  - cell "10.89.0.3" [ref=f1e237]
+                - row [ref=f1e238]:
+                  - cell [ref=f1e239]:
+                    - strong [ref=f1e240]: Guru Demo Satu
+                  - cell "guru" [ref=f1e241]
+                  - cell "1 hari yang lalu" [ref=f1e243]
+                  - cell "10.89.0.6" [ref=f1e244]
+                - row [ref=f1e245]:
+                  - cell [ref=f1e246]:
+                    - strong [ref=f1e247]: Administrator Demo
+                  - cell "admin" [ref=f1e248]
+                  - cell "1 hari yang lalu" [ref=f1e250]
+                  - cell "10.89.0.6" [ref=f1e251]
+        - generic [ref=f1e252]:
+          - generic [ref=f1e254]:
+            - generic [aria-hidden] [ref=f1e255]: 
+            - text: Pengumuman Terbaru
+          - generic [ref=f1e256]:
+            - generic [ref=f1e257]:
+              - generic [aria-hidden] [ref=f1e259]: 
+              - generic [ref=f1e260]:
+                - strong [ref=f1e261]: Selamat Datang di Semester Baru
+                - generic [ref=f1e262]: 22 Sep 2026
+                - generic [ref=f1e263]: Dibuat oleh Administrator Demo
+            - generic [ref=f1e264]:
+              - generic [aria-hidden] [ref=f1e266]: 
+              - generic [ref=f1e267]:
+                - strong [ref=f1e268]: Rapat Guru Bulanan
+                - generic [ref=f1e269]: 22 Sep 2026
+                - generic [ref=f1e270]: Dibuat oleh Administrator Demo
+            - generic [ref=f1e271]:
+              - generic [aria-hidden] [ref=f1e273]: 
+              - generic [ref=f1e274]:
+                - strong [ref=f1e275]: Pengumpulan Tugas Tepat Waktu
+                - generic [ref=f1e276]: 22 Sep 2026
+                - generic [ref=f1e277]: Dibuat oleh Administrator Demo
+    - generic [ref=f1e278]:
+      - generic [ref=f1e279]: © 2026 Nama Sekolah
+      - generic [aria-hidden] [ref=f1e280]: •
+      - generic [ref=f1e281]: LMS Sekolah
