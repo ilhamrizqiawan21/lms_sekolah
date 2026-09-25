@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasColumn('kelas_mapel', 'pertemuan_per_minggu')) {
+        if (! Schema::hasColumn('kelas_mapel', 'pertemuan_per_minggu')) {
             Schema::table('kelas_mapel', function (Blueprint $table) {
                 $table->unsignedTinyInteger('pertemuan_per_minggu')->default(1)->after('semester');
             });

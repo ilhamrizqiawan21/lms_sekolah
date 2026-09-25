@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Kelas;
-use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -106,6 +105,7 @@ class KelasController extends Controller
         }
 
         $kelas->delete();
+
         return redirect()->route('admin.kelas.index')
             ->with('success', 'Kelas berhasil dihapus.');
     }

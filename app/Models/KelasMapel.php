@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class KelasMapel extends Model
 {
     protected $table = 'kelas_mapel';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -26,16 +27,16 @@ class KelasMapel extends Model
 
     public function scopeAktif($query, ?string $semester = null)
     {
-        $semester ??= \App\Models\Pengaturan::getValue('semester_aktif', '1');
+        $semester ??= Pengaturan::getValue('semester_aktif', '1');
 
         return $query
             ->where('semester', $semester)
-            ->whereHas('tahunAjaran', fn($q) => $q->where('is_active', true));
+            ->whereHas('tahunAjaran', fn ($q) => $q->where('is_active', true));
     }
 
     public function isAktif(): bool
     {
-        $semesterAktif = \App\Models\Pengaturan::getValue('semester_aktif', '1');
+        $semesterAktif = Pengaturan::getValue('semester_aktif', '1');
 
         return (string) $this->semester === (string) $semesterAktif
             && $this->tahunAjaran()->where('is_active', true)->exists();

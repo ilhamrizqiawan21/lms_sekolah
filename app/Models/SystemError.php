@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class SystemError extends Model
 {
     protected $table = 'system_errors';
+
     public $timestamps = false;
 
     protected $fillable = [

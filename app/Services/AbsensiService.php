@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Absensi;
+use App\Models\Siswa;
 use Illuminate\Support\Collection;
 
 class AbsensiService
@@ -44,7 +45,7 @@ class AbsensiService
      */
     public function rekapKelas(int $kelasMapelId): Collection
     {
-        $siswas = \App\Models\Siswa::whereHas('kelasMapel', function ($q) use ($kelasMapelId) {
+        $siswas = Siswa::whereHas('kelasMapel', function ($q) use ($kelasMapelId) {
             $q->where('kelas_mapel.id', $kelasMapelId);
         })->get();
 

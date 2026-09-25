@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class GuruMapel extends Model
 {
     protected $table = 'guru_mapel';
+
     public $timestamps = false;
 
     protected $fillable = [

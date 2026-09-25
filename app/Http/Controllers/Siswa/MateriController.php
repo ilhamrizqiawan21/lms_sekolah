@@ -7,6 +7,7 @@ use App\Models\KelasMapel;
 use App\Models\Materi;
 use App\Models\Siswa;
 use Carbon\Carbon;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -18,7 +19,7 @@ class MateriController extends Controller
         $user = Auth::user();
         $siswa = $user->siswa;
 
-        if (!$siswa) {
+        if (! $siswa) {
             return redirect()->route('login')->with('error', 'Data siswa tidak ditemukan.');
         }
 
@@ -37,7 +38,8 @@ class MateriController extends Controller
             ])->values(),
         ]);
     }
-    //Daftar materi yang sudah di input guru
+
+    // Daftar materi yang sudah di input guru
     public function list(KelasMapel $kelasMapel)
     {
         $user = Auth::user();
@@ -56,7 +58,7 @@ class MateriController extends Controller
                 'guru' => $kelasMapel->guru?->nama_lengkap ?? '-',
                 'back_url' => route('siswa.materi.index'),
                 'workspace_url' => route('siswa.kelas-mapel.show', $kelasMapel),
-                'tugas_url' => route('siswa.kelas-mapel.show', $kelasMapel) . '#tugas',
+                'tugas_url' => route('siswa.kelas-mapel.show', $kelasMapel).'#tugas',
                 'chat_url' => route('siswa.chat.show', $kelasMapel),
             ],
             'materi' => $materi->map(fn (Materi $item) => [
@@ -68,7 +70,8 @@ class MateriController extends Controller
             ])->values(),
         ]);
     }
-    //Unduh materi
+
+    // Unduh materi
     public function download(KelasMapel $kelasMapel, Materi $materi)
     {
         $user = Auth::user();
@@ -79,11 +82,11 @@ class MateriController extends Controller
         $this->ensureMateriBelongsToKelasMapel($materi, $kelasMapel);
 
         $disk = $this->materiDisk($materi->file_path);
-        if (!$disk || !$materi->file_path) {
+        if (! $disk || ! $materi->file_path) {
             return back()->with('error', 'File materi tidak ditemukan.');
         }
 
-        return response()->download($disk->path($materi->file_path), $materi->judul . '_' . basename($materi->file_path));
+        return response()->download($disk->path($materi->file_path), $materi->judul.'_'.basename($materi->file_path));
     }
 
     private function ensureMateriBelongsToKelasMapel(Materi $materi, KelasMapel $kelasMapel): void
@@ -102,9 +105,9 @@ class MateriController extends Controller
         );
     }
 
-    private function materiDisk(?string $path): ?\Illuminate\Filesystem\FilesystemAdapter
+    private function materiDisk(?string $path): ?FilesystemAdapter
     {
-        if (!$path) {
+        if (! $path) {
             return null;
         }
 

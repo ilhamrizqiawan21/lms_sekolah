@@ -10,7 +10,7 @@ return new class extends Migration
     {
         if (
             DB::getDriverName() !== 'mysql' ||
-            !Schema::hasColumn('nilai_akhir', 'rata_akhir')
+            ! Schema::hasColumn('nilai_akhir', 'rata_akhir')
         ) {
             return;
         }
@@ -23,7 +23,7 @@ return new class extends Migration
     {
         if (
             DB::getDriverName() !== 'mysql' ||
-            !Schema::hasColumn('nilai_akhir', 'rata_akhir')
+            ! Schema::hasColumn('nilai_akhir', 'rata_akhir')
         ) {
             return;
         }
@@ -34,7 +34,7 @@ return new class extends Migration
 
     private function generatedColumnSql(bool $safeDivision = true): string
     {
-        $denominator = "
+        $denominator = '
             (CASE WHEN sum1 IS NOT NULL THEN 1 ELSE 0 END) +
             (CASE WHEN sum2 IS NOT NULL THEN 1 ELSE 0 END) +
             (CASE WHEN sum3 IS NOT NULL THEN 1 ELSE 0 END) +
@@ -43,7 +43,7 @@ return new class extends Migration
             (CASE WHEN sts IS NOT NULL THEN 1 ELSE 0 END) +
             (CASE WHEN sas IS NOT NULL THEN 1 ELSE 0 END) +
             (CASE WHEN sat IS NOT NULL THEN 1 ELSE 0 END)
-        ";
+        ';
 
         $denominator = $safeDivision
             ? "NULLIF(($denominator), 0)"

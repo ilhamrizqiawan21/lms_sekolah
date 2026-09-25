@@ -9,9 +9,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class PengumpulanTugas extends Model
 {
     public const STATUS_BELUM = 'belum';
+
     public const STATUS_SUDAH = 'sudah';
+
     public const STATUS_TERLAMBAT = 'terlambat';
+
     public const STATUS_DINILAI = 'dinilai';
+
     public const STATUS_PERLU_PERBAIKAN = 'perlu_perbaikan';
 
     /** Status yang berarti siswa sudah mengumpulkan (termasuk menunggu perbaikan). */

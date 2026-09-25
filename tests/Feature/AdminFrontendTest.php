@@ -33,7 +33,7 @@ class AdminFrontendTest extends TestCase
             ->assertInertia(fn ($page) => $page->component('Admin/Pengumuman/Index'));
 
         foreach (['absensi', 'nilai', 'sikap', 'tugas'] as $report) {
-            $this->actingAs($user)->get('/admin/rekap/' . $report)
+            $this->actingAs($user)->get('/admin/rekap/'.$report)
                 ->assertOk()
                 ->assertInertia(fn ($page) => $page->component('Admin/Rekap')->where('type', $report));
         }

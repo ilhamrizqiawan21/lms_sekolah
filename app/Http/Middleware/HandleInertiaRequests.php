@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Pengaturan;
 use App\Models\Notifikasi;
+use App\Models\Pengaturan;
 use App\Models\WaliKelas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;

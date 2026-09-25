@@ -32,7 +32,7 @@ class ProgressController extends Controller
         $user = Auth::user();
         $siswa = $user->siswa;
 
-        if (!$siswa) {
+        if (! $siswa) {
             return redirect()->route('login')->with('error', 'Data siswa tidak ditemukan.');
         }
 
@@ -239,7 +239,7 @@ class ProgressController extends Controller
             ->filter(function (Tugas $tugas) use ($pengumpulanByTugas) {
                 $status = $pengumpulanByTugas->get($tugas->id)?->status;
 
-                return !in_array($status, PengumpulanTugas::STATUS_SUBMITTED, true);
+                return ! in_array($status, PengumpulanTugas::STATUS_SUBMITTED, true);
             })
             ->sortBy(fn (Tugas $tugas) => $tugas->batas_waktu?->timestamp ?? PHP_INT_MAX)
             ->take(3);

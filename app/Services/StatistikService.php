@@ -5,11 +5,14 @@ namespace App\Services;
 use App\Models\Absensi;
 use App\Models\Kelas;
 use App\Models\MataPelajaran;
+use App\Models\Materi;
 use App\Models\NilaiAkhir;
+use App\Models\PengumpulanTugas;
+use App\Models\Pengumuman;
 use App\Models\Siswa;
+use App\Models\Tugas;
 use App\Models\User;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 class StatistikService
 {
@@ -39,9 +42,9 @@ class StatistikService
             'total_siswa' => Siswa::whereIn('kelas_id', $kelasMapels->pluck('kelas_id')->unique())
                 ->where('status', 'aktif')
                 ->count(),
-            'total_materi' => \App\Models\Materi::whereIn('kelas_mapel_id', $kelasMapelIds)->count(),
-            'total_tugas' => \App\Models\Tugas::whereIn('kelas_mapel_id', $kelasMapelIds)->count(),
-            'total_pengumuman' => \App\Models\Pengumuman::where('created_by', $guruId)->count(),
+            'total_materi' => Materi::whereIn('kelas_mapel_id', $kelasMapelIds)->count(),
+            'total_tugas' => Tugas::whereIn('kelas_mapel_id', $kelasMapelIds)->count(),
+            'total_pengumuman' => Pengumuman::where('created_by', $guruId)->count(),
         ];
     }
 
@@ -54,8 +57,8 @@ class StatistikService
 
         return [
             'total_absensi' => Absensi::where('siswa_id', $siswaId)->count(),
-            'total_tugas' => \App\Models\PengumpulanTugas::where('siswa_id', $siswaId)->count(),
-            'tugas_belum' => \App\Models\PengumpulanTugas::where('siswa_id', $siswaId)->where('status', 'belum')->count(),
+            'total_tugas' => PengumpulanTugas::where('siswa_id', $siswaId)->count(),
+            'tugas_belum' => PengumpulanTugas::where('siswa_id', $siswaId)->where('status', 'belum')->count(),
             'rata_rata_nilai' => NilaiAkhir::where('siswa_id', $siswaId)
                 ->selectRaw('AVG('.NilaiAkhir::rataAkhirExpression().') as rata_rata')
                 ->value('rata_rata'),
@@ -92,6 +95,6 @@ class StatistikService
 
     private function countUsersByRole(string $role): int
     {
-        return User::whereHas('role', fn($query) => $query->where('nama_role', $role))->count();
+        return User::whereHas('role', fn ($query) => $query->where('nama_role', $role))->count();
     }
 }

@@ -79,6 +79,7 @@ class SensitiveDataRedactor
         foreach ($values as $key => $value) {
             if (self::isSensitiveKey((string) $key)) {
                 $values[$key] = self::REDACTED;
+
                 continue;
             }
 

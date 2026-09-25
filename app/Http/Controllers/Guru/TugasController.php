@@ -277,8 +277,8 @@ class TugasController extends Controller
                     'penalty_terlambat' => $item?->penalty_terlambat ?? 0,
                     'nilai_url' => route('guru.tugas.nilai', [$kelasMapel, $tugas, $student]),
                     'whatsapp_url' => $canPrepareWhatsApp ? route('guru.tugas.whatsapp', [$kelasMapel, $tugas, $student]) : null,
-                    'whatsapp_last_prepared_at' => $lastWhatsApp?->prepared_at?->format('d/m/Y H:i'),
                     'whatsapp_last_sent_at' => $lastWhatsApp?->sent_marked_at?->format('d/m/Y H:i'),
+                    'whatsapp_last_error' => $lastWhatsApp?->status === 'failed' ? $lastWhatsApp?->error_message : null,
                     'legacy_file_url' => $item?->file_upload ? route('guru.tugas.pengumpulan.download', [$kelasMapel, $tugas, $item]) : null,
                     'files' => $item?->files->map(fn (PengumpulanFile $file) => [
                         'id' => $file->id,
@@ -397,31 +397,10 @@ class TugasController extends Controller
             $siswa->update(['nomor_whatsapp' => $normalizedPhone]);
         }
 
-        return response()->json($service->prepareLateTaskMessage($siswa, $tugas, (int) Auth::id()));
-    }
+        $prepared = $service->prepareLateTaskMessage($siswa, $tugas, (int) Auth::id());
+        $result = $service->sendPreparedMessage($prepared['log_id'], $normalizedPhone, $prepared['message']);
 
-    public function whatsappMarkSent(WhatsAppMessageLog $log)
-    {
-        abort_unless((int) $log->guru_id === (int) Auth::id(), 403);
-        $log->update(['sent_marked_at' => now()]);
-
-        return back()->with('success', 'Pengingat WhatsApp ditandai sudah dikirim.');
-    }
-
-    public function whatsappSendQueue(Request $request, WhatsAppMessageLog $log, WhatsAppService $service)
-    {
-        abort_unless((int) $log->guru_id === (int) Auth::id(), 403);
-        $log->loadMissing('siswa');
-
-        $phone = $log->siswa?->nomor_whatsapp;
-        if (blank($phone)) {
-            return back()->with('error', 'Nomor WhatsApp siswa tidak ditemukan.');
-        }
-
-        $message = $request->input('message', 'Pengingat tugas LMS Sekolah.');
-        $service->dispatchReminderJob($log->id, (string) $phone, (string) $message);
-
-        return back()->with('success', 'Pengiriman pengingat WhatsApp dijadwalkan ke background queue.');
+        return response()->json($result);
     }
 
     public function downloadFile(KelasMapel $kelasMapel, Tugas $tugas, PengumpulanFile $file)

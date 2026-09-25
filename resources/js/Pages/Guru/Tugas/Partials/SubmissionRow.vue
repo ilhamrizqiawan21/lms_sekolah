@@ -3,7 +3,7 @@ import { Badge, IconButton } from '../../../../Components/UI';
 import SubmissionGradeForm from './SubmissionGradeForm.vue';
 import type { AssignmentSubmission, SubmissionStatus } from '../../../../types';
 
-interface Props { item: AssignmentSubmission; statusColor: (status: SubmissionStatus) => string; statusLabel: (status: SubmissionStatus) => string }
+interface Props { item: AssignmentSubmission; statusColor: (status: SubmissionStatus) => string; statusLabel: (status: SubmissionStatus) => string; whatsappSending?: boolean }
 defineProps<Props>();
 
 defineEmits<{ detail: []; whatsapp: [] }>();
@@ -61,10 +61,13 @@ defineEmits<{ detail: []; whatsapp: [] }>();
             <span v-else class="text-muted">-</span>
         </td>
         <td>
-            <button v-if="item.whatsapp_url" type="button" class="btn btn-sm btn-success me-1" title="Buka WhatsApp" @click="$emit('whatsapp')"><i class="bi bi-whatsapp" aria-hidden="true"></i></button>
+            <button v-if="item.whatsapp_url" type="button" class="btn btn-sm btn-success me-1" title="Kirim WhatsApp" :disabled="whatsappSending" @click="$emit('whatsapp')">
+                <span v-if="whatsappSending" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <i v-else class="bi bi-whatsapp" aria-hidden="true"></i>
+            </button>
             <IconButton icon="bi-eye" label="Lihat detail" color="info" @click="$emit('detail')" />
             <small v-if="item.whatsapp_last_sent_at" class="d-block text-success mt-1">Diingatkan {{ item.whatsapp_last_sent_at }}</small>
-            <small v-else-if="item.whatsapp_last_prepared_at" class="d-block text-muted mt-1">Disiapkan {{ item.whatsapp_last_prepared_at }}</small>
+            <small v-else-if="item.whatsapp_last_error" class="d-block text-danger mt-1" :title="item.whatsapp_last_error">Gagal: {{ item.whatsapp_last_error }}</small>
         </td>
     </tr>
 </template>

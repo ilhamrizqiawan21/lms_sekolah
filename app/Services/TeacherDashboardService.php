@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class TeacherDashboardService
 {
-    public function __construct(private readonly StatistikService $statistikService)
-    {
-    }
+    public function __construct(private readonly StatistikService $statistikService) {}
 
     public function forGuru(int $guruId): array
     {

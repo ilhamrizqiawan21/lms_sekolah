@@ -24,8 +24,8 @@ class AbsensiExportAllTest extends TestCase
         $roleModel = Role::firstOrCreate(['nama_role' => $role]);
 
         return User::create([
-            'username' => strtolower(str_replace(' ', '-', $nama)) . '-' . uniqid(),
-            'email' => strtolower(str_replace(' ', '-', $nama)) . '-' . uniqid() . '@example.test',
+            'username' => strtolower(str_replace(' ', '-', $nama)).'-'.uniqid(),
+            'email' => strtolower(str_replace(' ', '-', $nama)).'-'.uniqid().'@example.test',
             'password' => Hash::make('secret'),
             'is_password_default' => false,
             'nama_lengkap' => $nama,
@@ -63,7 +63,7 @@ class AbsensiExportAllTest extends TestCase
             $siswaUser = $this->makeUser("Siswa {$kelas->nama_kelas}", 'siswa');
             $siswa = Siswa::create([
                 'user_id' => $siswaUser->id,
-                'nis' => '2025' . $kelas->id,
+                'nis' => '2025'.$kelas->id,
                 'kelas_id' => $kelas->id,
                 'angkatan' => '2025',
                 'status' => 'aktif',
@@ -127,7 +127,7 @@ class AbsensiExportAllTest extends TestCase
         $kelasMapelList = $this->seedAbsensiFixture($guru);
         $kelasMapel = $kelasMapelList[0];
 
-        $this->actingAs($guru)->get("/guru/absensi/{$kelasMapel->id}/export/pdf?bulan=" . date('Y-m'))
+        $this->actingAs($guru)->get("/guru/absensi/{$kelasMapel->id}/export/pdf?bulan=".date('Y-m'))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
     }

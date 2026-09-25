@@ -60,6 +60,7 @@ class KalenderController extends Controller
         $validated['is_holiday'] = $request->boolean('is_holiday');
         $validated['is_done'] = $request->boolean('is_done');
         CalendarEvent::create($validated + ['user_id' => auth()->id()]);
+
         return back()->with('success', 'Event berhasil ditambahkan.');
     }
 
@@ -76,6 +77,7 @@ class KalenderController extends Controller
         $validated['is_holiday'] = $request->boolean('is_holiday');
         $validated['is_done'] = $request->boolean('is_done');
         $calendarEvent->update($validated);
+
         return back()->with('success', 'Event berhasil diperbarui.');
     }
 
@@ -83,6 +85,7 @@ class KalenderController extends Controller
     {
         abort_unless((int) $calendarEvent->user_id === (int) auth()->id(), 403);
         $calendarEvent->delete();
+
         return back()->with('success', 'Event berhasil dihapus.');
     }
 
@@ -101,7 +104,7 @@ class KalenderController extends Controller
             for ($col = 0; $col < 7; $col++) {
                 $index = $row * 7 + $col;
                 $cellDate = null;
-                if ($index >= $startDayOfWeek && !$done && $day <= $daysInMonth) {
+                if ($index >= $startDayOfWeek && ! $done && $day <= $daysInMonth) {
                     $cellDate = sprintf('%04d-%02d-%02d', $year, $month, $day++);
                 } elseif ($day > $daysInMonth) {
                     $done = true;
@@ -114,14 +117,16 @@ class KalenderController extends Controller
                 ];
             }
             $weeks[] = $week;
-            if ($done && $day > $daysInMonth) break;
+            if ($done && $day > $daysInMonth) {
+                break;
+            }
         }
 
         return [
             'year' => $year,
             'month' => $month,
             'month_label' => $bulanIndo[$month],
-            'title' => $bulanIndo[$month] . ' ' . $year,
+            'title' => $bulanIndo[$month].' '.$year,
             'today' => $today,
             'today_url' => route($routeName, ['year' => now()->year, 'month' => now()->month]),
             'prev_url' => route($routeName, ['year' => $prevMonth->year, 'month' => $prevMonth->month]),

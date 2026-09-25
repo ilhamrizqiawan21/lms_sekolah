@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
 use App\Models\NilaiAkhir;
-use App\Models\Siswa;
 use App\Services\NilaiService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -23,7 +22,7 @@ class NilaiController extends Controller
         $user = Auth::user();
         $siswa = $user->siswa;
 
-        if (!$siswa) {
+        if (! $siswa) {
             return redirect()->route('login')->with('error', 'Data siswa tidak ditemukan.');
         }
 
@@ -33,7 +32,7 @@ class NilaiController extends Controller
             ->orderBy('semester', 'desc')
             ->get()
             ->groupBy(function ($item) {
-                return $item->tahunAjaran?->tahun . ' - Semester ' . $item->semester;
+                return $item->tahunAjaran?->tahun.' - Semester '.$item->semester;
             });
 
         return Inertia::render('Siswa/Nilai/Index', [

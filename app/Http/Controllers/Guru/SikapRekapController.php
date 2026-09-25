@@ -33,12 +33,15 @@ class SikapRekapController extends SikapController
             ->where('tahun_ajaran_id', $tahunAjaran?->id)
             ->where('semester', $semester)
             ->whereHas('kelasMapel', fn ($q) => $q->where('guru_id', Auth::id())->aktif($semester));
-        if ($kmId) $sosialQuery->where('kelas_mapel_id', $kmId);
+        if ($kmId) {
+            $sosialQuery->where('kelas_mapel_id', $kmId);
+        }
 
         $sosialFields = ['empati', 'kerjasama', 'toleransi', 'percaya_diri', 'komunikasi'];
         $sikapSosial = $sosialQuery->get()->groupBy('siswa_id')->map(function ($records) use ($sosialFields) {
             $first = $records->first();
             $values = collect($sosialFields)->mapWithKeys(fn ($field) => [$field => round((float) $records->avg($field), 1)]);
+
             return [
                 'siswa' => ['id' => $first->siswa?->id, 'nis' => $first->siswa?->nis, 'nama' => $first->siswa?->user?->nama_lengkap ?? $first->siswa?->nis, 'kelas' => $first->siswa?->kelas?->displayName()],
                 'nilai' => $values->all(),
@@ -50,12 +53,15 @@ class SikapRekapController extends SikapController
             ->where('tahun_ajaran_id', $tahunAjaran?->id)
             ->where('semester', $semester)
             ->whereHas('kelasMapel', fn ($q) => $q->where('guru_id', Auth::id())->aktif($semester));
-        if ($kmId) $spiritualQuery->where('kelas_mapel_id', $kmId);
+        if ($kmId) {
+            $spiritualQuery->where('kelas_mapel_id', $kmId);
+        }
 
         $spiritualFields = ['taqwa', 'kejujuran', 'disiplin', 'sabar', 'syukur', 'tawadhu'];
         $sikapSpiritual = $spiritualQuery->get()->groupBy('siswa_id')->map(function ($records) use ($spiritualFields) {
             $first = $records->first();
             $values = collect($spiritualFields)->mapWithKeys(fn ($field) => [$field => round((float) $records->avg($field), 1)]);
+
             return [
                 'siswa' => ['id' => $first->siswa?->id, 'nis' => $first->siswa?->nis, 'nama' => $first->siswa?->user?->nama_lengkap ?? $first->siswa?->nis, 'kelas' => $first->siswa?->kelas?->displayName()],
                 'nilai' => $values->all(),

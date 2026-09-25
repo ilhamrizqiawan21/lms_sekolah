@@ -37,17 +37,27 @@ final class ReportMetadataService
     {
         foreach ($keys as $key) {
             $value = Pengaturan::getValue($key);
-            if ($value !== null && trim($value) !== '') return trim($value);
+            if ($value !== null && trim($value) !== '') {
+                return trim($value);
+            }
         }
+
         return $default;
     }
 
     private function logoPath(): ?string
     {
         $configured = $this->firstSetting(['logo_sekolah', 'school_logo', 'logo'], '');
-        if ($configured === '') return null;
-        if (is_file(public_path($configured))) return public_path($configured);
-        if (is_file(storage_path('app/public/'.$configured))) return storage_path('app/public/'.$configured);
+        if ($configured === '') {
+            return null;
+        }
+        if (is_file(public_path($configured))) {
+            return public_path($configured);
+        }
+        if (is_file(storage_path('app/public/'.$configured))) {
+            return storage_path('app/public/'.$configured);
+        }
+
         return null;
     }
 }

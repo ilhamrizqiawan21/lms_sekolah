@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Absensi;
 use App\Models\Kelas;
 use App\Models\KelasDaring;
 use App\Models\KelasMapel;

@@ -76,8 +76,8 @@ class KelasMapelWorkspaceController extends Controller
             'tasks' => $recentTasks->map(fn (Tugas $tugas) => [
                 'id' => $tugas->id,
                 'title' => $tugas->judul,
-                'meta' => $tugas->batas_waktu ? 'Deadline ' . $tugas->batas_waktu->format('d M Y') : 'Tanpa deadline',
-                'detail' => $tugas->submitted_count . ' pengumpulan, ' . $tugas->pending_grading_count . ' perlu dinilai',
+                'meta' => $tugas->batas_waktu ? 'Deadline '.$tugas->batas_waktu->format('d M Y') : 'Tanpa deadline',
+                'detail' => $tugas->submitted_count.' pengumpulan, '.$tugas->pending_grading_count.' perlu dinilai',
                 'href' => route('guru.tugas.pengumpulan', [$kelasMapel, $tugas]),
                 'badge' => $tugas->pending_grading_count ?: null,
                 'badgeColor' => 'warning text-dark',

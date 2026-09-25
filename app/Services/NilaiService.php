@@ -26,7 +26,7 @@ class NilaiService
             $nilai->sat,
         ];
 
-        $filtered = array_filter($komponen, fn($v) => !is_null($v));
+        $filtered = array_filter($komponen, fn ($v) => ! is_null($v));
         $total = array_sum($filtered);
         $jumlah = count($filtered);
 

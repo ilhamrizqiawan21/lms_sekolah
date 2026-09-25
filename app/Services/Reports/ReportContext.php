@@ -14,8 +14,7 @@ final class ReportContext
         public readonly ?TahunAjaran $tahunAjaran,
         public readonly string $semester,
         public readonly array $school,
-    ) {
-    }
+    ) {}
 
     public function semesterLabel(): string
     {

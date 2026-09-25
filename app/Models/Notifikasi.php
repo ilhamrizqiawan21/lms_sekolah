@@ -10,6 +10,7 @@ class Notifikasi extends Model
     protected $table = 'notifikasi';
 
     const CREATED_AT = 'created_at';
+
     const UPDATED_AT = null;
 
     protected $fillable = [

@@ -46,7 +46,7 @@ class KelasMapelWorkspaceController extends Controller
         return Inertia::render('Siswa/KelasMapel/Show', [
             'course' => [
                 'title' => $kelasMapel->mataPelajaran?->nama_mapel ?? '-',
-                'kelas' => trim(($kelasMapel->kelas?->tingkat ? $kelasMapel->kelas->tingkat . ' ' : '') . ($kelasMapel->kelas?->nama_kelas ?? '-')),
+                'kelas' => trim(($kelasMapel->kelas?->tingkat ? $kelasMapel->kelas->tingkat.' ' : '').($kelasMapel->kelas?->nama_kelas ?? '-')),
                 'semester' => $kelasMapel->semester === '1' ? 'Ganjil' : 'Genap',
                 'tahun_ajaran' => $kelasMapel->tahunAjaran?->tahun ?? '-',
                 'back_url' => route('siswa.materi.index'),
@@ -54,7 +54,7 @@ class KelasMapelWorkspaceController extends Controller
             'tabs' => [
                 ['label' => 'Ringkasan', 'href' => route('siswa.kelas-mapel.show', $kelasMapel), 'icon' => 'bi-grid-1x2'],
                 ['label' => 'Materi', 'href' => route('siswa.materi.list', $kelasMapel), 'icon' => 'bi-file-earmark-text'],
-                ['label' => 'Tugas', 'href' => route('siswa.kelas-mapel.show', $kelasMapel) . '#tugas', 'icon' => 'bi-journal-check'],
+                ['label' => 'Tugas', 'href' => route('siswa.kelas-mapel.show', $kelasMapel).'#tugas', 'icon' => 'bi-journal-check'],
                 ['label' => 'Daring', 'href' => route('siswa.kelas-daring', ['kelas_mapel_id' => $kelasMapel->id]), 'icon' => 'bi-camera-video'],
                 ['label' => 'Chat', 'href' => route('siswa.chat.show', $kelasMapel), 'icon' => 'bi-chat-dots'],
             ],
@@ -70,8 +70,8 @@ class KelasMapelWorkspaceController extends Controller
                 return [
                     'id' => $tugas->id,
                     'title' => $tugas->judul,
-                    'meta' => $tugas->batas_waktu ? 'Deadline ' . $tugas->batas_waktu->format('d M Y') : 'Tanpa deadline',
-                    'detail' => $submission?->nilai !== null ? 'Nilai: ' . $submission->nilai : ($submission ? 'Sudah dikumpulkan' : 'Belum dikumpulkan'),
+                    'meta' => $tugas->batas_waktu ? 'Deadline '.$tugas->batas_waktu->format('d M Y') : 'Tanpa deadline',
+                    'detail' => $submission?->nilai !== null ? 'Nilai: '.$submission->nilai : ($submission ? 'Sudah dikumpulkan' : 'Belum dikumpulkan'),
                     'href' => route('siswa.tugas.show', $tugas),
                     'badge' => $submission ? 'Selesai' : 'Belum',
                     'badgeColor' => $submission ? 'success' : 'warning text-dark',

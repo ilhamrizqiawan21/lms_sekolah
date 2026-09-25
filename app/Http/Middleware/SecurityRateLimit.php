@@ -13,7 +13,7 @@ class SecurityRateLimit
     {
         $limit = max(30, (int) config('security.rate_limit_per_minute', 180));
         $identity = $request->user()?->getAuthIdentifier() ?? $request->ip();
-        $key = 'web:' . sha1($identity . '|' . $request->route()?->getName() . '|' . $request->method());
+        $key = 'web:'.sha1($identity.'|'.$request->route()?->getName().'|'.$request->method());
 
         if (RateLimiter::tooManyAttempts($key, $limit)) {
             $retryAfter = RateLimiter::availableIn($key);

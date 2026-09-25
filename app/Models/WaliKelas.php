@@ -18,7 +18,7 @@ class WaliKelas extends Model
 
     public function scopeAktif($query)
     {
-        return $query->whereHas('tahunAjaran', fn($q) => $q->where('is_active', true));
+        return $query->whereHas('tahunAjaran', fn ($q) => $q->where('is_active', true));
     }
 
     public function isAktif(): bool

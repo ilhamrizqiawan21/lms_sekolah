@@ -19,7 +19,7 @@ class PengumumanController extends Controller
 {
     public function index()
     {
-        $query = Pengumuman::with(['creator','kelasMapel.kelas','kelasMapel.mataPelajaran'])->orderByDesc('created_at');
+        $query = Pengumuman::with(['creator', 'kelasMapel.kelas', 'kelasMapel.mataPelajaran'])->orderByDesc('created_at');
         if (Auth::user()->isGuru()) {
             $guruKelasIds = KelasMapel::where('guru_id', Auth::id())->pluck('kelas_id')->unique()->values();
             $query->where(function ($q) use ($guruKelasIds) {
@@ -28,7 +28,9 @@ class PengumumanController extends Controller
                     ->orWhere(function ($q) use ($guruKelasIds) {
                         $q->where('target', 'kelas_mapel')->where(function ($q) use ($guruKelasIds) {
                             $q->whereIn('kelas_mapel_id', KelasMapel::where('guru_id', Auth::id())->select('id'));
-                            foreach ($guruKelasIds as $id) $q->orWhereJsonContains('target_kelas', (string) $id);
+                            foreach ($guruKelasIds as $id) {
+                                $q->orWhereJsonContains('target_kelas', (string) $id);
+                            }
                         });
                     });
             });
@@ -51,11 +53,12 @@ class PengumumanController extends Controller
                 'size' => $item->public_file_size,
                 'url' => $item->is_public_login ? route('public-pengumuman.attachment', $item) : null,
             ] : null;
+
             return $item;
         });
 
         $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
-        $kelasMapel = KelasMapel::with(['kelas','mataPelajaran'])
+        $kelasMapel = KelasMapel::with(['kelas', 'mataPelajaran'])
             ->when(Auth::user()->isGuru(), fn ($q) => $q->where('guru_id', Auth::id()))
             ->orderBy('kelas_id')->get();
         $targetKelasOptions = Auth::user()->isGuru()
@@ -63,8 +66,9 @@ class PengumumanController extends Controller
             : $kelas;
 
         $role = Auth::user()->role?->nama_role;
+
         return match ($role) {
-            'admin', 'guru' => Inertia::render('Admin/Pengumuman/Index', compact('pengumuman','kelas','kelasMapel','targetKelasOptions') + [
+            'admin', 'guru' => Inertia::render('Admin/Pengumuman/Index', compact('pengumuman', 'kelas', 'kelasMapel', 'targetKelasOptions') + [
                 'routePrefix' => $this->routePrefix(),
                 'storeUrl' => route($this->routePrefix().'.store'),
             ]),
@@ -77,7 +81,7 @@ class PengumumanController extends Controller
     {
         $role = Auth::user()->role?->nama_role;
         abort_unless($this->canView($pengumuman, $role), 403);
-        $pengumuman->loadMissing(['creator','kelasMapel.kelas','kelasMapel.mataPelajaran']);
+        $pengumuman->loadMissing(['creator', 'kelasMapel.kelas', 'kelasMapel.mataPelajaran']);
         $targetKelasLabels = Kelas::whereIn('id', $pengumuman->targetKelasIds())
             ->orderBy('tingkat')->orderBy('nama_kelas')->get()
             ->map(fn (Kelas $k) => trim($k->tingkat.' '.$k->nama_kelas))->values();
@@ -88,10 +92,10 @@ class PengumumanController extends Controller
         ] : null;
 
         return match ($role) {
-            'admin', 'guru' => Inertia::render('Admin/Pengumuman/Show', compact('pengumuman','targetKelasLabels') + [
+            'admin', 'guru' => Inertia::render('Admin/Pengumuman/Show', compact('pengumuman', 'targetKelasLabels') + [
                 'backUrl' => route($this->routePrefix().'.index'),
             ]),
-            'kepala_sekolah' => Inertia::render('Kepsek/Pengumuman/Show', compact('pengumuman','targetKelasLabels') + [
+            'kepala_sekolah' => Inertia::render('Kepsek/Pengumuman/Show', compact('pengumuman', 'targetKelasLabels') + [
                 'backUrl' => route($this->routePrefix().'.index'),
             ]),
             default => abort(403),
@@ -103,7 +107,7 @@ class PengumumanController extends Controller
         $role = Auth::user()->role?->nama_role;
         $allowed = match ($role) {
             'guru' => ['kelas_mapel'],
-            'admin' => ['semua','guru','siswa','kelas_mapel'],
+            'admin' => ['semua', 'guru', 'siswa', 'kelas_mapel'],
             default => [],
         };
         abort_unless($allowed !== [], 403);
@@ -121,6 +125,7 @@ class PengumumanController extends Controller
         $this->attachPublicFile($request, $v);
         $pengumuman = Pengumuman::create($v);
         $this->notifyRecipients($pengumuman);
+
         return redirect()->route($this->routePrefix().'.index')->with('success', 'Pengumuman berhasil dipublikasikan.');
     }
 
@@ -128,7 +133,7 @@ class PengumumanController extends Controller
     {
         $role = Auth::user()->role?->nama_role;
         abort_unless($role === 'admin' || ($role === 'guru' && (int) $pengumuman->created_by === (int) Auth::id()), 403);
-        $allowed = $role === 'guru' ? ['kelas_mapel'] : ['semua','guru','siswa','kelas_mapel'];
+        $allowed = $role === 'guru' ? ['kelas_mapel'] : ['semua', 'guru', 'siswa', 'kelas_mapel'];
         $v = $request->validate([
             'judul' => 'required|string|max:200', 'isi' => 'required|string',
             'target' => ['required', Rule::in($allowed)],
@@ -151,6 +156,7 @@ class PengumumanController extends Controller
 
         $this->attachPublicFile($request, $v);
         $pengumuman->update($v);
+
         return redirect()->route($this->routePrefix().'.index')->with('success', 'Pengumuman berhasil diperbarui.');
     }
 
@@ -160,6 +166,7 @@ class PengumumanController extends Controller
         abort_unless($role === 'admin' || ($role === 'guru' && (int) $pengumuman->created_by === (int) Auth::id()), 403);
         $this->deletePublicFile($pengumuman);
         $pengumuman->delete();
+
         return redirect()->route($this->routePrefix().'.index')->with('success', 'Pengumuman berhasil dihapus.');
     }
 
@@ -167,7 +174,9 @@ class PengumumanController extends Controller
     {
         if ($v['target'] === 'kelas_mapel') {
             $ids = collect($v['target_kelas_ids'] ?? [])->map(fn ($id) => (int) $id)->unique()->values();
-            if ($ids->isEmpty()) throw ValidationException::withMessages(['target_kelas_ids' => 'Pilih minimal satu kelas tujuan.']);
+            if ($ids->isEmpty()) {
+                throw ValidationException::withMessages(['target_kelas_ids' => 'Pilih minimal satu kelas tujuan.']);
+            }
             if (Auth::user()->isGuru()) {
                 $allowed = KelasMapel::where('guru_id', Auth::id())->whereIn('kelas_id', $ids)->pluck('kelas_id')->unique();
                 abort_unless($ids->diff($allowed)->isEmpty(), 403);
@@ -179,6 +188,7 @@ class PengumumanController extends Controller
             $v['kelas_mapel_id'] = null;
         }
         unset($v['target_kelas_ids'], $v['public_file'], $v['remove_public_file']);
+
         return $v;
     }
 
@@ -190,7 +200,7 @@ class PengumumanController extends Controller
 
         $file = $request->file('public_file');
         $data['public_file_name'] = $file->getClientOriginalName();
-        $data['public_file_path'] = $file->store('pengumuman-public/' . Auth::id(), 'local');
+        $data['public_file_path'] = $file->store('pengumuman-public/'.Auth::id(), 'local');
         $data['public_file_mime'] = $file->getClientMimeType();
         $data['public_file_size'] = $file->getSize();
     }
@@ -211,12 +221,20 @@ class PengumumanController extends Controller
 
     private function canView(Pengumuman $p, ?string $role): bool
     {
-        if ($role === 'admin') return true;
-        if ($role === 'kepala_sekolah') return in_array($p->target, ['semua','guru'], true) || (int) $p->created_by === (int) Auth::id();
+        if ($role === 'admin') {
+            return true;
+        }
+        if ($role === 'kepala_sekolah') {
+            return in_array($p->target, ['semua', 'guru'], true) || (int) $p->created_by === (int) Auth::id();
+        }
         if ($role === 'guru') {
-            if (in_array($p->target, ['semua','guru'], true) || (int) $p->created_by === (int) Auth::id()) return true;
+            if (in_array($p->target, ['semua', 'guru'], true) || (int) $p->created_by === (int) Auth::id()) {
+                return true;
+            }
+
             return $p->target === 'kelas_mapel' && KelasMapel::whereIn('kelas_id', $p->targetKelasIds())->where('guru_id', Auth::id())->exists();
         }
+
         return false;
     }
 
@@ -224,12 +242,17 @@ class PengumumanController extends Controller
     {
         $query = User::query()->where('is_active', true)->where('id', '!=', Auth::id());
         $target = $pengumuman->target;
-        if ($target === 'guru') $query->whereHas('role', fn ($q) => $q->where('nama_role', 'guru'));
-        elseif ($target === 'siswa') $query->whereHas('role', fn ($q) => $q->where('nama_role', 'siswa'));
-        elseif ($target === 'kelas_mapel') $query->whereHas('role', fn ($q) => $q->where('nama_role', 'siswa'))->whereHas('siswa', fn ($q) => $q->whereIn('kelas_id', $pengumuman->targetKelasIds())->where('status', 'aktif'));
-        else $query->whereHas('role', fn ($q) => $q->whereIn('nama_role', ['admin','guru','siswa','kepala_sekolah']));
-        foreach ($query->with('role')->get(['id','role_id']) as $user) {
-            Notifikasi::create(['user_id'=>$user->id,'tipe'=>'pengumuman_baru','judul'=>'Pengumuman baru','pesan'=>$pengumuman->judul,'link'=>$this->notificationLinkForUser($user,$pengumuman)]);
+        if ($target === 'guru') {
+            $query->whereHas('role', fn ($q) => $q->where('nama_role', 'guru'));
+        } elseif ($target === 'siswa') {
+            $query->whereHas('role', fn ($q) => $q->where('nama_role', 'siswa'));
+        } elseif ($target === 'kelas_mapel') {
+            $query->whereHas('role', fn ($q) => $q->where('nama_role', 'siswa'))->whereHas('siswa', fn ($q) => $q->whereIn('kelas_id', $pengumuman->targetKelasIds())->where('status', 'aktif'));
+        } else {
+            $query->whereHas('role', fn ($q) => $q->whereIn('nama_role', ['admin', 'guru', 'siswa', 'kepala_sekolah']));
+        }
+        foreach ($query->with('role')->get(['id', 'role_id']) as $user) {
+            Notifikasi::create(['user_id' => $user->id, 'tipe' => 'pengumuman_baru', 'judul' => 'Pengumuman baru', 'pesan' => $pengumuman->judul, 'link' => $this->notificationLinkForUser($user, $pengumuman)]);
         }
     }
 

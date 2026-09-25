@@ -47,22 +47,22 @@ class UploadValidationTest extends TestCase
 
     public function test_tugas_upload_rejects_disallowed_document_formats(): void
     {
-        $user = new User();
-        $siswa = new Siswa();
+        $user = new User;
+        $siswa = new Siswa;
         $siswa->kelas_id = 10;
         $user->setRelation('siswa', $siswa);
 
         Auth::shouldReceive('user')->andReturn($user);
 
-        $kelasMapel = new KelasMapel();
+        $kelasMapel = new KelasMapel;
         $kelasMapel->kelas_id = 10;
         $kelasMapel->guru_id = 1;
 
-        $tugas = new Tugas();
+        $tugas = new Tugas;
         $tugas->id = 1;
         $tugas->setRelation('kelasMapel', $kelasMapel);
 
-        $request = new Request();
+        $request = new Request;
         $request->files->add([
             'file_upload' => UploadedFile::fake()->create(
                 'jawaban.docx',
@@ -71,7 +71,7 @@ class UploadValidationTest extends TestCase
             ),
         ]);
 
-        $controller = new TugasController();
+        $controller = new TugasController;
 
         $this->expectException(ValidationException::class);
         $controller->store($request, $tugas);
@@ -79,29 +79,29 @@ class UploadValidationTest extends TestCase
 
     public function test_tugas_multiple_upload_rejects_png_files(): void
     {
-        $user = new User();
-        $siswa = new Siswa();
+        $user = new User;
+        $siswa = new Siswa;
         $siswa->kelas_id = 10;
         $user->setRelation('siswa', $siswa);
 
         Auth::shouldReceive('user')->andReturn($user);
 
-        $kelasMapel = new KelasMapel();
+        $kelasMapel = new KelasMapel;
         $kelasMapel->kelas_id = 10;
         $kelasMapel->guru_id = 1;
 
-        $tugas = new Tugas();
+        $tugas = new Tugas;
         $tugas->id = 1;
         $tugas->setRelation('kelasMapel', $kelasMapel);
 
-        $request = new Request();
+        $request = new Request;
         $request->files->add([
             'files' => [
                 UploadedFile::fake()->image('jawaban.png'),
             ],
         ]);
 
-        $controller = new TugasController();
+        $controller = new TugasController;
 
         $this->expectException(ValidationException::class);
         $controller->store($request, $tugas);

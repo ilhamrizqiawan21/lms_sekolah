@@ -10,6 +10,7 @@ use App\Models\PengumpulanTugas;
 use App\Models\Siswa;
 use App\Models\Tugas;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -27,18 +28,18 @@ class StatistikController extends Controller
             ? "strftime('%Y-%m', tanggal_kumpul)"
             : "DATE_FORMAT(tanggal_kumpul, '%Y-%m')";
 
-        $siswaPerKelas = Kelas::withCount(['siswa' => fn($q) => $q->where('status', 'aktif')])
+        $siswaPerKelas = Kelas::withCount(['siswa' => fn ($q) => $q->where('status', 'aktif')])
             ->orderBy('tingkat')
             ->get();
 
-        $totalGuru = User::whereHas('role', fn($query) => $query->where('nama_role', 'guru'))->count();
+        $totalGuru = User::whereHas('role', fn ($query) => $query->where('nama_role', 'guru'))->count();
         $totalSiswa = Siswa::where('status', 'aktif')->count();
         $totalKelas = Kelas::count();
 
         $absensiBulanan = Absensi::select(
             DB::raw("$attendanceMonthExpression as bulan"),
             DB::raw("SUM(CASE WHEN status = 'hadir' THEN 1 ELSE 0 END) as hadir"),
-            DB::raw("COUNT(*) as total")
+            DB::raw('COUNT(*) as total')
         )
             ->where('tanggal', '>=', now()->subMonths(6)->startOfMonth())
             ->groupBy('bulan')
@@ -67,19 +68,19 @@ class StatistikController extends Controller
             'kurang' => NilaiAkhir::whereRaw("$rataAkhir < ?", [75])->count(),
         ];
 
-        $totalTugas = Tugas::whereHas('kelasMapel', fn($q) => $q->aktif())->count();
-        $totalPengumpulan = PengumpulanTugas::whereHas('tugas.kelasMapel', fn($q) => $q->aktif())->count();
-        $totalDinilai = PengumpulanTugas::whereHas('tugas.kelasMapel', fn($q) => $q->aktif())
+        $totalTugas = Tugas::whereHas('kelasMapel', fn ($q) => $q->aktif())->count();
+        $totalPengumpulan = PengumpulanTugas::whereHas('tugas.kelasMapel', fn ($q) => $q->aktif())->count();
+        $totalDinilai = PengumpulanTugas::whereHas('tugas.kelasMapel', fn ($q) => $q->aktif())
             ->whereNotNull('nilai')
             ->count();
-        $rataNilaiTugas = PengumpulanTugas::whereHas('tugas.kelasMapel', fn($q) => $q->aktif())
+        $rataNilaiTugas = PengumpulanTugas::whereHas('tugas.kelasMapel', fn ($q) => $q->aktif())
             ->whereNotNull('nilai')
             ->avg('nilai');
 
         return Inertia::render('Kepsek/Statistik/Index', [
             'siswaPerKelas' => $siswaPerKelas->map(fn (Kelas $kelas) => [
                 'id' => $kelas->id,
-                'label' => trim(($kelas->tingkat ?? '') . ' ' . ($kelas->nama_kelas ?? '')) ?: '-',
+                'label' => trim(($kelas->tingkat ?? '').' '.($kelas->nama_kelas ?? '')) ?: '-',
                 'jumlah' => (int) $kelas->siswa_count,
             ]),
             'totalGuru' => $totalGuru,
@@ -87,14 +88,14 @@ class StatistikController extends Controller
             'totalKelas' => $totalKelas,
             'absensiBulanan' => $absensiBulanan->map(fn ($item) => [
                 'bulan' => $item->bulan,
-                'bulan_label' => \Carbon\Carbon::createFromFormat('Y-m', $item->bulan)->format('M Y'),
+                'bulan_label' => Carbon::createFromFormat('Y-m', $item->bulan)->format('M Y'),
                 'hadir' => (int) $item->hadir,
                 'total' => (int) $item->total,
                 'persentase' => (int) $item->total > 0 ? round(((int) $item->hadir / (int) $item->total) * 100, 1) : 0,
             ]),
             'pengumpulanBulanan' => $pengumpulanBulanan->map(fn ($item) => [
                 'bulan' => $item->bulan,
-                'bulan_label' => \Carbon\Carbon::createFromFormat('Y-m', $item->bulan)->format('M Y'),
+                'bulan_label' => Carbon::createFromFormat('Y-m', $item->bulan)->format('M Y'),
                 'total' => (int) $item->total,
                 'tepat_waktu' => max((int) $item->total - (int) $item->terlambat, 0),
                 'terlambat' => (int) $item->terlambat,

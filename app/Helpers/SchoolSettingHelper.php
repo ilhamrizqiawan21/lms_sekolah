@@ -1,13 +1,14 @@
 <?php
 
 use App\Models\SchoolSetting;
+use Illuminate\Support\Env;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 if (! function_exists('env')) {
     function env(string $key, mixed $default = null): mixed
     {
-        return Illuminate\Support\Env::get($key, $default);
+        return Env::get($key, $default);
     }
 }
 

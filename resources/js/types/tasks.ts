@@ -24,8 +24,8 @@ export interface AssignmentSubmission {
     catatan?: string | null;
     nilai_url: string;
     whatsapp_url?: string | null;
-    whatsapp_last_prepared_at?: string | null;
     whatsapp_last_sent_at?: string | null;
+    whatsapp_last_error?: string | null;
     penalty_terlambat?: number | string | null;
 }
 

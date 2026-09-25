@@ -22,7 +22,7 @@ class NotificationController extends Controller
             'unreadCount' => Notifikasi::where('user_id', Auth::id())
                 ->where('is_read', false)
                 ->count(),
-            'markAllReadUrl' => route($this->routePrefix() . '.mark-all-read'),
+            'markAllReadUrl' => route($this->routePrefix().'.mark-all-read'),
         ]);
     }
 
@@ -63,7 +63,7 @@ class NotificationController extends Controller
             'link' => $item->link,
             'is_read' => (bool) $item->is_read,
             'created_at' => $item->created_at ? Carbon::parse($item->created_at)->diffForHumans() : '-',
-            'mark_read_url' => route($this->routePrefix() . '.mark-read', $item),
+            'mark_read_url' => route($this->routePrefix().'.mark-read', $item),
         ];
     }
 

@@ -19,7 +19,8 @@ class TahunAjaranController extends Controller
             'tahunAjaran' => $tahunAjaran,
         ]);
     }
-    //Menyimpan Tahun Ajaran Baru
+
+    // Menyimpan Tahun Ajaran Baru
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -38,15 +39,16 @@ class TahunAjaranController extends Controller
         return redirect()->route('admin.tahun-ajaran.index')
             ->with('success', 'Tahun ajaran berhasil ditambahkan.');
     }
-    //Edit Tahun Ajaran
+
+    // Edit Tahun Ajaran
     public function update(Request $request, TahunAjaran $tahunAjaran)
     {
         $validated = $request->validate([
-            'tahun' => ['required', 'string', 'max:9', 'regex:/^\\d{4}\\/\\d{4}$/', 'unique:tahun_ajaran,tahun,' . $tahunAjaran->id],
+            'tahun' => ['required', 'string', 'max:9', 'regex:/^\\d{4}\\/\\d{4}$/', 'unique:tahun_ajaran,tahun,'.$tahunAjaran->id],
             'is_active' => 'boolean',
         ]);
 
-        if ($tahunAjaran->is_active && !$request->boolean('is_active')) {
+        if ($tahunAjaran->is_active && ! $request->boolean('is_active')) {
             return back()->withInput()->with('error', 'Tahun ajaran aktif tidak dapat dinonaktifkan tanpa mengaktifkan tahun ajaran pengganti.');
         }
 
@@ -54,7 +56,7 @@ class TahunAjaranController extends Controller
             $wasActive = $tahunAjaran->is_active;
             $tahunAjaran->update($validated);
 
-            if ($request->boolean('is_active') && !$wasActive) {
+            if ($request->boolean('is_active') && ! $wasActive) {
                 $this->aktifkanTahunAjaran($tahunAjaran);
             }
         });
@@ -62,7 +64,8 @@ class TahunAjaranController extends Controller
         return redirect()->route('admin.tahun-ajaran.index')
             ->with('success', 'Tahun ajaran berhasil diperbarui.');
     }
-    //Hapus Tahun Ajaran
+
+    // Hapus Tahun Ajaran
     public function destroy(TahunAjaran $tahunAjaran)
     {
         if ($tahunAjaran->is_active) {
@@ -74,10 +77,12 @@ class TahunAjaranController extends Controller
         }
 
         $tahunAjaran->delete();
+
         return redirect()->route('admin.tahun-ajaran.index')
             ->with('success', 'Tahun ajaran berhasil dihapus.');
     }
-    //Set Tahun Ajaran Aktif
+
+    // Set Tahun Ajaran Aktif
     public function setAktif(TahunAjaran $tahunAjaran)
     {
         DB::transaction(function () use ($tahunAjaran) {

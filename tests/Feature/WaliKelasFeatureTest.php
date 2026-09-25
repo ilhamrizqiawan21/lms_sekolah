@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\AbsensiWaliKelas;
 use App\Models\Kelas;
-use App\Models\PenangananSiswa;
 use App\Models\PertemuanWaliKelas;
 use App\Models\Role;
 use App\Models\Siswa;
@@ -86,21 +85,30 @@ class WaliKelasFeatureTest extends TestCase
 
     private function fixture(): array
     {
-        Role::create(['nama_role' => 'admin']); Role::create(['nama_role' => 'guru']); Role::create(['nama_role' => 'siswa']); Role::create(['nama_role' => 'kepala_sekolah']);
-        $admin = $this->createUser('admin', 'Admin', 'admin'); $guru = $this->createUser('guru', 'Guru Wali', 'guru'); $siswaUser = $this->createUser('siswa-user', 'User Siswa', 'siswa');
-        $kelas = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'A']); $tahunAjaran = TahunAjaran::create(['tahun' => '2026/2027', 'is_active' => true]);
+        Role::create(['nama_role' => 'admin']);
+        Role::create(['nama_role' => 'guru']);
+        Role::create(['nama_role' => 'siswa']);
+        Role::create(['nama_role' => 'kepala_sekolah']);
+        $admin = $this->createUser('admin', 'Admin', 'admin');
+        $guru = $this->createUser('guru', 'Guru Wali', 'guru');
+        $siswaUser = $this->createUser('siswa-user', 'User Siswa', 'siswa');
+        $kelas = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'A']);
+        $tahunAjaran = TahunAjaran::create(['tahun' => '2026/2027', 'is_active' => true]);
+
         return [$admin, $guru, $siswaUser, $kelas, $tahunAjaran];
     }
 
     private function createUser(string $username, string $namaLengkap, string $roleName): User
     {
         $role = Role::where('nama_role', $roleName)->firstOrFail();
+
         return User::create(['username' => $username, 'email' => "{$username}@test.local", 'password' => 'password', 'role_id' => $role->id, 'nama_lengkap' => $namaLengkap, 'is_active' => true]);
     }
 
     private function createSiswa(Kelas $kelas, string $nis, string $namaLengkap): Siswa
     {
         $user = $this->createUser("siswa-{$nis}", $namaLengkap, 'siswa');
+
         return Siswa::create(['user_id' => $user->id, 'nis' => $nis, 'kelas_id' => $kelas->id, 'status' => 'aktif']);
     }
 }

@@ -16,6 +16,6 @@ class NilaiServiceTest extends TestCase
             'sts' => 60,
         ]);
 
-        $this->assertSame(80.0, (new NilaiService())->hitungRataAkhir($nilai));
+        $this->assertSame(80.0, (new NilaiService)->hitungRataAkhir($nilai));
     }
 }

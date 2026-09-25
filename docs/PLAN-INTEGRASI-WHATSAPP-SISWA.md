@@ -278,6 +278,35 @@ Verifikasi endpoint pengingat menggunakan akun guru setelah deploy. Jangan
 menyalin `.env` demo ke domain utama tanpa mengganti `APP_URL`, kredensial
 database, dan cookie/session domain.
 
+## Status Audit 24 September 2026 — Semi-otomatis via Meta WhatsApp Cloud API
+
+Alur MVP manual (`wa.me` + tandai sudah dikirim manual) **sudah pensiun**. Tombol
+"Kirim WhatsApp" sekarang mengirim pesan sungguhan secara sinkron melalui Meta
+WhatsApp Cloud API resmi saat guru klik — guru tetap yang memutuskan kapan
+mengirim (semi-otomatis), tapi tidak lagi perlu berpindah ke WhatsApp pribadi.
+Rute `guru.tugas.whatsapp` berubah dari GET (siapkan saja) menjadi POST
+(siapkan dan kirim langsung); rute `mark-sent` dan `send-queue` beserta job
+`SendWhatsAppReminderJob` dan gate `manage-whatsapp-log` telah dihapus karena
+tidak lagi relevan dengan alur sinkron ini.
+
+Detail teknis:
+
+- Transport: `App\Services\WhatsApp\MetaCloudApiClient`, dipanggil dari
+  `WhatsAppService::sendPreparedMessage()`.
+- Template Meta: satu template generik (`lms_pengingat_umum`, kategori
+  UTILITY) dengan satu parameter teks — menampung pesan yang sama seperti
+  sebelumnya (termasuk override admin via Pengaturan), bukan template
+  per-jenis pesan. Ini mempertahankan fitur admin bisa mengedit teks pesan.
+- `whatsapp_message_logs` bertambah kolom `status` (`pending`/`sent`/`failed`),
+  `wamid` (id pesan dari Meta), `error_code`, `error_message` — `sent_marked_at`
+  sekarang hanya diisi berdasarkan hasil nyata dari Meta, bukan konfirmasi
+  manual guru.
+- Biaya API ditanggung pribadi oleh pemilik project (bukan sekolah); provider
+  dipilih Meta Cloud API resmi (bukan gateway pihak ketiga tidak resmi) demi
+  legitimasi, meski setup lebih rumit (perlu verifikasi bisnis + approval
+  template Meta sebelum bisa dipakai — proses di luar codebase).
+- Scope fase ini hanya jenis pesan `tugas_terlambat` yang sudah ada sebelumnya.
+
 ## 11. Kriteria Selesai MVP
 
 - Guru dapat melihat daftar siswa yang belum mengumpulkan tugas.
@@ -291,12 +320,16 @@ database, dan cookie/session domain.
 
 ## 12. Pengembangan Berikutnya
 
-Jika MVP sudah stabil, fitur dapat ditingkatkan menjadi:
+✅ **WhatsApp Business Cloud API** — selesai untuk jenis pesan `tugas_terlambat`
+(lihat "Status Audit 24 September 2026"). Masih ditunda:
 
-- pengingat terjadwal;
-- notifikasi otomatis;
-- webhook status pesan;
-- WhatsApp Business Cloud API;
+- pengingat/kirim otomatis terjadwal tanpa klik guru (full-otomatis — perlu
+  desain rate-limit & jadwal terpisah, sengaja tidak dikerjakan bersamaan
+  dengan fase semi-otomatis di atas);
+- webhook status pesan (terkirim/dibaca) — `wamid` sudah disimpan sebagai
+  fondasinya, tapi belum ada endpoint webhook Meta yang mengonsumsinya;
 - dashboard delivery rate;
 - pengaturan batas jumlah pengingat;
-- integrasi nomor orang tua secara opsional.
+- integrasi nomor orang tua secara opsional;
+- 3 jenis template pesan lain yang sudah didokumentasikan di §4 tapi belum
+  dibangun: `belum_dikumpulkan`, `nilai_tersedia`, `tugas_baru`.

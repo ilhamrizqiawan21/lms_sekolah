@@ -22,7 +22,7 @@ final class NilaiExportService
 
         [$writer, $path] = $this->excel->open('rekap_nilai_', 3 + $mapel->count() + 1);
         $this->excel->header($writer, 'REKAP NILAI', [...$context->school, 'academic_year' => $context->academicYearLabel(), 'semester_label' => $context->semesterLabel()], "Kelas {$kelas->tingkat} {$kelas->nama_kelas}");
-        $this->excel->tableHeader($writer, array_merge(['No','NIS','Nama'], $mapel->pluck('nama_mapel')->toArray(), ['Rata-rata']));
+        $this->excel->tableHeader($writer, array_merge(['No', 'NIS', 'Nama'], $mapel->pluck('nama_mapel')->toArray(), ['Rata-rata']));
 
         foreach ($siswa as $i => $student) {
             $studentValues = $nilai->get($student->id, collect());
@@ -35,6 +35,7 @@ final class NilaiExportService
             $average = count($valid) ? round(array_sum($valid) / count($valid), 2) : '';
             $this->excel->dataRow($writer, array_merge([$i + 1, $student->nis, $student->user?->nama_lengkap ?? '-'], $values, [$average]), $i);
         }
+
         return $this->excel->close($writer, $path, "rekap_nilai_{$kelas->tingkat}_{$kelas->nama_kelas}_semester_{$semester}.xlsx");
     }
 

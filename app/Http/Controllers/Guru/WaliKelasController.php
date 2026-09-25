@@ -24,7 +24,7 @@ class WaliKelasController extends Controller
             ->withCount([
                 'absensi',
                 'pertemuan',
-                'penangananSiswa as penanganan_aktif_count' => fn($q) => $q->whereIn('status', ['baru', 'proses']),
+                'penangananSiswa as penanganan_aktif_count' => fn ($q) => $q->whereIn('status', ['baru', 'proses']),
             ])
             ->first();
 
@@ -91,8 +91,8 @@ class WaliKelasController extends Controller
         ]);
 
         $validTanggal = collect($this->schoolDays($validated['bulan']))
-            ->map(fn(Carbon $date) => $date->format('Y-m-d'));
-        $validSiswaIds = $this->siswaAktif($waliKelas)->pluck('id')->map(fn($id) => (string) $id);
+            ->map(fn (Carbon $date) => $date->format('Y-m-d'));
+        $validSiswaIds = $this->siswaAktif($waliKelas)->pluck('id')->map(fn ($id) => (string) $id);
         $absensiInput = $validated['absensi'] ?? [];
 
         if (collect(array_keys($absensiInput))->diff($validSiswaIds)->isNotEmpty()) {
@@ -103,7 +103,7 @@ class WaliKelasController extends Controller
 
         foreach ($absensiInput as $siswaId => $tanggalData) {
             foreach ($tanggalData as $tanggal => $status) {
-                if (!$validTanggal->contains($tanggal)) {
+                if (! $validTanggal->contains($tanggal)) {
                     throw ValidationException::withMessages([
                         'absensi' => 'Data absensi berisi tanggal di luar hari sekolah bulan ini.',
                     ]);
@@ -115,8 +115,9 @@ class WaliKelasController extends Controller
                     'tanggal' => $tanggal,
                 ];
 
-                if (!$status) {
+                if (! $status) {
                     AbsensiWaliKelas::where($scope)->delete();
+
                     continue;
                 }
 
@@ -197,7 +198,7 @@ class WaliKelasController extends Controller
             ],
             'siswaOptions' => $siswaList->map(fn (Siswa $siswa) => [
                 'value' => $siswa->id,
-                'label' => "{$siswa->nis} - " . ($siswa->user?->nama_lengkap ?? '-'),
+                'label' => "{$siswa->nis} - ".($siswa->user?->nama_lengkap ?? '-'),
             ])->values(),
             'penanganan' => $penanganan->through(fn (PenangananSiswa $item) => [
                 'id' => $item->id,
@@ -273,7 +274,7 @@ class WaliKelasController extends Controller
     {
         $year = (int) substr($bulan, 0, 4);
         $startYear = (int) substr((string) $waliKelas->tahunAjaran?->tahun, 0, 4);
-        if (!$startYear) {
+        if (! $startYear) {
             $monthNumber = (int) substr($bulan, 5, 2);
             $startYear = $monthNumber >= 7 ? $year : $year - 1;
         }
@@ -333,7 +334,7 @@ class WaliKelasController extends Controller
             ->where('status', 'aktif')
             ->exists();
 
-        if (!$isSiswaKelas) {
+        if (! $isSiswaKelas) {
             throw ValidationException::withMessages([
                 'siswa_id' => 'Siswa tidak termasuk kelas wali ini.',
             ]);

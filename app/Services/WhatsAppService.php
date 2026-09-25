@@ -7,10 +7,13 @@ use App\Models\PengumpulanTugas;
 use App\Models\Siswa;
 use App\Models\Tugas;
 use App\Models\WhatsAppMessageLog;
+use App\Services\WhatsApp\MetaCloudApiClient;
 use App\Support\WhatsAppPhone;
 
 class WhatsAppService
 {
+    public function __construct(private readonly MetaCloudApiClient $metaClient) {}
+
     public function prepareLateTaskMessage(Siswa $siswa, Tugas $currentTask, int $guruId): array
     {
         $phone = WhatsAppPhone::normalize((string) $siswa->nomor_whatsapp);
@@ -46,34 +49,40 @@ class WhatsAppService
         return ['url' => 'https://wa.me/'.$phone.'?text='.rawurlencode($message), 'log_id' => $log->id, 'message' => $message];
     }
 
-    public function dispatchReminderJob(int $logId, string $phone, string $message): void
+    /**
+     * Kirim pesan yang sudah disiapkan (prepareLateTaskMessage) secara sinkron via
+     * Meta Cloud API, lalu perbarui WhatsAppMessageLog sesuai hasil nyata dari Meta
+     * (bukan lagi berdasarkan konfirmasi manual guru).
+     *
+     * @return array{success: bool, error_message: ?string}
+     */
+    public function sendPreparedMessage(int $logId, string $phone, string $message): array
     {
-        \App\Jobs\SendWhatsAppReminderJob::dispatch($logId, $phone, $message);
-    }
+        $result = $this->metaClient->sendTemplateMessage(
+            $phone,
+            (string) config('services.whatsapp.template_name'),
+            (string) config('services.whatsapp.template_language'),
+            $message
+        );
 
-    public function sendDirectMessage(string $phone, string $message): bool
-    {
-        $gatewayUrl = config('services.whatsapp.gateway_url');
-        $apiKey = config('services.whatsapp.api_key');
+        $log = WhatsAppMessageLog::find($logId);
 
-        // Jika gateway belum dikonfigurasi (default/MVP), lakukan log sebagai mock gateway berhasil
-        if (blank($gatewayUrl) || blank($apiKey)) {
-            \Illuminate\Support\Facades\Log::info("WhatsApp Simulated Send to {$phone}: {$message}");
-            return true;
+        if ($log) {
+            $log->update($result['success']
+                ? [
+                    'status' => 'sent',
+                    'wamid' => $result['message_id'],
+                    'sent_marked_at' => now(),
+                    'error_code' => null,
+                    'error_message' => null,
+                ]
+                : [
+                    'status' => 'failed',
+                    'error_code' => $result['error_code'],
+                    'error_message' => $result['error_message'],
+                ]);
         }
 
-        try {
-            $response = \Illuminate\Support\Facades\Http::withHeaders([
-                'Authorization' => $apiKey,
-            ])->timeout(10)->post($gatewayUrl, [
-                'target' => $phone,
-                'message' => $message,
-            ]);
-
-            return $response->successful();
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("WhatsApp send error to {$phone}: " . $e->getMessage());
-            return false;
-        }
+        return ['success' => $result['success'], 'error_message' => $result['error_message']];
     }
 }

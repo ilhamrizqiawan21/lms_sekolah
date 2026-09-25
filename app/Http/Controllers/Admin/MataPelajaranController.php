@@ -49,7 +49,7 @@ class MataPelajaranController extends Controller
     public function update(Request $request, MataPelajaran $mataPelajaran)
     {
         $validated = $request->validate([
-            'kode' => 'required|string|max:10|unique:mata_pelajaran,kode,' . $mataPelajaran->id,
+            'kode' => 'required|string|max:10|unique:mata_pelajaran,kode,'.$mataPelajaran->id,
             'nama_mapel' => 'required|string|max:100',
             'urutan' => 'nullable|integer|min:0',
         ]);
@@ -70,6 +70,7 @@ class MataPelajaranController extends Controller
         }
 
         $mataPelajaran->delete();
+
         return redirect()->route('admin.mata-pelajaran.index')
             ->with('success', 'Mata pelajaran berhasil dihapus.');
     }

@@ -4,13 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class KelasDaring extends Model
 {
     protected $table = 'kelas_daring';
 
     public const STATUS_TERJADWAL = 'terjadwal';
+
     public const STATUS_SELESAI = 'selesai';
+
     public const STATUS_DIBATALKAN = 'dibatalkan';
 
     protected $fillable = [
@@ -39,7 +42,7 @@ class KelasDaring extends Model
         return $this->belongsTo(KelasMapel::class, 'kelas_mapel_id');
     }
 
-    public function absensis(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function absensis(): HasMany
     {
         return $this->hasMany(Absensi::class, 'kelas_daring_id');
     }

@@ -31,7 +31,7 @@ class SiswaTemplateService
         $kelasList = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
         $contohKelas = $kelasList->first();
 
-        $writer = new Writer();
+        $writer = new Writer;
         $writer->openToFile($filePath);
 
         $templateSheet = $writer->getCurrentSheet();
@@ -46,7 +46,7 @@ class SiswaTemplateService
         $templateSheet->setColumnWidth(14, 8);
         $templateSheet->setColumnWidth(14, 9);
 
-        $headerStyle = (new Style())->setFontBold()->setHorizontalAlignment(CellAlignment::CENTER);
+        $headerStyle = (new Style)->setFontBold()->setHorizontalAlignment(CellAlignment::CENTER);
         $writer->addRow(Row::fromValuesWithStyle(self::HEADERS, $headerStyle, 20));
         $writer->addRow(Row::fromValues([
             'siswa001',

@@ -76,7 +76,7 @@ class LoginController extends Controller
 
         $username = $request->input('username');
         $ip = $request->ip();
-        $throttleKey = Str::lower($username . '|' . $ip);
+        $throttleKey = Str::lower($username.'|'.$ip);
         // Keep a second, account-based bucket so a distributed attack cannot
         // bypass the per-IP limit by rotating source addresses.
         $accountThrottleKey = 'login-account:'.sha1(Str::lower(trim($username)));
@@ -95,7 +95,7 @@ class LoginController extends Controller
         if (Auth::attempt([$loginField => $username, 'password' => $request->password], $request->filled('remember'))) {
             $user = Auth::user();
 
-            if (!$user->is_active) {
+            if (! $user->is_active) {
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
@@ -177,7 +177,7 @@ class LoginController extends Controller
             return false;
         }
 
-        $path = '/' . ltrim((string) ($parts['path'] ?? ''), '/');
+        $path = '/'.ltrim((string) ($parts['path'] ?? ''), '/');
 
         return match ($role) {
             'admin' => str_starts_with($path, '/admin'),

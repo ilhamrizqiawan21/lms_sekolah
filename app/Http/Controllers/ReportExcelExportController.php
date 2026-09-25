@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Reports\Exports\AbsensiExportService;
+use App\Models\Pengaturan;
 use App\Services\Reports\Exports\NilaiExportService;
 use App\Services\Reports\Exports\TugasExportService;
-use App\Models\Pengaturan;
 use Illuminate\Http\Request;
 
 final class ReportExcelExportController extends Controller
 {
     public function __construct(
         private readonly NilaiExportService $nilai,
-        private readonly AbsensiExportService $absensi,
         private readonly TugasExportService $tugas,
     ) {}
 
@@ -20,6 +18,7 @@ final class ReportExcelExportController extends Controller
     {
         $filters = $this->filters($request);
         [$path, $filename] = $this->nilai->export($filters['kelas_id'], $filters['semester']);
+
         return response()->download($path, $filename)->deleteFileAfterSend(true);
     }
 
@@ -27,13 +26,14 @@ final class ReportExcelExportController extends Controller
     {
         // kelas_id/bulan kosong berarti "Semua Kelas"/"Semua Bulan" — didelegasikan ke
         // ExportController::excelAbsensi() yang menangani kedua mode (single & multi-section).
-        return $exportController->excelAbsensi($request, $this->absensi);
+        return $exportController->excelAbsensi($request);
     }
 
     public function tugas(Request $request)
     {
         $filters = $this->filters($request);
         [$path, $filename] = $this->tugas->export($filters['kelas_id'], $filters['semester']);
+
         return response()->download($path, $filename)->deleteFileAfterSend(true);
     }
 
@@ -43,7 +43,9 @@ final class ReportExcelExportController extends Controller
             'kelas_id' => ['required', 'integer', 'exists:kelas,id'],
             'semester' => ['nullable', 'in:1,2'],
         ];
-        if ($withMonth) $rules['bulan'] = ['nullable', 'date_format:Y-m'];
+        if ($withMonth) {
+            $rules['bulan'] = ['nullable', 'date_format:Y-m'];
+        }
 
         $validated = $request->validate($rules);
 

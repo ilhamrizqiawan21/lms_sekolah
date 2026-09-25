@@ -61,18 +61,41 @@ function statusLabel(status: SubmissionStatus): string {
     return statusMap[status]?.label ?? (status ? status.replace(/\b\w/g, (char) => char.toUpperCase()) : '-');
 }
 
-async function prepareWhatsApp(item: AssignmentSubmission): Promise<void> {
-    if (!item.whatsapp_url) return;
-    const response = await fetch(item.whatsapp_url, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
-    if (!response.ok) {
-        const error = await response.json().catch(() => null) as { message?: string } | null;
-        window.showToast?.(error?.message ?? 'Nomor WhatsApp belum valid atau belum disetujui.', 'error');
-        return;
+const sendingWhatsApp = ref<Set<string | number>>(new Set());
+
+function isSendingWhatsApp(item: AssignmentSubmission): boolean {
+    return sendingWhatsApp.value.has(item.key);
+}
+
+async function sendWhatsApp(item: AssignmentSubmission): Promise<void> {
+    if (!item.whatsapp_url || isSendingWhatsApp(item)) return;
+    sendingWhatsApp.value.add(item.key);
+
+    try {
+        const response = await fetch(item.whatsapp_url, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+
+        const data = await response.json().catch(() => ({})) as { success?: boolean; error_message?: string; message?: string };
+
+        if (!response.ok || !data.success) {
+            window.showToast?.(data.error_message ?? data.message ?? 'Pesan WhatsApp gagal dikirim.', 'error');
+            return;
+        }
+
+        window.showToast?.(`Terkirim ke ${item.siswa}`, 'success');
+        router.reload({ only: ['pengumpulan'] });
+    } catch {
+        window.showToast?.('Pesan WhatsApp gagal dikirim. Periksa koneksi lalu coba lagi.', 'error');
+    } finally {
+        sendingWhatsApp.value.delete(item.key);
     }
-    const data = await response.json() as { url: string; log_id: number };
-    window.open(data.url, '_blank', 'noopener,noreferrer');
-    const confirmed = await window.confirmDialog?.('Sudah menekan tombol kirim di WhatsApp?', { title: 'Tandai Pengingat', confirmText: 'Ya, sudah dikirim' });
-    if (confirmed) router.post(`/guru/tugas/whatsapp/${data.log_id}/mark-sent`, {}, { preserveScroll: true });
 }
 </script>
 
@@ -148,8 +171,9 @@ async function prepareWhatsApp(item: AssignmentSubmission): Promise<void> {
                             :item="item"
                             :status-color="statusColor"
                             :status-label="statusLabel"
+                            :whatsapp-sending="isSendingWhatsApp(item)"
                             @detail="detail = item"
-                            @whatsapp="prepareWhatsApp(item)"
+                            @whatsapp="sendWhatsApp(item)"
                         />
                     </tbody>
                 </table>
@@ -188,7 +212,7 @@ async function prepareWhatsApp(item: AssignmentSubmission): Promise<void> {
                         </Button>
                     </div>
                     <div class="mt-3">
-                        <Button v-if="item.whatsapp_url" type="button" color="success" size="sm" class="mb-2" @click="prepareWhatsApp(item)"><i class="bi bi-whatsapp me-1" aria-hidden="true"></i>Kirim WhatsApp</Button>
+                        <Button v-if="item.whatsapp_url" type="button" color="success" size="sm" class="mb-2" :disabled="isSendingWhatsApp(item)" @click="sendWhatsApp(item)"><i class="bi bi-whatsapp me-1" aria-hidden="true"></i>{{ isSendingWhatsApp(item) ? 'Mengirim...' : 'Kirim WhatsApp' }}</Button>
                         <SubmissionGradeForm :item="item" />
                     </div>
                 </div>

@@ -10,6 +10,7 @@ class AcademicAuditLog extends Model
     protected $table = 'academic_audit_logs';
 
     const CREATED_AT = 'created_at';
+
     const UPDATED_AT = null;
 
     protected $fillable = [

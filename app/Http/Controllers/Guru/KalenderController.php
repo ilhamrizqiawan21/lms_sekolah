@@ -8,7 +8,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-//Sama dengan Admin\KalenderController, namun ini untuk guru
+
+// Sama dengan Admin\KalenderController, namun ini untuk guru
 class KalenderController extends Controller
 {
     public function index(Request $request)
@@ -27,10 +28,10 @@ class KalenderController extends Controller
 
         $monthEvents = CalendarEvent::whereYear('event_date', $year)
             ->whereMonth('event_date', $month)
-            ->where(fn($q) => $q->where('scope', 'school')->orWhere('user_id', auth()->id()))
+            ->where(fn ($q) => $q->where('scope', 'school')->orWhere('user_id', auth()->id()))
             ->orderBy('event_date')
             ->get();
-        $events = $monthEvents->groupBy(fn($event) => $event->event_date->format('Y-m-d'));
+        $events = $monthEvents->groupBy(fn ($event) => $event->event_date->format('Y-m-d'));
 
         $prevMonth = $firstDay->copy()->subMonth();
         $nextMonth = $firstDay->copy()->addMonth();
@@ -52,7 +53,7 @@ class KalenderController extends Controller
                 $index = $row * 7 + $col;
                 $cellDate = null;
 
-                if ($index >= $startDayOfWeek && !$done && $day <= $daysInMonth) {
+                if ($index >= $startDayOfWeek && ! $done && $day <= $daysInMonth) {
                     $cellDate = sprintf('%04d-%02d-%02d', $year, $month, $day);
                     $day++;
                 } elseif ($day > $daysInMonth) {
@@ -79,7 +80,7 @@ class KalenderController extends Controller
                 'year' => $year,
                 'month' => $month,
                 'month_label' => $bulanIndo[(int) $month],
-                'title' => $bulanIndo[(int) $month] . ' ' . $year,
+                'title' => $bulanIndo[(int) $month].' '.$year,
                 'today' => $today,
                 'today_url' => route('guru.kalender', ['year' => now()->year, 'month' => now()->month]),
                 'prev_url' => route('guru.kalender', ['year' => $prevMonth->year, 'month' => $prevMonth->month]),
@@ -145,6 +146,7 @@ class KalenderController extends Controller
             abort(403);
         }
         $calendarEvent->delete();
+
         return back()->with('success', 'Event berhasil dihapus.');
     }
 

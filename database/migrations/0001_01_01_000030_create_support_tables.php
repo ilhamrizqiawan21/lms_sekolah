@@ -126,7 +126,7 @@ return new class extends Migration
 
         // Add generated column for nilai_akhir.rata_akhir (MySQL only)
         if (DB::getDriverName() === 'mysql') {
-            DB::statement("
+            DB::statement('
                 ALTER TABLE nilai_akhir
                 ADD COLUMN rata_akhir DECIMAL(5,2)
                 GENERATED ALWAYS AS (
@@ -151,7 +151,7 @@ return new class extends Migration
                         (CASE WHEN sat IS NOT NULL THEN 1 ELSE 0 END)
                     ), 0)
                 ) STORED
-            ");
+            ');
         }
     }
 

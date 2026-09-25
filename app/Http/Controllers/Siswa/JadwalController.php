@@ -47,7 +47,7 @@ class JadwalController extends Controller
 
         return Inertia::render('Siswa/Jadwal/Index', [
             'kelas' => [
-                'nama' => trim(($siswa->kelas?->tingkat ? $siswa->kelas->tingkat . ' ' : '') . ($siswa->kelas?->nama_kelas ?? '-')),
+                'nama' => trim(($siswa->kelas?->tingkat ? $siswa->kelas->tingkat.' ' : '').($siswa->kelas?->nama_kelas ?? '-')),
             ],
             'days' => $days,
             'summary' => [
@@ -101,11 +101,11 @@ class JadwalController extends Controller
 
         return Inertia::render('Siswa/KelasDaring/Index', [
             'kelas' => [
-                'nama' => trim(($siswa->kelas?->tingkat ? $siswa->kelas->tingkat . ' ' : '') . ($siswa->kelas?->nama_kelas ?? '-')),
+                'nama' => trim(($siswa->kelas?->tingkat ? $siswa->kelas->tingkat.' ' : '').($siswa->kelas?->nama_kelas ?? '-')),
             ],
             'courses' => $kelasMapel->map(fn (KelasMapel $item) => [
                 'id' => $item->id,
-                'label' => ($item->mataPelajaran?->nama_mapel ?? '-') . ' - ' . ($item->guru?->nama_lengkap ?? 'Guru belum ditetapkan'),
+                'label' => ($item->mataPelajaran?->nama_mapel ?? '-').' - '.($item->guru?->nama_lengkap ?? 'Guru belum ditetapkan'),
                 'url' => route('siswa.kelas-daring', ['kelas_mapel_id' => $item->id]),
             ])->values(),
             'selectedCourseId' => $selectedCourseId,

@@ -36,8 +36,11 @@ return [
     ],
 
     'whatsapp' => [
-        'gateway_url' => env('WHATSAPP_GATEWAY_URL'),
-        'api_key' => env('WHATSAPP_API_KEY'),
+        'api_version' => env('WHATSAPP_API_VERSION', 'v21.0'),
+        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+        'access_token' => env('WHATSAPP_ACCESS_TOKEN'),
+        'template_name' => env('WHATSAPP_TEMPLATE_NAME', 'lms_pengingat_umum'),
+        'template_language' => env('WHATSAPP_TEMPLATE_LANGUAGE', 'id'),
     ],
 
 ];

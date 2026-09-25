@@ -118,7 +118,7 @@ class GuruPerformanceService
             'persen_feedback' => round($feedbackScore, 1),
             'aktivitas_tugas' => round($activityScore, 1),
             'rata_hari_penilaian' => $avgGradeDays,
-            'courses' => $kelasMapel->map(fn (KelasMapel $item) => trim(($item->kelas?->nama_kelas ?? '-') . ' - ' . ($item->mataPelajaran?->nama_mapel ?? '-')))->values(),
+            'courses' => $kelasMapel->map(fn (KelasMapel $item) => trim(($item->kelas?->nama_kelas ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-')))->values(),
         ];
     }
 
@@ -150,9 +150,15 @@ class GuruPerformanceService
                 ->count();
 
             $reasons = [];
-            if ($missingTasks >= 3) $reasons[] = "{$missingTasks} tugas belum dikumpulkan";
-            if ($averageGrade !== null && (float) $averageGrade < 75) $reasons[] = 'rata-rata nilai di bawah 75';
-            if ($alphaCount >= 3) $reasons[] = "{$alphaCount} alpha dalam 60 hari";
+            if ($missingTasks >= 3) {
+                $reasons[] = "{$missingTasks} tugas belum dikumpulkan";
+            }
+            if ($averageGrade !== null && (float) $averageGrade < 75) {
+                $reasons[] = 'rata-rata nilai di bawah 75';
+            }
+            if ($alphaCount >= 3) {
+                $reasons[] = "{$alphaCount} alpha dalam 60 hari";
+            }
 
             if ($reasons === []) {
                 return null;
@@ -162,7 +168,7 @@ class GuruPerformanceService
                 'id' => $student->id,
                 'nama' => $student->user?->nama_lengkap ?? $student->nis,
                 'nis' => $student->nis,
-                'kelas' => trim(($student->kelas?->tingkat ? $student->kelas->tingkat . ' ' : '') . ($student->kelas?->nama_kelas ?? '-')),
+                'kelas' => trim(($student->kelas?->tingkat ? $student->kelas->tingkat.' ' : '').($student->kelas?->nama_kelas ?? '-')),
                 'reasons' => implode(', ', $reasons),
                 'missing_tasks' => $missingTasks,
                 'alpha_count' => $alphaCount,

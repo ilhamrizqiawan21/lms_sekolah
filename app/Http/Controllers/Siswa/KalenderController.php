@@ -27,7 +27,7 @@ class KalenderController extends Controller
 
         $monthEvents = CalendarEvent::whereYear('event_date', $year)
             ->whereMonth('event_date', $month)
-            ->where(fn($q) => $q->where('scope', 'school')->orWhere('user_id', auth()->id()))
+            ->where(fn ($q) => $q->where('scope', 'school')->orWhere('user_id', auth()->id()))
             ->orderBy('event_date')->get();
         $prevMonth = $firstDay->copy()->subMonth();
         $nextMonth = $firstDay->copy()->addMonth();
@@ -58,7 +58,7 @@ class KalenderController extends Controller
                 $index = $row * 7 + $col;
                 $cellDate = null;
 
-                if ($index >= $startDayOfWeek && !$done && $day <= $daysInMonth) {
+                if ($index >= $startDayOfWeek && ! $done && $day <= $daysInMonth) {
                     $cellDate = sprintf('%04d-%02d-%02d', $year, $month, $day);
                     $day++;
                 } elseif ($day > $daysInMonth) {
@@ -85,7 +85,7 @@ class KalenderController extends Controller
                 'year' => $year,
                 'month' => $month,
                 'month_label' => $bulanIndo[(int) $month],
-                'title' => $bulanIndo[(int) $month] . ' ' . $year,
+                'title' => $bulanIndo[(int) $month].' '.$year,
                 'today' => $today,
                 'today_url' => route('siswa.kalender', ['year' => now()->year, 'month' => now()->month]),
                 'prev_url' => route('siswa.kalender', ['year' => $prevMonth->year, 'month' => $prevMonth->month]),

@@ -20,7 +20,7 @@ class GuruPerformanceExportController extends Controller
             $excel->dataRow($writer, $row, $index);
         }
 
-        [$path, $filename] = $excel->close($writer, $path, 'performa_guru_' . now()->format('Ymd_His') . '.xlsx');
+        [$path, $filename] = $excel->close($writer, $path, 'performa_guru_'.now()->format('Ymd_His').'.xlsx');
 
         return response()->download($path, $filename)->deleteFileAfterSend(true);
     }
@@ -41,7 +41,7 @@ class GuruPerformanceExportController extends Controller
             ],
         ])->setPaper('a4', 'landscape');
 
-        return $pdf->download('performa_guru_' . now()->format('Ymd_His') . '.pdf');
+        return $pdf->download('performa_guru_'.now()->format('Ymd_His').'.pdf');
     }
 
     private function rows(GuruPerformanceService $service): array
@@ -55,9 +55,9 @@ class GuruPerformanceExportController extends Controller
                 $teacher['kategori'],
                 $teacher['total_kelas_mapel'],
                 $teacher['total_tugas'],
-                $teacher['persen_pengumpulan'] . '%',
-                $teacher['persen_dinilai'] . '%',
-                $teacher['persen_feedback'] . '%',
+                $teacher['persen_pengumpulan'].'%',
+                $teacher['persen_dinilai'].'%',
+                $teacher['persen_feedback'].'%',
                 $teacher['rata_nilai_tugas'] ?? '-',
             ])
             ->all();

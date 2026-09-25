@@ -19,13 +19,14 @@ class ProfilController extends Controller
                 'nis' => $user->siswa?->nis ?? '-',
                 'nama_lengkap' => $user->nama_lengkap,
                 'username' => $user->username,
-                'kelas' => trim(($user->siswa?->kelas?->tingkat ?? '') . ' ' . ($user->siswa?->kelas?->nama_kelas ?? '')) ?: '-',
+                'kelas' => trim(($user->siswa?->kelas?->tingkat ?? '').' '.($user->siswa?->kelas?->nama_kelas ?? '')) ?: '-',
                 'status' => $user->siswa?->status ?? '-',
             ],
             'updateUrl' => route('siswa.profil.update'),
         ]);
     }
-    //Update username dan password siswa
+
+    // Update username dan password siswa
     public function update(Request $request)
     {
         $user = Auth::user();

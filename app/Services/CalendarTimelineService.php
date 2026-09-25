@@ -60,7 +60,7 @@ class CalendarTimelineService
             $query->whereHas('kelasMapel', fn ($q) => $q->where('guru_id', $user->id));
         } elseif ($user->isSiswa()) {
             $kelasId = $user->siswa?->kelas_id;
-            if (!$kelasId) {
+            if (! $kelasId) {
                 return collect();
             }
             $query->whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $kelasId));

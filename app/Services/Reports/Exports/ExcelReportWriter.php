@@ -18,9 +18,10 @@ final class ExcelReportWriter
     public function open(string $prefix, int $columnCount): array
     {
         $path = tempnam(sys_get_temp_dir(), $prefix);
-        $writer = new Writer();
+        $writer = new Writer;
         $writer->openToFile($path);
         $this->prepareWorksheet($writer, $columnCount);
+
         return [$writer, $path];
     }
 
@@ -55,6 +56,7 @@ final class ExcelReportWriter
     public function close(Writer $writer, string $path, string $filename): array
     {
         $writer->close();
+
         return [$path, $filename];
     }
 
@@ -74,13 +76,14 @@ final class ExcelReportWriter
             new BorderPart(BorderName::LEFT, Color::GRAY, BorderWidth::THIN),
             new BorderPart(BorderName::RIGHT, Color::GRAY, BorderWidth::THIN),
         );
+
         return [
-            'school' => (new Style())->setFontBold()->setFontSize(16)->setHorizontalAlignment(CellAlignment::CENTER)->setVerticalAlignment(CellVerticalAlignment::CENTER),
-            'title' => (new Style())->setFontBold()->setFontSize(13)->setHorizontalAlignment(CellAlignment::CENTER)->setVerticalAlignment(CellVerticalAlignment::CENTER),
-            'meta' => (new Style())->setFontSize(10)->setBorder($border),
-            'tableHeader' => (new Style())->setFontBold()->setFontSize(10)->setBorder($border)->setHorizontalAlignment(CellAlignment::CENTER)->setVerticalAlignment(CellVerticalAlignment::CENTER),
-            'row' => (new Style())->setFontSize(10)->setBorder($border),
-            'alternateRow' => (new Style())->setFontSize(10)->setBorder($border),
+            'school' => (new Style)->setFontBold()->setFontSize(16)->setHorizontalAlignment(CellAlignment::CENTER)->setVerticalAlignment(CellVerticalAlignment::CENTER),
+            'title' => (new Style)->setFontBold()->setFontSize(13)->setHorizontalAlignment(CellAlignment::CENTER)->setVerticalAlignment(CellVerticalAlignment::CENTER),
+            'meta' => (new Style)->setFontSize(10)->setBorder($border),
+            'tableHeader' => (new Style)->setFontBold()->setFontSize(10)->setBorder($border)->setHorizontalAlignment(CellAlignment::CENTER)->setVerticalAlignment(CellVerticalAlignment::CENTER),
+            'row' => (new Style)->setFontSize(10)->setBorder($border),
+            'alternateRow' => (new Style)->setFontSize(10)->setBorder($border),
         ];
     }
 }

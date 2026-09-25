@@ -25,14 +25,15 @@ class ProfilController extends Controller
             'updateUrl' => route('guru.profil.update'),
         ]);
     }
-    //Edit profil siswa atau guru
+
+    // Edit profil siswa atau guru
     public function update(Request $request)
     {
         $user = Auth::user();
 
         $validated = $request->validate([
             'nama_lengkap' => 'required|string|max:100',
-            'username' => 'required|string|max:50|unique:users,username,' . $user->id,
+            'username' => 'required|string|max:50|unique:users,username,'.$user->id,
             'nip_nis' => 'nullable|string|max:50',
             'current_password' => 'required_with:password|current_password',
             'password' => 'nullable|string|min:8|confirmed',

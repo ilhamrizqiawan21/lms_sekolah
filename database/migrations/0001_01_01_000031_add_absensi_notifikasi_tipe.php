@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -28,7 +27,7 @@ return new class extends Migration
                 // Preserve existing values, add new types
                 DB::statement("ALTER TABLE notifikasi MODIFY COLUMN tipe VARCHAR(50) NOT NULL DEFAULT 'tugas_baru'");
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Table may not exist yet — that's fine, the original migration handles creation.
         }
     }

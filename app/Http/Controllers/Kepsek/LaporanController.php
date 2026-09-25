@@ -18,8 +18,9 @@ use App\Models\WaliKelas;
 use App\Services\AbsensiService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
+
 // Laporan Nilai, Sikap, Tugas, dan Absensi untuk Kepala Sekolah
 class LaporanController extends Controller
 {
@@ -37,7 +38,7 @@ class LaporanController extends Controller
             ->get();
 
         $query = Absensi::with(['siswa.user', 'kelasMapel.kelas', 'kelasMapel.mataPelajaran'])
-            ->whereHas('kelasMapel', fn($q) => $q->aktif());
+            ->whereHas('kelasMapel', fn ($q) => $q->aktif());
 
         if ($request->filled('kelas_mapel_id')) {
             $query->where('kelas_mapel_id', $request->kelas_mapel_id);
@@ -67,7 +68,7 @@ class LaporanController extends Controller
             ]),
             'kelasMapelOptions' => $kelasMapel->map(fn (KelasMapel $item) => [
                 'value' => $item->id,
-                'label' => trim(($item->kelas?->nama_kelas ?? '-') . ' - ' . ($item->mataPelajaran?->nama_mapel ?? '-')),
+                'label' => trim(($item->kelas?->nama_kelas ?? '-').' - '.($item->mataPelajaran?->nama_mapel ?? '-')),
             ]),
             'filters' => [
                 'kelas_mapel_id' => $request->input('kelas_mapel_id', ''),
@@ -95,10 +96,10 @@ class LaporanController extends Controller
             ->where('semester', $semester);
 
         if ($request->filled('kelas_id')) {
-            $query->whereHas('kelasMapel', fn($q) => $q->where('kelas_id', $request->kelas_id));
+            $query->whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $request->kelas_id));
         }
         if ($request->filled('mapel_id')) {
-            $query->whereHas('kelasMapel', fn($q) => $q->where('mapel_id', $request->mapel_id));
+            $query->whereHas('kelasMapel', fn ($q) => $q->where('mapel_id', $request->mapel_id));
         }
         $nilai = $query->orderByRaw(NilaiAkhir::rataAkhirExpression().' desc')->paginate(30)->withQueryString();
 
@@ -145,13 +146,13 @@ class LaporanController extends Controller
 
     public function rekapAbsensi()
     {
-        $kelas = Kelas::withCount(['siswa' => fn($q) => $q->where('status', 'aktif')])->get();
+        $kelas = Kelas::withCount(['siswa' => fn ($q) => $q->where('status', 'aktif')])->get();
         $rekap = [];
 
         foreach ($kelas as $k) {
-            $total = Absensi::whereHas('kelasMapel', fn($q) => $q->where('kelas_id', $k->id)->aktif())
+            $total = Absensi::whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $k->id)->aktif())
                 ->count();
-            $hadir = Absensi::whereHas('kelasMapel', fn($q) => $q->where('kelas_id', $k->id)->aktif())
+            $hadir = Absensi::whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $k->id)->aktif())
                 ->where('status', 'hadir')
                 ->count();
 
@@ -188,10 +189,10 @@ class LaporanController extends Controller
             'kelasMapel.mataPelajaran',
             'kelasMapel.guru',
             'pengumpulan.siswa.user',
-        ])->whereHas('kelasMapel', fn($q) => $q->aktif());
+        ])->whereHas('kelasMapel', fn ($q) => $q->aktif());
 
         if ($request->filled('kelas_id')) {
-            $query->whereHas('kelasMapel', fn($q) => $q->where('kelas_id', $request->kelas_id));
+            $query->whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $request->kelas_id));
         }
         if ($request->filled('search')) {
             $s = $request->search;
@@ -212,7 +213,7 @@ class LaporanController extends Controller
             'tugas' => $tugas->through(fn (Tugas $item) => [
                 'id' => $item->id,
                 'judul' => $item->judul,
-                'judul_ringkas' => \Illuminate\Support\Str::limit($item->judul, 35),
+                'judul_ringkas' => Str::limit($item->judul, 35),
                 'kategori_nilai' => $item->kategori_nilai,
                 'mapel' => $item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
                 'kelas' => $item->kelasMapel?->kelas?->nama_kelas ?? '-',
@@ -255,11 +256,12 @@ class LaporanController extends Controller
             ->where('semester', $semester);
 
         if ($kelasId) {
-            $sosialQuery->whereHas('siswa', fn($q) => $q->where('kelas_id', $kelasId));
+            $sosialQuery->whereHas('siswa', fn ($q) => $q->where('kelas_id', $kelasId));
         }
 
         $sikapSosial = $sosialQuery->get()->groupBy('siswa_id')->map(function ($records) {
             $first = $records->first();
+
             return [
                 'siswa' => $first->siswa,
                 'mapel_count' => $records->count(),
@@ -277,11 +279,12 @@ class LaporanController extends Controller
             ->where('semester', $semester);
 
         if ($kelasId) {
-            $spiritualQuery->whereHas('siswa', fn($q) => $q->where('kelas_id', $kelasId));
+            $spiritualQuery->whereHas('siswa', fn ($q) => $q->where('kelas_id', $kelasId));
         }
 
         $sikapSpiritual = $spiritualQuery->get()->groupBy('siswa_id')->map(function ($records) {
             $first = $records->first();
+
             return [
                 'siswa' => $first->siswa,
                 'mapel_count' => $records->count(),
@@ -346,7 +349,7 @@ class LaporanController extends Controller
                 'absensi',
                 'pertemuan',
                 'penangananSiswa',
-                'penangananSiswa as penanganan_aktif_count' => fn($q) => $q->whereIn('status', ['baru', 'proses']),
+                'penangananSiswa as penanganan_aktif_count' => fn ($q) => $q->whereIn('status', ['baru', 'proses']),
             ])
             ->orderBy('kelas_id')
             ->paginate(20)
@@ -355,7 +358,7 @@ class LaporanController extends Controller
         return Inertia::render('Kepsek/Laporan/WaliKelas/Index', [
             'waliKelas' => $waliKelas->through(fn (WaliKelas $item) => [
                 'id' => $item->id,
-                'kelas' => trim(($item->kelas?->tingkat ?? '') . ' ' . ($item->kelas?->nama_kelas ?? '')) ?: '-',
+                'kelas' => trim(($item->kelas?->tingkat ?? '').' '.($item->kelas?->nama_kelas ?? '')) ?: '-',
                 'guru' => $item->guru?->nama_lengkap ?? '-',
                 'tahun_ajaran' => $item->tahunAjaran?->tahun ?? '-',
                 'absensi_count' => $item->absensi_count,
@@ -414,8 +417,8 @@ class LaporanController extends Controller
         return Inertia::render('Kepsek/Laporan/WaliKelas/Show', [
             'waliKelas' => [
                 'id' => $waliKelas->id,
-                'title' => trim(($waliKelas->kelas?->tingkat ?? '') . ' ' . ($waliKelas->kelas?->nama_kelas ?? '') . ' - ' . ($waliKelas->guru?->nama_lengkap ?? '')) ?: '-',
-                'kelas' => trim(($waliKelas->kelas?->tingkat ?? '') . ' ' . ($waliKelas->kelas?->nama_kelas ?? '')) ?: '-',
+                'title' => trim(($waliKelas->kelas?->tingkat ?? '').' '.($waliKelas->kelas?->nama_kelas ?? '').' - '.($waliKelas->guru?->nama_lengkap ?? '')) ?: '-',
+                'kelas' => trim(($waliKelas->kelas?->tingkat ?? '').' '.($waliKelas->kelas?->nama_kelas ?? '')) ?: '-',
                 'guru' => $waliKelas->guru?->nama_lengkap ?? '-',
             ],
             'bulan' => $bulan,
@@ -485,7 +488,7 @@ class LaporanController extends Controller
     {
         $year = (int) substr($bulan, 0, 4);
         $startYear = (int) substr((string) $waliKelas->tahunAjaran?->tahun, 0, 4);
-        if (!$startYear) {
+        if (! $startYear) {
             $monthNumber = (int) substr($bulan, 5, 2);
             $startYear = $monthNumber >= 7 ? $year : $year - 1;
         }

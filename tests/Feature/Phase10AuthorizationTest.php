@@ -319,14 +319,15 @@ class Phase10AuthorizationTest extends TestCase
         ]);
 
         $response = $this->actingAs($guru)
-            ->getJson(route('guru.tugas.whatsapp', [$kelasMapel, $tugas, $student]))
-            ->assertOk();
-        $this->assertStringStartsWith('https://wa.me/6281234567890?text=', $response->json('url'));
+            ->postJson(route('guru.tugas.whatsapp', [$kelasMapel, $tugas, $student]))
+            ->assertOk()
+            ->assertJson(['success' => true]);
 
         $this->assertDatabaseHas('whatsapp_message_logs', [
             'siswa_id' => $student->id,
             'guru_id' => $guru->id,
             'jenis_template' => 'tugas_terlambat',
+            'status' => 'sent',
         ]);
         $this->assertSame('6281234567890', $student->fresh()->nomor_whatsapp);
         $this->assertInstanceOf(WhatsAppMessageLog::class, WhatsAppMessageLog::latest()->first());
@@ -363,13 +364,11 @@ class Phase10AuthorizationTest extends TestCase
             );
     }
 
-    public function test_whatsapp_mutations_use_log_policy_middleware(): void
+    public function test_whatsapp_send_route_requires_mengajar_middleware(): void
     {
-        foreach (['guru.tugas.whatsapp.mark-sent', 'guru.tugas.whatsapp.send-queue'] as $routeName) {
-            $middleware = Route::getRoutes()->getByName($routeName)->gatherMiddleware();
+        $middleware = Route::getRoutes()->getByName('guru.tugas.whatsapp')->gatherMiddleware();
 
-            $this->assertContains('can:manage-whatsapp-log,log', $middleware, $routeName);
-        }
+        $this->assertContains('can:mengajar,kelasMapel', $middleware);
     }
 
     public function test_student_downloads_never_fallback_to_public_disk(): void

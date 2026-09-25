@@ -62,7 +62,7 @@ class PengumumanController extends Controller
                         $query->where('target', 'kelas_mapel')
                             ->where(function ($query) use ($kelasMapelIds, $kelasId) {
                                 $query->whereIn('kelas_mapel_id', $kelasMapelIds)
-                                    ->orWhere('target_kelas', 'like', '%"' . $kelasId . '"%');
+                                    ->orWhere('target_kelas', 'like', '%"'.$kelasId.'"%');
                             });
                     });
             })
@@ -103,14 +103,14 @@ class PengumumanController extends Controller
                         return $labels->join(', ');
                     }
 
-                    return $labels->count() . ' Kelas';
+                    return $labels->count().' Kelas';
                 }
             }
 
             $kelasLabel = $pengumuman->kelasMapel?->kelas?->displayName() ?? '-';
             $mapelLabel = $pengumuman->kelasMapel?->mataPelajaran?->nama_mapel ?? '-';
 
-            return trim($kelasLabel . ' - ' . $mapelLabel);
+            return trim($kelasLabel.' - '.$mapelLabel);
         }
 
         return match ($pengumuman->target) {

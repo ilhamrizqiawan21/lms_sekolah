@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class TahunAjaran extends Model
 {
     protected $table = 'tahun_ajaran';
+
     public $timestamps = false;
 
     protected $fillable = [

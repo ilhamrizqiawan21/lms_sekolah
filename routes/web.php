@@ -27,7 +27,9 @@ use App\Http\Controllers\Guru\MateriController as GuruMateriController;
 use App\Http\Controllers\Guru\NilaiController;
 use App\Http\Controllers\Guru\NotifikasiController as GuruNotifikasiController;
 use App\Http\Controllers\Guru\SikapController;
+use App\Http\Controllers\Guru\SoalBankController;
 use App\Http\Controllers\Guru\TugasController as GuruTugasController;
+use App\Http\Controllers\Guru\UjianController as GuruUjianController;
 use App\Http\Controllers\Guru\WaliKelasController as GuruWaliKelasController;
 use App\Http\Controllers\GuruPerformanceController;
 use App\Http\Controllers\GuruPerformanceExportController;
@@ -48,6 +50,7 @@ use App\Http\Controllers\Siswa\NotifikasiController as SiswaNotifikasiController
 use App\Http\Controllers\Siswa\PengumumanController as SiswaPengumumanController;
 use App\Http\Controllers\Siswa\ProgressController;
 use App\Http\Controllers\Siswa\TugasController as SiswaTugasController;
+use App\Http\Controllers\Siswa\UjianController as SiswaUjianController;
 use App\Http\Middleware\RequireStudentPhone;
 use Illuminate\Support\Facades\Route;
 
@@ -184,10 +187,26 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
     Route::get('/tugas/{kelasMapel}/{tugas}/pengumpulan/{file}/download', [GuruTugasController::class, 'downloadFile'])->name('tugas.file.download')->middleware('can:mengajar,kelasMapel');
     Route::get('/tugas/{kelasMapel}/{tugas}/pengumpulan/{pengumpulan}/legacy-download', [GuruTugasController::class, 'downloadLegacyFile'])->name('tugas.pengumpulan.download')->middleware('can:mengajar,kelasMapel');
     Route::post('/tugas/{kelasMapel}/{tugas}/siswa/{siswa}/nilai', [GuruTugasController::class, 'nilai'])->name('tugas.nilai')->middleware('can:mengajar,kelasMapel');
-    Route::get('/tugas/{kelasMapel}/{tugas}/siswa/{siswa}/whatsapp', [GuruTugasController::class, 'whatsapp'])->name('tugas.whatsapp')->middleware('can:mengajar,kelasMapel');
-    Route::post('/tugas/whatsapp/{log}/mark-sent', [GuruTugasController::class, 'whatsappMarkSent'])->name('tugas.whatsapp.mark-sent')->middleware('can:manage-whatsapp-log,log');
-    Route::post('/tugas/whatsapp/{log}/send-queue', [GuruTugasController::class, 'whatsappSendQueue'])->name('tugas.whatsapp.send-queue')->middleware('can:manage-whatsapp-log,log');
+    Route::post('/tugas/{kelasMapel}/{tugas}/siswa/{siswa}/whatsapp', [GuruTugasController::class, 'whatsapp'])->name('tugas.whatsapp')->middleware('can:mengajar,kelasMapel');
     Route::delete('/tugas/{tugas}', [GuruTugasController::class, 'destroy'])->name('tugas.destroy')->middleware('can:mengajar-tugas,tugas');
+
+    Route::get('/soal-bank', [SoalBankController::class, 'index'])->name('soal-bank.index');
+    Route::post('/soal-bank', [SoalBankController::class, 'store'])->name('soal-bank.store');
+    Route::put('/soal-bank/{soalBank}', [SoalBankController::class, 'update'])->name('soal-bank.update')->middleware('can:kelola-soal-bank,soalBank');
+    Route::delete('/soal-bank/{soalBank}', [SoalBankController::class, 'destroy'])->name('soal-bank.destroy')->middleware('can:kelola-soal-bank,soalBank');
+
+    Route::get('/ujian', [GuruUjianController::class, 'index'])->name('ujian.index');
+    Route::get('/ujian/{kelasMapel}/list', [GuruUjianController::class, 'list'])->name('ujian.list')->middleware('can:mengajar,kelasMapel');
+    Route::get('/ujian/{kelasMapel}/create', [GuruUjianController::class, 'create'])->name('ujian.create')->middleware('can:mengajar,kelasMapel');
+    Route::post('/ujian/{kelasMapel}/store', [GuruUjianController::class, 'store'])->name('ujian.store')->middleware('can:mengajar,kelasMapel');
+    Route::get('/ujian/{kelasMapel}/{ujian}/edit', [GuruUjianController::class, 'edit'])->name('ujian.edit')->middleware('can:mengajar,kelasMapel');
+    Route::put('/ujian/{kelasMapel}/{ujian}', [GuruUjianController::class, 'update'])->name('ujian.update')->middleware('can:mengajar,kelasMapel');
+    Route::get('/ujian/{kelasMapel}/{ujian}/hasil', [GuruUjianController::class, 'hasil'])->name('ujian.hasil')->middleware('can:mengajar,kelasMapel');
+    Route::get('/ujian/{kelasMapel}/{ujian}/hasil/export/excel', [ExportController::class, 'guruUjianHasilExcel'])->name('ujian.hasil.export.excel')->middleware('can:mengajar,kelasMapel');
+    Route::get('/ujian/{kelasMapel}/{ujian}/hasil/export/pdf', [ExportController::class, 'guruUjianHasilPdf'])->name('ujian.hasil.export.pdf')->middleware('can:mengajar,kelasMapel');
+    Route::get('/ujian/{kelasMapel}/{ujian}/attempt/{attempt}', [GuruUjianController::class, 'detailJawaban'])->name('ujian.attempt.show')->middleware('can:mengajar,kelasMapel');
+    Route::delete('/ujian/{ujian}', [GuruUjianController::class, 'destroy'])->name('ujian.destroy')->middleware('can:mengajar-ujian,ujian');
+
     Route::get('/nilai', [NilaiController::class, 'index'])->name('nilai.index');
     Route::post('/nilai/store', [NilaiController::class, 'storeBulk'])->name('nilai.store.bulk');
     Route::get('/nilai/{kelasMapel}/input', [NilaiController::class, 'input'])->name('nilai.input')->middleware('can:mengajar,kelasMapel');
@@ -244,6 +263,15 @@ Route::middleware(['auth', 'role:siswa', RequireStudentPhone::class])->prefix('s
     Route::get('/tugas/{tugas}/file/{file}/download', [SiswaTugasController::class, 'downloadFile'])->name('tugas.file.download');
     Route::get('/tugas/{tugas}/pengumpulan/{pengumpulan}/download', [SiswaTugasController::class, 'downloadLegacyFile'])->name('tugas.pengumpulan.download');
     Route::post('/tugas/{tugas}/kumpul', [SiswaTugasController::class, 'store'])->name('tugas.kumpul');
+
+    Route::get('/ujian', [SiswaUjianController::class, 'index'])->name('ujian.index');
+    Route::post('/ujian/{ujian}/mulai', [SiswaUjianController::class, 'mulai'])->name('ujian.mulai');
+    Route::get('/ujian/attempt/{attempt}', [SiswaUjianController::class, 'kerjakan'])->name('ujian.kerjakan');
+    Route::post('/ujian/attempt/{attempt}/jawab', [SiswaUjianController::class, 'jawab'])->name('ujian.jawab');
+    Route::post('/ujian/attempt/{attempt}/submit', [SiswaUjianController::class, 'submit'])->name('ujian.submit');
+    Route::post('/ujian/attempt/{attempt}/tab-switch', [SiswaUjianController::class, 'logTabSwitch'])->name('ujian.tab-switch');
+    Route::get('/ujian/attempt/{attempt}/hasil', [SiswaUjianController::class, 'hasil'])->name('ujian.hasil');
+
     Route::get('/nilai', [SiswaNilaiController::class, 'index'])->name('nilai.index');
     Route::get('/chat', [SiswaChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/{kelasMapel}', [SiswaChatController::class, 'show'])->name('chat.show');
