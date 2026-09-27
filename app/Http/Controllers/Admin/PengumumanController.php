@@ -45,7 +45,7 @@ class PengumumanController extends Controller
         $pengumuman = $query->paginate(15)->withQueryString();
         $pengumuman->through(function (Pengumuman $item) {
             $prefix = $this->routePrefix();
-            $item->can_edit = Auth::user()->isAdmin() || (Auth::user()->isGuru() && (int) $item->created_by === (int) Auth::id());
+            $item->can_edit = Auth::user()->can('kelola-pengumuman', $item);
             $item->can_delete = $item->can_edit;
             $item->update_url = route($prefix.'.update', $item);
             $item->delete_url = route($prefix.'.destroy', $item);
@@ -134,8 +134,8 @@ class PengumumanController extends Controller
 
     public function update(Request $request, Pengumuman $pengumuman)
     {
+        $this->authorize('kelola-pengumuman', $pengumuman);
         $role = Auth::user()->role?->nama_role;
-        abort_unless($role === 'admin' || ($role === 'guru' && (int) $pengumuman->created_by === (int) Auth::id()), 403);
         $allowed = $role === 'guru' ? ['kelas_mapel'] : ['semua', 'guru', 'siswa', 'kelas_mapel'];
         $v = $request->validate([
             'judul' => 'required|string|max:200', 'isi' => 'required|string',
@@ -165,8 +165,7 @@ class PengumumanController extends Controller
 
     public function destroy(Pengumuman $pengumuman)
     {
-        $role = Auth::user()->role?->nama_role;
-        abort_unless($role === 'admin' || ($role === 'guru' && (int) $pengumuman->created_by === (int) Auth::id()), 403);
+        $this->authorize('kelola-pengumuman', $pengumuman);
         $this->pengumumanService->deletePublicFile($pengumuman);
         $pengumuman->delete();
 

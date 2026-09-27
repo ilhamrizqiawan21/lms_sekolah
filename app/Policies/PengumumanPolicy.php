@@ -26,4 +26,9 @@ class PengumumanPolicy
 
         return false;
     }
+
+    public function manage(User $user, Pengumuman $pengumuman): bool
+    {
+        return $user->isAdmin() || ($user->isGuru() && (int) $pengumuman->created_by === (int) $user->id);
+    }
 }

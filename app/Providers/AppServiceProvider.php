@@ -35,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('mengajar-ujian', [UjianPolicy::class, 'mengajar']);
         Gate::define('kelola-soal-bank', [SoalBankPolicy::class, 'kelola']);
         Gate::define('lihat-pengumuman', [PengumumanPolicy::class, 'view']);
+        Gate::define('kelola-pengumuman', [PengumumanPolicy::class, 'manage']);
 
         Inertia::share('timelineEvents', function () {
             $routeName = request()->route()?->getName();

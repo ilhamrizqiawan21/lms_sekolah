@@ -70,6 +70,48 @@ class PengumumanTargetKelasFilterTest extends TestCase
         $this->assertNotSame($matching->id, $nonMatching->id);
     }
 
+    public function test_guru_cannot_update_or_delete_another_guru_announcement(): void
+    {
+        Role::create(['nama_role' => 'admin']);
+        Role::create(['nama_role' => 'guru']);
+
+        $guruA = $this->createUser('guru-a-owner', 'Guru A Owner', 'guru');
+        $guruB = $this->createUser('guru-b-outsider', 'Guru B Outsider', 'guru');
+
+        $kelas = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'C']);
+        $tahunAjaran = TahunAjaran::create(['tahun' => '2026/2027', 'is_active' => true]);
+        $mapel = MataPelajaran::create(['kode' => 'OWN', 'nama_mapel' => 'Ownership Test', 'urutan' => 1]);
+        KelasMapel::create([
+            'kelas_id' => $kelas->id,
+            'mapel_id' => $mapel->id,
+            'guru_id' => $guruA->id,
+            'tahun_ajaran_id' => $tahunAjaran->id,
+            'semester' => '1',
+            'pertemuan_per_minggu' => 2,
+        ]);
+
+        $pengumuman = Pengumuman::create([
+            'judul' => 'Milik Guru A',
+            'isi' => 'isi',
+            'target' => 'kelas_mapel',
+            'target_kelas' => json_encode([(string) $kelas->id]),
+            'created_by' => $guruA->id,
+        ]);
+
+        $this->actingAs($guruB)
+            ->put(route('guru.pengumuman.update', $pengumuman), [
+                'judul' => 'Diubah paksa', 'isi' => 'isi', 'target' => 'kelas_mapel',
+                'target_kelas_ids' => [$kelas->id],
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($guruB)
+            ->delete(route('guru.pengumuman.destroy', $pengumuman))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('pengumuman', ['id' => $pengumuman->id, 'judul' => 'Milik Guru A']);
+    }
+
     private function createUser(string $username, string $namaLengkap, string $roleName): User
     {
         $role = Role::where('nama_role', $roleName)->firstOrFail();
