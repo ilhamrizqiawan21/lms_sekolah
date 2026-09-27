@@ -25,6 +25,8 @@ use OpenSpout\Writer\XLSX\Writer;
  */
 final class LegacyTableExcelWriter
 {
+    private ?array $stylesCache = null;
+
     public function __construct(private readonly ReportSchoolProfile $schoolProfile) {}
 
     public function table(string $filename, string $title, string $context, array $headers, array $rows, ?TahunAjaran $tahunAjaran = null, ?string $semester = null)
@@ -160,6 +162,10 @@ final class LegacyTableExcelWriter
 
     private function excelStyles(): array
     {
+        if ($this->stylesCache !== null) {
+            return $this->stylesCache;
+        }
+
         $border = new Border(
             new BorderPart(BorderName::TOP, 'CBD5E1', BorderWidth::THIN),
             new BorderPart(BorderName::RIGHT, 'CBD5E1', BorderWidth::THIN),
@@ -173,7 +179,7 @@ final class LegacyTableExcelWriter
             ->withShouldWrapText(true)
             ->withCellVerticalAlignment(CellVerticalAlignment::CENTER);
 
-        return [
+        return $this->stylesCache = [
             'school' => $base
                 ->withFontBold(true)
                 ->withFontSize(14)
