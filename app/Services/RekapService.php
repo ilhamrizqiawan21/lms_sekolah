@@ -12,9 +12,22 @@ use App\Models\SikapSpiritual;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Models\Tugas;
+use Illuminate\Support\Collection;
 
 class RekapService
 {
+    private function kelasNama(int $kelasId): string
+    {
+        $kelas = Kelas::find($kelasId);
+
+        return $kelas ? "{$kelas->tingkat} {$kelas->nama_kelas}" : '';
+    }
+
+    private function activeSiswa(int $kelasId): Collection
+    {
+        return Siswa::with('user')->where('kelas_id', $kelasId)->where('status', 'aktif')->orderBy('nis')->get();
+    }
+
     /**
      * Bangun rekap absensi untuk satu kelas pada bulan & semester tertentu.
      */
@@ -26,9 +39,8 @@ class RekapService
         $kelasNama = '';
 
         if ($kelasId && $taAktif) {
-            $kelas = Kelas::find($kelasId);
-            $kelasNama = $kelas ? "{$kelas->tingkat} {$kelas->nama_kelas}" : '';
-            $siswaList = Siswa::with('user')->where('kelas_id', $kelasId)->where('status', 'aktif')->orderBy('nis')->get();
+            $kelasNama = $this->kelasNama($kelasId);
+            $siswaList = $this->activeSiswa($kelasId);
             $tanggalList = Absensi::whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $kelasId)->where('tahun_ajaran_id', $taAktif->id)->where('semester', $semester))->whereBetween('tanggal', ["{$bulan}-01", date('Y-m-t', strtotime("{$bulan}-01"))])->orderBy('tanggal')->pluck('tanggal')->unique()->map(fn ($d) => $d->format('Y-m-d'))->values();
             $absensiData = Absensi::whereIn('siswa_id', $siswaList->pluck('id'))->whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $kelasId)->where('tahun_ajaran_id', $taAktif->id)->where('semester', $semester))->whereBetween('tanggal', ["{$bulan}-01", date('Y-m-t', strtotime("{$bulan}-01"))])->get()->groupBy('siswa_id');
             foreach ($siswaList as $s) {
@@ -57,9 +69,8 @@ class RekapService
         $kelasNama = '';
 
         if ($kelasId && $taAktif) {
-            $kelas = Kelas::find($kelasId);
-            $kelasNama = $kelas ? "{$kelas->tingkat} {$kelas->nama_kelas}" : '';
-            $siswaList = Siswa::with('user')->where('kelas_id', $kelasId)->where('status', 'aktif')->orderBy('nis')->get();
+            $kelasNama = $this->kelasNama($kelasId);
+            $siswaList = $this->activeSiswa($kelasId);
             $mapelList = KelasMapel::with('mataPelajaran')->where('kelas_id', $kelasId)->where('tahun_ajaran_id', $taAktif->id)->where('semester', $semester)->join('mata_pelajaran', 'mata_pelajaran.id', '=', 'kelas_mapel.mapel_id')->orderBy('mata_pelajaran.urutan')->orderBy('mata_pelajaran.nama_mapel')->select('kelas_mapel.*')->get()->map(fn ($km) => (object) ['id' => $km->mapel_id, 'kelas_mapel_id' => $km->id, 'nama_mapel' => $km->mataPelajaran?->nama_mapel ?? '-']);
             $nilaiData = NilaiAkhir::whereIn('siswa_id', $siswaList->pluck('id'))->where('tahun_ajaran_id', $taAktif->id)->where('semester', $semester)->get()->groupBy('siswa_id');
             foreach ($siswaList as $s) {
@@ -87,9 +98,8 @@ class RekapService
         $labelNilai = [1 => 'TB', 2 => 'KB', 3 => 'C', 4 => 'B', 5 => 'SB'];
 
         if ($kelasId && $taAktif) {
-            $kelas = Kelas::find($kelasId);
-            $kelasNama = $kelas ? "{$kelas->tingkat} {$kelas->nama_kelas}" : '';
-            $siswaList = Siswa::with('user')->where('kelas_id', $kelasId)->where('status', 'aktif')->orderBy('nis')->get();
+            $kelasNama = $this->kelasNama($kelasId);
+            $siswaList = $this->activeSiswa($kelasId);
             $ids = KelasMapel::where('kelas_id', $kelasId)->where('tahun_ajaran_id', $taAktif->id)->where('semester', $semester)->pluck('id');
             $spData = SikapSpiritual::whereIn('siswa_id', $siswaList->pluck('id'))->where('tahun_ajaran_id', $taAktif->id)->where('semester', $semester)->whereIn('kelas_mapel_id', $ids)->get()->groupBy('siswa_id')->map(fn ($r) => collect(['taqwa', 'kejujuran', 'disiplin', 'sabar', 'syukur', 'tawadhu'])->mapWithKeys(fn ($f) => [$f => $labelNilai[(int) round($r->avg($f))] ?? '-'])->all());
             $soData = SikapSosial::whereIn('siswa_id', $siswaList->pluck('id'))->where('tahun_ajaran_id', $taAktif->id)->where('semester', $semester)->whereIn('kelas_mapel_id', $ids)->get()->groupBy('siswa_id')->map(fn ($r) => collect(['empati', 'kerjasama', 'toleransi', 'percaya_diri', 'komunikasi'])->mapWithKeys(fn ($f) => [$f => $labelNilai[(int) round($r->avg($f))] ?? '-'])->all());
@@ -111,8 +121,7 @@ class RekapService
         $kelasNama = '';
 
         if ($kelasId && $taAktif) {
-            $kelas = Kelas::find($kelasId);
-            $kelasNama = $kelas ? "{$kelas->tingkat} {$kelas->nama_kelas}" : '';
+            $kelasNama = $this->kelasNama($kelasId);
             $totalSiswa = Siswa::where('kelas_id', $kelasId)->where('status', 'aktif')->count();
             $tugasList = Tugas::with(['kelasMapel.mataPelajaran', 'kelasMapel.guru'])->whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $kelasId)->where('tahun_ajaran_id', $taAktif->id)->where('semester', $semester))->withCount(['pengumpulan as sudah_kumpul' => fn ($q) => $q->whereIn('status', PengumpulanTugas::STATUS_SUBMITTED)->whereHas('siswa', fn ($s) => $s->where('kelas_id', $kelasId)->where('status', 'aktif'))])->orderByDesc('created_at')->get()->map(function ($t) use ($totalSiswa) {
                 $t->total_siswa = $totalSiswa;
