@@ -3,8 +3,6 @@
 namespace App\Services\Reports\Exports;
 
 use App\Models\Absensi;
-use App\Models\Kelas;
-use App\Models\KelasMapel;
 use App\Models\NilaiAkhir;
 use App\Models\Pengaturan;
 use App\Models\PengumpulanTugas;
@@ -12,6 +10,7 @@ use App\Models\SikapSosial;
 use App\Models\SikapSpiritual;
 use App\Models\TahunAjaran;
 use App\Models\Tugas;
+use App\Services\Reports\LaporanKepsekService;
 use Illuminate\Http\Request;
 
 final class KepsekReportService
@@ -22,6 +21,8 @@ final class KepsekReportService
      * Excel (OpenSpout, streaming writer) does not have this problem.
      */
     private const PDF_ROW_LIMIT = 1500;
+
+    public function __construct(private readonly LaporanKepsekService $laporanKepsekService) {}
 
     public function absensi(Request $request, bool $limitForPdf = false): array
     {
@@ -182,30 +183,16 @@ final class KepsekReportService
 
     public function rekapAbsensi(): array
     {
-        $kelas = Kelas::withCount(['siswa' => fn ($q) => $q->where('status', 'aktif')])->get();
-
-        $activeKelasMapelIds = KelasMapel::aktif()->pluck('id');
-        $stats = Absensi::whereIn('absensi.kelas_mapel_id', $activeKelasMapelIds)
-            ->join('kelas_mapel', 'kelas_mapel.id', '=', 'absensi.kelas_mapel_id')
-            ->selectRaw("kelas_mapel.kelas_id as kelas_id, count(*) as total, sum(case when absensi.status = 'hadir' then 1 else 0 end) as hadir")
-            ->groupBy('kelas_mapel.kelas_id')
-            ->get()
-            ->keyBy('kelas_id');
-
-        $rows = $kelas->values()->map(function (Kelas $kelas, int $index) use ($stats) {
-            $stat = $stats->get($kelas->id);
-            $total = (int) ($stat->total ?? 0);
-            $hadir = (int) ($stat->hadir ?? 0);
-
-            return [
+        $rows = $this->laporanKepsekService->buildAbsensiRekap()
+            ->values()
+            ->map(fn (array $item, int $index) => [
                 $index + 1,
-                trim("{$kelas->tingkat} {$kelas->nama_kelas}"),
-                (int) ($kelas->siswa_count ?? 0),
-                $total,
-                $hadir,
-                $total > 0 ? round(($hadir / $total) * 100, 2).'%' : '0%',
-            ];
-        })->all();
+                trim("{$item['kelas']->tingkat} {$item['kelas']->nama_kelas}"),
+                (int) ($item['kelas']->siswa_count ?? 0),
+                $item['total_absensi'],
+                $item['total_hadir'],
+                $item['total_absensi'] > 0 ? round($item['persen'], 2).'%' : '0%',
+            ])->all();
 
         return [
             'headers' => ['No', 'Kelas', 'Jumlah Siswa', 'Total Absensi', 'Total Hadir', 'Persentase Hadir'],
