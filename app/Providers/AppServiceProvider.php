@@ -7,6 +7,7 @@ use App\Http\Controllers\Guru\NilaiRekapController;
 use App\Http\Controllers\Guru\SikapController;
 use App\Http\Controllers\Guru\SikapRekapController;
 use App\Policies\KelasMapelPolicy;
+use App\Policies\PengumumanPolicy;
 use App\Policies\SoalBankPolicy;
 use App\Policies\TugasPolicy;
 use App\Policies\UjianPolicy;
@@ -33,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('lihat-laporan-wali-kelas', [WaliKelasPolicy::class, 'lihatLaporan']);
         Gate::define('mengajar-ujian', [UjianPolicy::class, 'mengajar']);
         Gate::define('kelola-soal-bank', [SoalBankPolicy::class, 'kelola']);
+        Gate::define('lihat-pengumuman', [PengumumanPolicy::class, 'view']);
 
         Inertia::share('timelineEvents', function () {
             $routeName = request()->route()?->getName();

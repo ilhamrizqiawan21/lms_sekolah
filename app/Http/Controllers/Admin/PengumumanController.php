@@ -5,18 +5,21 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Kelas;
 use App\Models\KelasMapel;
-use App\Models\Notifikasi;
 use App\Models\Pengumuman;
-use App\Models\User;
+use App\Services\NotifikasiService;
+use App\Services\PengumumanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class PengumumanController extends Controller
 {
+    public function __construct(
+        protected PengumumanService $pengumumanService,
+        protected NotifikasiService $notifikasiService,
+    ) {}
+
     public function index()
     {
         $query = Pengumuman::with(['creator', 'kelasMapel.kelas', 'kelasMapel.mataPelajaran'])->orderByDesc('created_at');
@@ -80,7 +83,7 @@ class PengumumanController extends Controller
     public function show(Pengumuman $pengumuman)
     {
         $role = Auth::user()->role?->nama_role;
-        abort_unless($this->canView($pengumuman, $role), 403);
+        $this->authorize('lihat-pengumuman', $pengumuman);
         $pengumuman->loadMissing(['creator', 'kelasMapel.kelas', 'kelasMapel.mataPelajaran']);
         $targetKelasLabels = Kelas::whereIn('id', $pengumuman->targetKelasIds())
             ->orderBy('tingkat')->orderBy('nama_kelas')->get()
@@ -119,12 +122,12 @@ class PengumumanController extends Controller
             'is_public_login' => 'nullable|boolean',
             'public_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|extensions:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|max:5120',
         ]);
-        $v = $this->prepareTarget($v);
+        $v = $this->pengumumanService->prepareTarget($v, Auth::user());
         $v['is_public_login'] = $request->boolean('is_public_login');
         $v['created_by'] = Auth::id();
-        $this->attachPublicFile($request, $v);
+        $this->pengumumanService->attachPublicFile($request, $v, Auth::user());
         $pengumuman = Pengumuman::create($v);
-        $this->notifyRecipients($pengumuman);
+        $this->notifikasiService->notifyPengumumanRecipients($pengumuman, Auth::id());
 
         return redirect()->route($this->routePrefix().'.index')->with('success', 'Pengumuman berhasil dipublikasikan.');
     }
@@ -143,18 +146,18 @@ class PengumumanController extends Controller
             'public_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|extensions:pdf,jpg,jpeg,png,webp,xls,xlsx,doc,docx|max:5120',
             'remove_public_file' => 'nullable|boolean',
         ]);
-        $v = $this->prepareTarget($v);
+        $v = $this->pengumumanService->prepareTarget($v, Auth::user());
         $v['is_public_login'] = $request->boolean('is_public_login');
 
         if ($request->boolean('remove_public_file') || $request->hasFile('public_file')) {
-            $this->deletePublicFile($pengumuman);
+            $this->pengumumanService->deletePublicFile($pengumuman);
             $v['public_file_name'] = null;
             $v['public_file_path'] = null;
             $v['public_file_mime'] = null;
             $v['public_file_size'] = null;
         }
 
-        $this->attachPublicFile($request, $v);
+        $this->pengumumanService->attachPublicFile($request, $v, Auth::user());
         $pengumuman->update($v);
 
         return redirect()->route($this->routePrefix().'.index')->with('success', 'Pengumuman berhasil diperbarui.');
@@ -164,103 +167,16 @@ class PengumumanController extends Controller
     {
         $role = Auth::user()->role?->nama_role;
         abort_unless($role === 'admin' || ($role === 'guru' && (int) $pengumuman->created_by === (int) Auth::id()), 403);
-        $this->deletePublicFile($pengumuman);
+        $this->pengumumanService->deletePublicFile($pengumuman);
         $pengumuman->delete();
 
         return redirect()->route($this->routePrefix().'.index')->with('success', 'Pengumuman berhasil dihapus.');
-    }
-
-    private function prepareTarget(array $v): array
-    {
-        if ($v['target'] === 'kelas_mapel') {
-            $ids = collect($v['target_kelas_ids'] ?? [])->map(fn ($id) => (int) $id)->unique()->values();
-            if ($ids->isEmpty()) {
-                throw ValidationException::withMessages(['target_kelas_ids' => 'Pilih minimal satu kelas tujuan.']);
-            }
-            if (Auth::user()->isGuru()) {
-                $allowed = KelasMapel::where('guru_id', Auth::id())->whereIn('kelas_id', $ids)->pluck('kelas_id')->unique();
-                abort_unless($ids->diff($allowed)->isEmpty(), 403);
-            }
-            $v['target_kelas'] = $ids->map(fn ($id) => (string) $id)->values()->toJson();
-            $v['kelas_mapel_id'] = KelasMapel::whereIn('kelas_id', $ids)->value('id');
-        } else {
-            $v['target_kelas'] = null;
-            $v['kelas_mapel_id'] = null;
-        }
-        unset($v['target_kelas_ids'], $v['public_file'], $v['remove_public_file']);
-
-        return $v;
-    }
-
-    private function attachPublicFile(Request $request, array &$data): void
-    {
-        if (! $request->hasFile('public_file')) {
-            return;
-        }
-
-        $file = $request->file('public_file');
-        $data['public_file_name'] = $file->getClientOriginalName();
-        $data['public_file_path'] = $file->store('pengumuman-public/'.Auth::id(), 'local');
-        $data['public_file_mime'] = $file->getClientMimeType();
-        $data['public_file_size'] = $file->getSize();
-    }
-
-    private function deletePublicFile(Pengumuman $pengumuman): void
-    {
-        if ($pengumuman->public_file_path) {
-            Storage::disk('local')->delete($pengumuman->public_file_path);
-        }
     }
 
     private function routePrefix(): string
     {
         return match (Auth::user()->role?->nama_role) {
             'guru' => 'guru.pengumuman', 'kepala_sekolah' => 'kepsek.pengumuman', default => 'admin.pengumuman',
-        };
-    }
-
-    private function canView(Pengumuman $p, ?string $role): bool
-    {
-        if ($role === 'admin') {
-            return true;
-        }
-        if ($role === 'kepala_sekolah') {
-            return in_array($p->target, ['semua', 'guru'], true) || (int) $p->created_by === (int) Auth::id();
-        }
-        if ($role === 'guru') {
-            if (in_array($p->target, ['semua', 'guru'], true) || (int) $p->created_by === (int) Auth::id()) {
-                return true;
-            }
-
-            return $p->target === 'kelas_mapel' && KelasMapel::whereIn('kelas_id', $p->targetKelasIds())->where('guru_id', Auth::id())->exists();
-        }
-
-        return false;
-    }
-
-    private function notifyRecipients(Pengumuman $pengumuman): void
-    {
-        $query = User::query()->where('is_active', true)->where('id', '!=', Auth::id());
-        $target = $pengumuman->target;
-        if ($target === 'guru') {
-            $query->whereHas('role', fn ($q) => $q->where('nama_role', 'guru'));
-        } elseif ($target === 'siswa') {
-            $query->whereHas('role', fn ($q) => $q->where('nama_role', 'siswa'));
-        } elseif ($target === 'kelas_mapel') {
-            $query->whereHas('role', fn ($q) => $q->where('nama_role', 'siswa'))->whereHas('siswa', fn ($q) => $q->whereIn('kelas_id', $pengumuman->targetKelasIds())->where('status', 'aktif'));
-        } else {
-            $query->whereHas('role', fn ($q) => $q->whereIn('nama_role', ['admin', 'guru', 'siswa', 'kepala_sekolah']));
-        }
-        foreach ($query->with('role')->get(['id', 'role_id']) as $user) {
-            Notifikasi::create(['user_id' => $user->id, 'tipe' => 'pengumuman_baru', 'judul' => 'Pengumuman baru', 'pesan' => $pengumuman->judul, 'link' => $this->notificationLinkForUser($user, $pengumuman)]);
-        }
-    }
-
-    private function notificationLinkForUser(User $user, Pengumuman $pengumuman): string
-    {
-        return match ($user->role?->nama_role) {
-            'siswa' => route('siswa.pengumuman.show', $pengumuman), 'guru' => route('guru.pengumuman.show', $pengumuman),
-            'kepala_sekolah' => route('kepsek.pengumuman.show', $pengumuman), default => route('admin.pengumuman.show', $pengumuman),
         };
     }
 }
