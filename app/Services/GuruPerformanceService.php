@@ -20,8 +20,35 @@ class GuruPerformanceService
             ->whereHas('role', fn ($query) => $query->where('nama_role', 'guru'))
             ->orderBy('nama_lengkap')
             ->get();
+        $teacherIds = $teachers->pluck('id');
 
-        $rows = $teachers->map(fn (User $teacher) => $this->teacherRow($teacher))->values();
+        $kelasMapelAll = KelasMapel::with(['kelas', 'mataPelajaran'])
+            ->whereIn('guru_id', $teacherIds)
+            ->aktif()
+            ->get();
+        $kelasMapelByGuru = $kelasMapelAll->groupBy('guru_id');
+
+        $tasksAll = Tugas::whereIn('kelas_mapel_id', $kelasMapelAll->pluck('id'))->get();
+        $tasksByKelasMapel = $tasksAll->groupBy('kelas_mapel_id');
+
+        $studentCountByClass = Siswa::whereIn('kelas_id', $kelasMapelAll->pluck('kelas_id')->unique())
+            ->where('status', 'aktif')
+            ->selectRaw('kelas_id, count(*) as total')
+            ->groupBy('kelas_id')
+            ->pluck('total', 'kelas_id');
+
+        $submissionsAll = PengumpulanTugas::with('tugas')
+            ->whereIn('tugas_id', $tasksAll->pluck('id'))
+            ->get();
+        $submissionsByTugas = $submissionsAll->groupBy('tugas_id');
+
+        $rows = $teachers->map(fn (User $teacher) => $this->teacherRow(
+            $teacher,
+            $kelasMapelByGuru->get($teacher->id, collect()),
+            $tasksByKelasMapel,
+            $studentCountByClass,
+            $submissionsByTugas,
+        ))->values();
 
         return [
             'summary' => [
@@ -35,22 +62,17 @@ class GuruPerformanceService
         ];
     }
 
-    private function teacherRow(User $teacher): array
-    {
-        $kelasMapel = KelasMapel::with(['kelas', 'mataPelajaran'])
-            ->where('guru_id', $teacher->id)
-            ->aktif()
-            ->get();
+    private function teacherRow(
+        User $teacher,
+        Collection $kelasMapel,
+        Collection $tasksByKelasMapel,
+        Collection $studentCountByClass,
+        Collection $submissionsByTugas,
+    ): array {
         $kelasMapelIds = $kelasMapel->pluck('id');
-        $kelasIds = $kelasMapel->pluck('kelas_id')->unique()->values();
 
-        $tasks = Tugas::whereIn('kelas_mapel_id', $kelasMapelIds)->get();
+        $tasks = $kelasMapelIds->flatMap(fn ($id) => $tasksByKelasMapel->get($id, collect()));
         $taskIds = $tasks->pluck('id');
-        $studentCountByClass = Siswa::whereIn('kelas_id', $kelasIds)
-            ->where('status', 'aktif')
-            ->selectRaw('kelas_id, count(*) as total')
-            ->groupBy('kelas_id')
-            ->pluck('total', 'kelas_id');
 
         $expectedSubmissions = $tasks->sum(function (Tugas $task) use ($kelasMapel, $studentCountByClass) {
             $course = $kelasMapel->firstWhere('id', $task->kelas_mapel_id);
@@ -58,9 +80,7 @@ class GuruPerformanceService
             return (int) ($studentCountByClass[$course?->kelas_id] ?? 0);
         });
 
-        $submissions = PengumpulanTugas::with('tugas')
-            ->whereIn('tugas_id', $taskIds)
-            ->get();
+        $submissions = $taskIds->flatMap(fn ($id) => $submissionsByTugas->get($id, collect()));
         $submitted = $submissions
             ->whereIn('status', PengumpulanTugas::STATUS_SUBMITTED)
             ->count();
@@ -128,26 +148,59 @@ class GuruPerformanceService
             ->where('status', 'aktif')
             ->orderBy('nis')
             ->get();
+        $studentIds = $students->pluck('id');
+        $kelasIds = $students->pluck('kelas_id')->filter()->unique()->values();
 
-        return $students->map(function (Siswa $student) {
-            $courseIds = KelasMapel::aktif()
-                ->where('kelas_id', $student->kelas_id)
-                ->pluck('id');
-            $totalTasks = Tugas::whereIn('kelas_mapel_id', $courseIds)->count();
-            $submitted = PengumpulanTugas::where('siswa_id', $student->id)
-                ->whereIn('status', PengumpulanTugas::STATUS_SUBMITTED)
-                ->whereHas('tugas', fn ($query) => $query->whereIn('kelas_mapel_id', $courseIds))
+        $coursesByKelas = KelasMapel::aktif()
+            ->whereIn('kelas_id', $kelasIds)
+            ->get()
+            ->groupBy('kelas_id')
+            ->map(fn ($courses) => $courses->pluck('id'));
+        $allCourseIds = $coursesByKelas->flatten()->unique()->values();
+
+        $totalTasksByCourse = Tugas::whereIn('kelas_mapel_id', $allCourseIds)
+            ->selectRaw('kelas_mapel_id, count(*) as total')
+            ->groupBy('kelas_mapel_id')
+            ->pluck('total', 'kelas_mapel_id');
+
+        $taskKelasMapelById = Tugas::whereIn('kelas_mapel_id', $allCourseIds)
+            ->pluck('kelas_mapel_id', 'id');
+
+        $submissionsByStudent = PengumpulanTugas::whereIn('siswa_id', $studentIds)
+            ->whereIn('status', PengumpulanTugas::STATUS_SUBMITTED)
+            ->get(['siswa_id', 'tugas_id'])
+            ->groupBy('siswa_id');
+
+        $averageGradeByStudent = NilaiAkhir::whereIn('siswa_id', $studentIds)
+            ->whereIn('kelas_mapel_id', $allCourseIds)
+            ->selectRaw('siswa_id, AVG('.NilaiAkhir::rataAkhirExpression().') as rata')
+            ->groupBy('siswa_id')
+            ->pluck('rata', 'siswa_id');
+
+        $alphaCountByStudent = Absensi::whereIn('siswa_id', $studentIds)
+            ->whereIn('kelas_mapel_id', $allCourseIds)
+            ->where('status', 'alpha')
+            ->where('tanggal', '>=', now()->subDays(60)->toDateString())
+            ->selectRaw('siswa_id, count(*) as total')
+            ->groupBy('siswa_id')
+            ->pluck('total', 'siswa_id');
+
+        return $students->map(function (Siswa $student) use (
+            $coursesByKelas,
+            $totalTasksByCourse,
+            $taskKelasMapelById,
+            $submissionsByStudent,
+            $averageGradeByStudent,
+            $alphaCountByStudent,
+        ) {
+            $courseIds = $coursesByKelas->get($student->kelas_id, collect());
+            $totalTasks = $courseIds->sum(fn ($courseId) => (int) ($totalTasksByCourse[$courseId] ?? 0));
+            $submitted = $submissionsByStudent->get($student->id, collect())
+                ->filter(fn ($submission) => $courseIds->contains($taskKelasMapelById[$submission->tugas_id] ?? null))
                 ->count();
             $missingTasks = max(0, $totalTasks - $submitted);
-            $averageGrade = NilaiAkhir::where('siswa_id', $student->id)
-                ->whereIn('kelas_mapel_id', $courseIds)
-                ->selectRaw('AVG('.NilaiAkhir::rataAkhirExpression().') as rata')
-                ->value('rata');
-            $alphaCount = Absensi::where('siswa_id', $student->id)
-                ->whereIn('kelas_mapel_id', $courseIds)
-                ->where('status', 'alpha')
-                ->where('tanggal', '>=', now()->subDays(60)->toDateString())
-                ->count();
+            $averageGrade = $averageGradeByStudent[$student->id] ?? null;
+            $alphaCount = (int) ($alphaCountByStudent[$student->id] ?? 0);
 
             $reasons = [];
             if ($missingTasks >= 3) {

@@ -4,6 +4,7 @@ namespace App\Services\Reports\Exports;
 
 use App\Models\Absensi;
 use App\Models\Kelas;
+use App\Models\KelasMapel;
 use App\Models\NilaiAkhir;
 use App\Models\Pengaturan;
 use App\Models\PengumpulanTugas;
@@ -183,9 +184,18 @@ final class KepsekReportService
     {
         $kelas = Kelas::withCount(['siswa' => fn ($q) => $q->where('status', 'aktif')])->get();
 
-        $rows = $kelas->values()->map(function (Kelas $kelas, int $index) {
-            $total = Absensi::whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $kelas->id)->aktif())->count();
-            $hadir = Absensi::whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $kelas->id)->aktif())->where('status', 'hadir')->count();
+        $activeKelasMapelIds = KelasMapel::aktif()->pluck('id');
+        $stats = Absensi::whereIn('absensi.kelas_mapel_id', $activeKelasMapelIds)
+            ->join('kelas_mapel', 'kelas_mapel.id', '=', 'absensi.kelas_mapel_id')
+            ->selectRaw("kelas_mapel.kelas_id as kelas_id, count(*) as total, sum(case when absensi.status = 'hadir' then 1 else 0 end) as hadir")
+            ->groupBy('kelas_mapel.kelas_id')
+            ->get()
+            ->keyBy('kelas_id');
+
+        $rows = $kelas->values()->map(function (Kelas $kelas, int $index) use ($stats) {
+            $stat = $stats->get($kelas->id);
+            $total = (int) ($stat->total ?? 0);
+            $hadir = (int) ($stat->hadir ?? 0);
 
             return [
                 $index + 1,

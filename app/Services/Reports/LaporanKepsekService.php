@@ -4,6 +4,7 @@ namespace App\Services\Reports;
 
 use App\Models\Absensi;
 use App\Models\Kelas;
+use App\Models\KelasMapel;
 use App\Models\Pengaturan;
 use App\Models\PengumpulanTugas;
 use App\Models\SikapSosial;
@@ -24,24 +25,27 @@ class LaporanKepsekService
     public function buildAbsensiRekap(): Collection
     {
         $kelas = Kelas::withCount(['siswa' => fn ($q) => $q->where('status', 'aktif')])->get();
-        $rekap = [];
 
-        foreach ($kelas as $k) {
-            $total = Absensi::whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $k->id)->aktif())
-                ->count();
-            $hadir = Absensi::whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $k->id)->aktif())
-                ->where('status', 'hadir')
-                ->count();
+        $activeKelasMapelIds = KelasMapel::aktif()->pluck('id');
+        $stats = Absensi::whereIn('absensi.kelas_mapel_id', $activeKelasMapelIds)
+            ->join('kelas_mapel', 'kelas_mapel.id', '=', 'absensi.kelas_mapel_id')
+            ->selectRaw("kelas_mapel.kelas_id as kelas_id, count(*) as total, sum(case when absensi.status = 'hadir' then 1 else 0 end) as hadir")
+            ->groupBy('kelas_mapel.kelas_id')
+            ->get()
+            ->keyBy('kelas_id');
 
-            $rekap[] = [
+        return $kelas->map(function (Kelas $k) use ($stats) {
+            $stat = $stats->get($k->id);
+            $total = (int) ($stat->total ?? 0);
+            $hadir = (int) ($stat->hadir ?? 0);
+
+            return [
                 'kelas' => $k,
                 'total_absensi' => $total,
                 'total_hadir' => $hadir,
                 'persen' => $total > 0 ? round(($hadir / $total) * 100, 2) : 0,
             ];
-        }
-
-        return collect($rekap);
+        });
     }
 
     /**
