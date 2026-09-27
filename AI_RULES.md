@@ -1,11 +1,11 @@
 # AI Rules — LMS Sekolah
 
-Panduan ini berlaku untuk AI agent yang membaca atau mengubah repository ini.
+Panduan ini berlaku untuk AI agent yang membaca atau mengubah repository ini. Baca `AGENTS.md` terlebih dahulu — file itu adalah sumber tunggal untuk environment, kebijakan dependency, testing/coverage, dan static analysis. File ini hanya menambahkan aturan yang belum dibahas di `AGENTS.md`.
 
 ## 1. Konteks project
 
 - Project: single-school LMS berbasis Laravel 13, Vue 3, Inertia.js, Blade, Vite, dan MySQL/MariaDB.
-- Runtime lokal standar project: Lerd, PHP 8.5, Node 22, domain `https://lms_sekolah.test`.
+- Runtime lokal: PHP 8.3+, Node (lihat `.node-version`), langsung via Composer/Artisan/npm — tidak ada wrapper environment tambahan.
 - Sumber kebenaran schema: migration. Sumber kebenaran perilaku: route, request, controller/service, model, middleware/policy, dan test.
 
 ## 2. Aturan sebelum mengubah kode
@@ -13,9 +13,9 @@ Panduan ini berlaku untuk AI agent yang membaca atau mengubah repository ini.
 1. Baca `AGENTS.md` dan dokumen yang relevan.
 2. Periksa `git status`; jangan menimpa perubahan pengguna yang sudah ada.
 3. Gunakan Serena untuk memahami symbol, reference, controller, service, model, route, dan frontend dependency sebelum mengedit application code.
-4. Temukan site dengan Lerd (`site list`) dan gunakan path repository secara eksplisit untuk command PHP/Composer/Artisan.
-5. Untuk pertanyaan API/framework/library yang bisa berubah, gunakan Context7; jangan mengandalkan ingatan model.
-6. Untuk perubahan lintas modul atau schema, buat rencana singkat dan tentukan risiko authorization, data integrity, upload, dan backward compatibility.
+4. Untuk pertanyaan API/framework/library yang bisa berubah, gunakan Context7; jangan mengandalkan ingatan model.
+5. Untuk perubahan lintas modul atau schema, buat rencana singkat dan tentukan risiko authorization, data integrity, upload, dan backward compatibility.
+6. Sebelum menambah dependency baru, ikuti kebijakan dependency di `AGENTS.md` (tidak boleh package deprecated/abandoned tanpa justifikasi tertulis).
 
 ## 3. Aturan implementasi
 
@@ -31,13 +31,10 @@ Panduan ini berlaku untuk AI agent yang membaca atau mengubah repository ini.
 - Ikuti pola Vue/Inertia dan komponen yang sudah ada; jangan menambahkan framework frontend baru tanpa keputusan arsitektur.
 - Update dokumentasi (PRD/ERD/README/INSTALLATION) jika perubahan mengubah feature, schema, setup, role, atau command.
 
-## 4. Testing dan verifikasi
+## 4. Testing, coverage, dan static analysis
 
-- Sebelum test database-changing, periksa `phpunit.xml`; test suite saat ini memakai SQLite `:memory:` dan tidak boleh menyentuh database development.
-- Temukan binary Composer dengan Lerd `exec vendor_bins`, lalu jalankan tool melalui `exec vendor_run` bila tersedia.
-- Minimal untuk perubahan PHP: lint yang relevan dan test yang relevan.
-- Untuk perubahan frontend: `npm run typecheck` dan `npm run build` bila dependency/build tersedia.
-- Untuk alur UI: gunakan Playwright terhadap domain Lerd aktual; jangan membuat atau menebak credential baru.
+Lihat `AGENTS.md` untuk command testing, requirement coverage untuk logic baru/berubah, dan status static analysis (belum ada PHPStan/Larastan terpasang). Tambahan khusus repo ini:
+
 - Jangan menjalankan `migrate:fresh`, seed, atau reset pada database development tanpa kebutuhan eksplisit dan konfirmasi scope.
 - Laporkan command yang benar-benar dijalankan, hasilnya, dan keterbatasan yang tersisa.
 
@@ -52,7 +49,8 @@ Panduan ini berlaku untuk AI agent yang membaca atau mengubah repository ini.
 ## 6. Checklist handoff
 
 - [ ] Perubahan dan file yang disentuh disebutkan.
-- [ ] Test/lint/build yang dijalankan dicantumkan dengan hasil aktual.
+- [ ] Test/lint/build yang dijalankan dicantumkan dengan hasil aktual, termasuk cakupan test untuk logic baru/berubah.
+- [ ] Tidak ada dependency baru yang deprecated/abandoned tanpa justifikasi.
 - [ ] Migration, seeder, route, policy, dan dokumentasi telah diselaraskan bila relevan.
 - [ ] Tidak ada secret atau data pribadi yang ikut berubah.
 - [ ] Risiko, asumsi, dan pekerjaan lanjutan disebutkan secara singkat.

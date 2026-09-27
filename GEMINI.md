@@ -27,7 +27,7 @@ Baca `CLAUDE.md` dan `AGENTS.md` di root repo dulu untuk konvensi stack, environ
 ## Verifikasi sebelum menyerahkan hasil ke review
 
 - `npm run typecheck` dan `npm run build` harus lulus untuk perubahan frontend.
-- Untuk perubahan visual yang terlihat di UI, jalankan dev server via Lerd worker yang sudah ada (jangan start server kedua) dan screenshot/describe halaman yang berubah — sebutkan halaman apa saja yang divalidasi.
+- Untuk perubahan visual yang terlihat di UI, jalankan dev server yang sudah ada (`php artisan serve` + `npm run dev`, jangan start server kedua) dan screenshot/describe halaman yang berubah — sebutkan halaman apa saja yang divalidasi.
 - Jangan jalankan `npm run test:browser` tanpa memeriksa `scripts/test-browser.mjs` dulu (efek data/auth), sesuai `CLAUDE.md`.
 - Jangan reset/seed database aplikasi untuk keperluan verifikasi visual.
 - Laporkan di akhir: file apa saja yang diubah, item checklist mana yang selesai, dan checklist mana yang masih terbuka atau butuh keputusan (misalnya menu yang controller/view-nya belum jelas seperti `/guru/pengumuman`).

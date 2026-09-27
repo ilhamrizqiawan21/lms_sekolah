@@ -48,21 +48,9 @@ Detail fungsional lengkap per role ada di [docs/PRD.md](docs/PRD.md).
 | Database | MySQL 8+ atau MariaDB 10.6+ |
 | Export | DomPDF, OpenSpout |
 | Testing | PHPUnit/Laravel Test Suite, Playwright |
-| Local environment | Lerd; konfigurasi project memakai PHP 8.5 dan Node 22 |
+| Local environment | PHP native + Composer + Node/npm, tanpa wrapper environment |
 
 ## Quick start
-
-### Dengan Lerd (direkomendasikan)
-
-    git clone https://github.com/ilhamrizqiawan21/lms_sekolah.git
-    cd lms_sekolah
-    lerd site:list
-    lerd env:setup
-    lerd setup
-
-Untuk development, gunakan worker Vite Lerd atau jalankan `npm install` dan `npm run dev`. Domain checkout ini saat ini adalah `https://lms_sekolah.test`; selalu verifikasi dengan `lerd site:list`.
-
-### Instalasi manual (ringkas)
 
     composer install
     npm install
@@ -105,7 +93,7 @@ Jangan deploy akun atau password demo ke production. Untuk instalasi kosong, isi
     npm run typecheck
     npm run build
 
-Test Laravel memakai SQLite `:memory:` yang diatur di `phpunit.xml`, jadi tidak menyentuh database development. Untuk UI, gunakan Playwright pada domain Lerd yang benar dan credential yang memang tersedia — jangan seed/reset database aplikasi untuk kebutuhan pengecekan browser.
+Test Laravel memakai SQLite `:memory:` yang diatur di `phpunit.xml`, jadi tidak menyentuh database development. Untuk UI, gunakan Playwright pada domain lokal (`APP_URL` di `.env`, atau URL dari `php artisan serve`) dan credential yang memang tersedia — jangan seed/reset database aplikasi untuk kebutuhan pengecekan browser.
 
 ## Dokumentasi
 
@@ -117,7 +105,7 @@ Test Laravel memakai SQLite `:memory:` yang diatur di `phpunit.xml`, jadi tidak 
 
 ### Setup dan arsitektur
 
-- [docs/INSTALLATION.md](docs/INSTALLATION.md) — instalasi Lerd/manual, seeder, asset, dan production checklist.
+- [docs/INSTALLATION.md](docs/INSTALLATION.md) — instalasi manual, seeder, asset, dan production checklist.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — penempatan kode dan pola arsitektur.
 - [docs/IMPORT_SISWA.md](docs/IMPORT_SISWA.md) — import siswa melalui Excel.
 - [docs/CUSTOM_BRANDING.md](docs/CUSTOM_BRANDING.md) — konfigurasi identitas sekolah.

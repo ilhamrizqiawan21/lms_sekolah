@@ -11,14 +11,20 @@ use App\Models\SoalBank;
 use App\Models\Ujian;
 use App\Models\UjianAttempt;
 use App\Models\UjianSoal;
+use App\Services\CbtScoringService;
+use App\Services\UjianService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class UjianController extends Controller
 {
+    public function __construct(
+        protected UjianService $ujianService,
+        protected CbtScoringService $scoringService,
+    ) {}
+
     public function index(): Response
     {
         $kelasMapel = KelasMapel::with(['kelas', 'mataPelajaran', 'tahunAjaran'])
@@ -156,30 +162,7 @@ class UjianController extends Controller
     {
         $this->authorize('mengajar', $kelasMapel);
 
-        $validated = $request->validated();
-
-        DB::transaction(function () use ($kelasMapel, $validated) {
-            $ujian = Ujian::create([
-                'kelas_mapel_id' => $kelasMapel->id,
-                'judul' => $validated['judul'],
-                'deskripsi' => $validated['deskripsi'] ?? null,
-                'durasi_menit' => $validated['durasi_menit'],
-                'kategori_nilai' => $validated['kategori_nilai'],
-                'waktu_mulai' => $validated['waktu_mulai'] ?? null,
-                'waktu_selesai' => $validated['waktu_selesai'] ?? null,
-                'acak_soal' => $validated['acak_soal'],
-                'acak_opsi' => $validated['acak_opsi'],
-            ]);
-
-            foreach ($validated['soal'] as $index => $soalItem) {
-                UjianSoal::create([
-                    'ujian_id' => $ujian->id,
-                    'soal_bank_id' => $soalItem['soal_bank_id'],
-                    'poin' => $soalItem['poin'],
-                    'urutan' => $index + 1,
-                ]);
-            }
-        });
+        $this->ujianService->createUjian($kelasMapel, $request->validated());
 
         return redirect()->route('guru.ujian.list', $kelasMapel)
             ->with('success', 'Ujian CBT berhasil dibuat.');
@@ -190,48 +173,7 @@ class UjianController extends Controller
         $this->authorize('mengajar', $kelasMapel);
         $this->ensureUjianBelongsToKelasMapel($ujian, $kelasMapel);
 
-        $validated = $request->validated();
-
-        DB::transaction(function () use ($ujian, $validated) {
-            // Lock existing attempt rows for this ujian_id so a student's mulai()
-            // (which inserts a new UjianAttempt for the same ujian_id) blocks until
-            // this transaction commits, instead of racing the ujianSoal delete below.
-            $hasActiveAttempts = UjianAttempt::where('ujian_id', $ujian->id)
-                ->where('status', '!=', UjianAttempt::STATUS_BELUM_MULAI)
-                ->lockForUpdate()
-                ->exists();
-
-            $ujian->update([
-                'judul' => $validated['judul'],
-                'deskripsi' => $validated['deskripsi'] ?? null,
-                'durasi_menit' => $validated['durasi_menit'],
-                'kategori_nilai' => $validated['kategori_nilai'],
-                'waktu_mulai' => $validated['waktu_mulai'] ?? null,
-                'waktu_selesai' => $validated['waktu_selesai'] ?? null,
-                'acak_soal' => $validated['acak_soal'],
-                'acak_opsi' => $validated['acak_opsi'],
-            ]);
-
-            if ($ujian->waktu_selesai) {
-                UjianAttempt::where('ujian_id', $ujian->id)
-                    ->where('status', UjianAttempt::STATUS_SEDANG_MENGERJAKAN)
-                    ->where('batas_waktu', '>', $ujian->waktu_selesai)
-                    ->update(['batas_waktu' => $ujian->waktu_selesai]);
-            }
-
-            if (! $hasActiveAttempts && isset($validated['soal'])) {
-                $ujian->ujianSoal()->delete();
-
-                foreach ($validated['soal'] as $index => $soalItem) {
-                    UjianSoal::create([
-                        'ujian_id' => $ujian->id,
-                        'soal_bank_id' => $soalItem['soal_bank_id'],
-                        'poin' => $soalItem['poin'],
-                        'urutan' => $index + 1,
-                    ]);
-                }
-            }
-        });
+        $this->ujianService->updateUjian($ujian, $request->validated());
 
         return redirect()->route('guru.ujian.list', $kelasMapel)
             ->with('success', 'Ujian CBT berhasil diperbarui.');
@@ -292,9 +234,7 @@ class UjianController extends Controller
                 UjianAttempt::STATUS_WAKTU_HABIS => 'expired',
             ];
 
-            $nilai = $attempt->skor_maksimal > 0
-                ? round(($attempt->skor_total / $attempt->skor_maksimal) * 100, 2)
-                : 0;
+            $nilai = $this->scoringService->skorPersen($attempt->skor_total, $attempt->skor_maksimal);
 
             if (in_array($attempt->status, UjianAttempt::STATUS_TERKUNCI, true)) {
                 $skorList[] = $nilai;
@@ -398,7 +338,7 @@ class UjianController extends Controller
         }
 
         $skor100 = $attempt->skor_maksimal > 0
-            ? round(($attempt->skor_total / $attempt->skor_maksimal) * 100, 2)
+            ? $this->scoringService->skorPersen($attempt->skor_total, $attempt->skor_maksimal)
             : null;
 
         return Inertia::render('Guru/Ujian/AttemptDetail', [
@@ -441,11 +381,7 @@ class UjianController extends Controller
 
         $topics = $soalBank->pluck('topik')->filter()->unique()->values();
 
-        $hasActiveAttempts = $ujian
-            ? UjianAttempt::where('ujian_id', $ujian->id)
-                ->where('status', '!=', UjianAttempt::STATUS_BELUM_MULAI)
-                ->exists()
-            : false;
+        $hasActiveAttempts = $ujian ? $this->ujianService->hasActiveAttempts($ujian) : false;
 
         $ujianData = null;
         if ($ujian) {

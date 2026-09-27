@@ -9,7 +9,6 @@ use App\Models\Siswa;
 use App\Models\Ujian;
 use App\Models\UjianAttempt;
 use App\Models\UjianAttemptJawaban;
-use App\Models\UjianSoal;
 use App\Services\CbtScoringService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +16,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -70,15 +68,11 @@ class UjianController extends Controller
                             $canContinue = true;
                         }
                     } elseif ($attempt->status === UjianAttempt::STATUS_SELESAI) {
-                        $skor100 = $attempt->skor_maksimal > 0
-                            ? round(($attempt->skor_total / $attempt->skor_maksimal) * 100, 2)
-                            : 0;
+                        $skor100 = $this->scoringService->skorPersen($attempt->skor_total, $attempt->skor_maksimal);
                         $statusLabel = "Selesai (Nilai: {$skor100})";
                         $canViewHasil = true;
                     } elseif ($attempt->status === UjianAttempt::STATUS_WAKTU_HABIS) {
-                        $skor100 = $attempt->skor_maksimal > 0
-                            ? round(($attempt->skor_total / $attempt->skor_maksimal) * 100, 2)
-                            : 0;
+                        $skor100 = $this->scoringService->skorPersen($attempt->skor_total, $attempt->skor_maksimal);
                         $statusLabel = "Waktu Habis (Nilai: {$skor100})";
                         $canViewHasil = true;
                     }
@@ -146,81 +140,7 @@ class UjianController extends Controller
             return redirect()->route('siswa.ujian.kerjakan', $existing->id);
         }
 
-        $attempt = DB::transaction(function () use ($ujian, $siswa) {
-            $now = Carbon::now();
-            $durasi = (int) $ujian->durasi_menit;
-            $batasWaktu = (clone $now)->addMinutes($durasi);
-
-            if ($ujian->waktu_selesai && $batasWaktu->gt($ujian->waktu_selesai)) {
-                $batasWaktu = clone $ujian->waktu_selesai;
-            }
-
-            $attempt = UjianAttempt::create([
-                'ujian_id' => $ujian->id,
-                'siswa_id' => $siswa->id,
-                'status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN,
-                'seed' => 0,
-                'urutan_soal_ids' => [],
-                'waktu_mulai' => $now,
-                'batas_waktu' => $batasWaktu,
-                'skor_total' => 0,
-                'skor_maksimal' => 0,
-                'tab_switch_log' => [],
-                'tab_switch_count' => 0,
-            ]);
-
-            $seed = (int) $attempt->id;
-            $attempt->seed = $seed;
-
-            $ujianSoalList = UjianSoal::with('soalBank.opsi')
-                ->where('ujian_id', $ujian->id)
-                ->orderBy('urutan')
-                ->get();
-
-            $soalIds = $ujianSoalList->pluck('id')->all();
-
-            if ($ujian->acak_soal) {
-                // Deterministic shuffle with seed
-                mt_srand($seed);
-                for ($i = count($soalIds) - 1; $i > 0; $i--) {
-                    $j = mt_rand(0, $i);
-                    $tmp = $soalIds[$i];
-                    $soalIds[$i] = $soalIds[$j];
-                    $soalIds[$j] = $tmp;
-                }
-            }
-
-            $attempt->urutan_soal_ids = $soalIds;
-            $attempt->save();
-
-            // Create initial UjianAttemptJawaban rows with deterministic option ordering
-            foreach ($ujianSoalList as $us) {
-                $opsiList = $us->soalBank?->opsi ?? collect();
-                $opsiIds = $opsiList->sortBy('urutan')->pluck('id')->all();
-
-                if ($ujian->acak_opsi && count($opsiIds) > 1) {
-                    mt_srand($seed + (int) $us->id);
-                    for ($i = count($opsiIds) - 1; $i > 0; $i--) {
-                        $j = mt_rand(0, $i);
-                        $tmp = $opsiIds[$i];
-                        $opsiIds[$i] = $opsiIds[$j];
-                        $opsiIds[$j] = $tmp;
-                    }
-                }
-
-                UjianAttemptJawaban::create([
-                    'ujian_attempt_id' => $attempt->id,
-                    'ujian_soal_id' => $us->id,
-                    'soal_bank_opsi_id' => null,
-                    'urutan_opsi_ids' => $opsiIds,
-                    'is_benar' => null,
-                    'poin_didapat' => null,
-                    'dijawab_pada' => null,
-                ]);
-            }
-
-            return $attempt;
-        });
+        $attempt = $this->scoringService->startAttempt($ujian, $siswa);
 
         return redirect()->route('siswa.ujian.kerjakan', $attempt->id);
     }
@@ -411,9 +331,7 @@ class UjianController extends Controller
         $totalSalah = $attempt->jawaban->where('is_benar', false)->whereNotNull('soal_bank_opsi_id')->count();
         $totalKosong = $attempt->jawaban->whereNull('soal_bank_opsi_id')->count();
 
-        $skor100 = $attempt->skor_maksimal > 0
-            ? round(($attempt->skor_total / $attempt->skor_maksimal) * 100, 2)
-            : 0;
+        $skor100 = $this->scoringService->skorPersen($attempt->skor_total, $attempt->skor_maksimal);
 
         return Inertia::render('Siswa/Ujian/Hasil', [
             'attempt' => [
