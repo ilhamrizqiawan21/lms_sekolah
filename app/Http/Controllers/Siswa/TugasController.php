@@ -7,23 +7,22 @@ use App\Models\PengumpulanFile;
 use App\Models\PengumpulanTugas;
 use App\Models\Siswa;
 use App\Models\Tugas;
-use App\Services\NotifikasiService;
+use App\Services\TugasSubmissionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class TugasController extends Controller
 {
-    private const MAX_UPLOAD_FILES = 5;
+    private const MAX_UPLOAD_FILES = TugasSubmissionService::MAX_UPLOAD_FILES;
 
-    private const UPLOAD_MAX_KB = 5120;
+    private const UPLOAD_MAX_KB = TugasSubmissionService::UPLOAD_MAX_KB;
 
-    private const UPLOAD_TOTAL_MAX_KB = 20480;
+    private const UPLOAD_TOTAL_MAX_KB = TugasSubmissionService::UPLOAD_TOTAL_MAX_KB;
 
-    private const UPLOAD_EXTENSIONS = 'jpg,jpeg,pdf';
+    private const UPLOAD_EXTENSIONS = TugasSubmissionService::UPLOAD_EXTENSIONS;
 
     /**
      * Aturan validasi satu file tugas.
@@ -150,114 +149,14 @@ class TugasController extends Controller
 
         $this->ensureTugasAktifUntukSiswa($tugas, $siswa);
 
-        $hasTextJawaban = filled($validated['teks_jawaban'] ?? null);
-        $hasSingleFile = $request->hasFile('file_upload');
-        $hasMultipleFiles = collect($request->file('files', []))->filter()->isNotEmpty();
-        $totalUploadedFiles = ($hasSingleFile ? 1 : 0) + collect($request->file('files', []))->filter()->count();
+        $result = app(TugasSubmissionService::class)->submit($tugas, $siswa, $user, $request, $validated);
 
-        if (! $hasTextJawaban && ! $hasSingleFile && ! $hasMultipleFiles) {
-            return back()->withInput()->withErrors(['file_upload' => 'Upload file atau isi jawaban teks terlebih dahulu.']);
-        }
-
-        if ($totalUploadedFiles > self::MAX_UPLOAD_FILES) {
-            return back()->withInput()->withErrors(['files' => 'Maksimal '.self::MAX_UPLOAD_FILES.' file untuk satu pengumpulan tugas.']);
-        }
-
-        $totalUploadBytes = 0;
-        if ($request->hasFile('file_upload')) {
-            $totalUploadBytes += (int) $request->file('file_upload')->getSize();
-        }
-        foreach (collect($request->file('files', []))->filter() as $file) {
-            $totalUploadBytes += (int) $file->getSize();
-        }
-
-        if ($totalUploadBytes > self::UPLOAD_TOTAL_MAX_KB * 1024) {
-            $limitMb = (int) (self::UPLOAD_TOTAL_MAX_KB / 1024);
-
-            return back()->withInput()->withErrors(['files' => 'Total ukuran file melebihi batas maksimal '.$limitMb.'MB.']);
-        }
-
-        $existingPengumpulan = PengumpulanTugas::where('tugas_id', $tugas->id)
-            ->where('siswa_id', $siswa->id)
-            ->first();
-
-        if ($existingPengumpulan && ! in_array($existingPengumpulan->status, [
-            PengumpulanTugas::STATUS_BELUM,
-            PengumpulanTugas::STATUS_PERLU_PERBAIKAN,
-        ])) {
-            return back()->with('error', 'Tugas ini sudah dikumpulkan dan tidak dapat diubah.');
-        }
-
-        $statusPengumpulan = $tugas->batas_waktu && now()->gt($tugas->batas_waktu)
-            ? PengumpulanTugas::STATUS_TERLAMBAT
-            : PengumpulanTugas::STATUS_SUDAH;
-        $uploadedFiles = [];
-        $storedPaths = [];
-
-        try {
-            DB::beginTransaction();
-            // Re-check the submission while holding the row lock. The check
-            // above is only an early response; concurrent requests must not
-            // both pass it and append duplicate files.
-            $lockedPengumpulan = PengumpulanTugas::where('tugas_id', $tugas->id)
-                ->where('siswa_id', $siswa->id)
-                ->lockForUpdate()
-                ->first();
-            if ($lockedPengumpulan && ! in_array($lockedPengumpulan->status, [
-                PengumpulanTugas::STATUS_BELUM,
-                PengumpulanTugas::STATUS_PERLU_PERBAIKAN,
-            ], true)) {
-                throw new \RuntimeException('Tugas ini sudah dikumpulkan dan tidak dapat diubah.');
-            }
-
-            $pengumpulan = PengumpulanTugas::updateOrCreate(
-                ['tugas_id' => $tugas->id, 'siswa_id' => $siswa->id],
-                ['status' => $statusPengumpulan, 'file_upload' => null, 'teks_jawaban' => $validated['teks_jawaban'] ?? null, 'tanggal_kumpul' => now(), 'graded_at' => null]
-            );
-
-            if ($request->hasFile('file_upload')) {
-                $file = $request->file('file_upload');
-                $path = $file->store('tugas/'.$tugas->id.'/'.$siswa->id, 'local');
-                $storedPaths[] = $path;
-                $uploadedFiles[] = ['pengumpulan_id' => $pengumpulan->id, 'file_name' => $file->getClientOriginalName(), 'file_path' => $path, 'uploaded_at' => now()];
-            }
-
-            if ($request->hasFile('files')) {
-                foreach ($request->file('files') as $file) {
-                    $path = $file->store('tugas/'.$tugas->id.'/'.$siswa->id, 'local');
-                    $storedPaths[] = $path;
-                    $uploadedFiles[] = ['pengumpulan_id' => $pengumpulan->id, 'file_name' => $file->getClientOriginalName(), 'file_path' => $path, 'uploaded_at' => now()];
-                }
-            }
-
-            if (count($uploadedFiles) > 0) {
-                PengumpulanFile::insert($uploadedFiles);
-                $pengumpulan->update(['file_upload' => $uploadedFiles[0]['file_path']]);
-            }
-
-            DB::commit();
-        } catch (\Throwable $e) {
-            if (DB::transactionLevel() > 0) {
-                DB::rollBack();
-            }
-            foreach ($storedPaths as $path) {
-                Storage::disk('local')->delete($path);
-            }
-            report($e);
-
-            return back()->withInput()->with('error', 'Tugas gagal dikumpulkan. Silakan coba lagi.');
-        }
-
-        $guruId = $tugas->kelasMapel->guru_id;
-        app(NotifikasiService::class)->notifikasiUser(
-            $guruId,
-            'kumpul_tugas',
-            'Siswa mengumpulkan tugas',
-            "{$user->nama_lengkap} telah mengumpulkan tugas '{$tugas->judul}'.",
-            route('guru.tugas.pengumpulan', [$tugas->kelas_mapel_id, $tugas->id])
-        );
-
-        return redirect()->route('siswa.tugas.show', $tugas)->with('success', 'Tugas berhasil dikumpulkan.');
+        return match ($result['status']) {
+            'validation' => back()->withInput()->withErrors([$result['field'] => $result['message']]),
+            'conflict' => back()->with('error', $result['message']),
+            'failed' => back()->withInput()->with('error', $result['message']),
+            'success' => redirect()->route('siswa.tugas.show', $tugas)->with('success', 'Tugas berhasil dikumpulkan.'),
+        };
     }
 
     public function downloadFile(Tugas $tugas, PengumpulanFile $file)
