@@ -58,6 +58,43 @@ final class LegacyTableExcelWriter
         return response()->download($filePath, $filename)->deleteFileAfterSend(true);
     }
 
+    /**
+     * Renders a simpler, single-block Excel export: school name, title, a
+     * handful of meta rows, then the data table. Used by exports that don't
+     * carry the full school-profile header (address/context/tahun ajaran/
+     * kepala sekolah) built by table()/multiTable(), e.g. Admin user and log
+     * login exports.
+     *
+     * @param  array<int, int>  $columnWidths  Column index (1-based) => width.
+     * @param  array<int, array{0: array<int, mixed>, 1: string, 2: int}>  $headerRows  Tuples of [values, style key, row height].
+     */
+    public function simpleTable(string $filename, array $columnWidths, array $headerRows, array $headers, iterable $rows, string $tempPrefix = 'export_')
+    {
+        $writer = new Writer;
+        $filePath = $this->temporaryExcelPath($tempPrefix);
+        $writer->openToFile($filePath);
+
+        $sheet = $writer->getCurrentSheet();
+        foreach ($columnWidths as $column => $width) {
+            $sheet->setColumnWidth($width, $column);
+        }
+
+        $styles = $this->excelStyles();
+        foreach ($headerRows as [$values, $styleKey, $height]) {
+            $writer->addRow(Row::fromValuesWithStyle($values, $styles[$styleKey], $height));
+        }
+        $writer->addRow(Row::fromValues([]));
+
+        $this->writeExcelTableHeader($writer, $headers);
+        foreach ($rows as $index => $row) {
+            $this->writeExcelDataRow($writer, $row, $index);
+        }
+
+        $writer->close();
+
+        return response()->download($filePath, $filename)->deleteFileAfterSend(true);
+    }
+
     private function excelReportHeader(string $title, array $school, string $context): array
     {
         $principalId = $school['principal_nip'] ?: $school['principal_nuptk'];

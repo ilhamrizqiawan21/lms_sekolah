@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\StoreStaffUserRequest;
 use App\Http\Requests\Admin\UpdateStaffUserRequest;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Reports\Exports\LegacyTableExcelWriter;
 use App\Services\SiswaImportService;
 use App\Services\SiswaTemplateService;
 use App\Support\RoleAccess;
@@ -18,16 +19,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
-use OpenSpout\Common\Entity\Row;
-use OpenSpout\Common\Entity\Style\Border;
-use OpenSpout\Common\Entity\Style\BorderName;
-use OpenSpout\Common\Entity\Style\BorderPart;
-use OpenSpout\Common\Entity\Style\BorderWidth;
-use OpenSpout\Common\Entity\Style\CellAlignment;
-use OpenSpout\Common\Entity\Style\CellVerticalAlignment;
-use OpenSpout\Common\Entity\Style\Color;
-use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Writer\XLSX\Writer;
 
 class UserController extends Controller
 {
@@ -92,7 +83,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function exportExcel(StaffUserFilterRequest $request)
+    public function exportExcel(StaffUserFilterRequest $request, LegacyTableExcelWriter $excel)
     {
         $this->ensureAdmin();
 
@@ -111,44 +102,27 @@ class UserController extends Controller
             });
         }
 
-        $writer = new Writer;
-        $filePath = tempnam(sys_get_temp_dir(), 'guru_staf_');
         $filename = 'status_password_guru_staf_'.date('Ymd_His').'.xlsx';
 
-        $writer->openToFile($filePath);
-        $writer->getCurrentSheet()->setColumnWidth(22, 1);
-        $writer->getCurrentSheet()->setColumnWidth(32, 2);
-        $writer->getCurrentSheet()->setColumnWidth(18, 3);
-        $writer->getCurrentSheet()->setColumnWidth(18, 4);
+        $rows = $query->orderBy('nama_lengkap')->get()->values()->map(fn (User $user) => [
+            $user->username,
+            $user->nama_lengkap,
+            $user->role?->nama_role ? str_replace('_', ' ', ucwords($user->role->nama_role, '_')) : '-',
+            $user->is_password_default ? 'Masih default' : 'Sudah diubah',
+        ]);
 
-        $styles = $this->excelStyles();
-        $writer->addRow(Row::fromValuesWithStyle([school_setting('school_name', 'Nama Sekolah')], $styles['school'], 24));
-        $writer->addRow(Row::fromValuesWithStyle(['STATUS PASSWORD GURU & STAF'], $styles['title'], 24));
-        $writer->addRow(Row::fromValuesWithStyle(['Tanggal Export', now()->format('d/m/Y H:i')], $styles['meta'], 18));
-        $writer->addRow(Row::fromValues([]));
-        $writer->addRow(Row::fromValuesWithStyle([
-            'Username',
-            'Nama',
-            'Role',
-            'Status Password',
-        ], $styles['tableHeader'], 24));
-
-        $query->orderBy('nama_lengkap')->get()->values()->each(function (User $user, int $index) use ($writer, $styles) {
-            $isDefaultPassword = (bool) $user->is_password_default;
-
-            $writer->addRow(Row::fromValuesWithStyle([
-                $user->username,
-                $user->nama_lengkap,
-                $user->role?->nama_role ? str_replace('_', ' ', ucwords($user->role->nama_role, '_')) : '-',
-                $isDefaultPassword ? 'Masih default' : 'Sudah diubah',
-            ], $index % 2 === 0 ? $styles['row'] : $styles['alternateRow'], 20));
-        });
-
-        $writer->close();
-
-        return response()
-            ->download($filePath, $filename)
-            ->deleteFileAfterSend(true);
+        return $excel->simpleTable(
+            $filename,
+            [1 => 22, 2 => 32, 3 => 18, 4 => 18],
+            [
+                [[school_setting('school_name', 'Nama Sekolah')], 'school', 24],
+                [['STATUS PASSWORD GURU & STAF'], 'title', 24],
+                [['Tanggal Export', now()->format('d/m/Y H:i')], 'meta', 18],
+            ],
+            ['Username', 'Nama', 'Role', 'Status Password'],
+            $rows,
+            'guru_staf_'
+        );
     }
 
     /**
@@ -395,50 +369,5 @@ class UserController extends Controller
         }
 
         abort_unless($user->hasRole(RoleAccess::ADMIN), 403, 'Anda tidak memiliki akses ke halaman ini.');
-    }
-
-    private function excelStyles(): array
-    {
-        $border = new Border(
-            new BorderPart(BorderName::TOP, 'CBD5E1', BorderWidth::THIN),
-            new BorderPart(BorderName::RIGHT, 'CBD5E1', BorderWidth::THIN),
-            new BorderPart(BorderName::BOTTOM, 'CBD5E1', BorderWidth::THIN),
-            new BorderPart(BorderName::LEFT, 'CBD5E1', BorderWidth::THIN),
-        );
-
-        $base = (new Style)
-            ->withFontName('Arial')
-            ->withFontSize(10)
-            ->withShouldWrapText(true)
-            ->withCellVerticalAlignment(CellVerticalAlignment::CENTER);
-
-        return [
-            'school' => $base
-                ->withFontBold(true)
-                ->withFontSize(14)
-                ->withFontColor('0F172A')
-                ->withCellAlignment(CellAlignment::CENTER),
-            'title' => $base
-                ->withFontBold(true)
-                ->withFontSize(13)
-                ->withFontColor(Color::WHITE)
-                ->withBackgroundColor('1D4ED8')
-                ->withCellAlignment(CellAlignment::CENTER),
-            'meta' => $base
-                ->withFontColor('475569')
-                ->withBackgroundColor('F8FAFC'),
-            'tableHeader' => $base
-                ->withFontBold(true)
-                ->withFontColor(Color::WHITE)
-                ->withBackgroundColor('334155')
-                ->withCellAlignment(CellAlignment::CENTER)
-                ->withBorder($border),
-            'row' => $base
-                ->withBackgroundColor(Color::WHITE)
-                ->withBorder($border),
-            'alternateRow' => $base
-                ->withBackgroundColor('F8FAFC')
-                ->withBorder($border),
-        ];
     }
 }
