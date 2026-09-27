@@ -8,11 +8,11 @@ use App\Http\Requests\Admin\SiswaFilterRequest;
 use App\Http\Requests\Admin\StoreSiswaRequest;
 use App\Http\Requests\Admin\UpdateSiswaRequest;
 use App\Models\Kelas;
-use App\Models\Role;
 use App\Models\Siswa;
 use App\Models\User;
 use App\Services\SiswaExportService;
 use App\Services\SiswaImportService;
+use App\Services\SiswaLifecycleService;
 use App\Services\SiswaTemplateService;
 use App\Support\RoleAccess;
 use Illuminate\Auth\AuthenticationException;
@@ -142,42 +142,13 @@ class KelasSiswaController extends Controller
     }
 
     // Save new Siswa
-    public function storeSiswa(StoreSiswaRequest $request)
+    public function storeSiswa(StoreSiswaRequest $request, SiswaLifecycleService $lifecycleService)
     {
         $this->ensureAdmin();
         $validated = $request->validated();
 
         try {
-            $created = DB::transaction(function () use ($validated) {
-                $siswaRoleId = Role::where('nama_role', 'siswa')->value('id');
-                $password = $this->generateInitialPassword();
-
-                if (! $siswaRoleId) {
-                    throw new \RuntimeException('Role siswa belum tersedia.');
-                }
-
-                // Buat user dulu
-                $user = User::create([
-                    'username' => $validated['nis'],
-                    'password' => Hash::make($password),
-                    'is_password_default' => true,
-                    'nama_lengkap' => $validated['nama_lengkap'],
-                    'nip_nis' => $validated['nis'],
-                    'role_id' => $siswaRoleId,
-                    'jenis_kelamin' => $validated['jenis_kelamin'],
-                    'is_active' => true,
-                ]);
-
-                // Buat siswa
-                Siswa::create([
-                    'user_id' => $user->id,
-                    'nis' => $validated['nis'],
-                    'kelas_id' => $validated['kelas_id'],
-                    'status' => 'aktif',
-                ]);
-
-                return compact('user', 'password');
-            });
+            $created = $lifecycleService->create($validated);
 
             return back()->with(
                 'success',
@@ -247,33 +218,26 @@ class KelasSiswaController extends Controller
     }
 
     // Delete Siswa beserta Usernya
-    public function destroySiswa(Siswa $siswa)
+    public function destroySiswa(Siswa $siswa, SiswaLifecycleService $lifecycleService)
     {
         $this->ensureAdmin();
 
         $siswa->loadMissing('user');
         abort_unless($siswa->user, 404);
 
-        if ($siswa->absensi()->exists()
-            || $siswa->pengumpulanTugas()->exists()
-            || $siswa->nilaiAkhir()->exists()
-            || $siswa->sikapSosial()->exists()
-            || $siswa->sikapSpiritual()->exists()) {
+        if ($lifecycleService->hasAcademicHistory($siswa)) {
             return back()->with('error', 'Siswa tidak dapat dihapus karena sudah memiliki riwayat akademik. Ubah status siswa menjadi keluar atau lulus.');
         }
 
         $nama = $siswa->user->nama_lengkap;
 
-        DB::transaction(function () use ($siswa) {
-            $siswa->delete();
-            $siswa->user->delete();
-        });
+        $lifecycleService->delete($siswa);
 
         return back()->with('success', "Siswa {$nama} berhasil dihapus.");
     }
 
     // Tampilkan daftar siswa yang sudah lulus
-    public function luluskanKelas(Kelas $kelas)
+    public function luluskanKelas(Kelas $kelas, SiswaLifecycleService $lifecycleService)
     {
         $this->ensureAdmin();
 
@@ -281,20 +245,7 @@ class KelasSiswaController extends Controller
             return back()->with('error', 'Hanya kelas IX yang bisa diluluskan.');
         }
 
-        $count = DB::transaction(function () use ($kelas) {
-            $siswa = Siswa::where('kelas_id', $kelas->id)
-                ->where('status', 'aktif')
-                ->get(['id', 'user_id']);
-
-            if ($siswa->isEmpty()) {
-                return 0;
-            }
-
-            Siswa::whereIn('id', $siswa->pluck('id'))->update(['status' => 'lulus']);
-            User::whereIn('id', $siswa->pluck('user_id')->filter())->update(['is_active' => false]);
-
-            return $siswa->count();
-        });
+        $count = $lifecycleService->luluskanKelas($kelas);
 
         return back()->with('success', "{$count} siswa kelas {$kelas->nama_kelas} berhasil diluluskan.");
     }
