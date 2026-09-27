@@ -10,6 +10,7 @@ use App\Models\Kelas;
 use App\Models\KelasDaring;
 use App\Models\KelasMapel;
 use App\Models\MataPelajaran;
+use App\Models\NilaiAkhir;
 use App\Models\PengumpulanTugas;
 use App\Models\Role;
 use App\Models\Siswa;
@@ -61,6 +62,47 @@ class FreeFeaturePackageTest extends TestCase
             ->get(route('kepsek.performa-guru'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page->component('PerformaGuru/Index'));
+    }
+
+    public function test_teacher_performance_early_warnings_ignore_stale_records_from_a_former_class(): void
+    {
+        [$admin, $guru, , $kelasA, $tahunAjaran] = $this->fixture();
+        $kelasB = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'B']);
+        $courseA = $this->course($guru, $kelasA, $tahunAjaran, 'CLA');
+        $courseB = $this->course($guru, $kelasB, $tahunAjaran, 'CLB');
+
+        // Keeps kelas A's kelas_mapel relevant to the active-student pool.
+        $otherUser = $this->createUser('siswa-kelas-a', 'Siswa Kelas A', 'siswa');
+        Siswa::create(['user_id' => $otherUser->id, 'nis' => '8501', 'kelas_id' => $kelasA->id, 'status' => 'aktif']);
+
+        // Transferred from kelas A to kelas B; still has stale nilai/absensi rows tied to kelas A's course.
+        $transferUser = $this->createUser('siswa-transfer', 'Siswa Transfer', 'siswa');
+        $transfer = Siswa::create(['user_id' => $transferUser->id, 'nis' => '8502', 'kelas_id' => $kelasB->id, 'status' => 'aktif']);
+
+        NilaiAkhir::create([
+            'siswa_id' => $transfer->id,
+            'kelas_mapel_id' => $courseA->id,
+            'tahun_ajaran_id' => $tahunAjaran->id,
+            'semester' => '1',
+            'sum1' => 40,
+        ]);
+        for ($i = 0; $i < 3; $i++) {
+            Absensi::create([
+                'siswa_id' => $transfer->id,
+                'kelas_mapel_id' => $courseA->id,
+                'tanggal' => now()->subDays($i + 1)->toDateString(),
+                'status' => 'alpha',
+            ]);
+        }
+
+        $response = $this->actingAs($admin)->get(route('admin.performa-guru'));
+
+        $response->assertOk();
+        $warnings = collect($response->viewData('page')['props']['earlyWarnings']);
+        $this->assertFalse(
+            $warnings->contains(fn (array $item) => $item['id'] === $transfer->id),
+            'Stale records from a former class must not trigger an early warning for the current class.'
+        );
     }
 
     public function test_whatsapp_late_task_reminder_excludes_submitted_tasks(): void

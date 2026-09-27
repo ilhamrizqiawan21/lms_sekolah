@@ -222,9 +222,11 @@ class LaporanController extends Controller
 
     public function rekapSikap(Request $request)
     {
+        $request->validate(['kelas_id' => 'nullable|integer|exists:kelas,id']);
+
         $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
 
-        $kelasId = $request->input('kelas_id');
+        $kelasId = $request->integer('kelas_id') ?: null;
         $taAktif = TahunAjaran::getAktif();
         $semester = Pengaturan::getValue('semester_aktif', '1');
 

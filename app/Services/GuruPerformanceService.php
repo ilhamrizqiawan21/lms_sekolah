@@ -171,18 +171,24 @@ class GuruPerformanceService
             ->get(['siswa_id', 'tugas_id'])
             ->groupBy('siswa_id');
 
-        $averageGradeByStudent = NilaiAkhir::whereIn('siswa_id', $studentIds)
-            ->whereIn('kelas_mapel_id', $allCourseIds)
-            ->selectRaw('siswa_id, AVG('.NilaiAkhir::rataAkhirExpression().') as rata')
-            ->groupBy('siswa_id')
+        $averageGradeByStudent = NilaiAkhir::join('siswa', 'siswa.id', '=', 'nilai_akhir.siswa_id')
+            ->join('kelas_mapel', 'kelas_mapel.id', '=', 'nilai_akhir.kelas_mapel_id')
+            ->whereIn('nilai_akhir.siswa_id', $studentIds)
+            ->whereIn('nilai_akhir.kelas_mapel_id', $allCourseIds)
+            ->whereColumn('kelas_mapel.kelas_id', 'siswa.kelas_id')
+            ->selectRaw('nilai_akhir.siswa_id as siswa_id, AVG('.NilaiAkhir::rataAkhirExpression().') as rata')
+            ->groupBy('nilai_akhir.siswa_id')
             ->pluck('rata', 'siswa_id');
 
-        $alphaCountByStudent = Absensi::whereIn('siswa_id', $studentIds)
-            ->whereIn('kelas_mapel_id', $allCourseIds)
-            ->where('status', 'alpha')
-            ->where('tanggal', '>=', now()->subDays(60)->toDateString())
-            ->selectRaw('siswa_id, count(*) as total')
-            ->groupBy('siswa_id')
+        $alphaCountByStudent = Absensi::join('siswa', 'siswa.id', '=', 'absensi.siswa_id')
+            ->join('kelas_mapel', 'kelas_mapel.id', '=', 'absensi.kelas_mapel_id')
+            ->whereIn('absensi.siswa_id', $studentIds)
+            ->whereIn('absensi.kelas_mapel_id', $allCourseIds)
+            ->whereColumn('kelas_mapel.kelas_id', 'siswa.kelas_id')
+            ->where('absensi.status', 'alpha')
+            ->where('absensi.tanggal', '>=', now()->subDays(60)->toDateString())
+            ->selectRaw('absensi.siswa_id as siswa_id, count(*) as total')
+            ->groupBy('absensi.siswa_id')
             ->pluck('total', 'siswa_id');
 
         return $students->map(function (Siswa $student) use (
