@@ -25,6 +25,73 @@ class CalendarTimelineService
             ->values();
     }
 
+    /**
+     * Build the Inertia-facing month grid (weeks/days/nav/labels) for a set of
+     * already-formatted, already role-filtered event props.
+     *
+     * @param  Collection  $eventProps  Formatted event rows, each containing an 'event_date' key (Y-m-d).
+     */
+    public function monthGrid(int $year, int $month, Collection $eventProps, string $routeName): array
+    {
+        $bulanIndo = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $hariIndo = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+        $firstDay = Carbon::create($year, $month, 1);
+        $daysInMonth = $firstDay->daysInMonth;
+        $startDayOfWeek = $firstDay->dayOfWeek;
+        $prevMonth = $firstDay->copy()->subMonth();
+        $nextMonth = $firstDay->copy()->addMonth();
+        $today = now()->toDateString();
+
+        $eventsByDate = $eventProps->groupBy('event_date')->map->values();
+        $weeks = [];
+        $day = 1;
+        $done = false;
+
+        for ($row = 0; $row < 6; $row++) {
+            $week = [];
+
+            for ($col = 0; $col < 7; $col++) {
+                $index = $row * 7 + $col;
+                $cellDate = null;
+
+                if ($index >= $startDayOfWeek && ! $done && $day <= $daysInMonth) {
+                    $cellDate = sprintf('%04d-%02d-%02d', $year, $month, $day++);
+                } elseif ($day > $daysInMonth) {
+                    $done = true;
+                }
+
+                $week[] = [
+                    'date' => $cellDate,
+                    'day' => $cellDate ? (int) substr($cellDate, 8, 2) : null,
+                    'is_today' => $cellDate === $today,
+                    'events' => $cellDate ? ($eventsByDate[$cellDate] ?? collect())->values() : [],
+                ];
+            }
+
+            $weeks[] = $week;
+
+            if ($done && $day > $daysInMonth) {
+                break;
+            }
+        }
+
+        return [
+            'year' => $year,
+            'month' => $month,
+            'month_label' => $bulanIndo[$month],
+            'title' => $bulanIndo[$month].' '.$year,
+            'today' => $today,
+            'today_url' => route($routeName, ['year' => now()->year, 'month' => now()->month]),
+            'prev_url' => route($routeName, ['year' => $prevMonth->year, 'month' => $prevMonth->month]),
+            'prev_label' => $bulanIndo[$prevMonth->month],
+            'next_url' => route($routeName, ['year' => $nextMonth->year, 'month' => $nextMonth->month]),
+            'next_label' => $bulanIndo[$nextMonth->month],
+            'weekdays' => $hariIndo,
+            'weeks' => $weeks,
+        ];
+    }
+
     private function calendarEvents(User $user, Carbon $start, Carbon $end): Collection
     {
         $events = CalendarEvent::whereBetween('event_date', [$start->toDateString(), $end->toDateString()])
