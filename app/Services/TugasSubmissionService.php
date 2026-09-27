@@ -39,8 +39,9 @@ class TugasSubmissionService
     {
         $hasTextJawaban = filled($validated['teks_jawaban'] ?? null);
         $hasSingleFile = $request->hasFile('file_upload');
-        $hasMultipleFiles = collect($request->file('files', []))->filter()->isNotEmpty();
-        $totalUploadedFiles = ($hasSingleFile ? 1 : 0) + collect($request->file('files', []))->filter()->count();
+        $multipleFiles = collect($request->file('files', []))->filter();
+        $hasMultipleFiles = $multipleFiles->isNotEmpty();
+        $totalUploadedFiles = ($hasSingleFile ? 1 : 0) + $multipleFiles->count();
 
         if (! $hasTextJawaban && ! $hasSingleFile && ! $hasMultipleFiles) {
             return ['status' => 'validation', 'field' => 'file_upload', 'message' => 'Upload file atau isi jawaban teks terlebih dahulu.'];
@@ -50,13 +51,9 @@ class TugasSubmissionService
             return ['status' => 'validation', 'field' => 'files', 'message' => 'Maksimal '.self::MAX_UPLOAD_FILES.' file untuk satu pengumpulan tugas.'];
         }
 
-        $totalUploadBytes = 0;
-        if ($request->hasFile('file_upload')) {
-            $totalUploadBytes += (int) $request->file('file_upload')->getSize();
-        }
-        foreach (collect($request->file('files', []))->filter() as $file) {
-            $totalUploadBytes += (int) $file->getSize();
-        }
+        $filesToStore = collect($hasSingleFile ? [$request->file('file_upload')] : [])->merge($multipleFiles);
+
+        $totalUploadBytes = $filesToStore->sum(fn ($file) => (int) $file->getSize());
 
         if ($totalUploadBytes > self::UPLOAD_TOTAL_MAX_KB * 1024) {
             $limitMb = (int) (self::UPLOAD_TOTAL_MAX_KB / 1024);
@@ -102,19 +99,10 @@ class TugasSubmissionService
                 ['status' => $statusPengumpulan, 'file_upload' => null, 'teks_jawaban' => $validated['teks_jawaban'] ?? null, 'tanggal_kumpul' => now(), 'graded_at' => null]
             );
 
-            if ($request->hasFile('file_upload')) {
-                $file = $request->file('file_upload');
+            foreach ($filesToStore as $file) {
                 $path = $file->store('tugas/'.$tugas->id.'/'.$siswa->id, 'local');
                 $storedPaths[] = $path;
                 $uploadedFiles[] = ['pengumpulan_id' => $pengumpulan->id, 'file_name' => $file->getClientOriginalName(), 'file_path' => $path, 'uploaded_at' => now()];
-            }
-
-            if ($request->hasFile('files')) {
-                foreach ($request->file('files') as $file) {
-                    $path = $file->store('tugas/'.$tugas->id.'/'.$siswa->id, 'local');
-                    $storedPaths[] = $path;
-                    $uploadedFiles[] = ['pengumpulan_id' => $pengumpulan->id, 'file_name' => $file->getClientOriginalName(), 'file_path' => $path, 'uploaded_at' => now()];
-                }
             }
 
             if (count($uploadedFiles) > 0) {

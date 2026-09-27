@@ -16,6 +16,7 @@ use App\Models\Tugas;
 use App\Models\User;
 use App\Models\WhatsAppMessageLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -156,6 +157,52 @@ class Phase10AuthorizationTest extends TestCase
             ->assertRedirect();
 
         $this->assertDatabaseMissing('tugas', ['id' => $tugas->id]);
+    }
+
+    public function test_student_can_submit_a_task_with_one_single_file_and_several_multiple_files(): void
+    {
+        Storage::fake('local');
+        [, $guruA, , $kelas, $tahunAjaran] = $this->fixture();
+        $mapel = MataPelajaran::create(['kode' => 'UPL', 'nama_mapel' => 'Upload Test', 'urutan' => 1]);
+        $kelasMapel = KelasMapel::create([
+            'kelas_id' => $kelas->id,
+            'mapel_id' => $mapel->id,
+            'guru_id' => $guruA->id,
+            'tahun_ajaran_id' => $tahunAjaran->id,
+            'semester' => '1',
+            'pertemuan_per_minggu' => 2,
+        ]);
+        $tugas = Tugas::create([
+            'kelas_mapel_id' => $kelasMapel->id,
+            'judul' => 'Tugas Multi Upload',
+            'batas_waktu' => now()->addDay(),
+            'kategori_nilai' => 'NH',
+        ]);
+        $studentUser = $this->createUser('siswa-multi-upload', 'Siswa Multi Upload', 'siswa');
+        $student = Siswa::create([
+            'user_id' => $studentUser->id,
+            'nis' => '9301',
+            'kelas_id' => $kelas->id,
+            'status' => 'aktif',
+        ]);
+
+        $this->actingAs($studentUser)
+            ->post(route('siswa.tugas.kumpul', $tugas), [
+                'file_upload' => UploadedFile::fake()->createWithContent('utama.pdf', 'jawaban utama'),
+                'files' => [
+                    UploadedFile::fake()->createWithContent('lampiran1.jpg', 'lampiran satu'),
+                    UploadedFile::fake()->createWithContent('lampiran2.pdf', 'lampiran dua'),
+                ],
+            ])
+            ->assertRedirect();
+
+        $pengumpulan = PengumpulanTugas::where('tugas_id', $tugas->id)
+            ->where('siswa_id', $student->id)
+            ->firstOrFail();
+        $this->assertSame('sudah', $pengumpulan->status);
+        $this->assertCount(3, PengumpulanFile::where('pengumpulan_id', $pengumpulan->id)->get());
+        $this->assertNotNull($pengumpulan->file_upload);
+        Storage::disk('local')->assertExists($pengumpulan->file_upload);
     }
 
     public function test_teacher_grading_updates_pending_count_applies_late_penalty_and_allows_comment_without_score(): void
