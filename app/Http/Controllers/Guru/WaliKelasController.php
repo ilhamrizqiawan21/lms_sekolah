@@ -8,6 +8,7 @@ use App\Models\PenangananSiswa;
 use App\Models\PertemuanWaliKelas;
 use App\Models\Siswa;
 use App\Models\WaliKelas;
+use App\Services\Reports\LaporanKepsekService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,8 @@ use Inertia\Inertia;
 
 class WaliKelasController extends Controller
 {
+    public function __construct(private readonly LaporanKepsekService $laporanKepsekService) {}
+
     public function index()
     {
         $waliKelas = WaliKelas::with(['kelas', 'tahunAjaran'])
@@ -50,8 +53,8 @@ class WaliKelasController extends Controller
         ]);
 
         $bulan = $request->input('bulan', date('Y-m'));
-        $bulanOptions = $this->monthOptions($waliKelas, $bulan);
-        $tanggalList = $this->schoolDays($bulan);
+        $bulanOptions = $this->laporanKepsekService->waliKelasMonthOptions($waliKelas, $bulan);
+        $tanggalList = $this->laporanKepsekService->schoolDays($bulan);
         $siswaList = $this->siswaAktif($waliKelas);
         $absensiData = $this->absensiData($waliKelas, $siswaList->pluck('id'), $bulan);
 
@@ -90,7 +93,7 @@ class WaliKelasController extends Controller
             'absensi.*.*' => 'nullable|in:hadir,sakit,izin,alpha',
         ]);
 
-        $validTanggal = collect($this->schoolDays($validated['bulan']))
+        $validTanggal = collect($this->laporanKepsekService->schoolDays($validated['bulan']))
             ->map(fn (Carbon $date) => $date->format('Y-m-d'));
         $validSiswaIds = $this->siswaAktif($waliKelas)->pluck('id')->map(fn ($id) => (string) $id);
         $absensiInput = $validated['absensi'] ?? [];
@@ -253,54 +256,6 @@ class WaliKelasController extends Controller
             ->where('status', 'aktif')
             ->orderBy('nis')
             ->get();
-    }
-
-    private function schoolDays(string $bulan): array
-    {
-        $start = Carbon::createFromFormat('Y-m-d', "{$bulan}-01")->startOfDay();
-        $end = $start->copy()->endOfMonth();
-        $days = [];
-
-        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
-            if ($date->isWeekday()) {
-                $days[] = $date->copy();
-            }
-        }
-
-        return $days;
-    }
-
-    private function monthOptions(WaliKelas $waliKelas, string $bulan): array
-    {
-        $year = (int) substr($bulan, 0, 4);
-        $startYear = (int) substr((string) $waliKelas->tahunAjaran?->tahun, 0, 4);
-        if (! $startYear) {
-            $monthNumber = (int) substr($bulan, 5, 2);
-            $startYear = $monthNumber >= 7 ? $year : $year - 1;
-        }
-
-        $labels = [
-            1 => 'Januari',
-            2 => 'Februari',
-            3 => 'Maret',
-            4 => 'April',
-            5 => 'Mei',
-            6 => 'Juni',
-            7 => 'Juli',
-            8 => 'Agustus',
-            9 => 'September',
-            10 => 'Oktober',
-            11 => 'November',
-            12 => 'Desember',
-        ];
-
-        $months = [];
-        foreach ([7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6] as $month) {
-            $optionYear = $month >= 7 ? $startYear : $startYear + 1;
-            $months[sprintf('%04d-%02d', $optionYear, $month)] = "{$labels[$month]} {$optionYear}";
-        }
-
-        return $months;
     }
 
     private function absensiData(WaliKelas $waliKelas, $siswaIds, string $bulan): array
