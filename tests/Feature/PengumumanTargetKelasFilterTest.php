@@ -112,6 +112,28 @@ class PengumumanTargetKelasFilterTest extends TestCase
         $this->assertDatabaseHas('pengumuman', ['id' => $pengumuman->id, 'judul' => 'Milik Guru A']);
     }
 
+    public function test_guru_cannot_view_an_announcement_targeting_a_class_they_do_not_teach(): void
+    {
+        Role::create(['nama_role' => 'admin']);
+        Role::create(['nama_role' => 'guru']);
+
+        $admin = $this->createUser('admin-view-deny', 'Admin View Deny', 'admin');
+        $guru = $this->createUser('guru-view-deny', 'Guru View Deny', 'guru');
+        $kelasLain = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'Z']);
+
+        $pengumuman = Pengumuman::create([
+            'judul' => 'Bukan Untuk Guru Ini',
+            'isi' => 'isi',
+            'target' => 'kelas_mapel',
+            'target_kelas' => json_encode([(string) $kelasLain->id]),
+            'created_by' => $admin->id,
+        ]);
+
+        $this->actingAs($guru)
+            ->get(route('guru.pengumuman.show', $pengumuman))
+            ->assertForbidden();
+    }
+
     private function createUser(string $username, string $namaLengkap, string $roleName): User
     {
         $role = Role::where('nama_role', $roleName)->firstOrFail();
