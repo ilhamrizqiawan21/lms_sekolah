@@ -12,7 +12,13 @@ class SecurityHeaders
     {
         $response = $next($request);
 
-        $response->headers->set('Content-Security-Policy', "base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none'; upgrade-insecure-requests");
+        // Jangan paksa upgrade ke HTTPS pada environment lokal, karena server dev (artisan serve) hanya melayani HTTP.
+        $csp = "base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none'";
+        if (! app()->isLocal()) {
+            $csp .= '; upgrade-insecure-requests';
+        }
+
+        $response->headers->set('Content-Security-Policy', $csp);
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');

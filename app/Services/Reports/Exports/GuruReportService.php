@@ -32,16 +32,34 @@ final class GuruReportService
             ->get()
             ->keyBy('siswa_id');
 
+        // Rincian nilai harian: satu kolom per tugas berkategori NH (urutan sama dengan halaman Nilai).
+        $tugasHarian = Tugas::with(['pengumpulan' => fn ($query) => $query->whereNotNull('nilai')])
+            ->where('kelas_mapel_id', $kelasMapel->id)
+            ->where('kategori_nilai', 'NH')
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get()
+            ->values();
+
         $rows = Siswa::with('user')->where('kelas_id', $kelasMapel->kelas_id)->where('status', 'aktif')->orderBy('nis')->get()
             ->values()
-            ->map(function (Siswa $siswa, int $index) use ($nilaiList, $fields) {
+            ->map(function (Siswa $siswa, int $index) use ($nilaiList, $fields, $tugasHarian) {
                 $nilai = $nilaiList->get($siswa->id);
+                $scores = collect($fields)->mapWithKeys(fn ($field) => [$field => $nilai?->{$field}]);
+                $nhScores = $tugasHarian->map(fn (Tugas $tugas) => $tugas->pengumpulan->firstWhere('siswa_id', $siswa->id)?->nilai)->all();
 
-                return array_merge([$index + 1, $siswa->nis, $siswa->user?->nama_lengkap ?? '-'], collect($fields)->map(fn ($field) => $nilai?->{$field})->all(), [$nilai?->rata_akhir]);
+                return array_merge(
+                    [$index + 1, $siswa->nis, $siswa->user?->nama_lengkap ?? '-'],
+                    [$scores['sum1'], $scores['sum2'], $scores['sum3'], $scores['sum4']],
+                    $nhScores,
+                    [$scores['nilai_harian'], $scores['sts'], $scores['sas'], $scores['sat'], $nilai?->rata_akhir],
+                );
             })->all();
 
+        $nhHeaders = $tugasHarian->map(fn (Tugas $tugas, int $index) => 'NH'.($index + 1))->all();
+
         return $this->kelasMapelDatasetBase($kelasMapel, $taAktif, $semester) + [
-            'headers' => ['No', 'NIS', 'Nama', 'SUM1', 'SUM2', 'SUM3', 'SUM4', 'Nilai Harian', 'STS', 'SAS', 'SAT', 'Rata Akhir'],
+            'headers' => array_merge(['No', 'NIS', 'Nama', 'SUM1', 'SUM2', 'SUM3', 'SUM4'], $nhHeaders, ['Rata NH', 'STS', 'SAS', 'SAT', 'Rata Akhir']),
             'rows' => $rows,
         ];
     }

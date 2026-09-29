@@ -18,6 +18,7 @@ use App\Models\TahunAjaran;
 use App\Models\Tugas;
 use App\Models\User;
 use App\Models\WhatsAppMessageLog;
+use App\Services\Reports\Exports\GuruReportService;
 use App\Services\WhatsAppService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -62,6 +63,28 @@ class FreeFeaturePackageTest extends TestCase
             ->get(route('kepsek.performa-guru'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page->component('PerformaGuru/Index'));
+    }
+
+    public function test_teacher_nilai_export_lists_each_daily_task_score_and_denies_other_teachers(): void
+    {
+        [, $guru, $guruLain, $kelas, $tahunAjaran] = $this->fixture();
+        $kelasMapel = $this->course($guru, $kelas, $tahunAjaran, 'NHX');
+        $siswaUser = $this->createUser('siswa-nh', 'Siswa NH', 'siswa');
+        $siswa = Siswa::create(['user_id' => $siswaUser->id, 'nis' => '8101', 'kelas_id' => $kelas->id, 'status' => 'aktif']);
+
+        foreach ([['Tugas 1', 80], ['Tugas 2', 90]] as [$judul, $nilai]) {
+            $tugas = Tugas::create(['kelas_mapel_id' => $kelasMapel->id, 'judul' => $judul, 'batas_waktu' => now()->addDay(), 'kategori_nilai' => 'NH']);
+            PengumpulanTugas::create(['tugas_id' => $tugas->id, 'siswa_id' => $siswa->id, 'status' => 'dinilai', 'nilai' => $nilai, 'tanggal_kumpul' => now(), 'graded_at' => now()]);
+        }
+        NilaiAkhir::create(['siswa_id' => $siswa->id, 'kelas_mapel_id' => $kelasMapel->id, 'tahun_ajaran_id' => $tahunAjaran->id, 'semester' => '1', 'nilai_harian' => 85]);
+
+        $dataset = app(GuruReportService::class)->nilai($kelasMapel);
+
+        $this->assertSame(['No', 'NIS', 'Nama', 'SUM1', 'SUM2', 'SUM3', 'SUM4', 'NH1', 'NH2', 'Rata NH', 'STS', 'SAS', 'SAT', 'Rata Akhir'], $dataset['headers']);
+        $this->assertEquals([1, '8101', 'Siswa NH', null, null, null, null, 80, 90, 85, null, null, null, 85], $dataset['rows'][0]);
+
+        $this->actingAs($guru)->get(route('guru.nilai.export.excel', $kelasMapel))->assertOk();
+        $this->actingAs($guruLain)->get(route('guru.nilai.export.excel', $kelasMapel))->assertForbidden();
     }
 
     public function test_teacher_performance_early_warnings_ignore_stale_records_from_a_former_class(): void
