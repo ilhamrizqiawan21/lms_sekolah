@@ -15,6 +15,11 @@ const props = defineProps({
     nilai: { type: Object as PropType<{ data: GradeRow[]; current_page: number; last_page: number; from: number | null; total: number }>, default: () => ({ data: [], current_page: 1, last_page: 1, from: 0, total: 0 }) },
 });
 
+function formatScore(value: Score | null | undefined) {
+    if (value === null || value === undefined || value === '') return '-';
+    return String(Math.round(Number(value)));
+}
+
 const selectedKelas = ref(new URLSearchParams(window.location.search).get('kelas_mapel_id') || '');
 const selectedSemester = ref(props.semester);
 
@@ -109,16 +114,16 @@ function page(pageNumber: number) {
                             <td class="rekap-name-cell">{{ row.siswa?.user?.nama_lengkap || row.siswa?.nis || '-' }}</td>
                             <td>{{ row.siswa?.kelas?.nama_kelas || '-' }}</td>
                             <td class="rekap-subject-cell">{{ row.kelas_mapel?.mata_pelajaran?.nama_mapel || row.kelasMapel?.mataPelajaran?.nama_mapel || '-' }}</td>
-                            <td class="text-center">{{ row.sum1 ?? '-' }}</td>
-                            <td class="text-center">{{ row.sum2 ?? '-' }}</td>
-                            <td class="text-center">{{ row.sum3 ?? '-' }}</td>
-                            <td class="text-center">{{ row.sum4 ?? '-' }}</td>
-                            <td class="text-center">{{ row.nilai_harian ?? '-' }}</td>
-                            <td class="text-center">{{ row.sts ?? '-' }}</td>
-                            <td class="text-center">{{ row.sas ?? '-' }}</td>
-                            <td class="text-center">{{ row.sat ?? '-' }}</td>
+                            <td class="text-center">{{ formatScore(row.sum1) }}</td>
+                            <td class="text-center">{{ formatScore(row.sum2) }}</td>
+                            <td class="text-center">{{ formatScore(row.sum3) }}</td>
+                            <td class="text-center">{{ formatScore(row.sum4) }}</td>
+                            <td class="text-center">{{ formatScore(row.nilai_harian) }}</td>
+                            <td class="text-center">{{ formatScore(row.sts) }}</td>
+                            <td class="text-center">{{ formatScore(row.sas) }}</td>
+                            <td class="text-center">{{ formatScore(row.sat) }}</td>
                             <td class="text-center">
-                                <strong>{{ row.rata_akhir != null ? Number(row.rata_akhir).toFixed(1) : '-' }}</strong>
+                                <strong>{{ formatScore(row.rata_akhir) }}</strong>
                             </td>
                             <td class="text-center">
                                 <span

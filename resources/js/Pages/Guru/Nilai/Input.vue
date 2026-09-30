@@ -47,10 +47,17 @@ watch(() => props.students, () => {
     form.nilai = buildNilai();
 }, { deep: true });
 
+function roundScores(scores: Record<string, Score | undefined> | undefined) {
+    return Object.fromEntries(Object.entries(scores ?? {}).map(([key, value]) => [
+        key,
+        value === null || value === undefined || value === '' || Number.isNaN(Number(value)) ? value : String(Math.round(Number(value))),
+    ])) as typeof scores;
+}
+
 function buildNilai() {
     return Object.fromEntries(props.students.map((student) => [
         String(student.id),
-        { ...student.scores },
+        { ...roundScores(student.scores) },
     ]));
 }
 
@@ -70,7 +77,7 @@ function formatScore(value: Score | undefined) {
         return null;
     }
 
-    return Number(value).toFixed(1);
+    return String(Math.round(Number(value)));
 }
 
 function normalizeScore(value: Score | undefined) {
