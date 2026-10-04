@@ -442,3 +442,19 @@ h1, h2, h3, .h1, .h2, .h3 { letter-spacing: -0.025em; }
 @media (prefers-reduced-motion: reduce) {
     .page-content > * { animation: none; }
 }
+
+/* Mobile: hero dan metrik lebih ringkas */
+@media (max-width: 575.98px) {
+    .dashboard-hero { min-height: auto; padding: 1.25rem; border-radius: 1.5rem; }
+    .dashboard-hero h1 { font-size: 1.55rem; }
+    .metric-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+    .metric-tile, .stat-card { padding: 0.85rem; gap: 0.65rem; }
+    .metric-icon, .stat-icon { width: 2.5rem; height: 2.5rem; border-radius: 0.85rem; font-size: 1.05rem; }
+    .metric-copy strong, .stat-number { font-size: 1.45rem; }
+    .metric-copy small, .stat-label { font-size: 0.72rem; line-height: 1.25; }
+}
+
+/* Tablet: metrik membagi baris merata (hindari 3+1) */
+@media (min-width: 576px) and (max-width: 991.98px) {
+    .metric-strip { grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr)); }
+}
