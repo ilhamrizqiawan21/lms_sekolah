@@ -458,3 +458,52 @@ h1, h2, h3, .h1, .h2, .h3 { letter-spacing: -0.025em; }
 @media (min-width: 576px) and (max-width: 991.98px) {
     .metric-strip { grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr)); }
 }
+
+/* ── Polesan akhir ── */
+
+/* Tabel nilai: kepala kolom kategori memakai tint tipis, bukan pastel penuh (hanya variabel; !important tetap di lms-app.css) */
+.table th.bg-soft-success { --soft-bg: color-mix(in srgb, var(--status-success-text) 9%, var(--surface-card)); }
+.table th.bg-soft-warning { --soft-bg: color-mix(in srgb, var(--status-warning-text) 9%, var(--surface-card)); }
+.table th.bg-soft-danger { --soft-bg: color-mix(in srgb, var(--status-danger-text) 9%, var(--surface-card)); }
+.table th.bg-soft-info { --soft-bg: color-mix(in srgb, var(--status-info-text) 9%, var(--surface-card)); }
+.table th.bg-soft-muted { --soft-bg: color-mix(in srgb, var(--text-strong) 6%, var(--surface-card)); }
+
+/* Tombol outline status (Edit, Hapus, Excel, PDF): lembut dan konsisten, bukan garis kuning/merah tajam */
+.btn-outline-warning,
+.btn-outline-danger,
+.btn-outline-success,
+.btn-outline-info {
+    --bs-btn-bg: color-mix(in srgb, var(--tone-text) 8%, var(--surface-card));
+    --bs-btn-color: var(--tone-text);
+    --bs-btn-border-color: color-mix(in srgb, var(--tone-text) 28%, transparent);
+    --bs-btn-hover-bg: color-mix(in srgb, var(--tone-text) 16%, var(--surface-card));
+    --bs-btn-hover-color: var(--tone-text);
+    --bs-btn-hover-border-color: color-mix(in srgb, var(--tone-text) 45%, transparent);
+    --bs-btn-active-bg: color-mix(in srgb, var(--tone-text) 20%, var(--surface-card));
+    --bs-btn-active-color: var(--tone-text);
+    --bs-btn-active-border-color: color-mix(in srgb, var(--tone-text) 50%, transparent);
+    background: var(--bs-btn-bg);
+    color: var(--bs-btn-color);
+    border-color: var(--bs-btn-border-color);
+}
+.btn-outline-warning { --tone-text: var(--status-warning-text); }
+.btn-outline-danger { --tone-text: var(--status-danger-text); }
+.btn-outline-success { --tone-text: var(--status-success-text); }
+.btn-outline-info { --tone-text: var(--status-info-text); }
+.btn-outline-warning:hover,
+.btn-outline-danger:hover,
+.btn-outline-success:hover,
+.btn-outline-info:hover {
+    background: var(--bs-btn-hover-bg);
+    color: var(--bs-btn-hover-color);
+    border-color: var(--bs-btn-hover-border-color);
+}
+
+/* Mobile: kartu statistik dua kolom (Kepsek/Statistik), konsisten dengan metrik */
+@media (max-width: 575.98px) {
+    .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+}
+
+/* Kolom aksi: selebar tombolnya saja agar tidak terpotong dan tidak merebut ruang kolom data */
+.table-action-column { width: 1%; min-width: 9.5rem; white-space: nowrap; }
+.app-table-wrapper .table td, .app-table-wrapper .table th { padding-left: 0.7rem; padding-right: 0.7rem; }
