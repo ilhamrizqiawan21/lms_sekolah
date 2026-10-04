@@ -1,5 +1,5 @@
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import '../css/responsive-polish.css';
+import '../css/modern.css';
 import { initColorMode } from './theme';
 
 interface ConfirmOptions { title?: string; confirmText?: string; cancelText?: string; danger?: boolean }
@@ -56,7 +56,7 @@ const confirmAction = (message: string, callback: (confirmed: boolean) => void, 
         `<p id="confirmMessage" class="confirm-message">${escapeHtml(message)}</p>` +
         '<div class="confirm-actions">' +
         `<button type="button" id="confirmCancel" class="btn btn-outline-secondary">${escapeHtml(cancelText)}</button>` +
-        `<button type="button" id="confirmOk" class="btn ${isDanger ? 'btn-danger' : 'btn-success'}">${escapeHtml(confirmText)}</button>` +
+        `<button type="button" id="confirmOk" class="btn ${isDanger ? 'btn-danger' : 'btn-primary'}">${escapeHtml(confirmText)}</button>` +
         '</div></div>';
 
     const close = (result: boolean): void => {

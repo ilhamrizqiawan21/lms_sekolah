@@ -73,7 +73,7 @@ const latestAssignments = computed(() => props.kelasMapel.data?.slice(0, 5).map(
     badge: `${item.pertemuan_per_minggu}x`,
     badgeColor: 'primary',
     icon: 'bi-book',
-    accent: '#2563eb',
+    accent: 'var(--accent-blue)',
 })) ?? []);
 
 function submitTeaching() {
@@ -169,7 +169,7 @@ async function destroySchedule(item: Schedule) {
                 :subtitle="`${kelasMapel.total ?? kelasMapel.data?.length ?? 0} kombinasi kelas, mapel, guru`"
                 meta="Akademik"
                 icon="bi-diagram-3-fill"
-                accent="#2563eb"
+                accent="var(--accent-blue)"
                 :stats="[
                     { value: kelasOptions.length, label: 'kelas' },
                     { value: mapelOptions.length, label: 'mapel' },
@@ -180,7 +180,7 @@ async function destroySchedule(item: Schedule) {
                 :subtitle="`${waliKelas.total ?? waliKelas.data?.length ?? 0} wali kelas terdaftar`"
                 meta="Pembinaan"
                 icon="bi-person-badge-fill"
-                accent="#16a34a"
+                accent="var(--accent-green)"
                 :stats="[
                     { value: guruOptions.length, label: 'guru aktif' },
                     { value: tahunAjaranOptions.length, label: 'tahun ajaran' },
@@ -344,13 +344,13 @@ async function destroySchedule(item: Schedule) {
                         <table class="table table-hover app-table mb-0">
                             <thead>
                                 <tr>
-                                    <th>Kelas</th>
-                                    <th>Mapel</th>
-                                    <th>Guru</th>
-                                    <th>Pertemuan</th>
-                                    <th>Semester</th>
-                                    <th>Tahun</th>
-                                    <th class="table-action-column">Aksi</th>
+                                    <th scope="col">Kelas</th>
+                                    <th scope="col">Mapel</th>
+                                    <th scope="col">Guru</th>
+                                    <th scope="col">Pertemuan</th>
+                                    <th scope="col">Semester</th>
+                                    <th scope="col">Tahun</th>
+                                    <th scope="col" class="table-action-column">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -397,10 +397,10 @@ async function destroySchedule(item: Schedule) {
                         <table class="table table-hover app-table mb-0">
                             <thead>
                                 <tr>
-                                    <th>Kelas</th>
-                                    <th>Wali Kelas</th>
-                                    <th>Tahun Ajaran</th>
-                                    <th class="table-action-column">Aksi</th>
+                                    <th scope="col">Kelas</th>
+                                    <th scope="col">Wali Kelas</th>
+                                    <th scope="col">Tahun Ajaran</th>
+                                    <th scope="col" class="table-action-column">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -441,11 +441,11 @@ async function destroySchedule(item: Schedule) {
                 <table class="table table-hover app-table mb-0">
                     <thead>
                         <tr>
-                            <th>Guru</th>
-                            <th>Hari</th>
-                            <th>Jam</th>
-                            <th>Kelas/Mapel</th>
-                            <th class="table-action-column">Aksi</th>
+                            <th scope="col">Guru</th>
+                            <th scope="col">Hari</th>
+                            <th scope="col">Jam</th>
+                            <th scope="col">Kelas/Mapel</th>
+                            <th scope="col" class="table-action-column">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -480,7 +480,7 @@ async function destroySchedule(item: Schedule) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-@media(max-width: 900px) {
+@media (max-width: 900px) {
     .assignment-overview-grid,
     .assignment-grid {
         grid-template-columns: 1fr;

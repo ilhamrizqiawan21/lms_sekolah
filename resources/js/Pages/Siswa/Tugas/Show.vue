@@ -128,11 +128,11 @@ function submit() {
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <small class="text-muted">Mata Pelajaran</small>
+                            <small class="text-body-secondary">Mata Pelajaran</small>
                             <p class="fw-bold mb-0">{{ tugas.mata_pelajaran }}</p>
                         </div>
                         <div class="col-md-6">
-                            <small class="text-muted">Batas Waktu</small>
+                            <small class="text-body-secondary">Batas Waktu</small>
                             <p class="fw-bold mb-0" :class="{ 'text-danger': tugas.is_late }">
                                 {{ tugas.batas_waktu }}
                                 <Badge v-if="tugas.is_late" color="danger" class="ms-1">Terlambat</Badge>
@@ -141,7 +141,7 @@ function submit() {
                     </div>
 
                     <div class="mb-3">
-                        <small class="text-muted">Deskripsi</small>
+                        <small class="text-body-secondary">Deskripsi</small>
                         <p class="mb-0">{{ tugas.deskripsi }}</p>
                     </div>
                 </Card>
@@ -149,23 +149,23 @@ function submit() {
                 <Card v-if="pengumpulan" title="Riwayat Pengumpulan" icon="bi-clock-history" class="mb-3">
                     <div class="row mb-2">
                         <div class="col-md-4">
-                            <small class="text-muted">Status</small>
+                            <small class="text-body-secondary">Status</small>
                             <p class="fw-bold"><Badge :color="statusColor(pengumpulan.status)">{{ statusLabel(pengumpulan.status) }}</Badge></p>
                         </div>
                         <div class="col-md-4">
-                            <small class="text-muted">Tanggal Kumpul</small>
+                            <small class="text-body-secondary">Tanggal Kumpul</small>
                             <p class="fw-bold">{{ pengumpulan.tanggal_kumpul }}</p>
                         </div>
                         <div class="col-md-4">
-                            <small class="text-muted">Nilai</small>
-                            <p class="fw-bold" :class="pengumpulan.nilai ? 'text-success' : 'text-muted'">
+                            <small class="text-body-secondary">Nilai</small>
+                            <p class="fw-bold" :class="pengumpulan.nilai ? 'text-success' : 'text-body-secondary'">
                                 {{ pengumpulan.nilai ?? 'Belum dinilai' }}
                             </p>
                         </div>
                     </div>
 
                     <div v-if="pengumpulan.files.length" class="mb-2">
-                        <small class="text-muted">File yang diupload:</small>
+                        <small class="text-body-secondary">File yang diupload:</small>
                         <ul class="list-unstyled mb-0">
                             <li v-for="file in pengumpulan.files" :key="file.id">
                                 <a :href="file.url" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
@@ -175,19 +175,19 @@ function submit() {
                         </ul>
                     </div>
                     <div v-else-if="pengumpulan.legacy_file_url" class="mb-2">
-                        <small class="text-muted">File yang diupload:</small><br>
+                        <small class="text-body-secondary">File yang diupload:</small><br>
                         <a :href="pengumpulan.legacy_file_url" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
                             <i class="bi bi-paperclip me-1" aria-hidden="true"></i> Download File
                         </a>
                     </div>
 
                     <div v-if="pengumpulan.teks_jawaban" class="mb-2">
-                        <small class="text-muted">Jawaban Teks:</small>
+                        <small class="text-body-secondary">Jawaban Teks:</small>
                         <p class="mb-0 p-2 bg-light rounded">{{ pengumpulan.teks_jawaban }}</p>
                     </div>
 
                     <div v-if="pengumpulan.catatan" class="mb-0">
-                        <small class="text-muted">Catatan Guru:</small>
+                        <small class="text-body-secondary">Catatan Guru:</small>
                         <p class="mb-0 p-2 bg-warning-subtle rounded">{{ pengumpulan.catatan }}</p>
                     </div>
                 </Card>
@@ -234,19 +234,19 @@ function submit() {
 
             <div class="col-md-4">
                 <Card title="Info" icon="bi-info-circle" class="mb-3">
-                    <small class="text-muted d-block">Guru Pengampu</small>
+                    <small class="text-body-secondary d-block">Guru Pengampu</small>
                     <p class="fw-bold">{{ tugas.guru }}</p>
 
-                    <small class="text-muted d-block">Kelas</small>
+                    <small class="text-body-secondary d-block">Kelas</small>
                     <p class="fw-bold">{{ tugas.kelas || '-' }}</p>
 
-                    <small class="text-muted d-block">Kategori Nilai</small>
+                    <small class="text-body-secondary d-block">Kategori Nilai</small>
                     <p class="fw-bold">{{ tugas.kategori_nilai }}</p>
 
                     <hr>
 
                     <template v-if="pengumpulan">
-                        <small class="text-muted d-block">Status Pengumpulan</small>
+                        <small class="text-body-secondary d-block">Status Pengumpulan</small>
                         <p class="fw-bold"><Badge :color="statusColor(pengumpulan.status)">{{ statusLabel(pengumpulan.status) }}</Badge></p>
                     </template>
                     <div v-else class="alert alert-info py-2 mb-0">

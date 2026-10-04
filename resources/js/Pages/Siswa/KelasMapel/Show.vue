@@ -46,7 +46,7 @@ const quickActions = [
                         <span><strong>{{ session.judul }}</strong><small>{{ session.tanggal }} · Pelajaran ke-{{ session.pelajaran_ke }}</small></span>
                     </a>
                     <div v-if="!onlineClasses.length" class="workspace-summary-item">
-                        <span class="workspace-summary-icon text-muted"><i class="bi bi-camera-video" aria-hidden="true"></i></span>
+                        <span class="workspace-summary-icon text-body-secondary"><i class="bi bi-camera-video" aria-hidden="true"></i></span>
                         <span><strong>Belum ada kelas daring</strong><small>Link meeting akan tampil saat guru menjadwalkan sesi.</small></span>
                     </div>
                 </div>
@@ -59,7 +59,7 @@ const quickActions = [
                         <span><strong>{{ latestMessage.author }}</strong><small>{{ latestMessage.message }}</small></span>
                     </Link>
                     <Link v-else :href="tabs.find((tab) => tab.label === 'Chat')?.href" class="workspace-summary-item">
-                        <span class="workspace-summary-icon text-muted"><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
+                        <span class="workspace-summary-icon text-body-secondary"><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
                         <span><strong>Belum ada pesan</strong><small>Buka chat untuk mulai percakapan dengan guru dan kelas.</small></span>
                     </Link>
                 </div>

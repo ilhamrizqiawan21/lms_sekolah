@@ -136,7 +136,7 @@ function completionColor(student: StudentBio) {
                             </span>
                             <span class="min-w-0 flex-grow-1 text-start">
                                 <span class="d-block fw-semibold text-truncate">{{ student.nama_lengkap || '-' }}</span>
-                                <span class="d-block small text-muted text-truncate">
+                                <span class="d-block small text-body-secondary text-truncate">
                                     {{ student.nis }}
                                     <span v-if="student.nama_panggilan"> · {{ student.nama_panggilan }}</span>
                                 </span>
@@ -147,7 +147,7 @@ function completionColor(student: StudentBio) {
                         </button>
                     </div>
 
-                    <div v-else class="p-4 text-center text-muted small">
+                    <div v-else class="p-4 text-center text-body-secondary small">
                         Tidak ada siswa yang cocok dengan pencarian.
                     </div>
                 </Card>
@@ -410,7 +410,7 @@ function completionColor(student: StudentBio) {
 
                         <template #footer>
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                                <small class="text-muted">
+                                <small class="text-body-secondary">
                                     Pilih siswa lain dari daftar untuk berpindah biodata.
                                 </small>
                                 <Button type="submit" color="primary" icon="bi-save" :disabled="form.processing">

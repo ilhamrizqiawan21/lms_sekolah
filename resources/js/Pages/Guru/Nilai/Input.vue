@@ -278,10 +278,10 @@ function submit() {
                 <TableWrapper>
                     <div class="p-3 border-bottom bg-light-subtle">
                         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
-                            <span class="text-muted small">Tekan Enter untuk ke siswa berikutnya pada kolom nilai yang sama.</span>
+                            <span class="text-body-secondary small">Tekan Enter untuk ke siswa berikutnya pada kolom nilai yang sama.</span>
                             <div class="d-flex align-items-center gap-2">
-                                <span v-if="pasteStatus" class="badge bg-soft-success">{{ pasteStatus }}</span>
-                                <span class="badge bg-soft-primary">{{ students.length }} siswa</span>
+                                <Badge v-if="pasteStatus" color="success">{{ pasteStatus }}</Badge>
+                                <Badge color="primary">{{ students.length }} siswa</Badge>
                             </div>
                         </div>
                     </div>
@@ -295,33 +295,33 @@ function submit() {
                         </colgroup>
                         <thead class="table-light">
                             <tr>
-                                <th class="text-center w-row-number">#</th>
-                                <th class="min-w-nis">NIS</th>
-                                <th class="min-w-student">Nama Siswa</th>
-                                <th colspan="4" class="text-center bg-soft-success">Sumatif Harian</th>
-                                <th class="text-center bg-soft-success">Nilai Harian</th>
-                                <th class="text-center bg-soft-warning">STS</th>
-                                <th class="text-center bg-soft-warning">SAS</th>
-                                <th class="text-center bg-soft-danger">SAT</th>
-                                <th class="text-center bg-soft-muted">Rata-rata Akhir</th>
+                                <th scope="col" class="text-center w-row-number">#</th>
+                                <th scope="col" class="min-w-nis">NIS</th>
+                                <th scope="col" class="min-w-student">Nama Siswa</th>
+                                <th scope="colgroup" colspan="4" class="text-center bg-soft-success">Sumatif Harian</th>
+                                <th scope="col" class="text-center bg-soft-success">Nilai Harian</th>
+                                <th scope="col" class="text-center bg-soft-warning">STS</th>
+                                <th scope="col" class="text-center bg-soft-warning">SAS</th>
+                                <th scope="col" class="text-center bg-soft-danger">SAT</th>
+                                <th scope="col" class="text-center bg-soft-muted">Rata-rata Akhir</th>
                             </tr>
                             <tr class="table-light">
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col"
                                     v-for="field in fieldGroups"
                                     :key="field.key"
                                     class="text-center w-score"
                                 >
                                     {{ field.label }}
                                 </th>
-                                <th class="text-center w-score-total">Auto</th>
+                                <th scope="col" class="text-center w-score-total">Auto</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="(student, studentIndex) in students" :key="student.id">
-                                <td class="text-center text-muted">{{ student.no }}</td>
+                                <td class="text-center text-body-secondary">{{ student.no }}</td>
                                 <td><code>{{ student.nis }}</code></td>
                                 <td>{{ student.nama }}</td>
                                 <td v-for="field in fieldGroups" :key="`${student.id}-${field.key}`" class="text-center">
@@ -359,7 +359,7 @@ function submit() {
                                     >
                                         {{ formatScore(student.rata_akhir) }}
                                     </strong>
-                                    <span v-else class="text-muted">-</span>
+                                    <span v-else class="text-body-secondary">-</span>
                                 </td>
                             </tr>
                             <tr v-if="!students.length">
@@ -377,7 +377,7 @@ function submit() {
                             <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Kembali
                         </a>
                         <div class="d-flex align-items-center gap-3">
-                            <span class="text-muted text-xs">{{ students.length }} siswa</span>
+                            <span class="text-body-secondary text-xs">{{ students.length }} siswa</span>
                             <Button type="submit" color="success" icon="bi-save" :disabled="form.processing">
                                 {{ form.processing ? 'Menyimpan...' : 'Simpan Semua' }}
                             </Button>
@@ -435,7 +435,7 @@ function submit() {
 }
 
 .grade-table .score-input {
-    width: 100% !important;
+    width: 100%;
     min-width: 0;
     height: 31px;
     min-height: 31px;
@@ -457,7 +457,7 @@ function submit() {
     font-weight: 700;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 767.98px) {
     .score-input {
         min-width: 56px;
         padding: 0.25rem 0.35rem;

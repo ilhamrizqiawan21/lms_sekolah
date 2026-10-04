@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Badge, Card } from '../../../Components/UI';
 import type { PropType } from 'vue';
 import type { Announcement } from '../../../types/announcements';
 import { Head, Link } from '@inertiajs/vue3';
@@ -25,28 +26,26 @@ function formatFileSize(bytes: number | null) {
         <div class="mb-3">
             <Link :href="backUrl" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Kembali ke Pengumuman</Link>
         </div>
-        <article class="card border-0 shadow-sm">
-            <div class="card-body p-4">
+        <Card body-class="p-4">
                 <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
-                    <div><h1 class="h3 mb-1">{{ pengumuman.judul }}</h1><div class="text-muted small">{{ pengumuman.creator?.nama_lengkap || '-' }} · {{ new Date(pengumuman.created_at).toLocaleString('id-ID') }}</div></div>
-                    <span class="badge bg-success">{{ pengumuman.target }}</span>
+                    <div><h1 class="h3 mb-1">{{ pengumuman.judul }}</h1><div class="text-body-secondary small">{{ pengumuman.creator?.nama_lengkap || '-' }} · {{ new Date(pengumuman.created_at).toLocaleString('id-ID') }}</div></div>
+                    <Badge color="success">{{ pengumuman.target }}</Badge>
                 </div>
                 <hr>
-                <div class="text-secondary" style="white-space: pre-line">{{ pengumuman.isi }}</div>
+                <div class="text-secondary u-ws-pre-line">{{ pengumuman.isi }}</div>
                 <div v-if="pengumuman.is_public_login" class="mt-4">
-                    <span class="badge bg-success-subtle text-success-emphasis">Tampil di halaman login</span>
+                    <Badge color="success">Tampil di halaman login</Badge>
                 </div>
                 <div v-if="pengumuman.attachment" class="mt-3">
                     <a v-if="pengumuman.attachment.url" :href="pengumuman.attachment.url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">
                         <i class="bi bi-paperclip me-1" aria-hidden="true"></i>{{ pengumuman.attachment.name }}
-                        <span v-if="formatFileSize(pengumuman.attachment.size)" class="text-muted">({{ formatFileSize(pengumuman.attachment.size) }})</span>
+                        <span v-if="formatFileSize(pengumuman.attachment.size)" class="text-body-secondary">({{ formatFileSize(pengumuman.attachment.size) }})</span>
                     </a>
-                    <span v-else class="badge bg-secondary-subtle text-secondary-emphasis">
+                    <Badge v-else color="secondary">
                         <i class="bi bi-paperclip me-1" aria-hidden="true"></i>{{ pengumuman.attachment.name }}
-                    </span>
+                    </Badge>
                 </div>
                 <div v-if="targetKelasLabels.length" class="mt-4"><strong>Kelas tujuan:</strong> {{ targetKelasLabels.join(', ') }}</div>
-            </div>
-        </article>
+        </Card>
     </AppShell>
 </template>

@@ -3,7 +3,7 @@ import type { PropType } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Button } from '../../../Components/UI';
+import { Button, Modal } from '../../../Components/UI';
 
 interface OpsiItem {
     id: number;
@@ -86,7 +86,7 @@ const belumDijawabCount = computed(() => {
 
 // Format timer
 const formattedTime = computed(() => {
-    const total = Math.max(0, sisaDetik.value);
+    const total = Math.max(0, Math.floor(sisaDetik.value));
     const h = Math.floor(total / 3600);
     const m = Math.floor((total % 3600) / 60);
     const s = total % 60;
@@ -223,7 +223,7 @@ function autoSubmitOnTimeUp() {
 
     <AppShell title="Pengerjaan Ujian">
         <!-- Top Header Bar for CBT -->
-        <div class="card border-0 shadow-sm mb-4 bg-primary text-white">
+        <div class="card border-0 shadow-sm mb-4 bg-primary text-white cbt-shell">
             <div class="card-body p-3">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div>
@@ -243,14 +243,14 @@ function autoSubmitOnTimeUp() {
                             <span class="fs-5 font-monospace">{{ formattedTime }}</span>
                         </div>
 
-                        <button
+                        <Button color="warning" size="" class="fw-bold"
                             type="button"
-                            class="btn btn-warning fw-bold"
+                           
                             @click="openConfirmModal"
                         >
                             <i class="bi bi-check2-circle me-1" />
                             Selesai Ujian
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -263,7 +263,7 @@ function autoSubmitOnTimeUp() {
                     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                         <div class="fw-bold fs-6">
                             Soal No. <span class="badge bg-primary fs-6">{{ currentIndex + 1 }}</span>
-                            <span class="text-muted fw-normal"> dari {{ totalSoal }}</span>
+                            <span class="text-body-secondary fw-normal"> dari {{ totalSoal }}</span>
                         </div>
 
                         <div>
@@ -281,7 +281,7 @@ function autoSubmitOnTimeUp() {
 
                     <div class="card-body p-4">
                         <!-- Pertanyaan -->
-                        <div class="fs-5 mb-4 text-dark lh-base" style="white-space: pre-wrap;">
+                        <div class="fs-5 mb-4 text-dark lh-base u-ws-pre-wrap">
                             {{ currentSoal.pertanyaan }}
                         </div>
 
@@ -299,13 +299,13 @@ function autoSubmitOnTimeUp() {
                                 @click="selectOpsi(opsi.id)"
                             >
                                 <div
-                                    class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold border"
+                                    class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold border u-sq-32px"
                                     :class="localAnswers[currentSoal.attempt_jawaban_id]?.opsiId === opsi.id ? 'bg-primary text-white border-primary' : 'bg-light text-dark'"
-                                    style="width: 32px; height: 32px;"
+                                   
                                 >
                                     {{ String.fromCharCode(65 + oIdx) }}
                                 </div>
-                                <div class="pt-1 flex-grow-1" style="white-space: pre-wrap;">
+                                <div class="pt-1 flex-grow-1 u-ws-pre-wrap">
                                     {{ opsi.teks_opsi }}
                                 </div>
                             </div>
@@ -361,15 +361,15 @@ function autoSubmitOnTimeUp() {
                         <!-- Legend -->
                         <div class="d-flex flex-wrap gap-2 small mb-3 pb-2 border-bottom">
                             <div class="d-flex align-items-center gap-1">
-                                <span class="badge bg-success p-1" style="width: 12px; height: 12px;" />
+                                <span class="badge bg-soft-success p-1 u-sq-12px" />
                                 <span>Sudah ({{ dijawabCount }})</span>
                             </div>
                             <div class="d-flex align-items-center gap-1">
-                                <span class="badge bg-warning p-1" style="width: 12px; height: 12px;" />
+                                <span class="badge bg-warning p-1 u-sq-12px" />
                                 <span>Ragu ({{ raguCount }})</span>
                             </div>
                             <div class="d-flex align-items-center gap-1">
-                                <span class="badge bg-light text-dark border p-1" style="width: 12px; height: 12px;" />
+                                <span class="badge bg-light text-dark border p-1 u-sq-12px" />
                                 <span>Belum ({{ belumDijawabCount }})</span>
                             </div>
                         </div>
@@ -398,18 +398,7 @@ function autoSubmitOnTimeUp() {
         </div>
 
         <!-- Modal Konfirmasi Submit -->
-        <div v-if="showConfirmModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title fw-bold">
-                            <i class="bi bi-question-circle-fill text-warning me-2" />
-                            Konfirmasi Selesai Ujian
-                        </h5>
-                        <button type="button" class="btn-close" @click="closeConfirmModal" />
-                    </div>
-
-                    <div class="modal-body">
+        <Modal :model-value="showConfirmModal" title="Konfirmasi Selesai Ujian" @update:model-value="closeConfirmModal">
                         <p class="mb-3">
                             Apakah Anda yakin ingin menyelesaikan ujian ini? Jawaban yang sudah dikumpulkan tidak dapat diubah kembali.
                         </p>
@@ -437,23 +426,13 @@ function autoSubmitOnTimeUp() {
                             <i class="bi bi-exclamation-triangle me-1" />
                             Masih ada {{ belumDijawabCount }} soal yang belum Anda jawab!
                         </div>
-                    </div>
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light" @click="closeConfirmModal">
-                            Kembali Kerjakan
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-primary"
-                            :disabled="isSubmitting"
-                            @click="submitUjian"
-                        >
-                            {{ isSubmitting ? 'Mengirim...' : 'Ya, Selesaikan Ujian' }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+            <template #footer>
+                <Button type="button" color="light" size="" @click="closeConfirmModal">Kembali Kerjakan</Button>
+                <Button type="button" color="primary" size="" :loading="isSubmitting" @click="submitUjian">
+                    {{ isSubmitting ? 'Mengirim...' : 'Ya, Selesaikan Ujian' }}
+                </Button>
+            </template>
+        </Modal>
     </AppShell>
 </template>

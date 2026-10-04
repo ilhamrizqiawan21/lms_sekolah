@@ -4,6 +4,7 @@ import type { PropType } from 'vue';
 import { computed, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppShell from '../../Layouts/AppShell.vue';
+import { Card, EmptyState, TableWrapper } from '../../Components/UI';
 
 const props = defineProps({
     type: { type: String, required: true }, title: { type: String, required: true },
@@ -45,10 +46,10 @@ const empty = computed(() => props.rekap.length === 0 && props.tugasList.length 
 <template>
     <AppShell :title="title">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-            <div><h1 class="h3 mb-1">{{ title }}</h1><p class="text-muted mb-0">Rekap akademik terintegrasi untuk administrasi sekolah.</p></div>
+            <div><h1 class="h3 mb-1">{{ title }}</h1><p class="text-body-secondary mb-0">Rekap akademik terintegrasi untuk administrasi sekolah.</p></div>
             <div v-if="kelasId || type === 'absensi'" class="d-flex gap-2"><a :href="exportUrl('excel')" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a><a :href="exportUrl('pdf')" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a></div>
         </div>
-        <div class="card border-0 shadow-sm mb-4"><div class="card-body"><div class="row g-3 align-items-end">
+        <Card class="mb-4"><div class="row g-3 align-items-end">
             <div class="col-md-5"><label class="form-label">Kelas</label><select v-model="kelasId" class="form-select" @change="reload"><option :value="null">{{ type === 'absensi' ? 'Semua Kelas' : 'Pilih kelas' }}</option><option v-for="k in kelasList" :key="k.id" :value="k.id">{{ k.tingkat }} {{ k.nama_kelas }}</option></select></div>
             <div class="col-md-3"><label class="form-label">Semester</label><select v-model="semester" class="form-select" @change="reload"><option value="1">Semester 1</option><option value="2">Semester 2</option></select></div>
             <div v-if="type === 'absensi'" class="col-md-3">
@@ -59,19 +60,19 @@ const empty = computed(() => props.rekap.length === 0 && props.tugasList.length 
                     <label class="form-check-label small" for="admin-rekap-semua-bulan">Semua Bulan</label>
                 </div>
             </div>
-        </div></div></div>
+        </div></Card>
         <div v-if="kelasNama" class="alert alert-light border mb-3"><strong>{{ kelasNama }}</strong> · Semester {{ semester }}</div>
-        <div v-if="empty" class="card border-0 shadow-sm"><div class="card-body text-center py-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-3"></i>Belum ada data untuk filter yang dipilih.</div></div>
-        <div v-else class="card border-0 shadow-sm"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light">
-            <tr v-if="type === 'absensi'"><th>NIS</th><th>Nama</th><th v-for="t in tanggalList" :key="t" class="text-center">{{ t.slice(8) }}</th><th>H</th><th>S</th><th>I</th><th>A</th></tr>
-            <tr v-else-if="type === 'nilai'"><th>NIS</th><th>Nama</th><th v-for="m in mapelList" :key="m.kelas_mapel_id">{{ m.nama_mapel }}</th><th>Rata-rata</th></tr>
-            <tr v-else-if="type === 'sikap'"><th>NIS</th><th>Nama</th><th>Taqwa</th><th>Jujur</th><th>Disiplin</th><th>Sabar</th><th>Syukur</th><th>Tawadhu</th><th>Empati</th><th>Kerja Sama</th><th>Toleransi</th><th>Percaya Diri</th><th>Komunikasi</th></tr>
-            <tr v-else><th>Mata Pelajaran</th><th>Guru</th><th>Terkumpul</th><th>Total Siswa</th></tr>
+        <Card v-if="empty" body-class="py-5"><EmptyState title="Belum ada data untuk filter yang dipilih." icon="bi-inbox" /></Card>
+        <Card v-else body-class="p-0"><TableWrapper><table class="table table-hover align-middle mb-0"><thead>
+            <tr v-if="type === 'absensi'"><th scope="col">NIS</th><th scope="col">Nama</th><th scope="col" v-for="t in tanggalList" :key="t" class="text-center">{{ t.slice(8) }}</th><th scope="col">H</th><th scope="col">S</th><th scope="col">I</th><th scope="col">A</th></tr>
+            <tr v-else-if="type === 'nilai'"><th scope="col">NIS</th><th scope="col">Nama</th><th scope="col" v-for="m in mapelList" :key="m.kelas_mapel_id">{{ m.nama_mapel }}</th><th scope="col">Rata-rata</th></tr>
+            <tr v-else-if="type === 'sikap'"><th scope="col">NIS</th><th scope="col">Nama</th><th scope="col">Taqwa</th><th scope="col">Jujur</th><th scope="col">Disiplin</th><th scope="col">Sabar</th><th scope="col">Syukur</th><th scope="col">Tawadhu</th><th scope="col">Empati</th><th scope="col">Kerja Sama</th><th scope="col">Toleransi</th><th scope="col">Percaya Diri</th><th scope="col">Komunikasi</th></tr>
+            <tr v-else><th scope="col">Mata Pelajaran</th><th scope="col">Guru</th><th scope="col">Terkumpul</th><th scope="col">Total Siswa</th></tr>
         </thead><tbody>
             <template v-if="type === 'tugas'"><tr v-for="t in tugasList" :key="t.id"><td>{{ t.kelasMapel?.mataPelajaran?.nama_mapel || '-' }}</td><td>{{ t.kelasMapel?.guru?.nama_lengkap || '-' }}</td><td>{{ t.sudah_kumpul }}</td><td>{{ t.total_siswa }}</td></tr></template>
             <template v-else-if="type === 'absensi'"><tr v-for="r in rekap" :key="r.nis"><td>{{ r.nis }}</td><td>{{ r.nama }}</td><td v-for="t in tanggalList" :key="t">{{ r.absensi?.[t] ? r.absensi[t].charAt(0).toUpperCase() : '-' }}</td><td>{{ r.hadir }}</td><td>{{ r.sakit }}</td><td>{{ r.izin }}</td><td>{{ r.alpha }}</td></tr></template>
             <template v-else-if="type === 'nilai'"><tr v-for="r in rekap" :key="r.nis"><td>{{ r.nis }}</td><td>{{ r.nama }}</td><td v-for="m in mapelList" :key="m.kelas_mapel_id">{{ r.nilai?.[m.id] ?? '-' }}</td><td>{{ r.rata ?? '-' }}</td></tr></template>
             <template v-else><tr v-for="r in rekap" :key="r.nis"><td>{{ r.nis }}</td><td>{{ r.nama }}</td><td>{{ r.spiritual?.taqwa || '-' }}</td><td>{{ r.spiritual?.kejujuran || '-' }}</td><td>{{ r.spiritual?.disiplin || '-' }}</td><td>{{ r.spiritual?.sabar || '-' }}</td><td>{{ r.spiritual?.syukur || '-' }}</td><td>{{ r.spiritual?.tawadhu || '-' }}</td><td>{{ r.sosial?.empati || '-' }}</td><td>{{ r.sosial?.kerjasama || '-' }}</td><td>{{ r.sosial?.toleransi || '-' }}</td><td>{{ r.sosial?.percaya_diri || '-' }}</td><td>{{ r.sosial?.komunikasi || '-' }}</td></tr></template>
-        </tbody></table></div></div>
+        </tbody></table></TableWrapper></Card>
     </AppShell>
 </template>

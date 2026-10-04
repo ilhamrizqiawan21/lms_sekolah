@@ -14,17 +14,17 @@ const props = defineProps({
 });
 
 const iconMap: Record<string, { icon: string; color: string }> = {
-    tugas_baru: { icon: 'bi-journal-plus', color: '#3b82f6' },
-    nilai_baru: { icon: 'bi-bar-chart-fill', color: '#22c55e' },
-    chat_baru: { icon: 'bi-chat-dots-fill', color: '#8b5cf6' },
-    komentar_tugas: { icon: 'bi-chat-square-text-fill', color: '#f59e0b' },
-    kumpul_tugas: { icon: 'bi-check-circle-fill', color: '#06b6d4' },
-    absensi: { icon: 'bi-clipboard-check-fill', color: '#ef4444' },
-    pengumuman_baru: { icon: 'bi-megaphone-fill', color: '#f97316' },
+    tugas_baru: { icon: 'bi-journal-plus', color: 'var(--accent-blue)' },
+    nilai_baru: { icon: 'bi-bar-chart-fill', color: 'var(--accent-green)' },
+    chat_baru: { icon: 'bi-chat-dots-fill', color: 'var(--accent-violet)' },
+    komentar_tugas: { icon: 'bi-chat-square-text-fill', color: 'var(--accent-amber)' },
+    kumpul_tugas: { icon: 'bi-check-circle-fill', color: 'var(--accent-cyan)' },
+    absensi: { icon: 'bi-clipboard-check-fill', color: 'var(--accent-red)' },
+    pengumuman_baru: { icon: 'bi-megaphone-fill', color: 'var(--accent-orange)' },
 };
 
 function iconFor(type: string) {
-    return iconMap[type] ?? { icon: 'bi-bell-fill', color: '#6b7280' };
+    return iconMap[type] ?? { icon: 'bi-bell-fill', color: 'var(--accent-slate)' };
 }
 
 function markRead(item: NotificationRow) {

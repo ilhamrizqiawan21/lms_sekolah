@@ -30,7 +30,7 @@ defineProps({
                 <Card :title="`Kelas Wali ${waliKelas.kelas}`" icon="bi-building">
                     <div class="d-flex flex-column gap-3">
                         <div>
-                            <div class="text-muted small">Tahun Ajaran</div>
+                            <div class="text-body-secondary small">Tahun Ajaran</div>
                             <div class="fw-semibold">{{ waliKelas.tahun_ajaran }}</div>
                         </div>
 

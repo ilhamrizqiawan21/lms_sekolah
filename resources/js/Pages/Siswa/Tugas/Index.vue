@@ -47,28 +47,28 @@ function statusLabel(status: string | null) {
         <Card title="Daftar Tugas" icon="bi-journal-fill" body-class="p-0">
             <div v-if="tugas.length" class="p-3 border-bottom bg-light-subtle">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <span class="text-muted small">Tugas yang sudah dikumpulkan dan yang masih menunggu.</span>
-                    <span class="badge bg-soft-primary">{{ openTasks() }} belum dikumpulkan</span>
+                    <span class="text-body-secondary small">Tugas yang sudah dikumpulkan dan yang masih menunggu.</span>
+                    <Badge color="primary">{{ openTasks() }} belum dikumpulkan</Badge>
                 </div>
             </div>
             <TableWrapper v-if="tugas.length">
                 <table class="table table-hover mb-0 app-table-proportional">
                     <colgroup>
-                        <col style="width:30%">
-                        <col style="width:16%">
-                        <col style="width:12%">
-                        <col style="width:13%">
-                        <col style="width:9%">
-                        <col style="width:20%">
+                        <col class="u-w-30pct">
+                        <col class="u-w-16pct">
+                        <col class="u-w-12pct">
+                        <col class="u-w-13pct">
+                        <col class="u-w-9pct">
+                        <col class="u-w-20pct">
                     </colgroup>
                     <thead>
                         <tr>
-                            <th>Judul</th>
-                            <th>Mapel</th>
-                            <th>Deadline</th>
-                            <th>Status</th>
-                            <th>Nilai</th>
-                            <th>Aksi</th>
+                            <th scope="col">Judul</th>
+                            <th scope="col">Mapel</th>
+                            <th scope="col">Deadline</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Nilai</th>
+                            <th scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

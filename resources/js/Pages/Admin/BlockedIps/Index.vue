@@ -58,11 +58,11 @@ async function unblock(item: BlockedIp) {
                 <table class="table table-hover app-table mb-0">
                     <thead>
                         <tr>
-                            <th>IP Address</th>
-                            <th>Diblokir Sampai</th>
-                            <th>Alasan</th>
-                            <th>Waktu Blokir</th>
-                            <th class="table-action-column">Aksi</th>
+                            <th scope="col">IP Address</th>
+                            <th scope="col">Diblokir Sampai</th>
+                            <th scope="col">Alasan</th>
+                            <th scope="col">Waktu Blokir</th>
+                            <th scope="col" class="table-action-column">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -73,7 +73,7 @@ async function unblock(item: BlockedIp) {
                                 <Badge v-else color="danger">{{ item.blocked_until || '-' }}</Badge>
                             </td>
                             <td>{{ item.reason || '-' }}</td>
-                            <td class="text-muted">{{ item.created_at || '-' }}</td>
+                            <td class="text-body-secondary">{{ item.created_at || '-' }}</td>
                             <td class="table-action-column">
                                 <Button type="button" color="outline-success" icon="bi-unlock-fill" @click="unblock(item)">
                                     Unblock

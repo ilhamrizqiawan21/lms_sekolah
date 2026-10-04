@@ -3,7 +3,7 @@ import type { PropType } from 'vue';
 import type { TeacherTask } from '../../../types/tasks';
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
-import { TextareaInput, TextInput } from '../../../Components/Form';
+import { TextInput, TextareaInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Button, Card, DashboardHero, EmptyState, MetricStrip } from '../../../Components/UI';
 
@@ -130,9 +130,9 @@ function submit() {
                         <div class="mb-3">
                             <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                 <label class="form-label mb-0">Kelas Tujuan <span class="text-danger">*</span></label>
-                                <button class="btn btn-sm btn-outline-secondary" type="button" @click="toggleAllCourses">
+                                <Button color="outline-secondary" type="button" @click="toggleAllCourses">
                                     {{ form.kelas_mapel_ids.length === kelasMapel.length ? 'Kosongkan' : 'Pilih semua' }}
-                                </button>
+                                </Button>
                             </div>
                             <div class="assignment-list">
                                 <label
@@ -171,7 +171,7 @@ function submit() {
                     <template #actions>
                         <div class="assignment-search">
                             <i class="bi bi-search" aria-hidden="true"></i>
-                            <input v-model="courseSearch" class="form-control form-control-sm" type="search" placeholder="Cari kelas/mapel" aria-label="Cari kelas atau mata pelajaran">
+                            <TextInput v-model="courseSearch" name="search_kelas_mapel" type="search" placeholder="Cari kelas/mapel" aria-label="Cari kelas atau mata pelajaran" wrapper-class="" class="form-control-sm" />
                         </div>
                     </template>
 

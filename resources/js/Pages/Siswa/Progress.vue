@@ -6,6 +6,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import PageHeader from '../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../Layouts/AppShell.vue';
 import { Badge, Card, EmptyState } from '../../Components/UI';
+import { cssVar } from '../../utils/cssColor';
 
 const props = defineProps({
     header: { type: Object as PropType<{ nama: string; kelas: string; tahun_ajaran: string | null; semester_label: string }>, required: true },
@@ -40,11 +41,6 @@ function scoreWidth(value: number | null) {
     return `${Math.min(100, Math.max(0, Number(value)))}%`;
 }
 
-function cssVar(name: string, fallback: string) {
-    const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    return value || fallback;
-}
-
 async function renderTrendChart() {
     if (!trendCanvas.value || !hasTrend.value) {
         trendChart?.destroy();
@@ -56,9 +52,9 @@ async function renderTrendChart() {
     Chart.register(...registerables);
     if (!trendCanvas.value || !hasTrend.value) return;
 
-    const primary = cssVar('--app-primary', '#198754');
-    const muted = cssVar('--bs-secondary-color', '#6c757d');
-    const border = cssVar('--bs-border-color', '#dee2e6');
+    const primary = cssVar('--app-primary');
+    const muted = cssVar('--bs-secondary-color');
+    const border = cssVar('--bs-border-color');
 
     trendChart?.destroy();
     trendChart = new Chart(trendCanvas.value, {
@@ -141,7 +137,7 @@ onBeforeUnmount(() => {
                 <div>
                     <div class="stat-number">{{ stats.rata_nilai_label }}</div>
                     <div class="stat-label">Rata-rata Nilai</div>
-                    <small class="text-muted">
+                    <small class="text-body-secondary">
                         {{ stats.mapel_dinilai }} dari {{ stats.total_mapel }} mapel sudah memiliki nilai
                     </small>
                 </div>
@@ -155,7 +151,7 @@ onBeforeUnmount(() => {
                     <div class="progress mt-2" role="progressbar" :aria-valuenow="stats.persen_hadir" aria-valuemin="0" aria-valuemax="100">
                         <div class="progress-bar bg-primary" :style="{ width: `${stats.persen_hadir}%` }"></div>
                     </div>
-                    <small class="text-muted">H {{ stats.hadir }} · S {{ stats.sakit }} · I {{ stats.izin }} · A {{ stats.alpha }}</small>
+                    <small class="text-body-secondary">H {{ stats.hadir }} · S {{ stats.sakit }} · I {{ stats.izin }} · A {{ stats.alpha }}</small>
                 </div>
             </div>
 
@@ -167,7 +163,7 @@ onBeforeUnmount(() => {
                     <div class="progress mt-2" role="progressbar" :aria-valuenow="stats.persen_pengumpulan" aria-valuemin="0" aria-valuemax="100">
                         <div class="progress-bar bg-primary" :style="{ width: `${stats.persen_pengumpulan}%` }"></div>
                     </div>
-                    <small class="text-muted">
+                    <small class="text-body-secondary">
                         {{ stats.tugas_dikumpulkan }}/{{ stats.total_tugas }} dikumpulkan
                         <span v-if="stats.tugas_belum"> · {{ stats.tugas_belum }} belum</span>
                         <span v-if="stats.tugas_perlu_perbaikan"> · {{ stats.tugas_perlu_perbaikan }} perlu perbaikan</span>
@@ -432,7 +428,7 @@ onBeforeUnmount(() => {
 }
 
 .subject-progress-warning {
-    background: var(--status-warning-text, var(--bs-warning)) !important;
+    background: var(--status-warning-text, var(--bs-warning));
 }
 
 .subject-empty-line {

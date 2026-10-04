@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue';
+import Modal from '../UI/Modal.vue';
 import { router } from '@inertiajs/vue3';
 
 import type { SidebarItem, SidebarMenuEntry } from '../../types/navigation';
@@ -11,8 +12,6 @@ const emit = defineEmits<{ 'update:open': [open: boolean] }>();
 const query = ref('');
 const input = ref<HTMLInputElement | null>(null);
 const activeIndex = ref(0);
-const dialog = ref<HTMLElement | null>(null);
-let previousFocus: HTMLElement | null = null;
 
 const results = computed(() => {
     const term = query.value.trim().toLowerCase();
@@ -22,10 +21,9 @@ const results = computed(() => {
 
 watch(() => props.open, async (isOpen) => {
     if (!isOpen) {
-        previousFocus?.focus();
         return;
     }
-    previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
     query.value = '';
     activeIndex.value = 0;
     await nextTick();
@@ -56,45 +54,38 @@ function visitActive() {
     if (item) visit(item);
 }
 
-function trapFocus(event: KeyboardEvent) {
-    const elements = dialog.value?.querySelectorAll<HTMLElement>('input, button');
-    if (!elements?.length) return;
-    const first = elements[0];
-    const last = elements[elements.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-    }
-}
 </script>
 
 <template>
-    <div v-if="open" class="command-palette-backdrop" @click.self="close">
-        <section ref="dialog" class="command-palette" role="dialog" aria-modal="true" aria-label="Akses cepat" @keydown.esc.stop="close" @keydown.tab="trapFocus">
-            <div class="command-palette-input">
-                <i class="bi bi-search" aria-hidden="true"></i>
-                <input
-                    ref="input"
-                    v-model="query"
-                    type="search"
-                    placeholder="Cari menu..."
-                    @keydown.down.prevent="moveActive(1)"
-                    @keydown.up.prevent="moveActive(-1)"
-                    @keydown.enter.prevent="visitActive"
-                >
-                <kbd>Esc</kbd>
-            </div>
-            <div class="command-palette-results">
-                <button v-for="(item, index) in results" :key="item.href" type="button" class="command-palette-item" :class="{ 'is-active': index === activeIndex }" @mouseenter="activeIndex = index" @click="visit(item)">
-                    <i class="bi" :class="item.icon" aria-hidden="true"></i>
-                    <span>{{ item.label }}</span>
-                    <i class="bi bi-arrow-return-left command-palette-enter" aria-hidden="true"></i>
-                </button>
-                <p v-if="!results.length" class="command-palette-empty">Menu tidak ditemukan.</p>
-            </div>
-        </section>
-    </div>
+    <Modal
+        :model-value="open"
+        bare
+        align="top"
+        dialog-class="command-palette"
+        aria-label="Akses cepat"
+        @update:model-value="emit('update:open', $event)"
+    >
+        <div class="command-palette-input">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input
+                ref="input"
+                v-model="query"
+                type="search"
+                placeholder="Cari menu..."
+                aria-label="Cari menu"
+                @keydown.down.prevent="moveActive(1)"
+                @keydown.up.prevent="moveActive(-1)"
+                @keydown.enter.prevent="visitActive"
+            >
+            <kbd>Esc</kbd>
+        </div>
+        <div class="command-palette-results">
+            <button v-for="(item, index) in results" :key="item.href" type="button" class="command-palette-item" :class="{ 'is-active': index === activeIndex }" @mouseenter="activeIndex = index" @click="visit(item)">
+                <i class="bi" :class="item.icon" aria-hidden="true"></i>
+                <span>{{ item.label }}</span>
+                <i class="bi bi-arrow-return-left command-palette-enter" aria-hidden="true"></i>
+            </button>
+            <p v-if="!results.length" class="command-palette-empty">Menu tidak ditemukan.</p>
+        </div>
+    </Modal>
 </template>

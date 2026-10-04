@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import { SelectInput } from '../../../Components/Form';
 import type { PropType } from 'vue';
 import type { Scores, Score } from '../../../types/assessment';
 interface GradeRow extends Scores { id: number; rata_akhir: Score; siswa: { user: { nama_lengkap: string } | null; nis: string; kelas: { nama_kelas: string } | null } | null; kelas_mapel?: { mata_pelajaran: { nama_mapel: string } | null } | null; kelasMapel?: { mataPelajaran: { nama_mapel: string } | null } | null }
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
-import { Card, EmptyState, TableWrapper } from '../../../Components/UI';
+import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
     title: { type: String, default: 'Rekap Nilai Siswa' },
@@ -39,6 +40,9 @@ function page(pageNumber: number) {
         page: pageNumber,
     }, { preserveState: true, replace: true });
 }
+
+const kelasMapelOptions = computed(() => props.kelasMapel.map((item) => ({ value: String(item.id), label: item.label })));
+const semesterOptions = [{ value: '1', label: 'Semester 1' }, { value: '2', label: 'Semester 2' }];
 </script>
 
 <template>
@@ -48,24 +52,16 @@ function page(pageNumber: number) {
         <Card class="mb-4">
             <form class="row g-3 align-items-end app-table-filter" @submit.prevent="filter">
                 <div class="col-12 col-md-5">
-                    <label class="form-label" for="rekap-nilai-kelas">Kelas & Mata Pelajaran</label>
-                    <select id="rekap-nilai-kelas" v-model="selectedKelas" class="form-select">
-                        <option value="">Semua Kelas & Mapel</option>
-                        <option v-for="item in kelasMapel" :key="item.id" :value="String(item.id)">{{ item.label }}</option>
-                    </select>
+                    <SelectInput v-model="selectedKelas" name="rekap-nilai-kelas" label="Kelas & Mata Pelajaran" placeholder="Semua Kelas & Mapel" :options="kelasMapelOptions" wrapper-class="" />
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <label class="form-label" for="rekap-nilai-semester">Semester</label>
-                    <select id="rekap-nilai-semester" v-model="selectedSemester" class="form-select">
-                        <option value="1">Semester 1</option>
-                        <option value="2">Semester 2</option>
-                    </select>
+                    <SelectInput v-model="selectedSemester" name="rekap-nilai-semester" label="Semester" :options="semesterOptions" wrapper-class="" />
                 </div>
                 <div class="col-12 col-sm-6 col-md-2 d-grid">
-                    <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1" aria-hidden="true"></i>Tampilkan</button>
+                    <Button color="primary" size="" type="submit"><i class="bi bi-search me-1" aria-hidden="true"></i>Tampilkan</Button>
                 </div>
                 <div class="col-12 col-md-2 d-grid">
-                    <button class="btn btn-outline-secondary" type="button" @click="reset">Reset</button>
+                    <Button color="outline-secondary" size="" type="button" @click="reset">Reset</Button>
                 </div>
             </form>
         </Card>
@@ -73,7 +69,7 @@ function page(pageNumber: number) {
         <Card body-class="p-0">
             <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap px-3 py-3 border-bottom">
                 <strong>Data Nilai</strong>
-                <span class="badge text-bg-secondary">{{ nilai.total ?? 0 }} siswa</span>
+                <Badge color="secondary">{{ nilai.total ?? 0 }} siswa</Badge>
             </div>
 
             <div v-if="!nilai.data?.length" class="p-5">
@@ -110,7 +106,7 @@ function page(pageNumber: number) {
                     </thead>
                     <tbody>
                         <tr v-for="(row, index) in nilai.data" :key="row.id">
-                            <td class="text-center text-muted">{{ (nilai.from || 1) + index }}</td>
+                            <td class="text-center text-body-secondary">{{ (nilai.from || 1) + index }}</td>
                             <td class="rekap-name-cell">{{ row.siswa?.user?.nama_lengkap || row.siswa?.nis || '-' }}</td>
                             <td>{{ row.siswa?.kelas?.nama_kelas || '-' }}</td>
                             <td class="rekap-subject-cell">{{ row.kelas_mapel?.mata_pelajaran?.nama_mapel || row.kelasMapel?.mataPelajaran?.nama_mapel || '-' }}</td>
@@ -126,13 +122,12 @@ function page(pageNumber: number) {
                                 <strong>{{ formatScore(row.rata_akhir) }}</strong>
                             </td>
                             <td class="text-center">
-                                <span
+                                <Badge
                                     v-if="row.rata_akhir != null"
-                                    class="badge"
-                                    :class="Number(row.rata_akhir) >= 92 ? 'text-bg-success' : Number(row.rata_akhir) >= 83 ? 'text-bg-primary' : Number(row.rata_akhir) >= 75 ? 'text-bg-warning' : 'text-bg-danger'"
+                                    :color="Number(row.rata_akhir) >= 92 ? 'success' : Number(row.rata_akhir) >= 83 ? 'primary' : Number(row.rata_akhir) >= 75 ? 'warning' : 'danger'"
                                 >
                                     {{ Number(row.rata_akhir) >= 92 ? 'A' : Number(row.rata_akhir) >= 83 ? 'B' : Number(row.rata_akhir) >= 75 ? 'C' : 'D' }}
-                                </span>
+                                </Badge>
                                 <span v-else>-</span>
                             </td>
                         </tr>
@@ -141,10 +136,10 @@ function page(pageNumber: number) {
             </TableWrapper>
 
             <div v-if="nilai.last_page > 1" class="p-3 border-top d-flex justify-content-between align-items-center gap-2 flex-wrap">
-                <span class="text-muted small">Halaman {{ nilai.current_page }} dari {{ nilai.last_page }}</span>
+                <span class="text-body-secondary small">Halaman {{ nilai.current_page }} dari {{ nilai.last_page }}</span>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-secondary" :disabled="nilai.current_page <= 1" @click="page(nilai.current_page - 1)">Sebelumnya</button>
-                    <button class="btn btn-sm btn-outline-secondary" :disabled="nilai.current_page >= nilai.last_page" @click="page(nilai.current_page + 1)">Berikutnya</button>
+                    <Button color="outline-secondary" type="button" :disabled="nilai.current_page <= 1" @click="page(nilai.current_page - 1)">Sebelumnya</Button>
+                    <Button color="outline-secondary" type="button" :disabled="nilai.current_page >= nilai.last_page" @click="page(nilai.current_page + 1)">Berikutnya</Button>
                 </div>
             </div>
         </Card>
@@ -165,7 +160,7 @@ function page(pageNumber: number) {
 
 .rekap-name-cell,
 .rekap-subject-cell {
-    white-space: normal !important;
+    white-space: normal;
     overflow-wrap: anywhere;
     line-height: 1.35;
 }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { SelectInput, TextInput } from '../../../Components/Form';
 import type { PropType } from 'vue';
 
 
@@ -77,6 +78,9 @@ function progressColor(value: number) {
     if (value >= 75) return 'bg-warning';
     return 'bg-danger';
 }
+
+const kelasMapelOptions = computed(() => props.kelasMapel.map((item) => ({ value: String(item.id), label: item.label })));
+const modeOptions = [{ value: 'bulanan', label: 'Per bulan' }, { value: 'keseluruhan', label: 'Semua Bulan' }];
 </script>
 
 <template>
@@ -92,24 +96,13 @@ function progressColor(value: number) {
         <Card title="Filter Rekap" icon="bi-funnel-fill">
             <div class="row g-3 align-items-end">
                 <div class="col-md-5">
-                    <label class="form-label">Kelas dan Mata Pelajaran</label>
-                    <select v-model="kelasMapelId" class="form-select" @change="reload">
-                        <option value="">Semua Kelas</option>
-                        <option v-for="item in kelasMapel" :key="item.id" :value="String(item.id)">
-                            {{ item.label }}
-                        </option>
-                    </select>
+                    <SelectInput v-model="kelasMapelId" name="kelas_mapel_id" label="Kelas dan Mata Pelajaran" placeholder="Semua Kelas" :options="kelasMapelOptions" wrapper-class="" @change="reload" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Metode Rekap</label>
-                    <select v-model="mode" class="form-select" @change="reload">
-                        <option value="bulanan">Per bulan</option>
-                        <option value="keseluruhan">Semua Bulan</option>
-                    </select>
+                    <SelectInput v-model="mode" name="mode" label="Metode Rekap" :options="modeOptions" wrapper-class="" @change="reload" />
                 </div>
                 <div v-if="mode === 'bulanan'" class="col-md-2">
-                    <label class="form-label">Bulan</label>
-                    <input v-model="bulan" type="month" class="form-control" @change="reload">
+                    <TextInput v-model="bulan" name="bulan" type="month" label="Bulan" wrapper-class="" @change="reload" />
                 </div>
                 <div class="col-md-2 d-flex gap-2">
                     <a
@@ -225,7 +218,7 @@ function progressColor(value: number) {
 .rekap-table .col-attendance { width: 260px; }
 
 .rekap-name-cell {
-    white-space: normal !important;
+    white-space: normal;
     overflow-wrap: anywhere;
     line-height: 1.35;
 }

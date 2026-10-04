@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import { SelectInput, TextInput } from '../../../Components/Form';
 import { Head } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, MetricStrip, QuickActionBar, TableWrapper } from '../../../Components/UI';
+import { Badge, Button, Card, DashboardHero, EmptyState, MetricStrip, Modal, QuickActionBar, TableWrapper } from '../../../Components/UI';
 import SubmissionGradeForm from './Partials/SubmissionGradeForm.vue';
 import SubmissionRow from './Partials/SubmissionRow.vue';
 import type { AssignmentContext, AssignmentSubmission, AssignmentSummary, SubmissionStatus } from '../../../types';
@@ -97,6 +98,11 @@ async function sendWhatsApp(item: AssignmentSubmission): Promise<void> {
         sendingWhatsApp.value.delete(item.key);
     }
 }
+
+const statusOptions = [
+    { value: 'semua', label: 'Semua status' }, { value: 'belum', label: 'Belum' }, { value: 'sudah', label: 'Sudah' },
+    { value: 'terlambat', label: 'Terlambat' }, { value: 'perlu_perbaikan', label: 'Perlu Perbaikan' }, { value: 'dinilai', label: 'Dinilai' },
+];
 </script>
 
 <template>
@@ -127,16 +133,9 @@ async function sendWhatsApp(item: AssignmentSubmission): Promise<void> {
                 <div class="assignment-review-actions">
                     <div class="assignment-search">
                         <i class="bi bi-search" aria-hidden="true"></i>
-                        <input v-model="search" class="form-control form-control-sm" type="search" placeholder="Cari siswa" aria-label="Cari siswa">
+                        <TextInput v-model="search" name="search_siswa" type="search" placeholder="Cari siswa" aria-label="Cari siswa" wrapper-class="" class="form-control-sm" />
                     </div>
-                    <select v-model="statusFilter" class="form-select form-select-sm" aria-label="Filter status pengumpulan">
-                        <option value="semua">Semua status</option>
-                        <option value="belum">Belum</option>
-                        <option value="sudah">Sudah</option>
-                        <option value="terlambat">Terlambat</option>
-                        <option value="perlu_perbaikan">Perlu Perbaikan</option>
-                        <option value="dinilai">Dinilai</option>
-                    </select>
+                    <SelectInput v-model="statusFilter" name="status_filter" :options="statusOptions" aria-label="Filter status pengumpulan" wrapper-class="" class="form-select-sm" />
                     <a :href="kelasMapel.export_excel_url" class="btn btn-sm btn-outline-success">
                         <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Excel
                     </a>
@@ -146,22 +145,22 @@ async function sendWhatsApp(item: AssignmentSubmission): Promise<void> {
                 </div>
             </template>
 
-            <p v-if="tugas.deskripsi" class="text-muted small px-3 pt-3 mb-0">{{ tugas.deskripsi }}</p>
+            <p v-if="tugas.deskripsi" class="text-body-secondary small px-3 pt-3 mb-0">{{ tugas.deskripsi }}</p>
 
             <TableWrapper v-if="filteredPengumpulan.length" class="d-none d-md-block">
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>Siswa</th>
-                            <th>Status</th>
-                            <th>Tanggal Kumpul</th>
-                            <th>Terlambat</th>
-                            <th>File</th>
-                            <th>Jawaban</th>
-                            <th>Nilai</th>
-                            <th>Catatan</th>
-                            <th>Aksi</th>
+                            <th scope="col">#</th>
+                            <th scope="col">Siswa</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Tanggal Kumpul</th>
+                            <th scope="col">Terlambat</th>
+                            <th scope="col">File</th>
+                            <th scope="col">Jawaban</th>
+                            <th scope="col">Nilai</th>
+                            <th scope="col">Catatan</th>
+                            <th scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -221,9 +220,8 @@ async function sendWhatsApp(item: AssignmentSubmission): Promise<void> {
             <EmptyState v-else :title="search || statusFilter !== 'semua' ? 'Pengumpulan tidak ditemukan' : 'Belum ada pengumpulan'" icon="bi-inbox" />
         </Card>
 
-        <div v-if="detail" class="confirm-overlay" @click.self="detail = null">
-            <div class="confirm-dialog" role="dialog" aria-modal="true" style="max-width:560px;text-align:left;">
-                <h5 class="confirm-title">Detail Pengumpulan - {{ detail.siswa }}</h5>
+        <Modal :model-value="!!detail" :title="detail ? `Detail Pengumpulan - ${detail.siswa}` : ''" size="lg" @update:model-value="detail = null">
+            <template v-if="detail">
                 <div class="mb-3">
                     <p><strong>Status:</strong> <Badge :color="statusColor(detail.status)">{{ statusLabel(detail.status) }}</Badge></p>
                     <p><strong>Tanggal Kumpul:</strong> {{ detail.tanggal_kumpul ?? '-' }}</p>
@@ -243,17 +241,17 @@ async function sendWhatsApp(item: AssignmentSubmission): Promise<void> {
 
                     <div v-if="detail.teks_jawaban">
                         <strong>Jawaban Teks:</strong>
-                        <div class="p-2 bg-light rounded mt-2">{{ detail.teks_jawaban }}</div>
+                        <div class="p-2 bg-body-secondary rounded mt-2">{{ detail.teks_jawaban }}</div>
                     </div>
                 </div>
 
                 <SubmissionGradeForm :item="detail" block />
+            </template>
 
-                <div class="confirm-actions mt-3">
-                    <Button type="button" color="outline-secondary" size="" @click="detail = null">Tutup</Button>
-                </div>
-            </div>
-        </div>
+            <template #footer>
+                <Button type="button" color="outline-secondary" size="" @click="detail = null">Tutup</Button>
+            </template>
+        </Modal>
     </AppShell>
 </template>
 

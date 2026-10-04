@@ -75,7 +75,7 @@ function progressColor(value: number) {
                                 {{ item.persen }}%
                             </div>
                         </div>
-                        <small class="text-muted mt-1 d-block">Persentase kehadiran</small>
+                        <small class="text-body-secondary mt-1 d-block">Persentase kehadiran</small>
                     </template>
                 </Card>
             </div>

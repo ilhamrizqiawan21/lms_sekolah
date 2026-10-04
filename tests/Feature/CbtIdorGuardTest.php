@@ -106,6 +106,59 @@ class CbtIdorGuardTest extends TestCase
         $this->actingAs($userB)->get(route('siswa.ujian.hasil', $attemptA->id))->assertStatus(403);
     }
 
+    public function test_jawab_rejects_option_from_another_question_and_persists_ragu_ragu(): void
+    {
+        $guru = $this->makeUser('Guru Mapel', 'guru');
+        $ta = TahunAjaran::create(['tahun' => '2025/2026', 'is_active' => true]);
+        $mapel = MataPelajaran::create(['kode' => 'GEO', 'nama_mapel' => 'Geografi', 'urutan' => 1]);
+        $kelas = Kelas::create(['tingkat' => '11', 'nama_kelas' => '11-IPS']);
+        $km = KelasMapel::create([
+            'kelas_id' => $kelas->id,
+            'mapel_id' => $mapel->id,
+            'guru_id' => $guru->id,
+            'tahun_ajaran_id' => $ta->id,
+            'semester' => '1',
+            'status' => 'aktif',
+        ]);
+        $user = $this->makeUser('Siswa A', 'siswa');
+        $this->createSiswa($user, $kelas);
+
+        $ujian = Ujian::create([
+            'kelas_mapel_id' => $km->id,
+            'judul' => 'Ujian Geografi',
+            'durasi_menit' => 45,
+            'kategori_nilai' => 'NH',
+        ]);
+        $soal1 = SoalBank::create(['guru_id' => $guru->id, 'pertanyaan' => 'Soal 1', 'kesulitan' => 'mudah']);
+        $opsi1 = SoalBankOpsi::create(['soal_bank_id' => $soal1->id, 'teks_opsi' => 'A', 'is_benar' => true]);
+        $soal2 = SoalBank::create(['guru_id' => $guru->id, 'pertanyaan' => 'Soal 2', 'kesulitan' => 'mudah']);
+        $opsi2 = SoalBankOpsi::create(['soal_bank_id' => $soal2->id, 'teks_opsi' => 'B', 'is_benar' => true]);
+        UjianSoal::create(['ujian_id' => $ujian->id, 'soal_bank_id' => $soal1->id, 'poin' => 10, 'urutan' => 1]);
+        UjianSoal::create(['ujian_id' => $ujian->id, 'soal_bank_id' => $soal2->id, 'poin' => 10, 'urutan' => 2]);
+
+        $this->actingAs($user)->post(route('siswa.ujian.mulai', $ujian->id));
+        $attempt = UjianAttempt::where('ujian_id', $ujian->id)->first();
+        $jawabanSoal1 = UjianAttemptJawaban::where('ujian_attempt_id', $attempt->id)
+            ->whereHas('ujianSoal', fn ($q) => $q->where('soal_bank_id', $soal1->id))
+            ->first();
+
+        $this->actingAs($user)->postJson(route('siswa.ujian.jawab', $attempt->id), [
+            'attempt_jawaban_id' => $jawabanSoal1->id,
+            'jawaban_opsi_id' => $opsi2->id,
+        ])->assertStatus(422);
+        $this->assertNull($jawabanSoal1->fresh()->soal_bank_opsi_id);
+
+        $this->actingAs($user)->postJson(route('siswa.ujian.jawab', $attempt->id), [
+            'attempt_jawaban_id' => $jawabanSoal1->id,
+            'jawaban_opsi_id' => $opsi1->id,
+            'ragu_ragu' => true,
+        ])->assertOk();
+
+        $fresh = $jawabanSoal1->fresh();
+        $this->assertSame($opsi1->id, $fresh->soal_bank_opsi_id);
+        $this->assertTrue($fresh->ragu_ragu);
+    }
+
     public function test_guru_cannot_manage_another_gurus_ujian_or_soal(): void
     {
         $guru1 = $this->makeUser('Guru 1', 'guru');

@@ -2,7 +2,7 @@
 import type { PropType } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Button, Card, DashboardHero } from '../../../Components/UI';
+import { Badge, Button, Card, DashboardHero } from '../../../Components/UI';
 
 interface AttemptSummary {
     id: number;
@@ -60,18 +60,18 @@ const props = defineProps({
                     <!-- Status Banner -->
                     <div class="text-center py-4 border-bottom mb-4">
                         <div class="mb-2">
-                            <span
-                                class="badge p-2 px-3 fs-6"
-                                :class="attempt.status === 'selesai' ? 'bg-success' : 'bg-warning text-dark'"
+                            <Badge
+                                class="p-2 px-3 fs-6"
+                                :color="attempt.status === 'selesai' ? 'success' : 'warning'"
                             >
                                 <i class="bi me-1" :class="attempt.status === 'selesai' ? 'bi-check-circle-fill' : 'bi-clock-history'" />
                                 {{ attempt.status === 'selesai' ? 'Ujian Berhasil Dikumpulkan' : 'Waktu Ujian Telah Habis' }}
-                            </span>
+                            </Badge>
                         </div>
 
-                        <span class="text-muted small">Nilai Akhir Ujian (Skala 100)</span>
+                        <span class="text-body-secondary small">Nilai Akhir Ujian (Skala 100)</span>
                         <h1 class="display-3 fw-bold text-primary mb-1">{{ attempt.skor_100 }}</h1>
-                        <p class="text-muted small mb-0">
+                        <p class="text-body-secondary small mb-0">
                             Total Poin Diperoleh: {{ attempt.skor_total }} dari {{ attempt.skor_maksimal }} Poin
                         </p>
                     </div>
@@ -81,28 +81,28 @@ const props = defineProps({
                         <div class="col-4">
                             <div class="p-3 border rounded bg-success-subtle">
                                 <i class="bi bi-check-circle-fill text-success fs-4 d-block mb-1" />
-                                <span class="small text-muted">Jawaban Benar</span>
+                                <span class="small text-body-secondary">Jawaban Benar</span>
                                 <h4 class="fw-bold text-success mb-0">{{ attempt.benar_count }}</h4>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-3 border rounded bg-danger-subtle">
                                 <i class="bi bi-x-circle-fill text-danger fs-4 d-block mb-1" />
-                                <span class="small text-muted">Jawaban Salah</span>
+                                <span class="small text-body-secondary">Jawaban Salah</span>
                                 <h4 class="fw-bold text-danger mb-0">{{ attempt.salah_count }}</h4>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-3 border rounded bg-light-subtle">
-                                <i class="bi bi-dash-circle text-muted fs-4 d-block mb-1" />
-                                <span class="small text-muted">Tidak Dijawab</span>
-                                <h4 class="fw-bold text-muted mb-0">{{ attempt.tidak_dijawab_count }}</h4>
+                                <i class="bi bi-dash-circle text-body-secondary fs-4 d-block mb-1" />
+                                <span class="small text-body-secondary">Tidak Dijawab</span>
+                                <h4 class="fw-bold text-body-secondary mb-0">{{ attempt.tidak_dijawab_count }}</h4>
                             </div>
                         </div>
                     </div>
 
                     <!-- Additional Information -->
-                    <div class="p-3 bg-light rounded border mb-4 small text-muted">
+                    <div class="p-3 bg-light rounded border mb-4 small text-body-secondary">
                         <div class="d-flex justify-content-between py-1 border-bottom">
                             <span>Waktu Mulai:</span>
                             <span class="fw-semibold text-dark">{{ attempt.waktu_mulai ?? '-' }}</span>

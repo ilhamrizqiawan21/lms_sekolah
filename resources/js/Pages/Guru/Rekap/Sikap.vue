@@ -4,7 +4,7 @@ interface AttitudeRow { siswa: { id: number; nama: string; kelas: string | null 
 import { router } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
-import { Card, EmptyState, TableWrapper } from '../../../Components/UI';
+import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
     title: { type: String, default: 'Rekap Sikap Spiritual & Sosial' },
@@ -32,7 +32,7 @@ const sosialFields = [
 ];
 
 function badgeClass(value: number | null) {
-    return Number(value) >= 4 ? 'text-bg-success' : Number(value) >= 3 ? 'text-bg-warning' : 'text-bg-danger';
+    return Number(value) >= 4 ? 'success' : Number(value) >= 3 ? 'warning' : 'danger';
 }
 </script>
 
@@ -57,10 +57,10 @@ function badgeClass(value: number | null) {
                     </select>
                 </div>
                 <div class="col-12 col-sm-6 col-md-2 d-grid">
-                    <button class="btn btn-primary" @click="filter"><i class="bi bi-search me-1" aria-hidden="true"></i>Tampilkan</button>
+                    <Button color="primary" size="" @click="filter" type="submit"><i class="bi bi-search me-1" aria-hidden="true"></i>Tampilkan</Button>
                 </div>
                 <div class="col-12 col-md-2 d-grid">
-                    <button class="btn btn-outline-secondary" @click="reset">Reset</button>
+                    <Button color="outline-secondary" size="" @click="reset" type="submit">Reset</Button>
                 </div>
             </div>
         </Card>
@@ -68,7 +68,7 @@ function badgeClass(value: number | null) {
         <Card class="mb-4" body-class="p-0">
             <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap px-3 py-3 border-bottom">
                 <strong><i class="bi bi-star-fill me-2" aria-hidden="true"></i>Sikap Spiritual (KI-1)</strong>
-                <span class="badge text-bg-secondary">{{ sikapSpiritual.length }} siswa</span>
+                <Badge color="secondary">{{ sikapSpiritual.length }} siswa</Badge>
             </div>
 
             <div v-if="!sikapSpiritual.length" class="p-5">
@@ -95,11 +95,11 @@ function badgeClass(value: number | null) {
                     </thead>
                     <tbody>
                         <tr v-for="(row, index) in sikapSpiritual" :key="row.siswa.id">
-                            <td class="text-center text-muted">{{ index + 1 }}</td>
+                            <td class="text-center text-body-secondary">{{ index + 1 }}</td>
                             <td class="rekap-name-cell">{{ row.siswa.nama }}</td>
                             <td>{{ row.siswa.kelas || '-' }}</td>
                             <td v-for="field in spiritualFields" :key="field[0]" class="text-center">
-                                <span class="badge" :class="badgeClass(row.nilai[field[0]])">{{ row.nilai[field[0]] ?? '-' }}</span>
+                                <Badge :color="badgeClass(row.nilai[field[0]])">{{ row.nilai[field[0]] ?? '-' }}</Badge>
                             </td>
                             <td class="text-center"><strong>{{ row.rata ?? '-' }}</strong></td>
                         </tr>
@@ -111,7 +111,7 @@ function badgeClass(value: number | null) {
         <Card body-class="p-0">
             <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap px-3 py-3 border-bottom">
                 <strong><i class="bi bi-people-fill me-2" aria-hidden="true"></i>Sikap Sosial (KI-2)</strong>
-                <span class="badge text-bg-secondary">{{ sikapSosial.length }} siswa</span>
+                <Badge color="secondary">{{ sikapSosial.length }} siswa</Badge>
             </div>
 
             <div v-if="!sikapSosial.length" class="p-5">
@@ -138,11 +138,11 @@ function badgeClass(value: number | null) {
                     </thead>
                     <tbody>
                         <tr v-for="(row, index) in sikapSosial" :key="row.siswa.id">
-                            <td class="text-center text-muted">{{ index + 1 }}</td>
+                            <td class="text-center text-body-secondary">{{ index + 1 }}</td>
                             <td class="rekap-name-cell">{{ row.siswa.nama }}</td>
                             <td>{{ row.siswa.kelas || '-' }}</td>
                             <td v-for="field in sosialFields" :key="field[0]" class="text-center">
-                                <span class="badge" :class="badgeClass(row.nilai[field[0]])">{{ row.nilai[field[0]] ?? '-' }}</span>
+                                <Badge :color="badgeClass(row.nilai[field[0]])">{{ row.nilai[field[0]] ?? '-' }}</Badge>
                             </td>
                             <td class="text-center"><strong>{{ row.rata ?? '-' }}</strong></td>
                         </tr>
@@ -165,7 +165,7 @@ function badgeClass(value: number | null) {
 .rekap-table .col-average { width: 90px; }
 
 .rekap-name-cell {
-    white-space: normal !important;
+    white-space: normal;
     overflow-wrap: anywhere;
     line-height: 1.35;
     font-weight: 600;

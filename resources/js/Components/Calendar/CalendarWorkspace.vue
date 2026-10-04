@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import { SelectInput, TextareaInput, TextInput } from '../Form';
-import { Badge, Button, Card, EmptyState } from '../UI';
+import { Badge, Button, Card, EmptyState, Modal } from '../UI';
 import type { CalendarEvent, CalendarEventForm, CalendarPayload, SelectOption } from '../../types';
 
 interface Props {
@@ -152,7 +152,7 @@ function openEvent(event: CalendarEvent): void {
                 <table class="table table-bordered mb-0 calendar-table">
                     <thead>
                         <tr class="text-center calendar-head">
-                            <th v-for="day in calendar.weekdays" :key="day">{{ day }}</th>
+                            <th scope="col" v-for="day in calendar.weekdays" :key="day">{{ day }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -229,11 +229,11 @@ function openEvent(event: CalendarEvent): void {
                                 <i v-else-if="event.is_done" class="bi bi-check-circle-fill me-1 text-success" aria-hidden="true"></i>
                                 {{ event.title }}
                             </strong>
-                            <span class="text-muted text-xs">
+                            <span class="text-body-secondary text-xs">
                                 {{ event.event_date_label }}
                                 <template v-if="event.description"> - {{ event.description }}</template>
                             </span>
-                            <span v-if="event.created_by" class="text-muted text-xs">Dibuat oleh {{ event.created_by }}</span>
+                            <span v-if="event.created_by" class="text-body-secondary text-xs">Dibuat oleh {{ event.created_by }}</span>
                         </button>
                         <div class="calendar-list-meta">
                             <Badge v-if="event.scope" :color="event.scope === 'school' ? 'info text-dark' : 'secondary'">{{ event.scope }}</Badge>
@@ -255,20 +255,17 @@ function openEvent(event: CalendarEvent): void {
         </div>
     </div>
 
-    <div v-if="selectedEvent" class="confirm-overlay" @click.self="selectedEvent = null">
-        <div class="confirm-dialog calendar-dialog" role="dialog" aria-modal="true">
-            <h5 class="confirm-title">
-                {{ selectedTitle }}
-                <Badge v-if="selectedEvent.is_done" color="success" class="ms-2">Selesai</Badge>
-            </h5>
+    <Modal :model-value="!!selectedEvent" :title="selectedTitle" @update:model-value="selectedEvent = null">
+        <template v-if="selectedEvent">
+            <div v-if="selectedEvent.is_done" class="mb-2"><Badge color="success">Selesai</Badge></div>
 
-            <form @submit.prevent="submitEdit">
-                <TextInput v-model="editForm.title" name="edit_title" label="Judul" required :disabled="!selectedEvent.can_manage" :error="editForm.errors.title" wrapper-class="mb-2" />
+            <form id="calendarEditForm" @submit.prevent="submitEdit">
+                <TextInput v-model="editForm.title" data-autofocus name="edit_title" label="Judul" required :disabled="!selectedEvent.can_manage" :error="editForm.errors.title" wrapper-class="mb-2" />
                 <TextInput v-model="editForm.event_date" type="date" name="edit_event_date" label="Tanggal" required :disabled="!selectedEvent.can_manage" :error="editForm.errors.event_date" wrapper-class="mb-2" />
                 <TextareaInput v-model="editForm.description" name="edit_description" label="Deskripsi" :rows="2" :disabled="!selectedEvent.can_manage" :error="editForm.errors.description" wrapper-class="mb-2" />
                 <div v-if="selectedEvent.created_by" class="mb-2">
                     <div class="form-label mb-1">Dibuat oleh</div>
-                    <div class="text-muted text-sm">{{ selectedEvent.created_by }}</div>
+                    <div class="text-body-secondary text-sm">{{ selectedEvent.created_by }}</div>
                 </div>
                 <div class="d-flex gap-3 mb-2">
                     <div class="form-check">
@@ -285,20 +282,17 @@ function openEvent(event: CalendarEvent): void {
                     <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
                     Event ini hanya dapat dilihat.
                 </div>
-
-                <div class="confirm-actions mt-3">
-                    <Button type="button" color="outline-secondary" size="" @click="selectedEvent = null">Tutup</Button>
-                    <Button v-if="selectedEvent.can_manage" type="submit" color="primary" size="" :disabled="editForm.processing">
-                        {{ editForm.processing ? 'Menyimpan...' : 'Simpan' }}
-                    </Button>
-                </div>
             </form>
+        </template>
 
-            <div v-if="selectedEvent.can_manage" class="pt-3 mt-3 border-top">
-                <Button type="button" color="outline-danger" size="" icon="bi-trash" @click="destroySelected">Hapus</Button>
-            </div>
-        </div>
-    </div>
+        <template #footer>
+            <Button v-if="selectedEvent?.can_manage" type="button" color="outline-danger" size="" icon="bi-trash" class="me-auto" @click="destroySelected">Hapus</Button>
+            <Button type="button" color="outline-secondary" size="" @click="selectedEvent = null">Tutup</Button>
+            <Button v-if="selectedEvent?.can_manage" type="submit" form="calendarEditForm" color="primary" size="" :disabled="editForm.processing">
+                {{ editForm.processing ? 'Menyimpan...' : 'Simpan' }}
+            </Button>
+        </template>
+    </Modal>
 </template>
 
 <style scoped>
@@ -315,7 +309,7 @@ function openEvent(event: CalendarEvent): void {
 }
 
 .calendar-head {
-    background: var(--gray-100);
+    background: var(--surface-muted);
 }
 
 .calendar-head th {
@@ -333,29 +327,30 @@ function openEvent(event: CalendarEvent): void {
 }
 
 .calendar-cell-empty {
-    background: #f9fafb;
+    background: var(--surface-subtle);
 }
 
 .calendar-cell-today {
-    background: #dcfce7;
+    background: var(--status-success-bg);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--status-success-text) 30%, transparent);
 }
 
 .calendar-day {
     font-size: 0.75rem;
     font-weight: 500;
-    color: #6b7280;
+    color: var(--text-muted);
     margin-bottom: 4px;
 }
 
 .calendar-day-today {
     font-weight: 800;
-    color: #166534;
+    color: var(--status-success-text);
 }
 
 .calendar-event {
     display: block;
     width: 100%;
-    border: 0;
+    border: 1px solid transparent;
     border-radius: 4px;
     margin-bottom: 4px;
     padding: 4px;
@@ -365,13 +360,20 @@ function openEvent(event: CalendarEvent): void {
 }
 
 .calendar-event-normal {
-    background: #dbeafe;
-    color: #1e40af;
+    background: var(--status-info-bg);
+    color: var(--status-info-text);
+    border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.calendar-event-normal:hover,
+.calendar-event-holiday:hover {
+    filter: brightness(1.06);
 }
 
 .calendar-event-holiday {
-    background: #fee2e2;
-    color: #991b1b;
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
+    border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
 }
 
 .calendar-event-done {
@@ -413,81 +415,7 @@ function openEvent(event: CalendarEvent): void {
     gap: 0.35rem;
 }
 
-.calendar-dialog {
-    max-width: 560px;
-    text-align: left;
-}
-
-:global([data-bs-theme="dark"]) .calendar-table {
-    --calendar-border: rgba(148, 163, 184, 0.22);
-    border-color: var(--calendar-border);
-    background: #101827;
-}
-
-:global([data-bs-theme="dark"]) .calendar-table th,
-:global([data-bs-theme="dark"]) .calendar-table td {
-    border-color: var(--calendar-border);
-}
-
-:global([data-bs-theme="dark"]) .calendar-head {
-    background: #243244;
-}
-
-:global([data-bs-theme="dark"]) .calendar-head th {
-    color: #cbd5e1;
-}
-
-:global([data-bs-theme="dark"]) .calendar-cell {
-    background: #111827;
-}
-
-:global([data-bs-theme="dark"]) .calendar-cell-empty {
-    background: #0f172a;
-}
-
-:global([data-bs-theme="dark"]) .calendar-cell-today {
-    background: #123626;
-    box-shadow: inset 0 0 0 1px rgba(74, 222, 128, 0.42);
-}
-
-:global([data-bs-theme="dark"]) .calendar-day {
-    color: #9ca3af;
-}
-
-:global([data-bs-theme="dark"]) .calendar-day-today {
-    color: #86efac;
-}
-
-:global([data-bs-theme="dark"]) .calendar-event-normal {
-    background: #1e3a5f;
-    color: #bfdbfe;
-    border: 1px solid rgba(147, 197, 253, 0.24);
-}
-
-:global([data-bs-theme="dark"]) .calendar-event-holiday {
-    background: #4a1d24;
-    color: #fecdd3;
-    border: 1px solid rgba(251, 113, 133, 0.28);
-}
-
-:global([data-bs-theme="dark"]) .calendar-event-normal:hover,
-:global([data-bs-theme="dark"]) .calendar-event-holiday:hover {
-    filter: brightness(1.08);
-}
-
-:global([data-bs-theme="dark"]) .calendar-list-item {
-    border-color: rgba(148, 163, 184, 0.2);
-}
-
-:global([data-bs-theme="dark"]) .calendar-list-main strong {
-    color: #e5edf7;
-}
-
-:global([data-bs-theme="dark"]) .calendar-list-main .text-muted {
-    color: #9fb0c5 !important;
-}
-
-@media (max-width: 576px) {
+@media (max-width: 575.98px) {
     .calendar-cell {
         height: 64px;
         padding: 2px;

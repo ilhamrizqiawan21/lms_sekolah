@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { PropType } from 'vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
-import { TextareaInput, TextInput } from '../../../Components/Form';
+import { computed, ref } from 'vue';
+import { SelectInput, TextareaInput, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, IconButton, TableWrapper } from '../../../Components/UI';
+import { Badge, Button, Card, DashboardHero, EmptyState, IconButton, Modal, TableWrapper } from '../../../Components/UI';
 
 interface OpsiItem {
     id?: number;
@@ -40,6 +40,10 @@ const props = defineProps({
         default: () => ({ mapel_id: '', topik: '', kesulitan: '', kategori_nilai: '', search: '' }),
     },
 });
+
+const mapelOptions = computed(() => props.mataPelajaran.map((mapel) => ({ value: mapel.id, label: `${mapel.nama_mapel} (${mapel.kode})` })));
+const kesulitanOptions = [{ value: 'mudah', label: 'Mudah' }, { value: 'sedang', label: 'Sedang' }, { value: 'sulit', label: 'Sulit' }];
+const kategoriOptions = [{ value: 'NH', label: 'Nilai Harian (NH)' }, { value: 'STS', label: 'STS' }, { value: 'SAS', label: 'SAS' }, { value: 'SAT', label: 'SAT' }];
 
 const filterForm = ref({
     mapel_id: props.filters.mapel_id || '',
@@ -209,42 +213,16 @@ const kesulitanBadgeColor = (kesulitan: string) => {
         <Card title="Filter Bank Soal" icon="bi-funnel-fill" class="mb-4">
             <div class="row g-3 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label small text-muted">Mata Pelajaran</label>
-                    <select v-model="filterForm.mapel_id" class="form-select form-select-sm" @change="applyFilter">
-                        <option value="">Semua Mapel</option>
-                        <option v-for="mapel in mataPelajaran" :key="mapel.id" :value="mapel.id">
-                            {{ mapel.nama_mapel }} ({{ mapel.kode }})
-                        </option>
-                    </select>
+                    <SelectInput v-model="filterForm.mapel_id" name="filter_mapel_id" label="Mata Pelajaran" placeholder="Semua Mapel" :options="mapelOptions" wrapper-class="" class="form-select-sm" @change="applyFilter" />
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small text-muted">Tingkat Kesulitan</label>
-                    <select v-model="filterForm.kesulitan" class="form-select form-select-sm" @change="applyFilter">
-                        <option value="">Semua</option>
-                        <option value="mudah">Mudah</option>
-                        <option value="sedang">Sedang</option>
-                        <option value="sulit">Sulit</option>
-                    </select>
+                    <SelectInput v-model="filterForm.kesulitan" name="filter_kesulitan" label="Tingkat Kesulitan" placeholder="Semua" :options="kesulitanOptions" wrapper-class="" class="form-select-sm" @change="applyFilter" />
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small text-muted">Kategori Nilai</label>
-                    <select v-model="filterForm.kategori_nilai" class="form-select form-select-sm" @change="applyFilter">
-                        <option value="">Semua</option>
-                        <option value="NH">Nilai Harian (NH)</option>
-                        <option value="STS">STS</option>
-                        <option value="SAS">SAS</option>
-                        <option value="SAT">SAT</option>
-                    </select>
+                    <SelectInput v-model="filterForm.kategori_nilai" name="filter_kategori_nilai" label="Kategori Nilai" placeholder="Semua" :options="kategoriOptions" wrapper-class="" class="form-select-sm" @change="applyFilter" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small text-muted">Cari Pertanyaan / Topik</label>
-                    <input
-                        v-model="filterForm.search"
-                        type="text"
-                        class="form-control form-control-sm"
-                        placeholder="Ketik kata kunci..."
-                        @keyup.enter="applyFilter"
-                    />
+                    <TextInput v-model="filterForm.search" name="filter_search" label="Cari Pertanyaan / Topik" placeholder="Ketik kata kunci..." wrapper-class="" class="form-control-sm" @keyup.enter="applyFilter" />
                 </div>
                 <div class="col-md-2 d-flex gap-2">
                     <Button color="primary" class="w-100" @click="applyFilter">
@@ -260,29 +238,29 @@ const kesulitanBadgeColor = (kesulitan: string) => {
         <!-- Soal List Table -->
         <Card title="Daftar Soal" icon="bi-list-check" body-class="p-0">
             <div v-if="soalList.length" class="p-3 border-bottom bg-light-subtle d-flex justify-content-between align-items-center">
-                <span class="text-muted small">Total {{ soalList.length }} butir soal tersedia di bank soal Anda.</span>
+                <span class="text-body-secondary small">Total {{ soalList.length }} butir soal tersedia di bank soal Anda.</span>
             </div>
 
             <TableWrapper v-if="soalList.length">
                 <table class="table table-hover mb-0 app-table-proportional">
                     <colgroup>
-                        <col style="width: 4%">
-                        <col style="width: 42%">
-                        <col style="width: 14%">
-                        <col style="width: 12%">
-                        <col style="width: 10%">
-                        <col style="width: 8%">
-                        <col style="width: 10%">
+                        <col class="u-w-4pct">
+                        <col class="u-w-42pct">
+                        <col class="u-w-14pct">
+                        <col class="u-w-12pct">
+                        <col class="u-w-10pct">
+                        <col class="u-w-8pct">
+                        <col class="u-w-10pct">
                     </colgroup>
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th>Pertanyaan & Opsi</th>
-                            <th>Mata Pelajaran</th>
-                            <th>Topik</th>
-                            <th>Kesulitan</th>
-                            <th>Kategori</th>
-                            <th>Aksi</th>
+                            <th scope="col">No</th>
+                            <th scope="col">Pertanyaan & Opsi</th>
+                            <th scope="col">Mata Pelajaran</th>
+                            <th scope="col">Topik</th>
+                            <th scope="col">Kesulitan</th>
+                            <th scope="col">Kategori</th>
+                            <th scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -290,7 +268,7 @@ const kesulitanBadgeColor = (kesulitan: string) => {
                             <td>{{ index + 1 }}</td>
                             <td>
                                 <div class="fw-semibold text-break mb-1">{{ soal.pertanyaan }}</div>
-                                <div class="small text-muted ps-2 border-start">
+                                <div class="small text-body-secondary ps-2 border-start">
                                     <div
                                         v-for="(opsi, oIdx) in soal.opsi"
                                         :key="opsi.id || oIdx"
@@ -298,18 +276,18 @@ const kesulitanBadgeColor = (kesulitan: string) => {
                                         class="d-flex align-items-center gap-1"
                                     >
                                         <i v-if="opsi.is_benar" class="bi bi-check-circle-fill text-success" />
-                                        <i v-else class="bi bi-circle text-muted" style="font-size: 0.75rem;" />
+                                        <i v-else class="bi bi-circle text-body-secondary" style="font-size: 0.75rem;" />
                                         <span>{{ String.fromCharCode(65 + oIdx) }}. {{ opsi.teks_opsi }}</span>
                                     </div>
                                 </div>
                             </td>
                             <td>
                                 <span v-if="soal.mapel">{{ soal.mapel.nama_mapel }}</span>
-                                <span v-else class="text-muted fst-italic">Semua Mapel</span>
+                                <span v-else class="text-body-secondary fst-italic">Semua Mapel</span>
                             </td>
                             <td>
-                                <span v-if="soal.topik" class="badge bg-light text-dark border">{{ soal.topik }}</span>
-                                <span v-else class="text-muted">-</span>
+                                <Badge v-if="soal.topik" color="secondary">{{ soal.topik }}</Badge>
+                                <span v-else class="text-body-secondary">-</span>
                             </td>
                             <td>
                                 <Badge :color="kesulitanBadgeColor(soal.kesulitan)">
@@ -320,7 +298,7 @@ const kesulitanBadgeColor = (kesulitan: string) => {
                                 <Badge v-if="soal.kategori_nilai" color="info">
                                     {{ soal.kategori_nilai }}
                                 </Badge>
-                                <span v-else class="text-muted">-</span>
+                                <span v-else class="text-body-secondary">-</span>
                             </td>
                             <td>
                                 <div class="d-flex gap-1">
@@ -352,29 +330,11 @@ const kesulitanBadgeColor = (kesulitan: string) => {
         </Card>
 
         <!-- Modal Form Soal -->
-        <div v-if="isModalOpen" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
-            <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">
-                            <i class="bi bi-pencil-square me-2 text-primary" />
-                            {{ editingSoal ? 'Edit Soal' : 'Tambah Soal ke Bank' }}
-                        </h5>
-                        <button type="button" class="btn-close" @click="closeModal" />
-                    </div>
-
-                    <form @submit.prevent="saveSoal">
-                        <div class="modal-body">
+        <Modal :model-value="isModalOpen" :title="editingSoal ? 'Edit Soal' : 'Tambah Soal ke Bank'" size="lg" @update:model-value="closeModal">
+            <form id="soalBankForm" @submit.prevent="saveSoal">
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label required">Mata Pelajaran</label>
-                                    <select v-model="form.mapel_id" class="form-select" :class="{ 'is-invalid': form.errors.mapel_id }">
-                                        <option value="">-- Umum / Tanpa Mapel --</option>
-                                        <option v-for="mapel in mataPelajaran" :key="mapel.id" :value="mapel.id">
-                                            {{ mapel.nama_mapel }} ({{ mapel.kode }})
-                                        </option>
-                                    </select>
-                                    <div v-if="form.errors.mapel_id" class="invalid-feedback">{{ form.errors.mapel_id }}</div>
+                                    <SelectInput v-model="form.mapel_id" name="mapel_id" label="Mata Pelajaran" placeholder="-- Umum / Tanpa Mapel --" :options="mapelOptions" :error="form.errors.mapel_id" wrapper-class="" />
                                 </div>
 
                                 <div class="col-md-6">
@@ -388,25 +348,11 @@ const kesulitanBadgeColor = (kesulitan: string) => {
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label required">Tingkat Kesulitan</label>
-                                    <select v-model="form.kesulitan" class="form-select" :class="{ 'is-invalid': form.errors.kesulitan }">
-                                        <option value="mudah">Mudah</option>
-                                        <option value="sedang">Sedang</option>
-                                        <option value="sulit">Sulit</option>
-                                    </select>
-                                    <div v-if="form.errors.kesulitan" class="invalid-feedback">{{ form.errors.kesulitan }}</div>
+                                    <SelectInput v-model="form.kesulitan" name="kesulitan" label="Tingkat Kesulitan" required :options="kesulitanOptions" :error="form.errors.kesulitan" wrapper-class="" />
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label">Kategori Nilai Default (Opsional)</label>
-                                    <select v-model="form.kategori_nilai" class="form-select" :class="{ 'is-invalid': form.errors.kategori_nilai }">
-                                        <option value="">-- Tidak Ditentukan --</option>
-                                        <option value="NH">Nilai Harian (NH)</option>
-                                        <option value="STS">STS</option>
-                                        <option value="SAS">SAS</option>
-                                        <option value="SAT">SAT</option>
-                                    </select>
-                                    <div v-if="form.errors.kategori_nilai" class="invalid-feedback">{{ form.errors.kategori_nilai }}</div>
+                                    <SelectInput v-model="form.kategori_nilai" name="kategori_nilai" label="Kategori Nilai Default (Opsional)" placeholder="-- Tidak Ditentukan --" :options="kategoriOptions" :error="form.errors.kategori_nilai" wrapper-class="" />
                                 </div>
                             </div>
 
@@ -462,19 +408,19 @@ const kesulitanBadgeColor = (kesulitan: string) => {
                                                 />
                                                 <label :for="`opsi-radio-${idx}`" class="form-check-label fw-bold small">
                                                     Pilihan {{ String.fromCharCode(65 + idx) }}
-                                                    <span v-if="opsi.is_benar" class="badge bg-success ms-1">Kunci Jawaban</span>
+                                                    <Badge v-if="opsi.is_benar" color="success" class="ms-1">Kunci Jawaban</Badge>
                                                 </label>
                                             </div>
 
                                             <div class="ms-auto" v-if="form.opsi.length > 2">
-                                                <button
+                                                <Button color="outline-danger" class="p-0 px-1"
                                                     type="button"
-                                                    class="btn btn-sm btn-outline-danger p-0 px-1"
+                                                   
                                                     title="Hapus opsi"
                                                     @click="removeOpsi(idx)"
                                                 >
                                                     <i class="bi bi-x" />
-                                                </button>
+                                                </Button>
                                             </div>
                                         </div>
 
@@ -488,19 +434,14 @@ const kesulitanBadgeColor = (kesulitan: string) => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+            </form>
 
-                        <div class="modal-footer">
-                            <Button type="button" color="light" @click="closeModal">
-                                Batal
-                            </Button>
-                            <Button type="submit" color="primary" :disabled="form.processing">
-                                {{ editingSoal ? 'Simpan Perubahan' : 'Tambahkan Soal' }}
-                            </Button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+            <template #footer>
+                <Button type="button" color="light" @click="closeModal">Batal</Button>
+                <Button type="submit" form="soalBankForm" color="primary" :disabled="form.processing">
+                    {{ editingSoal ? 'Simpan Perubahan' : 'Tambahkan Soal' }}
+                </Button>
+            </template>
+        </Modal>
     </AppShell>
 </template>

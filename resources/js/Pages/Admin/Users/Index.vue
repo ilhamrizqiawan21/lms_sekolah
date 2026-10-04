@@ -4,7 +4,7 @@ import { reactive } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { SelectInput, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Card, EmptyState, IconButton, Pagination, TableWrapper } from '../../../Components/UI';
+import { Badge, Button, Card, EmptyState, IconButton, Pagination, TableWrapper } from '../../../Components/UI';
 import type { LaravelPaginator } from '../../../types';
 
 interface Role { id: number; nama_role: string }
@@ -145,14 +145,14 @@ async function destroy(user: AdminUser): Promise<void> {
                     />
                 </div>
                 <div class="col-md-2">
-                    <button class="btn btn-sm btn-primary w-100" type="submit">
+                    <Button color="primary" class="w-100" type="submit">
                         <i class="bi bi-search me-1" aria-hidden="true"></i> Cari
-                    </button>
+                    </Button>
                 </div>
                 <div class="col-md-2">
-                    <button class="btn btn-sm btn-outline-secondary w-100" type="button" @click="resetFilters">
+                    <Button color="outline-secondary" class="w-100" type="button" @click="resetFilters">
                         <i class="bi bi-x-circle me-1" aria-hidden="true"></i> Reset
-                    </button>
+                    </Button>
                 </div>
             </form>
 
@@ -160,12 +160,12 @@ async function destroy(user: AdminUser): Promise<void> {
                 <table class="table table-hover app-table mb-0">
                     <thead>
                         <tr>
-                            <th>Username</th>
-                            <th>Nama Lengkap</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Status Password</th>
-                            <th class="table-action-column">Aksi</th>
+                            <th scope="col">Username</th>
+                            <th scope="col">Nama Lengkap</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Role</th>
+                            <th scope="col">Status Password</th>
+                            <th scope="col" class="table-action-column">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -217,7 +217,7 @@ async function destroy(user: AdminUser): Promise<void> {
             <EmptyState v-else title="Tidak ada data guru atau staf" icon="bi-people" />
 
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
-                <div class="text-muted small">
+                <div class="text-body-secondary small">
                     <template v-if="users.total">
                         Menampilkan {{ users.from }}-{{ users.to }} dari {{ users.total }} data
                     </template>

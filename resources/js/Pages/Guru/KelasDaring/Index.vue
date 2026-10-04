@@ -112,20 +112,20 @@ async function destroySession(session: OnlineSession) {
                         <table class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th>Sesi</th>
-                                    <th>Jadwal</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Aksi</th>
+                                    <th scope="col">Sesi</th>
+                                    <th scope="col">Jadwal</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col" class="text-end">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="session in sessions" :key="session.id">
                                     <td>
                                         <strong>{{ session.judul }}</strong>
-                                        <div class="text-muted small">{{ session.kelas_mapel }}</div>
+                                        <div class="text-body-secondary small">{{ session.kelas_mapel }}</div>
                                         <a :href="session.meeting_url" target="_blank" rel="noopener noreferrer" class="small">Buka link</a>
                                     </td>
-                                    <td>{{ session.tanggal }}<div class="text-muted small">Pelajaran ke-{{ session.pelajaran_ke }}</div></td>
+                                    <td>{{ session.tanggal }}<div class="text-body-secondary small">Pelajaran ke-{{ session.pelajaran_ke }}</div></td>
                                     <td>
                                         <Badge :color="statusColor(session.status)">{{ session.status }}</Badge>
                                         <SelectInput

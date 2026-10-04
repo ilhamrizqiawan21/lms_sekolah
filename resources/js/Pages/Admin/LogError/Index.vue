@@ -73,12 +73,12 @@ function truncate(value: string | null, length = 72) {
                 <table class="table table-hover mb-0 small">
                     <thead>
                         <tr>
-                            <th>Level</th>
-                            <th>Waktu</th>
-                            <th>Message</th>
-                            <th>File</th>
-                            <th>Line</th>
-                            <th>URL</th>
+                            <th scope="col">Level</th>
+                            <th scope="col">Waktu</th>
+                            <th scope="col">Message</th>
+                            <th scope="col">File</th>
+                            <th scope="col">Line</th>
+                            <th scope="col">URL</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -86,9 +86,9 @@ function truncate(value: string | null, length = 72) {
                             <td><Badge :color="levelColor(item.error_level)">{{ item.error_level }}</Badge></td>
                             <td class="text-nowrap">{{ item.created_at ?? '-' }}</td>
                             <td><strong :title="item.message">{{ truncate(item.message, 100) }}</strong></td>
-                            <td class="text-muted" :title="item.file">{{ truncate(item.file, 44) }}</td>
+                            <td class="text-body-secondary" :title="item.file">{{ truncate(item.file, 44) }}</td>
                             <td class="text-center">{{ item.line }}</td>
-                            <td class="text-muted" :title="item.url">{{ truncate(item.url, 44) }}</td>
+                            <td class="text-body-secondary" :title="item.url">{{ truncate(item.url, 44) }}</td>
                         </tr>
                     </tbody>
                 </table>

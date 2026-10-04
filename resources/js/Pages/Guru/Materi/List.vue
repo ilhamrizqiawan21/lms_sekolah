@@ -132,10 +132,10 @@ async function destroy(item: { delete_url: string }) {
                             <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Judul</th>
-                                        <th>Deskripsi</th>
-                                        <th>Tanggal</th>
-                                        <th>Aksi</th>
+                                        <th scope="col">Judul</th>
+                                        <th scope="col">Deskripsi</th>
+                                        <th scope="col">Tanggal</th>
+                                        <th scope="col">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>

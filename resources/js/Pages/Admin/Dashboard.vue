@@ -29,7 +29,7 @@ const quickActions: QuickAction[] = [
 const announcementItems = computed(() => props.pengumuman.map((item) => ({
     id: item.id, title: item.judul, meta: item.created_at ?? '',
     detail: item.creator ? `Dibuat oleh ${item.creator}` : '',
-    icon: 'bi-megaphone-fill', accent: '#f59e0b',
+    icon: 'bi-megaphone-fill', accent: 'var(--accent-amber)',
 })));
 
 function roleBadgeColor(role: string): string {
@@ -55,13 +55,13 @@ function roleBadgeColor(role: string): string {
                 <div class="workspace-panel-body p-0">
                     <TableWrapper v-if="loginTerbaru.length">
                         <table class="table table-hover mb-0 admin-login-table">
-                            <thead><tr><th>Nama</th><th>Role</th><th>Waktu</th><th>IP</th></tr></thead>
+                            <thead><tr><th scope="col">Nama</th><th scope="col">Role</th><th scope="col">Waktu</th><th scope="col">IP</th></tr></thead>
                             <tbody>
                                 <tr v-for="log in loginTerbaru" :key="log.id">
                                     <td><strong>{{ log.nama_lengkap }}</strong></td>
                                     <td><Badge :color="roleBadgeColor(log.role)">{{ log.role }}</Badge></td>
-                                    <td class="text-muted small">{{ log.login_time ?? '-' }}</td>
-                                    <td class="text-muted small admin-login-ip">{{ log.ip_address ?? '-' }}</td>
+                                    <td class="text-body-secondary small">{{ log.login_time ?? '-' }}</td>
+                                    <td class="text-body-secondary small admin-login-ip">{{ log.ip_address ?? '-' }}</td>
                                 </tr>
                             </tbody>
                         </table>

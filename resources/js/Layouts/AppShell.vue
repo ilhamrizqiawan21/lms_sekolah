@@ -108,7 +108,7 @@ function closeSidebar() {
     gap: 0.45rem;
     min-height: 52px;
     padding: 0.9rem 1rem 1.2rem;
-    color: var(--text-muted, #64748b);
+    color: var(--text-muted);
     font-size: 0.72rem;
     text-align: center;
 }

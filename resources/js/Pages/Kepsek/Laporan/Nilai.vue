@@ -130,18 +130,18 @@ function exportUrl(format: 'excel' | 'pdf') {
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Siswa</th>
-                            <th>Kelas</th>
-                            <th>Mapel</th>
-                            <th>Sum 1</th>
-                            <th>Sum 2</th>
-                            <th>Sum 3</th>
-                            <th>Sum 4</th>
-                            <th>Nilai Harian</th>
-                            <th>STS</th>
-                            <th>SAS</th>
-                            <th>SAT</th>
-                            <th>Rata Akhir</th>
+                            <th scope="col">Siswa</th>
+                            <th scope="col">Kelas</th>
+                            <th scope="col">Mapel</th>
+                            <th scope="col">Sum 1</th>
+                            <th scope="col">Sum 2</th>
+                            <th scope="col">Sum 3</th>
+                            <th scope="col">Sum 4</th>
+                            <th scope="col">Nilai Harian</th>
+                            <th scope="col">STS</th>
+                            <th scope="col">SAS</th>
+                            <th scope="col">SAT</th>
+                            <th scope="col">Rata Akhir</th>
                         </tr>
                     </thead>
                     <tbody>

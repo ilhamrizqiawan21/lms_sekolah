@@ -82,7 +82,7 @@ const quickActions = [
                         </span>
                     </Link>
                     <Link v-else :href="tabs.find((tab) => tab.label === 'Chat')?.href" class="workspace-summary-item">
-                        <span class="workspace-summary-icon text-muted"><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
+                        <span class="workspace-summary-icon text-body-secondary"><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
                         <span>
                             <strong>Chat kelas</strong>
                             <small>Belum ada pesan. Mulai percakapan dengan siswa.</small>

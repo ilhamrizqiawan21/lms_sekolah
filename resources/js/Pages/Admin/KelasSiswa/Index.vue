@@ -269,7 +269,7 @@ function passwordStatusColor(isDefault: boolean) {
             <TableWrapper v-if="kelasList.length">
                 <table class="table table-hover mb-0">
                     <thead>
-                        <tr><th>Tingkat</th><th>Kelas</th><th>Siswa Aktif</th><th class="table-action-column">Aksi</th></tr>
+                        <tr><th scope="col">Tingkat</th><th scope="col">Kelas</th><th scope="col">Siswa Aktif</th><th scope="col" class="table-action-column">Aksi</th></tr>
                     </thead>
                     <tbody>
                         <tr v-for="kelas in kelasList" :key="kelas.id">
@@ -307,7 +307,7 @@ function passwordStatusColor(isDefault: boolean) {
             <TableWrapper v-if="siswa.data?.length">
                 <table class="table table-hover mb-0">
                     <thead>
-                        <tr><th>NIS</th><th>Nama</th><th>JK</th><th>Kelas</th><th>Status Siswa</th><th>Status Password</th><th class="table-action-column">Aksi</th></tr>
+                        <tr><th scope="col">NIS</th><th scope="col">Nama</th><th scope="col">JK</th><th scope="col">Kelas</th><th scope="col">Status Siswa</th><th scope="col">Status Password</th><th scope="col" class="table-action-column">Aksi</th></tr>
                     </thead>
                     <tbody>
                         <template v-for="item in siswa.data" :key="item.id">

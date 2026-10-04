@@ -85,15 +85,15 @@ function statusLabel(status: string | null) {
                         <table class="table table-bordered table-hover mb-0 wali-report-table">
                             <thead>
                                 <tr>
-                                    <th style="min-width:90px;">NIS</th>
-                                    <th style="min-width:180px;">Nama</th>
-                                    <th v-for="tanggal in tanggalList" :key="tanggal.date" class="text-center" style="min-width:48px;">
+                                    <th scope="col" class="u-minw-90px">NIS</th>
+                                    <th scope="col" class="u-minw-180px">Nama</th>
+                                    <th scope="col" v-for="tanggal in tanggalList" :key="tanggal.date" class="text-center u-minw-48px">
                                         {{ tanggal.day }}
                                     </th>
-                                    <th class="text-center">H</th>
-                                    <th class="text-center">S</th>
-                                    <th class="text-center">I</th>
-                                    <th class="text-center">A</th>
+                                    <th scope="col" class="text-center">H</th>
+                                    <th scope="col" class="text-center">S</th>
+                                    <th scope="col" class="text-center">I</th>
+                                    <th scope="col" class="text-center">A</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -127,9 +127,9 @@ function statusLabel(status: string | null) {
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th>Tanggal</th>
-                                    <th>Topik</th>
-                                    <th>Hasil</th>
+                                    <th scope="col">Tanggal</th>
+                                    <th scope="col">Topik</th>
+                                    <th scope="col">Hasil</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -151,20 +151,20 @@ function statusLabel(status: string | null) {
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th>Siswa</th>
-                                    <th>Kondisi</th>
-                                    <th>Status</th>
+                                    <th scope="col">Siswa</th>
+                                    <th scope="col">Kondisi</th>
+                                    <th scope="col">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="item in penanganan" :key="item.id">
                                     <td>
                                         {{ item.siswa }}
-                                        <div class="small text-muted">{{ item.nis }}</div>
+                                        <div class="small text-body-secondary">{{ item.nis }}</div>
                                     </td>
                                     <td>
                                         {{ item.kondisi }}
-                                        <div class="small text-muted">{{ item.tindak_lanjut }}</div>
+                                        <div class="small text-body-secondary">{{ item.tindak_lanjut }}</div>
                                     </td>
                                     <td><Badge :color="penangananBadge(item.status)">{{ statusLabel(item.status) }}</Badge></td>
                                 </tr>

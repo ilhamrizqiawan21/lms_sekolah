@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use App\Support\RoleAccess;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class StoreStaffUserRequest extends FormRequest
 {
@@ -29,7 +30,7 @@ class StoreStaffUserRequest extends FormRequest
             'username' => ['required', 'string', 'max:50', 'regex:/^[A-Za-z0-9._-]+$/', 'unique:users,username'],
             'nama_lengkap' => ['required', 'string', 'max:100'],
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['nullable', 'string', 'min:6'],
+            'password' => ['nullable', 'string', Password::min(10)->letters()->mixedCase()->numbers()->symbols()],
             'role_id' => ['required', 'integer', Rule::in(RoleAccess::staffRoleIds())],
             'nip_nis' => ['nullable', 'string', 'max:20', 'regex:/^[A-Za-z0-9.\/_-]+$/', 'unique:users,nip_nis'],
             'jenis_kelamin' => ['nullable', 'in:L,P'],

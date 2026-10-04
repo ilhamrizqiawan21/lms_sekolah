@@ -152,7 +152,7 @@ onBeforeUnmount(() => {
                 @keydown.enter.prevent="open ? selectActive() : toggle()"
                 @keydown.esc.prevent="close"
             >
-                <span :class="{ 'text-muted': !selectedOption }">
+                <span :class="{ 'text-body-secondary': !selectedOption }">
                     {{ selectedOption?.label ?? placeholder }}
                 </span>
             </button>
@@ -185,7 +185,7 @@ onBeforeUnmount(() => {
                     <button
                         v-if="clearable"
                         type="button"
-                        class="searchable-select-option text-muted"
+                        class="searchable-select-option text-body-secondary"
                         :class="{ active: activeIndex === 0 }"
                         :id="`${listboxId}Clear`"
                         role="option"

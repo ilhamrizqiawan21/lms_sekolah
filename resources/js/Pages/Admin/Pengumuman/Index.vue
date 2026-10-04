@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import { Badge, Button, Card, EmptyState } from '../../../Components/UI';
 import type { PropType } from 'vue';
 import type { Announcement } from '../../../types/announcements';
 import type { AppPageProps } from '../../../types/inertia';
 import { computed, ref } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { FileInput } from '../../../Components/Form';
+import { FileInput, SelectInput, TextareaInput, TextInput } from '../../../Components/Form';
 
 const page = usePage<AppPageProps>();
 const props = defineProps({
@@ -30,6 +31,10 @@ const form = useForm({
     remove_public_file: false,
 });
 const isAdmin = computed(() => page.props.auth?.user?.role === 'admin');
+const targetOptions = computed(() => [
+    ...(isAdmin.value ? [{ value: 'semua', label: 'Semua' }, { value: 'guru', label: 'Guru' }, { value: 'siswa', label: 'Siswa' }] : []),
+    { value: 'kelas_mapel', label: 'Kelas tertentu' },
+]);
 const canPublish = computed(() => ['admin', 'guru'].includes(page.props.auth?.user?.role ?? ''));
 
 function resetForm() {
@@ -94,10 +99,16 @@ function formatFileSize(bytes: number | null) {
     return kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${Math.ceil(kb)} KB`;
 }
 
-function remove(item: Announcement) {
-    if (window.confirm('Hapus pengumuman ini?')) {
-        form.delete(item.delete_url, { preserveScroll: true });
-    }
+async function remove(item: Announcement) {
+    const confirmed = await window.confirmDialog?.('Hapus pengumuman ini?', {
+        title: 'Hapus Pengumuman',
+        confirmText: 'Ya, hapus',
+        danger: true,
+    });
+
+    if (!confirmed) return;
+
+    form.delete(item.delete_url, { preserveScroll: true });
 }
 </script>
 
@@ -106,34 +117,25 @@ function remove(item: Announcement) {
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
             <div>
                 <h1 class="h3 mb-1">Pengumuman</h1>
-                <p class="text-muted mb-0">Kelola informasi resmi sekolah dan distribusi kepada pengguna.</p>
+                <p class="text-body-secondary mb-0">Kelola informasi resmi sekolah dan distribusi kepada pengguna.</p>
             </div>
-            <button v-if="canPublish" class="btn btn-success" type="button" @click="showForm ? (showForm = false) : openCreate()">
+            <Button color="primary" size="" v-if="canPublish" type="button" @click="showForm ? (showForm = false) : openCreate()">
                 <i class="bi bi-plus-lg me-1"></i>{{ showForm ? 'Tutup Form' : 'Buat Pengumuman' }}
-            </button>
+            </Button>
         </div>
 
-        <div v-if="showForm" class="card border-0 shadow-sm mb-4">
-            <div class="card-body">
+        <Card v-if="showForm" class="mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="mb-0">{{ editingId ? 'Edit Pengumuman' : 'Pengumuman Baru' }}</h5>
-                    <span v-if="editingId" class="badge bg-warning-subtle text-warning-emphasis">Mode edit</span>
+                    <Badge v-if="editingId" color="warning">Mode edit</Badge>
                 </div>
                 <form @submit.prevent="submit">
                     <div class="row g-3">
                         <div class="col-md-8">
-                            <label class="form-label">Judul</label>
-                            <input v-model="form.judul" class="form-control" maxlength="200" required>
-                            <div v-if="form.errors.judul" class="text-danger small mt-1">{{ form.errors.judul }}</div>
+                            <TextInput v-model="form.judul" name="judul" label="Judul" maxlength="200" required wrapper-class="" :error="form.errors.judul" />
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Target</label>
-                            <select v-model="form.target" class="form-select">
-                                <option v-if="isAdmin" value="semua">Semua</option>
-                                <option v-if="isAdmin" value="guru">Guru</option>
-                                <option v-if="isAdmin" value="siswa">Siswa</option>
-                                <option value="kelas_mapel">Kelas tertentu</option>
-                            </select>
+                            <SelectInput v-model="form.target" name="target" label="Target" :options="targetOptions" wrapper-class="" />
                         </div>
                         <div v-if="form.target === 'kelas_mapel'" class="col-12">
                             <label class="form-label">Kelas Tujuan</label>
@@ -145,9 +147,7 @@ function remove(item: Announcement) {
                             <div v-if="form.errors.target_kelas_ids" class="text-danger small mt-1">{{ form.errors.target_kelas_ids }}</div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Isi</label>
-                            <textarea v-model="form.isi" class="form-control" rows="6" required></textarea>
-                            <div v-if="form.errors.isi" class="text-danger small mt-1">{{ form.errors.isi }}</div>
+                            <TextareaInput v-model="form.isi" name="isi" label="Isi" :rows="6" required wrapper-class="" :error="form.errors.isi" />
                         </div>
                         <div class="col-12">
                             <div class="form-check form-switch">
@@ -191,51 +191,46 @@ function remove(item: Announcement) {
                             </div>
                         </div>
                         <div class="col-12 d-flex justify-content-end gap-2">
-                            <button class="btn btn-outline-secondary" type="button" @click="resetForm(); showForm = false">Batal</button>
-                            <button class="btn btn-success" :disabled="form.processing">
+                            <Button color="outline-secondary" size="" type="button" @click="resetForm(); showForm = false">Batal</Button>
+                            <Button color="primary" size="" :disabled="form.processing" type="submit">
                                 {{ form.processing ? 'Menyimpan...' : (editingId ? 'Simpan Perubahan' : 'Publikasikan') }}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </form>
-            </div>
-        </div>
+        </Card>
 
-        <div v-if="!pengumuman.data?.length" class="card border-0 shadow-sm">
-            <div class="card-body text-center py-5 text-muted">
-                <i class="bi bi-megaphone fs-1 d-block mb-3"></i>Belum ada pengumuman.
-            </div>
-        </div>
+        <Card v-if="!pengumuman.data?.length" body-class="py-5">
+                <EmptyState title="Belum ada pengumuman." icon="bi-megaphone" />
+        </Card>
         <div v-else class="d-grid gap-3">
-            <article v-for="item in pengumuman.data" :key="item.id" class="card border-0 shadow-sm">
-                <div class="card-body">
+            <Card v-for="item in pengumuman.data" :key="item.id">
                     <div class="d-flex justify-content-between gap-3">
                         <div>
                             <h5 class="mb-1">{{ item.judul }}</h5>
-                            <div class="small text-muted">{{ item.creator?.nama_lengkap || '-' }} · {{ new Date(item.created_at).toLocaleDateString('id-ID') }}</div>
+                            <div class="small text-body-secondary">{{ item.creator?.nama_lengkap || '-' }} · {{ new Date(item.created_at).toLocaleDateString('id-ID') }}</div>
                         </div>
                         <div class="d-flex flex-wrap gap-2 justify-content-end">
-                            <span v-if="item.is_public_login" class="badge bg-success-subtle text-success-emphasis align-self-start">Login publik</span>
-                            <span class="badge bg-light text-dark align-self-start">{{ item.target }}</span>
+                            <Badge v-if="item.is_public_login" color="success" class="align-self-start">Login publik</Badge>
+                            <Badge color="secondary" class="align-self-start">{{ item.target }}</Badge>
                         </div>
                     </div>
-                    <p class="mt-3 mb-3 text-secondary" style="white-space: pre-line">{{ item.isi }}</p>
+                    <p class="mt-3 mb-3 text-secondary u-ws-pre-line">{{ item.isi }}</p>
                     <div v-if="item.attachment" class="mb-3">
                         <a v-if="item.attachment.url" :href="item.attachment.url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">
                             <i class="bi bi-paperclip me-1" aria-hidden="true"></i>{{ item.attachment.name }}
-                            <span v-if="formatFileSize(item.attachment.size)" class="text-muted">({{ formatFileSize(item.attachment.size) }})</span>
+                            <span v-if="formatFileSize(item.attachment.size)" class="text-body-secondary">({{ formatFileSize(item.attachment.size) }})</span>
                         </a>
-                        <span v-else class="badge bg-secondary-subtle text-secondary-emphasis">
+                        <Badge v-else color="secondary">
                             <i class="bi bi-paperclip me-1" aria-hidden="true"></i>{{ item.attachment.name }}
-                        </span>
+                        </Badge>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
                         <Link :href="item.show_url" class="btn btn-sm btn-outline-primary">Detail</Link>
-                        <button v-if="item.can_edit" class="btn btn-sm btn-outline-warning" type="button" @click="openEdit(item)">Edit</button>
-                        <button v-if="item.can_delete" class="btn btn-sm btn-outline-danger" type="button" @click="remove(item)">Hapus</button>
+                        <Button color="outline-warning" v-if="item.can_edit" type="button" @click="openEdit(item)">Edit</Button>
+                        <Button color="outline-danger" v-if="item.can_delete" type="button" @click="remove(item)">Hapus</Button>
                     </div>
-                </div>
-            </article>
+            </Card>
         </div>
     </AppShell>
 </template>

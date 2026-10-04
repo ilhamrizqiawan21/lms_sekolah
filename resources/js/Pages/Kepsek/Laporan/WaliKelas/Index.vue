@@ -24,13 +24,13 @@ defineProps({
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>Kelas</th>
-                            <th>Wali Kelas</th>
-                            <th>Tahun Ajaran</th>
-                            <th>Absensi</th>
-                            <th>Pertemuan</th>
-                            <th>Penanganan</th>
-                            <th>Aksi</th>
+                            <th scope="col">Kelas</th>
+                            <th scope="col">Wali Kelas</th>
+                            <th scope="col">Tahun Ajaran</th>
+                            <th scope="col">Absensi</th>
+                            <th scope="col">Pertemuan</th>
+                            <th scope="col">Penanganan</th>
+                            <th scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -42,7 +42,7 @@ defineProps({
                             <td>{{ item.pertemuan_count }}</td>
                             <td>
                                 <Badge color="warning text-dark">{{ item.penanganan_aktif_count }} aktif</Badge>
-                                <span class="text-muted small"> / {{ item.penanganan_siswa_count }} total</span>
+                                <span class="text-body-secondary small"> / {{ item.penanganan_siswa_count }} total</span>
                             </td>
                             <td>
                                 <Button :href="item.show_url" color="outline-primary" icon="bi-eye">Detail</Button>

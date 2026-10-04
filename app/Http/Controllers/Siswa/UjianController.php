@@ -255,10 +255,22 @@ class UjianController extends Controller
             ->where('ujian_attempt_id', $attempt->id)
             ->firstOrFail();
 
-        $jawaban->update([
-            'soal_bank_opsi_id' => $validated['jawaban_opsi_id'] ?? null,
+        $opsiId = $validated['jawaban_opsi_id'] ?? null;
+        if ($opsiId !== null && ! in_array((int) $opsiId, array_map('intval', $jawaban->urutan_opsi_ids ?? []), true)) {
+            return response()->json([
+                'message' => 'Pilihan jawaban tidak valid untuk soal ini.',
+            ], 422);
+        }
+
+        $data = [
+            'soal_bank_opsi_id' => $opsiId,
             'dijawab_pada' => Carbon::now(),
-        ]);
+        ];
+        if (isset($validated['ragu_ragu'])) {
+            $data['ragu_ragu'] = (bool) $validated['ragu_ragu'];
+        }
+
+        $jawaban->update($data);
 
         return response()->json([
             'success' => true,

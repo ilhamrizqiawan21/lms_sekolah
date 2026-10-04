@@ -190,9 +190,9 @@ async function destroy(item: TahunAjaran): Promise<void> {
                         <table class="table table-hover app-table mb-0">
                             <thead>
                                 <tr>
-                                    <th>Tahun</th>
-                                    <th>Status</th>
-                                    <th class="table-action-column">Aksi</th>
+                                    <th scope="col">Tahun</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col" class="table-action-column">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\RoleAccess;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UpdateStaffUserRequest extends FormRequest
 {
@@ -36,7 +37,7 @@ class UpdateStaffUserRequest extends FormRequest
             'role_id' => ['required', 'integer', Rule::in(RoleAccess::staffRoleIds())],
             'nip_nis' => ['nullable', 'string', 'max:20', 'regex:/^[A-Za-z0-9.\/_-]+$/', 'unique:users,nip_nis,'.$userId],
             'jenis_kelamin' => ['nullable', 'in:L,P'],
-            'password' => ['nullable', 'string', 'min:6'],
+            'password' => ['nullable', 'string', Password::min(10)->letters()->mixedCase()->numbers()->symbols()],
             'is_active' => ['boolean'],
         ];
     }

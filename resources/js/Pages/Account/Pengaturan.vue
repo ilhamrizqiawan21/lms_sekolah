@@ -6,7 +6,7 @@ import FileInput from '../../Components/Form/FileInput.vue';
 import TextInput from '../../Components/Form/TextInput.vue';
 import InputError from '../../Components/Form/InputError.vue';
 import AppShell from '../../Layouts/AppShell.vue';
-import { Badge, Button, Card } from '../../Components/UI';
+import { Badge, Button, Card, TableWrapper } from '../../Components/UI';
 interface SiswaInfo { nis?: string; kelas?: string; angkatan?: string; status?: string; tinggal_kelas?: boolean; nomor_whatsapp?: string | null; whatsapp_opt_in?: boolean; phone_required?: boolean; }
 interface AccountProfile { username?: string; nama_lengkap?: string; email?: string; nip_nis?: string; jenis_kelamin?: string; created_at?: string; foto_url?: string | null; role?: string; role_label?: string; is_active?: boolean; is_password_default?: boolean; siswa?: SiswaInfo | null; }
 interface Props { profile: AccountProfile; updateUrl: string; avatarUpdateUrl: string; avatarDeleteUrl: string; phoneUpdateUrl?: string | null; }
@@ -204,7 +204,7 @@ async function deleteAvatar(): Promise<void> {
                         </div>
                     </form>
 
-                    <div class="table-responsive">
+                    <TableWrapper :min-width="480" :scroll-hint="false">
                         <table class="table table-sm align-middle mb-0 profile-table">
                             <tbody>
                                 <tr v-for="[label, value] in accountRows" :key="label">
@@ -213,7 +213,7 @@ async function deleteAvatar(): Promise<void> {
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
+                    </TableWrapper>
                 </Card>
 
                 <Card
@@ -222,7 +222,7 @@ async function deleteAvatar(): Promise<void> {
                     icon="bi-mortarboard-fill"
                     class="mt-4"
                 >
-                    <div class="table-responsive">
+                    <TableWrapper :min-width="480" :scroll-hint="false">
                         <table class="table table-sm align-middle mb-0 profile-table">
                             <tbody>
                                 <tr v-for="[label, value] in siswaRows" :key="label">
@@ -231,7 +231,7 @@ async function deleteAvatar(): Promise<void> {
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
+                    </TableWrapper>
                 </Card>
             </div>
 

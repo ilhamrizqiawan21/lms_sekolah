@@ -75,12 +75,12 @@ function truncate(value: string | null, length = 56) {
                 <table class="table table-hover mb-0 small">
                     <thead>
                         <tr>
-                            <th>Waktu</th>
-                            <th>Username</th>
-                            <th>Nama</th>
-                            <th>Role</th>
-                            <th>IP Address</th>
-                            <th>User Agent</th>
+                            <th scope="col">Waktu</th>
+                            <th scope="col">Username</th>
+                            <th scope="col">Nama</th>
+                            <th scope="col">Role</th>
+                            <th scope="col">IP Address</th>
+                            <th scope="col">User Agent</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -90,7 +90,7 @@ function truncate(value: string | null, length = 56) {
                             <td>{{ log.nama_lengkap }}</td>
                             <td><Badge color="primary">{{ roleLabel(log.role) }}</Badge></td>
                             <td><code>{{ log.ip_address }}</code></td>
-                            <td class="text-muted user-agent" :title="log.user_agent">{{ truncate(log.user_agent) }}</td>
+                            <td class="text-body-secondary user-agent" :title="log.user_agent">{{ truncate(log.user_agent) }}</td>
                         </tr>
                     </tbody>
                 </table>

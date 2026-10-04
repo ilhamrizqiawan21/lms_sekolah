@@ -236,7 +236,7 @@ async function saveNow(): Promise<void> {
 
 <template>
     <form v-if="compact" class="d-inline" @submit.prevent="saveNow">
-        <div class="input-group input-group-sm" style="width:130px">
+        <div class="input-group input-group-sm u-w-130px">
             <input
                 v-model="nilai"
                 type="text"
@@ -252,7 +252,7 @@ async function saveNow(): Promise<void> {
                 <i v-else class="bi bi-check" aria-hidden="true"></i>
             </Button>
         </div>
-        <small v-if="saveLabel || localError" class="autosave-status d-block mt-1" :class="{ 'text-danger': saveState === 'error', 'text-success': saveState === 'saved', 'text-muted': saveState !== 'error' && saveState !== 'saved' }">
+        <small v-if="saveLabel || localError" class="autosave-status d-block mt-1" :class="{ 'text-danger': saveState === 'error', 'text-success': saveState === 'saved', 'text-body-secondary': saveState !== 'error' && saveState !== 'saved' }">
             {{ localError || saveLabel }}
         </small>
     </form>
@@ -295,7 +295,7 @@ async function saveNow(): Promise<void> {
         </div>
         <div class="autosave-footer mt-2">
             <span v-if="localError" class="text-danger small">{{ localError }}</span>
-            <span v-else-if="saveLabel" class="small" :class="{ 'text-success': saveState === 'saved', 'text-muted': saveState !== 'saved' }">
+            <span v-else-if="saveLabel" class="small" :class="{ 'text-success': saveState === 'saved', 'text-body-secondary': saveState !== 'saved' }">
                 {{ saveLabel }}<template v-if="lastSavedAt"> {{ lastSavedAt }}</template>
             </span>
         </div>

@@ -10,6 +10,7 @@ export { default as ErrorState } from './ErrorState.vue';
 export { default as IconButton } from './IconButton.vue';
 export { default as InfoListItem } from './InfoListItem.vue';
 export { default as LoadingState } from './LoadingState.vue';
+export { default as Modal } from './Modal.vue';
 export { default as MetricStrip } from './MetricStrip.vue';
 export { default as Pagination } from './Pagination.vue';
 export { default as QuickActionBar } from './QuickActionBar.vue';

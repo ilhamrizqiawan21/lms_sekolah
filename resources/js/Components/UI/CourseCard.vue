@@ -10,7 +10,7 @@ defineProps({
     meta: { type: String, default: '' },
     href: { type: String, default: '' },
     icon: { type: String, default: 'bi-book' },
-    accent: { type: String, default: '#2563eb' },
+    accent: { type: String, default: 'var(--accent-blue)' },
     badges: { type: Array as PropType<(string | { label: string; color?: string })[]>, default: () => [] },
     stats: { type: Array as PropType<{ label: string; value: string | number }[]>, default: () => [] },
 });

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { TextInput } from '../../../Components/Form';
 import type { PropType } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
@@ -104,23 +105,18 @@ async function destroyUjian(item: UjianItem) {
         <!-- Kelas Mapel Selector -->
         <Card title="Pilih Kelas & Mapel" icon="bi-grid-3x3-gap-fill" class="mb-4">
             <div class="mb-3">
-                <input
-                    v-model="courseSearch"
-                    type="text"
-                    class="form-control form-control-sm"
-                    placeholder="Cari kelas atau mata pelajaran..."
-                />
+                <TextInput v-model="courseSearch" name="search_kelas_mapel" placeholder="Cari kelas atau mata pelajaran..." aria-label="Cari kelas atau mata pelajaran" wrapper-class="" class="form-control-sm" />
             </div>
 
             <div class="row g-3">
                 <div v-for="course in filteredCourses" :key="course.id" class="col-md-4 col-lg-3">
                     <div class="card h-100 border shadow-none hover-shadow transition-all">
                         <div class="card-body d-flex flex-column">
-                            <span class="badge bg-soft-primary text-primary align-self-start mb-2">
+                            <Badge color="primary" class="align-self-start mb-2">
                                 Semester {{ course.semester }}
-                            </span>
+                            </Badge>
                             <h6 class="fw-bold mb-1">{{ course.mata_pelajaran }}</h6>
-                            <p class="text-muted small mb-3">{{ course.kelas }}</p>
+                            <p class="text-body-secondary small mb-3">{{ course.kelas }}</p>
                             <div class="mt-auto">
                                 <Button :href="course.href" color="primary" size="sm" icon="bi-arrow-right" class="w-100">
                                     Buka Ujian Kelas
@@ -137,34 +133,34 @@ async function destroyUjian(item: UjianItem) {
             <TableWrapper v-if="ujian.length">
                 <table class="table table-hover mb-0 app-table-proportional">
                     <colgroup>
-                        <col style="width: 25%">
-                        <col style="width: 18%">
-                        <col style="width: 8%">
-                        <col style="width: 10%">
-                        <col style="width: 15%">
-                        <col style="width: 12%">
-                        <col style="width: 12%">
+                        <col class="u-w-25pct">
+                        <col class="u-w-18pct">
+                        <col class="u-w-8pct">
+                        <col class="u-w-10pct">
+                        <col class="u-w-15pct">
+                        <col class="u-w-12pct">
+                        <col class="u-w-12pct">
                     </colgroup>
                     <thead>
                         <tr>
-                            <th>Judul Ujian</th>
-                            <th>Kelas & Mapel</th>
-                            <th>Kategori</th>
-                            <th>Durasi</th>
-                            <th>Jadwal Buka</th>
-                            <th>Progres Siswa</th>
-                            <th>Aksi</th>
+                            <th scope="col">Judul Ujian</th>
+                            <th scope="col">Kelas & Mapel</th>
+                            <th scope="col">Kategori</th>
+                            <th scope="col">Durasi</th>
+                            <th scope="col">Jadwal Buka</th>
+                            <th scope="col">Progres Siswa</th>
+                            <th scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="item in ujian" :key="item.id">
                             <td>
                                 <div class="fw-bold">{{ item.judul }}</div>
-                                <div class="small text-muted">{{ item.total_soal }} Butir Soal</div>
+                                <div class="small text-body-secondary">{{ item.total_soal }} Butir Soal</div>
                             </td>
                             <td>
                                 <div>{{ item.mata_pelajaran }}</div>
-                                <div class="small text-muted">{{ item.kelas }}</div>
+                                <div class="small text-body-secondary">{{ item.kelas }}</div>
                             </td>
                             <td>
                                 <Badge color="info">{{ item.kategori_nilai }}</Badge>
@@ -173,15 +169,15 @@ async function destroyUjian(item: UjianItem) {
                             <td>
                                 <div v-if="item.waktu_mulai || item.waktu_selesai" class="small">
                                     <div>{{ item.waktu_mulai ?? 'Sekarang' }}</div>
-                                    <div class="text-muted">s/d {{ item.waktu_selesai ?? 'Seterusnya' }}</div>
+                                    <div class="text-body-secondary">s/d {{ item.waktu_selesai ?? 'Seterusnya' }}</div>
                                 </div>
-                                <span v-else class="badge bg-light text-dark">Tanpa Batas Jadwal</span>
+                                <Badge v-else color="secondary">Tanpa Batas Jadwal</Badge>
                             </td>
                             <td>
                                 <div class="small fw-semibold mb-1">
                                     {{ item.selesai_attempts }} / {{ item.total_siswa }} Siswa
                                 </div>
-                                <div class="progress" style="height: 6px;">
+                                <div class="progress u-h-6px">
                                     <div
                                         class="progress-bar bg-success"
                                         role="progressbar"

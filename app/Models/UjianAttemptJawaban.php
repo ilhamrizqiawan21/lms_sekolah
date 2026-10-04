@@ -16,6 +16,7 @@ class UjianAttemptJawaban extends Model
         'ujian_soal_id',
         'soal_bank_opsi_id',
         'urutan_opsi_ids',
+        'ragu_ragu',
         'is_benar',
         'poin_didapat',
         'dijawab_pada',
@@ -23,6 +24,7 @@ class UjianAttemptJawaban extends Model
 
     protected $casts = [
         'urutan_opsi_ids' => 'array',
+        'ragu_ragu' => 'boolean',
         'is_benar' => 'boolean',
         'poin_didapat' => 'float',
         'dijawab_pada' => 'datetime',

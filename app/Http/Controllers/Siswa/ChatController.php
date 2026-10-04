@@ -57,8 +57,10 @@ class ChatController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
+        // Hanya pesan dari guru pengampu yang ditandai terbaca; pesan antar-siswa
+        // di ruang yang sama bukan ditujukan ke siswa ini.
         ChatMessage::where('kelas_mapel_id', $kelasMapel->id)
-            ->where('user_id', '!=', Auth::id())
+            ->where('user_id', $kelasMapel->guru_id)
             ->update(['is_read' => true]);
 
         return Inertia::render('Siswa/Chat/Show', [

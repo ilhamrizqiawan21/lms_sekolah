@@ -71,7 +71,7 @@ async function destroy(item: { delete_url: string }) {
                     <TableWrapper v-if="pertemuan.data.length">
                         <table class="table table-hover mb-0">
                             <thead>
-                                <tr><th>Tanggal</th><th>Topik</th><th>Hasil</th><th>Aksi</th></tr>
+                                <tr><th scope="col">Tanggal</th><th scope="col">Topik</th><th scope="col">Hasil</th><th scope="col">Aksi</th></tr>
                             </thead>
                             <tbody>
                                 <tr v-for="item in pertemuan.data" :key="item.id">

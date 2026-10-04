@@ -15,11 +15,11 @@ interface Props { stats: StudentStats; courses?: StudentCourse[]; tugasTerbaru?:
 const props = withDefaults(defineProps<Props>(), { courses: () => [], tugasTerbaru: () => [], notifikasi: () => [], pengumuman: () => [], kelasDaring: () => [], links: () => ({}) });
 
 const iconMap = {
-    tugas_baru: { icon: 'bi-journal-plus', color: '#3b82f6' }, nilai_baru: { icon: 'bi-bar-chart-fill', color: '#22c55e' },
-    chat_baru: { icon: 'bi-chat-dots-fill', color: '#8b5cf6' }, komentar_tugas: { icon: 'bi-chat-square-text-fill', color: '#f59e0b' },
-    kumpul_tugas: { icon: 'bi-check-circle-fill', color: '#06b6d4' }, absensi: { icon: 'bi-clipboard-check-fill', color: '#ef4444' },
+    tugas_baru: { icon: 'bi-journal-plus', color: 'var(--accent-blue)' }, nilai_baru: { icon: 'bi-bar-chart-fill', color: 'var(--accent-green)' },
+    chat_baru: { icon: 'bi-chat-dots-fill', color: 'var(--accent-violet)' }, komentar_tugas: { icon: 'bi-chat-square-text-fill', color: 'var(--accent-amber)' },
+    kumpul_tugas: { icon: 'bi-check-circle-fill', color: 'var(--accent-cyan)' }, absensi: { icon: 'bi-clipboard-check-fill', color: 'var(--accent-red)' },
 };
-function iconFor(type: string) { return iconMap[type as keyof typeof iconMap] ?? { icon: 'bi-bell-fill', color: '#6b7280' }; }
+function iconFor(type: string) { return iconMap[type as keyof typeof iconMap] ?? { icon: 'bi-bell-fill', color: 'var(--accent-slate)' }; }
 
 const metrics = computed(() => [
     { label: 'Total tugas', value: props.stats.total_tugas ?? 0, icon: 'bi-journal-fill', tone: 'primary', href: props.links.tugas },
@@ -34,10 +34,10 @@ const quickActions = computed(() => [
     { label: 'Materi', href: props.links.materi || '/siswa/materi', icon: 'bi-file-earmark-text', color: 'light' },
     { label: 'Nilai', href: '/siswa/nilai', icon: 'bi-bar-chart', color: 'light' },
 ]);
-const taskItems = computed(() => props.tugasTerbaru.map((item) => ({ id: item.id, title: item.judul, meta: item.mata_pelajaran, detail: `Deadline ${item.batas_waktu}`, href: item.show_url || props.links.tugas || '/siswa/tugas', badge: item.selesai ? 'Selesai' : 'Belum', badgeColor: item.selesai ? 'success' : 'warning text-dark', icon: item.selesai ? 'bi-check-circle' : 'bi-journal-text', accent: item.selesai ? '#16a34a' : '#f59e0b' })));
-const onlineClassItems = computed(() => props.kelasDaring.map((item) => ({ id: item.id, title: item.judul, meta: item.mata_pelajaran, detail: `${item.tanggal} · Pelajaran ke-${item.pelajaran_ke}`, href: item.workspace_url, badge: 'Daring', badgeColor: 'primary', icon: 'bi-camera-video', accent: '#0d6efd' })));
+const taskItems = computed(() => props.tugasTerbaru.map((item) => ({ id: item.id, title: item.judul, meta: item.mata_pelajaran, detail: `Deadline ${item.batas_waktu}`, href: item.show_url || props.links.tugas || '/siswa/tugas', badge: item.selesai ? 'Selesai' : 'Belum', badgeColor: item.selesai ? 'success' : 'warning text-dark', icon: item.selesai ? 'bi-check-circle' : 'bi-journal-text', accent: item.selesai ? 'var(--accent-green)' : 'var(--accent-amber)' })));
+const onlineClassItems = computed(() => props.kelasDaring.map((item) => ({ id: item.id, title: item.judul, meta: item.mata_pelajaran, detail: `${item.tanggal} · Pelajaran ke-${item.pelajaran_ke}`, href: item.workspace_url, badge: 'Daring', badgeColor: 'primary', icon: 'bi-camera-video', accent: 'var(--accent-blue)' })));
 const notificationItems = computed(() => props.notifikasi.map((item) => ({ id: item.id, title: item.judul, meta: item.created_at, detail: item.pesan, href: props.links.notifikasi, badge: item.is_read ? '' : 'Baru', badgeColor: 'danger', icon: iconFor(item.tipe).icon, accent: iconFor(item.tipe).color })));
-const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: item.id, title: item.judul, meta: item.created_at, href: item.show_url, icon: 'bi-megaphone-fill', accent: '#2563eb' })));
+const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: item.id, title: item.judul, meta: item.created_at, href: item.show_url, icon: 'bi-megaphone-fill', accent: 'var(--accent-blue)' })));
 </script>
 
 <template>
@@ -64,7 +64,7 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: i
                 <Link :href="links.materi || '/siswa/materi'" class="app-card-action-link">Buka Materi</Link>
             </header>
             <div v-if="courses.length" class="course-card-grid">
-                <CourseCard v-for="(course, index) in courses" :key="course.id" :title="course.title" :subtitle="course.subtitle" :meta="course.meta" :href="course.href" icon="bi-book" :badges="course.badges" :accent="['#2563eb', '#16a34a', '#f59e0b', '#dc2626'][index % 4]" />
+                <CourseCard v-for="(course, index) in courses" :key="course.id" :title="course.title" :subtitle="course.subtitle" :meta="course.meta" :href="course.href" icon="bi-book" :badges="course.badges" :accent="['var(--accent-blue)', 'var(--accent-green)', 'var(--accent-amber)', 'var(--accent-red)'][index % 4]" />
             </div>
             <ActionQueue v-else :items="[]" empty-title="Belum ada kelas aktif" icon="bi-book" />
         </section>

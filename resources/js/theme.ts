@@ -2,6 +2,8 @@ const COLOR_MODE_KEY = 'lms.color-mode';
 type ColorMode = 'light' | 'dark';
 const COLOR_MODES: readonly ColorMode[] = ['light', 'dark'];
 let themeToggleReady = false;
+// Blade menandai <html data-force-light> pada halaman login agar tidak ada kilatan tema gelap.
+let forcedLight = document.documentElement.hasAttribute('data-force-light');
 
 function isColorMode(value: string | null): value is ColorMode {
     return value !== null && COLOR_MODES.includes(value as ColorMode);
@@ -17,6 +19,10 @@ function storedColorMode(): ColorMode | null {
 }
 
 function preferredColorMode(): ColorMode {
+    if (forcedLight) {
+        return 'light';
+    }
+
     return storedColorMode()
         || (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 }
@@ -72,6 +78,19 @@ export function applyColorMode(mode: ColorMode, persist = true): void {
             // Ignore storage errors in private or restricted browser contexts.
         }
     }
+}
+
+/** Halaman publik seperti login selalu terang; preferensi pengguna tidak diubah atau disimpan. */
+export function forceLightMode(): void {
+    forcedLight = true;
+    document.documentElement.setAttribute('data-force-light', '');
+    applyColorMode('light', false);
+}
+
+export function releaseForcedMode(): void {
+    forcedLight = false;
+    document.documentElement.removeAttribute('data-force-light');
+    applyColorMode(preferredColorMode(), false);
 }
 
 export function initColorMode(): void {
