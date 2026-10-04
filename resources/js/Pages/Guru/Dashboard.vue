@@ -56,7 +56,6 @@ function chartPalette() {
     return {
         primary: cssVar('--app-primary'),
         accent: cssVar('--app-accent'),
-        surface: cssVar('--surface-card'),
         muted: cssVar('--text-muted'),
         border: cssVar('--gray-200'),
     };
@@ -91,7 +90,7 @@ function trendChartOptions(title: string, tooltipTitleCallback: ((items: Array<{
                     color: palette.muted,
                     maxRotation: 0,
                     autoSkip: true,
-                    maxTicksLimit: 6,
+                    maxTicksLimit: 12,
                 },
             },
             y: {
@@ -119,23 +118,18 @@ async function renderKehadiranChart() {
     const palette = chartPalette();
     kehadiranChartInstance?.destroy();
     kehadiranChartInstance = new Chart(kehadiranCanvas.value, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: props.kehadiranChart.map((item) => item.bulan_label || item.bulan),
             datasets: [
                 {
                     label: 'Tren Kehadiran',
                     data: props.kehadiranChart.map((item) => item.persen_hadir),
-                    borderColor: palette.primary,
-                    backgroundColor: withAlpha(palette.primary, 0.12),
-                    borderWidth: 2.5,
-                    fill: true,
-                    pointBackgroundColor: palette.surface,
-                    pointBorderColor: palette.primary,
-                    pointBorderWidth: 2,
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
-                    tension: 0.35,
+                    backgroundColor: withAlpha(palette.primary, 0.82),
+                    hoverBackgroundColor: palette.primary,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    maxBarThickness: 34,
                 },
             ],
         },
@@ -154,23 +148,18 @@ async function renderPengumpulanChart() {
     const palette = chartPalette();
     pengumpulanChartInstance?.destroy();
     pengumpulanChartInstance = new Chart(pengumpulanCanvas.value, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: props.pengumpulanTugasChart.map((item) => item.bulan_label || item.bulan),
             datasets: [
                 {
                     label: 'Tren Pengumpulan',
                     data: props.pengumpulanTugasChart.map((item) => item.persen_dikumpulkan),
-                    borderColor: palette.accent,
-                    backgroundColor: withAlpha(palette.accent, 0.11),
-                    borderWidth: 2.5,
-                    fill: true,
-                    pointBackgroundColor: palette.surface,
-                    pointBorderColor: palette.accent,
-                    pointBorderWidth: 2,
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
-                    tension: 0.35,
+                    backgroundColor: withAlpha(palette.accent, 0.82),
+                    hoverBackgroundColor: palette.accent,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    maxBarThickness: 34,
                 },
             ],
         },
@@ -325,7 +314,7 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({
             </div>
 
             <div class="teacher-trend-grid">
-                <Card :title="`Tren Kehadiran (${chartPeriodLabel})`" icon="bi-graph-up-arrow" body-class="teacher-trend-body">
+                <Card :title="`Tren Kehadiran (${chartPeriodLabel})`" icon="bi-bar-chart-line" body-class="teacher-trend-body">
                     <div v-if="kehadiranChart.length" class="teacher-trend-content">
                         <div class="teacher-trend-summary">
                             <div>
@@ -344,7 +333,7 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({
                     <EmptyState v-else title="Belum ada data kehadiran." icon="bi-clipboard-check" />
                 </Card>
 
-                <Card :title="`Tren Pengumpulan Tugas (${chartPeriodLabel})`" icon="bi-graph-up-arrow" body-class="teacher-trend-body">
+                <Card :title="`Tren Pengumpulan Tugas (${chartPeriodLabel})`" icon="bi-bar-chart-line" body-class="teacher-trend-body">
                     <div v-if="pengumpulanTugasChart.length" class="teacher-trend-content">
                         <div class="teacher-trend-summary">
                             <div>
