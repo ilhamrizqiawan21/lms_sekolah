@@ -13,16 +13,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>{{ $title }}</title>
+    <script>
+        (function () {
+            try {
+                var mode = localStorage.getItem('lms.color-mode');
+                if (mode !== 'light' && mode !== 'dark') {
+                    mode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', mode);
+            } catch (e) {}
+        })();
+    </script>
     <style>
         :root {
             color-scheme: light;
             --primary: {{ $primary }};
             --primary-dark: {{ $primaryDark }};
-            --bg: #f8fafc;
-            --surface: #ffffff;
-            --text: #1f2937;
-            --muted: #6b7280;
-            --border: #e5e7eb;
+            --bg: #f3f5fb;
+            --surface: rgba(255, 255, 255, 0.78);
+            --surface-solid: #ffffff;
+            --text: #172033;
+            --muted: #5b6b82;
+            --border: rgba(255, 255, 255, 0.85);
+            --ghost: #eef1f8;
+            --shadow: 0 40px 80px -36px rgba(16, 24, 40, 0.3), 0 1px 2px rgba(16, 24, 40, 0.04);
+        }
+
+        :root[data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #060a13;
+            --surface: rgba(14, 21, 36, 0.7);
+            --surface-solid: #0e1524;
+            --text: #f1f5fb;
+            --muted: #9fb0c5;
+            --border: rgba(255, 255, 255, 0.09);
+            --ghost: rgba(255, 255, 255, 0.07);
+            --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.85);
         }
 
         * {
@@ -35,50 +61,73 @@
             display: grid;
             place-items: center;
             padding: 24px;
-            background: var(--bg);
+            background:
+                radial-gradient(46rem 30rem at -5% -10%, color-mix(in srgb, var(--primary) 24%, transparent), transparent 70%),
+                radial-gradient(40rem 28rem at 105% 5%, rgba(99, 102, 241, 0.16), transparent 70%),
+                radial-gradient(36rem 24rem at 60% 115%, rgba(14, 165, 233, 0.12), transparent 70%),
+                var(--bg);
+            background-attachment: fixed;
             color: var(--text);
-            font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            letter-spacing: -0.005em;
         }
 
         .notice {
             width: min(100%, 520px);
-            padding: 34px 28px;
+            padding: 44px 32px 36px;
             border: 1px solid var(--border);
-            border-radius: 14px;
+            border-radius: 2rem;
             background: var(--surface);
-            box-shadow: 0 16px 42px rgba(15, 23, 42, 0.08);
+            -webkit-backdrop-filter: blur(24px) saturate(170%);
+            backdrop-filter: blur(24px) saturate(170%);
+            box-shadow: var(--shadow);
             text-align: center;
         }
 
         .notice-code {
-            margin-bottom: 14px;
-            color: var(--primary);
-            font-size: 0.92rem;
-            font-weight: 750;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
+            margin: 0 0 6px;
+            font-size: clamp(3.4rem, 14vw, 5rem);
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.06em;
+            background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 45%, #312e81));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
 
         .notice-icon {
-            width: 76px;
-            height: 76px;
+            width: 72px;
+            height: 72px;
             display: inline-grid;
             place-items: center;
-            margin-bottom: 20px;
-            border-radius: 50%;
-            background: color-mix(in srgb, var(--primary) 14%, white);
-            color: var(--primary-dark);
+            margin: 10px 0 20px;
+            border-radius: 1.4rem;
+            background: color-mix(in srgb, var(--primary) 13%, transparent);
+            color: var(--primary);
+        }
+
+        :root[data-theme="dark"] .notice-code {
+            background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 55%, white), color-mix(in srgb, var(--primary) 70%, #a5b4fc));
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        :root[data-theme="dark"] .notice-icon {
+            color: color-mix(in srgb, var(--primary) 60%, white);
         }
 
         h1 {
             margin: 0 0 10px;
-            font-size: 1.45rem;
-            line-height: 1.35;
-            font-weight: 750;
+            font-size: 1.6rem;
+            line-height: 1.3;
+            font-weight: 800;
+            letter-spacing: -0.03em;
         }
 
         p {
-            margin: 0;
+            margin: 0 auto;
+            max-width: 38ch;
             color: var(--muted);
             font-size: 0.98rem;
             line-height: 1.7;
@@ -88,7 +137,7 @@
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-top: 24px;
+            margin-top: 28px;
             flex-wrap: wrap;
         }
 
@@ -96,22 +145,40 @@
         button {
             appearance: none;
             border: 0;
-            border-radius: 10px;
-            padding: 10px 16px;
+            border-radius: 1rem;
+            padding: 12px 20px;
             font: inherit;
-            font-weight: 650;
+            font-weight: 700;
             text-decoration: none;
             cursor: pointer;
+            transition: transform 0.18s ease, filter 0.18s ease;
         }
 
         a {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: #ffffff;
+            box-shadow: 0 16px 30px -12px color-mix(in srgb, var(--primary) 80%, transparent);
+        }
+
+        a:hover,
+        button:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.06);
+        }
+
+        a:focus-visible,
+        button:focus-visible {
+            outline: 3px solid color-mix(in srgb, var(--primary) 45%, transparent);
+            outline-offset: 2px;
         }
 
         button {
-            background: #eef2f7;
+            background: var(--ghost);
             color: var(--text);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            a, button { transition: none; }
         }
     </style>
 </head>
