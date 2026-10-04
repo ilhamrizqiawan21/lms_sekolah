@@ -34,7 +34,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean { return [
                 </ul>
             </div>
             <button class="btn btn-sm topbar-icon-btn theme-toggle-btn" type="button" data-theme-toggle aria-label="Aktifkan mode gelap" title="Aktifkan mode gelap" aria-pressed="false"><i class="bi bi-moon-stars-fill" data-theme-toggle-icon aria-hidden="true"></i></button>
-            <span class="d-none d-lg-inline me-2 topbar-user-name">{{ user?.nama_lengkap ?? '-' }}</span>
+            
             <div class="dropdown">
                 <button class="btn btn-sm dropdown-toggle topbar-account-btn" type="button" data-bs-toggle="dropdown" aria-label="Menu akun"><img v-if="user?.foto_url" :src="user.foto_url" :alt="`Foto ${user.nama_lengkap ?? 'pengguna'}`" class="topbar-account-avatar" width="24" height="24" decoding="async"><i v-else class="bi bi-person-circle me-1" aria-hidden="true"></i><span class="topbar-account-label">{{ user?.nama_lengkap ?? 'Akun' }}</span></button>
                 <ul class="dropdown-menu dropdown-menu-end">

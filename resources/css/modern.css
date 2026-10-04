@@ -396,6 +396,13 @@ h1, h2, h3, .h1, .h2, .h3 { letter-spacing: -0.025em; }
 .table tbody tr { transition: background 0.15s ease; }
 .table tbody tr:hover { background: color-mix(in srgb, var(--primary-500) 6%, transparent); }
 .app-table-wrapper { border-radius: 1.1rem; }
+/* tabel di dalam kartu tanpa padding: lepas bingkai sendiri agar tidak berlapis dua */
+.card-body.p-0 > .app-table-wrapper,
+.card-body.p-0 > .table-responsive {
+    border: 0;
+    border-radius: 0 0 var(--card-radius) var(--card-radius);
+    box-shadow: none;
+}
 
 /* ── Badge ── */
 .badge { font-weight: 700; letter-spacing: 0; padding: 0.38em 0.8em; }
