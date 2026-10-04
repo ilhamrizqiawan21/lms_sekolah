@@ -463,6 +463,14 @@ textarea {
     max-width: 0;
 }
 
+/* max-width: 0 + nowrap membuat teks panjang meluber ke kolom sebelah; potong dengan ellipsis.
+ * Sel berisi kontrol dikecualikan agar ring fokus dan dropdown tidak terpotong. */
+.app-table-wrapper .app-table th,
+.app-table-wrapper .app-table td:not(:has(input, select, textarea, button, .dropdown)) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .app-table-wrapper .app-table td .text-truncate,
 .app-table-wrapper .app-table td > strong,
 .app-table-wrapper .app-table td > span {

@@ -117,11 +117,11 @@ function submit() {
     <Head title="Detail Tugas" />
 
     <AppShell title="Detail Tugas">
-        <PageHeader title="Detail Tugas" icon="bi-journal-fill" />
+        <PageHeader title="Detail Tugas" icon="bi-journal-text" />
 
         <div class="row">
             <div class="col-md-8">
-                <Card :title="tugas.judul" icon="bi-journal-fill" class="mb-3">
+                <Card :title="tugas.judul" icon="bi-journal-text" class="mb-3">
                     <template #actions>
                         <Badge color="secondary">{{ tugas.kategori_nilai }}</Badge>
                     </template>

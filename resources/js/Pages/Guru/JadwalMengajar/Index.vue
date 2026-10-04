@@ -324,7 +324,7 @@ async function destroySchedule(schedule: Schedule) {
 
 .schedule-eyebrow {
     margin-bottom: 0.2rem;
-    color: var(--primary-600, var(--bs-primary));
+    color: var(--text-brand);
     font-size: 0.7rem;
     font-weight: 800;
     letter-spacing: 0.12em;

@@ -382,7 +382,7 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({
 .teacher-section-eyebrow {
     display: block;
     margin-bottom: 0.2rem;
-    color: var(--app-primary);
+    color: var(--text-brand);
     font-size: 0.7rem;
     font-weight: 800;
     letter-spacing: 0.08em;

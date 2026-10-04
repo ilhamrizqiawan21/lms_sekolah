@@ -170,9 +170,9 @@ async function destroy(user: AdminUser): Promise<void> {
                     </thead>
                     <tbody>
                         <tr v-for="user in users.data" :key="user.id">
-                            <td><strong>{{ user.username }}</strong></td>
-                            <td>{{ user.nama_lengkap }}</td>
-                            <td>{{ user.email ?? '-' }}</td>
+                            <td :title="user.username"><strong>{{ user.username }}</strong></td>
+                            <td :title="user.nama_lengkap">{{ user.nama_lengkap }}</td>
+                            <td :title="user.email ?? undefined">{{ user.email ?? '-' }}</td>
                             <td><Badge color="primary">{{ roleLabel(user.role?.nama_role) }}</Badge></td>
                             <td>
                                 <Badge :color="passwordStatusColor(user.password_is_default)">

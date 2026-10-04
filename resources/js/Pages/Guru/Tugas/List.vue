@@ -94,7 +94,7 @@ async function destroy(item: TeacherTask) {
             eyebrow="Workspace Kelas/Mapel"
             :title="kelasMapel.mata_pelajaran"
             :subtitle="`${kelasMapel.kelas} - Buat tugas dan pantau pengumpulan siswa.`"
-            icon="bi-journal-fill"
+            icon="bi-journal-text"
             tone="teacher"
         >
             <template #actions>

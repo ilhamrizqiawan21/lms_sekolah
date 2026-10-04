@@ -339,7 +339,7 @@ onBeforeUnmount(() => {
 
 .focus-link,
 .subject-name {
-    color: var(--primary-600, var(--bs-primary));
+    color: var(--text-brand);
     font-weight: 700;
     text-decoration: none;
 }
