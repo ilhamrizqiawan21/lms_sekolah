@@ -486,7 +486,7 @@ function saveSchool() {
     line-height: 1.35;
 }
 
-@media(max-width: 900px) {
+@media (max-width: 900px) {
     .settings-grid {
         grid-template-columns: 1fr;
     }

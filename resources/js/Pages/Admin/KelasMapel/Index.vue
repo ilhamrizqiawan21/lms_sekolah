@@ -480,7 +480,7 @@ async function destroySchedule(item: Schedule) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-@media(max-width: 900px) {
+@media (max-width: 900px) {
     .assignment-overview-grid,
     .assignment-grid {
         grid-template-columns: 1fr;

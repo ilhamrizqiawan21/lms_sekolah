@@ -86,7 +86,7 @@ class KalenderController extends Controller
 
     public function destroy(CalendarEvent $calendarEvent)
     {
-        if ($calendarEvent->user_id !== auth()->id()) {
+        if ((int) $calendarEvent->user_id !== (int) auth()->id()) {
             abort(403);
         }
         $calendarEvent->delete();

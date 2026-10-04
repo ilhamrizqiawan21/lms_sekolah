@@ -446,7 +446,7 @@ function exportAllUrl(format: 'excel' | 'pdf') {
     box-shadow: inset 3px 0 0 var(--app-primary);
 }
 
-@media (max-width: 767px) {
+@media (max-width: 767.98px) {
     .attendance-table {
         min-width: 760px;
     }

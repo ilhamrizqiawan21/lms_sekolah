@@ -15,10 +15,12 @@ interface Props {
     href?: string;
     method?: Method;
     as?: string;
+    /** Menampilkan spinner dan menonaktifkan tombol (hanya untuk tombol, bukan tautan). */
+    loading?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
-    type: 'button', color: 'primary', size: 'sm', icon: '', href: '', method: 'get', as: '',
+    type: 'button', color: 'primary', size: 'sm', icon: '', href: '', method: 'get', as: '', loading: false,
 });
 </script>
 
@@ -39,10 +41,13 @@ withDefaults(defineProps<Props>(), {
         v-else
         :type="type"
         class="btn"
-        :class="[`btn-${color}`, size ? `btn-${size}` : '']"
+        :class="[`btn-${color}`, size ? `btn-${size}` : '', { 'is-loading': loading }]"
+        :disabled="loading || undefined"
+        :aria-busy="loading || undefined"
         v-bind="$attrs"
     >
-        <i v-if="icon" class="bi" :class="[icon, $slots.default ? 'me-1' : '']" aria-hidden="true"></i>
+        <span v-if="loading" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+        <i v-else-if="icon" class="bi" :class="[icon, $slots.default ? 'me-1' : '']" aria-hidden="true"></i>
         <slot />
     </button>
 </template>

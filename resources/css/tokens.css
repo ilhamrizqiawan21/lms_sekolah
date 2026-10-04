@@ -1,0 +1,238 @@
+/*
+ * Design tokens, tema "Calm Academic" (lihat docs/UI_REDESIGN_CALM_ACADEMIC.md).
+ *
+ * Pembagian tanggung jawab:
+ * - resources/views/app.blade.php: hanya token yang bergantung pada tema pilihan admin
+ *   (--app-primary, skala --primary-*, --sidebar-bg, --navbar-bg, --focus-ring, --shadow-green).
+ * - berkas ini: semua token statis, nilai gelap, dan pemetaan Bootstrap.
+ *
+ * Aturan: warna, jarak, radius, dan bayangan baru dibuat sebagai token di sini, bukan hex di komponen.
+ * Breakpoint mengikuti Bootstrap: <576 / 576 / 768 / 992 / 1200 / 1400. Media query ditulis
+ * max-width: 575.98px, 767.98px, 991.98px, 1199.98px atau min-width: 576px, 768px, 992px, 1200px.
+ */
+
+:root {
+    /* Netral */
+    --gold-400: #fbbf24;
+    --gold-500: #f59e0b;
+    --gold-600: #d97706;
+    --gray-50: #fafafa;
+    --gray-100: #f5f5f5;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+
+    /* Permukaan dan teks */
+    --app-bg: #f6f7fb;
+    --surface-body: #f6f7fb;
+    --surface-card: #ffffff;
+    --surface-muted: var(--gray-50);
+    --text-strong: #172033;
+    --text-body: #334155;
+    --text-muted: #5b6b82; /* sebelumnya #64748b: 4,45:1 pada --app-bg, kini 5,07:1 (AA) */
+    --modern-border: #e6e8ef;
+
+    /* Status (pasangan latar/teks) */
+    --status-success-bg: #dcfce7;
+    --status-success-text: #166534;
+    --status-warning-bg: #fef3c7;
+    --status-warning-text: #92400e;
+    --status-danger-bg: #fee2e2;
+    --status-danger-text: #991b1b;
+    --status-info-bg: #dbeafe;
+    --status-info-text: #1e40af;
+
+    /* Layout */
+    --sidebar-width: 248px;
+    --topbar-height: 64px;
+
+    /* Spasi */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+
+    /* Bentuk (radius) */
+    --app-radius: 0.75rem;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.625rem;
+    --radius-lg: var(--app-radius);
+    --radius-xl: 1.125rem;
+    --radius-full: 9999px;
+    --card-radius: 0.75rem;
+
+    /* Bayangan */
+    --app-shadow: 0 4px 12px rgba(0,0,0,.08);
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: var(--app-shadow), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06);
+    --card-shadow: var(--app-shadow);
+    --modern-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
+    --modern-shadow-sm: 0 8px 20px rgba(15, 23, 42, 0.06);
+
+    /* Gerak */
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-default: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Tipografi */
+    --font-sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+
+    /* Ukuran komponen */
+    --card-padding: var(--space-5);
+    --btn-font-size: 0.85rem;
+    --btn-font-size-sm: 0.78rem;
+    --btn-padding-y: 0.45rem;
+    --btn-padding-x: 1rem;
+    --btn-padding-y-sm: 0.35rem;
+    --btn-padding-x-sm: 0.75rem;
+    --btn-icon-size: 32px;
+    --input-font-size: 0.88rem;
+    --input-padding-y: 0.5rem;
+    --input-padding-x: 0.75rem;
+    --table-font-size: 0.85rem;
+    --table-heading-font-size: 0.82rem;
+    --table-cell-padding-y: 0.65rem;
+    --table-cell-padding-x: 0.75rem;
+    --badge-font-size: 0.72rem;
+    --badge-padding-y: 5px;
+    --badge-padding-x: 10px;
+
+    /* Pemetaan Bootstrap */
+    --bs-primary: var(--app-primary);
+    --bs-success: var(--app-primary);
+    --bs-warning: var(--gold-500);
+    --bs-link-color: var(--primary-600);
+    --bs-link-hover-color: var(--primary-700);
+
+    /* ---- Tambahan Calm Academic (dipakai komponen mulai Fase 2) ---- */
+
+    /* Skala tipografi */
+    --fs-xs: 0.75rem;
+    --fs-sm: 0.875rem;
+    --fs-md: 1rem;
+    --fs-lg: 1.25rem;
+    --fs-xl: 1.5rem;
+    --fs-2xl: 2rem;
+    --lh-tight: 1.25;
+    --lh-base: 1.5;
+    --fw-regular: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+
+    /* Gerak */
+    --dur-fast: 150ms;
+    --dur-base: 200ms;
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Padanan light untuk token yang sebelumnya hanya ada di mode gelap */
+    --gray-900: #111827;
+    --surface-elevated: #ffffff;
+    --surface-subtle: #f1f5f9;
+    --surface-hover: #f1f5f9;
+    --surface-input: #ffffff;
+    --border-soft: var(--modern-border);
+    --border-strong: #cbd5e1;
+    --text-inverse: #ffffff;
+
+    /* Teks/link bermerek: terbaca (AA) pada permukaan terang untuk semua tema pilihan admin */
+    --text-brand: var(--primary-600);
+
+    /* Komponen (Fase 2) */
+    --radius-control: 0.5rem;            /* tombol, input, select */
+    --shadow-card: none;                 /* kartu hanya bergaris; bayangan untuk elemen melayang */
+    --shadow-float: 0 12px 32px rgba(15, 23, 42, 0.14);
+    --control-height: 2.375rem;
+    --control-height-sm: 2rem;
+    --brand-soft-bg: var(--primary-100);
+    --brand-soft-text: var(--primary-800);
+    --danger-600: #dc2626;
+    --danger-700: #b91c1c;
+    --info-600: #2563eb;
+    --info-700: #1d4ed8;
+    --warning-200: #fde68a;
+    --warning-300: #fcd34d;
+    --backdrop: rgba(15, 23, 42, 0.48);
+}
+
+/* Kepadatan tabel: atur data-density="compact" pada ancestor tabel. */
+[data-density="compact"] {
+    --table-cell-padding-y: 0.35rem;
+    --table-font-size: 0.8125rem;
+}
+
+/* Mode gelap: seluruh nilai dihasilkan dari token, bukan override per komponen. */
+[data-bs-theme="dark"] {
+    --app-bg: #0b1120;
+    --surface-body: #0b1120;
+    --surface-card: #111827;
+    --surface-elevated: #172033;
+    --surface-muted: #1e293b;
+    --surface-subtle: #243244;
+    --surface-hover: #223047;
+    --surface-input: #0f172a;
+    --border-soft: rgba(148, 163, 184, 0.18);
+    --border-strong: rgba(203, 213, 225, 0.34);
+    --text-strong: #f8fafc;
+    --text-body: #dbe4f0;
+    --text-muted: #9fb0c5;
+    --text-inverse: #0f172a;
+    --gray-50: #0f172a;
+    --gray-100: #172033;
+    --gray-200: rgba(148, 163, 184, 0.22);
+    --gray-300: rgba(148, 163, 184, 0.34);
+    --gray-400: #94a3b8;
+    --gray-500: #9fb0c5;
+    --gray-600: #cbd5e1;
+    --gray-700: #dbe4f0;
+    --gray-800: #f8fafc;
+    --primary-50: color-mix(in srgb, var(--primary-500) 14%, #111827);
+    --primary-100: color-mix(in srgb, var(--primary-500) 22%, #111827);
+    --primary-300: color-mix(in srgb, var(--primary-500) 52%, #111827);
+    --status-success-bg: #123626;
+    --status-success-text: #86efac;
+    --status-warning-bg: #3d2d10;
+    --status-warning-text: #fcd34d;
+    --status-danger-bg: #441a1f;
+    --status-danger-text: #fca5a5;
+    --status-info-bg: #173456;
+    --status-info-text: #93c5fd;
+    --modern-border: var(--border-soft);
+    --modern-shadow: 0 16px 38px rgba(0, 0, 0, 0.36);
+    --modern-shadow-sm: 0 10px 24px rgba(0, 0, 0, 0.26);
+    --bs-body-bg: var(--surface-body);
+    --bs-body-color: var(--text-body);
+    --bs-tertiary-bg: var(--surface-muted);
+    --bs-secondary-bg: var(--surface-elevated);
+    --bs-border-color: var(--border-soft);
+    --bs-border-color-translucent: var(--border-soft);
+    --bs-emphasis-color: #f8fafc;
+    --bs-secondary-color: var(--text-muted);
+    --bs-primary-bg-subtle: var(--primary-100);
+    --bs-primary-text-emphasis: #bbf7d0;
+    --bs-success-bg-subtle: var(--status-success-bg);
+    --bs-success-text-emphasis: var(--status-success-text);
+    --bs-warning-bg-subtle: var(--status-warning-bg);
+    --bs-warning-text-emphasis: var(--status-warning-text);
+    --bs-danger-bg-subtle: var(--status-danger-bg);
+    --bs-danger-text-emphasis: var(--status-danger-text);
+    --bs-info-bg-subtle: var(--status-info-bg);
+    --bs-info-text-emphasis: var(--status-info-text);
+    --focus-ring: 0 0 0 0.22rem color-mix(in srgb, var(--primary-500) 32%, transparent);
+    /* 60% warna tema + 40% putih: 5,1:1 sampai 7,0:1 pada permukaan gelap untuk kelima tema */
+    --text-brand: color-mix(in srgb, var(--primary-500) 60%, white);
+    --bs-link-color: var(--text-brand);
+    --bs-link-hover-color: color-mix(in srgb, var(--text-brand) 80%, white);
+    --brand-soft-bg: var(--primary-100);
+    --brand-soft-text: color-mix(in srgb, var(--primary-500) 45%, white); /* 7,0:1 sampai 8,2:1 pada --brand-soft-bg */
+    --shadow-float: 0 16px 38px rgba(0, 0, 0, 0.5);
+    --backdrop: rgba(2, 6, 23, 0.66);
+}

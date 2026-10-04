@@ -457,7 +457,7 @@ function submit() {
     font-weight: 700;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 767.98px) {
     .score-input {
         min-width: 56px;
         padding: 0.25rem 0.35rem;

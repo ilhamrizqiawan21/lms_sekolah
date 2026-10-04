@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\BlockedIp;
 use App\Models\LogLogin;
 use App\Models\Pengumuman;
 use Illuminate\Http\Request;
@@ -133,8 +134,40 @@ class LoginController extends Controller
 
         RateLimiter::hit($throttleKey, 60);
         RateLimiter::hit($accountThrottleKey, 60);
+        $this->autoBlockIpIfAbusive($ip);
 
         return back()->with('error', 'Username atau password salah.')->withInput($request->only('username'));
+    }
+
+    /**
+     * Blokir sementara IP yang gagal login berulang kali di semua username
+     * (credential stuffing / password spraying) yang lolos dari throttle per-akun.
+     */
+    private function autoBlockIpIfAbusive(?string $ip): void
+    {
+        $threshold = (int) config('security.auto_block_failed_logins', 0);
+        if ($threshold <= 0 || ! $ip) {
+            return;
+        }
+
+        $key = 'login-ip-failures:'.sha1($ip);
+        $window = max(1, (int) config('security.auto_block_window_minutes', 10)) * 60;
+        RateLimiter::hit($key, $window);
+
+        if (RateLimiter::attempts($key) < $threshold) {
+            return;
+        }
+
+        $minutes = max(1, (int) config('security.auto_block_duration_minutes', 15));
+        BlockedIp::updateOrCreate(
+            ['ip_address' => $ip],
+            [
+                'blocked_until' => now()->addMinutes($minutes),
+                'reason' => 'Terlalu banyak percobaan login gagal ('.$threshold.'x dalam '.($window / 60).' menit).',
+                'created_at' => now(),
+            ]
+        );
+        RateLimiter::clear($key);
     }
 
     public function logout(Request $request)

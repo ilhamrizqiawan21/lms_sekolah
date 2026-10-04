@@ -80,9 +80,6 @@
         })();
     </script>
     <link rel="icon" href="{{ $layoutFaviconUrl }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @if(file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.ts'])
     @else
@@ -97,7 +94,7 @@
             --app-bg: #f8fafc;
             --app-radius: 0.875rem;
             --app-shadow: 0 4px 12px rgba(0,0,0,.08);
-            --font-sans: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+            --font-sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
             --primary-500: {{ $layoutPrimaryColor }};
             --primary-600: color-mix(in srgb, {{ $layoutPrimaryColor }} 88%, black);
             --primary-700: color-mix(in srgb, {{ $layoutSidebarColor }} 78%, black);

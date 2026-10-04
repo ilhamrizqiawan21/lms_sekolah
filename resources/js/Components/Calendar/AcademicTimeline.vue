@@ -107,7 +107,7 @@ const typeIcon = (type: TimelineEventType): string => ({ calendar: 'bi-calendar-
 :global([data-bs-theme="dark"]) .timeline-content h6 { color: #e5edf7; }
 :global([data-bs-theme="dark"]) .timeline-description,
 :global([data-bs-theme="dark"]) .timeline-content .text-secondary { color: #9fb0c5 !important; }
-@media (max-width: 576px) {
+@media (max-width: 575.98px) {
     .timeline-filters .btn { flex: 1 1 auto; }
     .timeline-target-link { flex: 1 1 auto; justify-content: center; }
 }

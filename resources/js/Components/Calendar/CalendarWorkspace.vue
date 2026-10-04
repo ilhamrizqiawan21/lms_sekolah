@@ -487,7 +487,7 @@ function openEvent(event: CalendarEvent): void {
     color: #9fb0c5 !important;
 }
 
-@media (max-width: 576px) {
+@media (max-width: 575.98px) {
     .calendar-cell {
         height: 64px;
         padding: 2px;
