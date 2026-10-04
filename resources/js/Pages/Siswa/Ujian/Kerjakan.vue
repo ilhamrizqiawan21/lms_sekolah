@@ -86,7 +86,7 @@ const belumDijawabCount = computed(() => {
 
 // Format timer
 const formattedTime = computed(() => {
-    const total = Math.max(0, sisaDetik.value);
+    const total = Math.max(0, Math.floor(sisaDetik.value));
     const h = Math.floor(total / 3600);
     const m = Math.floor((total % 3600) / 60);
     const s = total % 60;
@@ -223,7 +223,7 @@ function autoSubmitOnTimeUp() {
 
     <AppShell title="Pengerjaan Ujian">
         <!-- Top Header Bar for CBT -->
-        <div class="card border-0 shadow-sm mb-4 bg-primary text-white">
+        <div class="card border-0 shadow-sm mb-4 bg-primary text-white cbt-shell">
             <div class="card-body p-3">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div>

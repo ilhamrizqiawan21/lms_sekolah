@@ -122,6 +122,8 @@ h1, h2, h3, .h1, .h2, .h3 { letter-spacing: -0.025em; }
         border-radius: 1.5rem;
     }
     .sidebar-overlay { top: 0; backdrop-filter: blur(6px); }
+    /* sidebar melayang berjarak 8px dari tepi: geser lebih jauh agar tidak menyisakan strip saat tertutup */
+    .sidebar:not(.sidebar-open) { transform: translateX(calc(-100% - 24px)); }
 }
 
 /* Sidebar */
@@ -225,6 +227,11 @@ h1, h2, h3, .h1, .h2, .h3 { letter-spacing: -0.025em; }
         color: var(--on-brand);
         box-shadow: var(--brand-glow);
     }
+}
+
+/* Layar ujian: navigasi bawah mobile menutupi tombol Sebelumnya/Selanjutnya */
+@media (max-width: 991.98px) {
+    .app-shell:has(.cbt-shell) .mobile-bottom-nav { display: none; }
 }
 
 /* ── Kartu ── */
