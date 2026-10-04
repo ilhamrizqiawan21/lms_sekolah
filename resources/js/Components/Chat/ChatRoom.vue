@@ -105,16 +105,16 @@ watch(
                         <i class="bi bi-person-fill"></i>
                     </div>
                     <div class="chat-message-body">
-                        <small class="text-muted d-block">{{ message.author }}</small>
+                        <small class="text-body-secondary d-block">{{ message.author }}</small>
                         <div class="chat-bubble">
                             {{ message.message }}
                         </div>
-                        <small class="text-muted d-block chat-time">{{ message.time }}</small>
+                        <small class="text-body-secondary d-block chat-time">{{ message.time }}</small>
                     </div>
                 </div>
             </template>
 
-            <p v-else class="text-muted text-center pt-5 mb-0">{{ emptyMessage }}</p>
+            <p v-else class="text-body-secondary text-center pt-5 mb-0">{{ emptyMessage }}</p>
         </div>
 
         <form class="d-flex gap-2" @submit.prevent="sendMessage">
@@ -150,7 +150,7 @@ watch(
 .chat-area {
     height: 400px;
     overflow-y: auto;
-    border: 1px solid var(--gray-200);
+    border: 1px solid var(--border-soft);
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 15px;
@@ -181,7 +181,7 @@ watch(
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--gray-200);
+    border: 1px solid var(--border-soft);
     background: var(--surface-card);
     color: var(--text-muted);
 }
@@ -193,7 +193,7 @@ watch(
 .chat-bubble {
     display: inline-block;
     max-width: 100%;
-    border: 1px solid var(--gray-200);
+    border: 1px solid var(--border-soft);
     border-radius: 1rem;
     background: var(--surface-card);
     padding: 0.5rem 0.75rem;
@@ -203,35 +203,12 @@ watch(
 }
 
 .chat-message.is-mine .chat-bubble {
-    border-color: var(--success-600, #198754);
-    background: var(--success-600, #198754);
-    color: #fff;
+    border-color: var(--primary-600);
+    background: var(--primary-600);
+    color: var(--on-brand);
 }
 
 .chat-time {
     font-size: 0.65rem;
-}
-
-:global([data-bs-theme="dark"]) .chat-area {
-    border-color: var(--border-soft);
-    background: var(--surface-input);
-}
-
-:global([data-bs-theme="dark"]) .chat-bubble {
-    border-color: var(--border-soft);
-    background: var(--surface-muted);
-    color: var(--text-body);
-}
-
-:global([data-bs-theme="dark"]) .chat-avatar-empty {
-    border-color: var(--border-soft);
-    background: var(--surface-muted);
-    color: var(--text-muted);
-}
-
-:global([data-bs-theme="dark"]) .chat-message.is-mine .chat-bubble {
-    border-color: color-mix(in srgb, var(--primary-500) 70%, var(--surface-card));
-    background: var(--primary-600);
-    color: #fff;
 }
 </style>

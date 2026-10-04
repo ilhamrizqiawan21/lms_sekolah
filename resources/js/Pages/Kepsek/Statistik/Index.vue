@@ -3,6 +3,7 @@ import { Head } from '@inertiajs/vue3';
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
+import { cssVar, withAlpha } from '../../../utils/cssColor';
 import { Card, EmptyState, StatCard, TableWrapper } from '../../../Components/UI';
 interface ClassStudents { label: string; jumlah: number; }
 interface MonthlyAttendance { bulan: string; bulan_label?: string; hadir: number; total: number; persentase: number; }
@@ -34,6 +35,8 @@ async function chartJs() {
 
 async function renderCharts() {
     const Chart = await chartJs();
+    const primary = cssVar('--primary-500');
+    const colors = { tepat: cssVar('--accent-green'), terlambat: cssVar('--accent-red'), dinilai: cssVar('--accent-blue') };
 
     if (siswaCanvas.value && props.siswaPerKelas.length) {
         siswaChart?.destroy();
@@ -44,7 +47,7 @@ async function renderCharts() {
                 datasets: [{
                     label: 'Jumlah Siswa',
                     data: props.siswaPerKelas.map((item) => item.jumlah),
-                    backgroundColor: '#198754',
+                    backgroundColor: primary,
                     borderRadius: 8,
                 }],
             },
@@ -75,8 +78,8 @@ async function renderCharts() {
                 datasets: [{
                     label: 'Persentase Hadir',
                     data: props.absensiBulanan.map((item) => item.persentase),
-                    borderColor: '#198754',
-                    backgroundColor: 'rgba(25,135,84,0.16)',
+                    borderColor: primary,
+                    backgroundColor: withAlpha(primary, 0.16),
                     tension: 0.35,
                     fill: true,
                 }],
@@ -95,9 +98,9 @@ async function renderCharts() {
             data: {
                 labels: props.pengumpulanBulanan.map((item) => item.bulan_label || item.bulan),
                 datasets: [
-                    { label: 'Tepat Waktu', data: props.pengumpulanBulanan.map((item) => item.tepat_waktu), backgroundColor: '#198754', borderRadius: 8 },
-                    { label: 'Terlambat', data: props.pengumpulanBulanan.map((item) => item.terlambat), backgroundColor: '#dc3545', borderRadius: 8 },
-                    { label: 'Sudah Dinilai', data: props.pengumpulanBulanan.map((item) => item.dinilai), backgroundColor: '#0d6efd', borderRadius: 8 },
+                    { label: 'Tepat Waktu', data: props.pengumpulanBulanan.map((item) => item.tepat_waktu), backgroundColor: colors.tepat, borderRadius: 8 },
+                    { label: 'Terlambat', data: props.pengumpulanBulanan.map((item) => item.terlambat), backgroundColor: colors.terlambat, borderRadius: 8 },
+                    { label: 'Sudah Dinilai', data: props.pengumpulanBulanan.map((item) => item.dinilai), backgroundColor: colors.dinilai, borderRadius: 8 },
                 ],
             },
             options: {
@@ -141,26 +144,26 @@ onBeforeUnmount(() => {
                     <div class="row g-3">
                         <div class="col-6 col-xl-3">
                             <div class="border rounded p-3 h-100">
-                                <div class="text-muted small">Total Tugas Aktif</div>
+                                <div class="text-body-secondary small">Total Tugas Aktif</div>
                                 <div class="fs-4 fw-bold">{{ pembelajaran.total_tugas }}</div>
                             </div>
                         </div>
                         <div class="col-6 col-xl-3">
                             <div class="border rounded p-3 h-100">
-                                <div class="text-muted small">Total Pengumpulan</div>
+                                <div class="text-body-secondary small">Total Pengumpulan</div>
                                 <div class="fs-4 fw-bold">{{ pembelajaran.total_pengumpulan }}</div>
                             </div>
                         </div>
                         <div class="col-6 col-xl-3">
                             <div class="border rounded p-3 h-100">
-                                <div class="text-muted small">Sudah Dinilai</div>
+                                <div class="text-body-secondary small">Sudah Dinilai</div>
                                 <div class="fs-4 fw-bold">{{ pembelajaran.total_dinilai }}</div>
-                                <div class="text-muted small">{{ pembelajaran.persentase_dinilai }}% dari pengumpulan</div>
+                                <div class="text-body-secondary small">{{ pembelajaran.persentase_dinilai }}% dari pengumpulan</div>
                             </div>
                         </div>
                         <div class="col-6 col-xl-3">
                             <div class="border rounded p-3 h-100">
-                                <div class="text-muted small">Rata-rata Nilai Tugas</div>
+                                <div class="text-body-secondary small">Rata-rata Nilai Tugas</div>
                                 <div class="fs-4 fw-bold">{{ pembelajaran.rata_nilai_tugas ?? '-' }}</div>
                             </div>
                         </div>
@@ -199,10 +202,10 @@ onBeforeUnmount(() => {
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th>Bulan</th>
-                                    <th>Hadir</th>
-                                    <th>Total</th>
-                                    <th>Kehadiran</th>
+                                    <th scope="col">Bulan</th>
+                                    <th scope="col">Hadir</th>
+                                    <th scope="col">Total</th>
+                                    <th scope="col">Kehadiran</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -234,10 +237,10 @@ onBeforeUnmount(() => {
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th>Bulan</th>
-                                    <th>Total</th>
-                                    <th>Tepat Waktu</th>
-                                    <th>Terlambat</th>
+                                    <th scope="col">Bulan</th>
+                                    <th scope="col">Total</th>
+                                    <th scope="col">Tepat Waktu</th>
+                                    <th scope="col">Terlambat</th>
                                 </tr>
                             </thead>
                             <tbody>

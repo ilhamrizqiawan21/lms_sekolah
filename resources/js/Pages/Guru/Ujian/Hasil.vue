@@ -207,9 +207,9 @@ function statusLabel(status: string) {
                     </li>
                 </ul>
 
-                <div class="input-group" style="max-width: 280px;">
+                <div class="input-group u-maxw-280px">
                     <span class="input-group-text bg-light border-end-0">
-                        <i class="bi bi-search text-muted" />
+                        <i class="bi bi-search text-body-secondary" />
                     </span>
                     <input
                         v-model="searchQuery"
@@ -225,25 +225,25 @@ function statusLabel(status: string) {
                 <TableWrapper v-if="filteredAttempts.length > 0">
                     <table class="table table-hover align-middle mb-0">
                         <colgroup>
-                            <col style="width: 5%">
-                            <col style="width: 25%">
-                            <col style="width: 12%">
-                            <col style="width: 14%">
-                            <col style="width: 12%">
-                            <col style="width: 12%">
-                            <col style="width: 10%">
-                            <col style="width: 10%">
+                            <col class="u-w-5pct">
+                            <col class="u-w-25pct">
+                            <col class="u-w-12pct">
+                            <col class="u-w-14pct">
+                            <col class="u-w-12pct">
+                            <col class="u-w-12pct">
+                            <col class="u-w-10pct">
+                            <col class="u-w-10pct">
                         </colgroup>
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Nama Siswa / NIS</th>
-                                <th>Status</th>
-                                <th>Waktu Pengerjaan</th>
-                                <th>Benar / Salah</th>
-                                <th>Nilai Akhir</th>
-                                <th>Tab Switch</th>
-                                <th>Aksi</th>
+                                <th scope="col">#</th>
+                                <th scope="col">Nama Siswa / NIS</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Waktu Pengerjaan</th>
+                                <th scope="col">Benar / Salah</th>
+                                <th scope="col">Nilai Akhir</th>
+                                <th scope="col">Tab Switch</th>
+                                <th scope="col">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -251,7 +251,7 @@ function statusLabel(status: string) {
                                 <td>{{ idx + 1 }}</td>
                                 <td>
                                     <div class="fw-bold">{{ att.siswa.nama_lengkap }}</div>
-                                    <div class="small text-muted">NIS: {{ att.siswa.nis ?? '-' }}</div>
+                                    <div class="small text-body-secondary">NIS: {{ att.siswa.nis ?? '-' }}</div>
                                 </td>
                                 <td>
                                     <Badge :color="statusBadgeColor(att.status)">
@@ -260,12 +260,12 @@ function statusLabel(status: string) {
                                 </td>
                                 <td>
                                     <div class="small">{{ att.durasi_pengerjaan }}</div>
-                                    <div class="small text-muted">{{ att.waktu_selesai ?? att.waktu_mulai }}</div>
+                                    <div class="small text-body-secondary">{{ att.waktu_selesai ?? att.waktu_mulai }}</div>
                                 </td>
                                 <td>
                                     <span class="text-success fw-bold">{{ att.total_benar }} B</span> /
                                     <span class="text-danger fw-bold">{{ att.total_salah }} S</span>
-                                    <div class="small text-muted">dari {{ att.total_soal }} soal</div>
+                                    <div class="small text-body-secondary">dari {{ att.total_soal }} soal</div>
                                 </td>
                                 <td>
                                     <div class="fs-5 fw-bold" :class="att.nilai >= 75 ? 'text-success' : 'text-danger'">
@@ -273,15 +273,15 @@ function statusLabel(status: string) {
                                     </div>
                                 </td>
                                 <td>
-                                    <span
+                                    <Badge
                                         v-if="att.tab_switches_count > 0"
-                                        class="badge bg-warning text-dark"
+                                        color="warning"
                                         :title="`${att.tab_switches_count} kali keluar tab selama ujian`"
                                     >
                                         <i class="bi bi-exclamation-triangle me-1" />
                                         {{ att.tab_switches_count }}x
-                                    </span>
-                                    <span v-else class="text-muted small">0</span>
+                                    </Badge>
+                                    <span v-else class="text-body-secondary small">0</span>
                                 </td>
                                 <td>
                                     <Link :href="att.detail_url" class="btn btn-sm btn-outline-primary">
@@ -307,17 +307,17 @@ function statusLabel(status: string) {
                 <TableWrapper v-if="filteredBelum.length > 0">
                     <table class="table table-hover align-middle mb-0">
                         <colgroup>
-                            <col style="width: 5%">
-                            <col style="width: 45%">
-                            <col style="width: 25%">
-                            <col style="width: 25%">
+                            <col class="u-w-5pct">
+                            <col class="u-w-45pct">
+                            <col class="u-w-25pct">
+                            <col class="u-w-25pct">
                         </colgroup>
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Nama Lengkap</th>
-                                <th>NIS</th>
-                                <th>NISN</th>
+                                <th scope="col">#</th>
+                                <th scope="col">Nama Lengkap</th>
+                                <th scope="col">NIS</th>
+                                <th scope="col">NISN</th>
                             </tr>
                         </thead>
                         <tbody>

@@ -188,12 +188,12 @@ async function destroy(item: Kelas): Promise<void> {
                         <table class="table table-hover app-table mb-0">
                             <thead>
                                 <tr>
-                                    <th>Tingkat</th>
-                                    <th>Nama Kelas</th>
-                                    <th>Siswa Aktif</th>
-                                    <th>Penugasan</th>
-                                    <th>Wali Kelas</th>
-                                    <th class="table-action-column">Aksi</th>
+                                    <th scope="col">Tingkat</th>
+                                    <th scope="col">Nama Kelas</th>
+                                    <th scope="col">Siswa Aktif</th>
+                                    <th scope="col">Penugasan</th>
+                                    <th scope="col">Wali Kelas</th>
+                                    <th scope="col" class="table-action-column">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>

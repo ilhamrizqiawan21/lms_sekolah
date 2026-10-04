@@ -86,12 +86,12 @@ function formatValues(values: Record<string, unknown> | null) {
                 <table class="table table-hover mb-0 small">
                     <thead>
                         <tr>
-                            <th>Waktu</th>
-                            <th>Modul</th>
-                            <th>Pengubah</th>
-                            <th>Data</th>
-                            <th>Sebelum</th>
-                            <th>Sesudah</th>
+                            <th scope="col">Waktu</th>
+                            <th scope="col">Modul</th>
+                            <th scope="col">Pengubah</th>
+                            <th scope="col">Data</th>
+                            <th scope="col">Sebelum</th>
+                            <th scope="col">Sesudah</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -101,7 +101,7 @@ function formatValues(values: Record<string, unknown> | null) {
                             <td><strong>{{ log.actor }}</strong></td>
                             <td>
                                 <div>{{ log.metadata.siswa ?? '-' }}</div>
-                                <small class="text-muted">
+                                <small class="text-body-secondary">
                                     {{ log.metadata.kelas ?? '-' }} - {{ log.metadata.mata_pelajaran ?? '-' }}
                                 </small>
                             </td>

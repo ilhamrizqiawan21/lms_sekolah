@@ -117,16 +117,16 @@ function submit() {
                             <table class="table table-bordered table-hover mb-0 wali-attendance-table">
                                 <thead>
                                     <tr>
-                                        <th class="text-center" style="width:44px;">No</th>
-                                        <th style="min-width:90px;">NIS</th>
-                                        <th style="min-width:180px;">Nama</th>
-                                        <th
+                                        <th scope="col" class="text-center u-w-44px">No</th>
+                                        <th scope="col" class="u-minw-90px">NIS</th>
+                                        <th scope="col" class="u-minw-180px">Nama</th>
+                                        <th scope="col"
                                             v-for="tanggal in tanggalList"
                                             :key="tanggal.key"
-                                            class="text-center"
-                                            style="min-width:62px;"
+                                            class="text-center u-minw-62px"
+                                           
                                         >
-                                            {{ tanggal.day }}<br><small class="text-muted">{{ tanggal.label }}</small>
+                                            {{ tanggal.day }}<br><small class="text-body-secondary">{{ tanggal.label }}</small>
                                         </th>
                                     </tr>
                                     <tr>
@@ -147,7 +147,7 @@ function submit() {
                                 </thead>
                                 <tbody>
                                     <tr v-for="student in students" :key="student.id">
-                                        <td class="text-center text-muted align-middle">{{ student.no }}</td>
+                                        <td class="text-center text-body-secondary align-middle">{{ student.no }}</td>
                                         <td class="align-middle">{{ student.nis }}</td>
                                         <td class="align-middle"><strong>{{ student.nama }}</strong></td>
                                         <td v-for="tanggal in tanggalList" :key="`${student.id}-${tanggal.key}`" class="p-1 text-center align-middle">

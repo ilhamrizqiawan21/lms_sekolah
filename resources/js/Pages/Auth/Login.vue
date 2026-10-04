@@ -306,6 +306,13 @@ function submit() {
 </template>
 
 <style scoped>
+/*
+ * Sengaja terisolasi dari token bersama (hex dan beberapa !important di sini disengaja):
+ * - Halaman login dikunci ke tema terang dan tidak boleh berubah mengikuti mode gelap, jadi paletnya
+ *   (variabel --login-...) berdiri sendiri, bukan token --surface/--text yang berganti saat data-bs-theme=dark.
+ * - Panel kiri memakai hijau tua identitas sekolah yang tidak mengikuti tema pilihan admin.
+ * - !important pada input dan color-scheme melawan gaya bawaan browser/autofill dan override mode gelap.
+ */
 .login-page {
     color-scheme: light !important;
     --login-bg: var(--app-bg, #f8f8f5);

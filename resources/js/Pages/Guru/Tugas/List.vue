@@ -3,7 +3,7 @@ import type { PropType } from 'vue';
 import type { TeacherTask } from '../../../types/tasks';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
-import { TextareaInput, TextInput } from '../../../Components/Form';
+import { TextInput, TextareaInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, DashboardHero, EmptyState, IconButton, MetricStrip, QuickActionBar, TableWrapper } from '../../../Components/UI';
 
@@ -165,31 +165,31 @@ async function destroy(item: TeacherTask) {
                     <template #actions>
                         <div class="assignment-search">
                             <i class="bi bi-search" aria-hidden="true"></i>
-                            <input v-model="search" class="form-control form-control-sm" type="search" placeholder="Cari tugas" aria-label="Cari tugas">
+                            <TextInput v-model="search" name="search_tugas" type="search" placeholder="Cari tugas" aria-label="Cari tugas" wrapper-class="" class="form-control-sm" />
                         </div>
                     </template>
                     <template #default>
                         <TableWrapper v-if="filteredTugas.length" class="d-none d-md-block">
                             <table class="table table-hover mb-0 app-table-proportional">
                                 <colgroup>
-                                    <col style="width:44%">
-                                    <col style="width:14%">
-                                    <col style="width:20%">
-                                    <col style="width:22%">
+                                    <col class="u-w-44pct">
+                                    <col class="u-w-14pct">
+                                    <col class="u-w-20pct">
+                                    <col class="u-w-22pct">
                                 </colgroup>
                                 <thead>
                                     <tr>
-                                        <th>Judul</th>
-                                        <th>Deadline</th>
-                                        <th>Kumpul</th>
-                                        <th>Aksi</th>
+                                        <th scope="col">Judul</th>
+                                        <th scope="col">Deadline</th>
+                                        <th scope="col">Kumpul</th>
+                                        <th scope="col">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in filteredTugas" :key="item.id">
                                         <td class="app-table-judul">
                                             <strong>{{ item.judul }}</strong>
-                                            <div v-if="item.deskripsi" class="text-muted small">{{ item.deskripsi }}</div>
+                                            <div v-if="item.deskripsi" class="text-body-secondary small">{{ item.deskripsi }}</div>
                                         </td>
                                         <td class="text-nowrap small">
                                             <Badge :color="item.is_overdue ? 'danger' : 'secondary'">{{ item.batas_waktu ?? '-' }}</Badge>

@@ -37,13 +37,13 @@ const metrics = [
                 <table class="table table-hover align-middle mb-0 student-schedule-table">
                     <thead>
                         <tr>
-                            <th>Hari</th>
-                            <th v-for="slot in 5" :key="slot">Pelajaran {{ slot }}</th>
+                            <th scope="col">Hari</th>
+                            <th scope="col" v-for="slot in 5" :key="slot">Pelajaran {{ slot }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="day in days" :key="day.value" :class="{ 'table-active': day.is_today }">
-                            <th>
+                            <th scope="row">
                                 {{ day.label }}
                                 <Badge v-if="day.is_today" color="success">Hari ini</Badge>
                             </th>
@@ -56,7 +56,7 @@ const metrics = [
                                         <Link v-if="slot.course.kelas_daring_url" :href="slot.course.kelas_daring_url">Daring</Link>
                                     </div>
                                 </div>
-                                <span v-else class="text-muted small">-</span>
+                                <span v-else class="text-body-secondary small">-</span>
                             </td>
                         </tr>
                     </tbody>

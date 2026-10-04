@@ -134,10 +134,10 @@ function exportUrl(format: 'excel' | 'pdf') {
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th style="width:40px;">#</th>
-                            <th>Nama Siswa</th>
-                            <th class="d-none d-md-table-cell">Kelas</th>
-                            <th v-for="aspect in sosialAspects" :key="aspect.key">{{ aspect.label }}</th>
+                            <th scope="col" class="u-w-40px">#</th>
+                            <th scope="col">Nama Siswa</th>
+                            <th scope="col" class="d-none d-md-table-cell">Kelas</th>
+                            <th scope="col" v-for="aspect in sosialAspects" :key="aspect.key">{{ aspect.label }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -165,10 +165,10 @@ function exportUrl(format: 'excel' | 'pdf') {
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th style="width:40px;">#</th>
-                            <th>Nama Siswa</th>
-                            <th class="d-none d-md-table-cell">Kelas</th>
-                            <th v-for="aspect in spiritualAspects" :key="aspect.key">{{ aspect.label }}</th>
+                            <th scope="col" class="u-w-40px">#</th>
+                            <th scope="col">Nama Siswa</th>
+                            <th scope="col" class="d-none d-md-table-cell">Kelas</th>
+                            <th scope="col" v-for="aspect in spiritualAspects" :key="aspect.key">{{ aspect.label }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -194,7 +194,7 @@ function exportUrl(format: 'excel' | 'pdf') {
                     <div class="summary-grid mt-2">
                         <div v-for="item in sosialSummary" :key="item.key" class="summary-item">
                             <div class="summary-value">{{ item.value }}</div>
-                            <small class="text-muted">{{ item.label }}</small>
+                            <small class="text-body-secondary">{{ item.label }}</small>
                         </div>
                     </div>
                 </div>
@@ -203,7 +203,7 @@ function exportUrl(format: 'excel' | 'pdf') {
                     <div class="summary-grid mt-2">
                         <div v-for="item in spiritualSummary" :key="item.key" class="summary-item">
                             <div class="summary-value">{{ item.value }}</div>
-                            <small class="text-muted">{{ item.label }}</small>
+                            <small class="text-body-secondary">{{ item.label }}</small>
                         </div>
                     </div>
                 </div>

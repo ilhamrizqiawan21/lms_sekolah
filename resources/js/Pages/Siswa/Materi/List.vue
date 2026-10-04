@@ -43,11 +43,11 @@ const courseTabs = [
         <div v-if="materi.length" class="row">
             <div v-for="item in materi" :key="item.id" class="col-md-6 mb-4">
                 <Card :title="item.judul" class="h-100">
-                    <p class="text-muted" style="font-size:0.85rem;">{{ item.deskripsi }}</p>
-                    <small class="text-muted">{{ item.tanggal }}</small>
+                    <p class="text-body-secondary" style="font-size:0.85rem;">{{ item.deskripsi }}</p>
+                    <small class="text-body-secondary">{{ item.tanggal }}</small>
 
                     <template v-if="item.download_url" #footer>
-                        <a :href="item.download_url" class="btn btn-sm btn-success" target="_blank" rel="noopener noreferrer">
+                        <a :href="item.download_url" class="btn btn-sm btn-primary" target="_blank" rel="noopener noreferrer">
                             <i class="bi bi-download me-1" aria-hidden="true"></i> Download
                         </a>
                     </template>

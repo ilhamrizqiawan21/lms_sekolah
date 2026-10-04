@@ -41,7 +41,7 @@
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="bi bi-star-fill me-2"></i> Sikap Spiritual (KI-1)</span>
-        <span class="badge bg-secondary">{{ $sikapSpiritual->count() }} siswa</span>
+        <span class="badge bg-soft-muted">{{ $sikapSpiritual->count() }} siswa</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -65,7 +65,7 @@
                     @if(!blank($sikapSpiritual))
                         @foreach($sikapSpiritual as $i => $s)
                     <tr>
-                        <td class="text-center text-muted">{{ $i + 1 }}</td>
+                        <td class="text-center text-body-secondary">{{ $i + 1 }}</td>
                         <td>{{ $s['siswa']->user->nama_lengkap ?? $s['siswa']->nis ?? '—' }}</td>
                         <td class="d-none d-md-table-cell">{{ $s['siswa']->kelas->nama_kelas ?? '—' }}</td>
                         @foreach($spFields as $f)
@@ -82,7 +82,7 @@
                     </tr>
                         @endforeach
                     @else
-                    <tr><td colspan="10" class="text-center text-muted py-3">Belum ada data.</td></tr>
+                    <tr><td colspan="10" class="text-center text-body-secondary py-3">Belum ada data.</td></tr>
                     @endif
                 </tbody>
             </table>
@@ -94,7 +94,7 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="bi bi-people-fill me-2"></i> Sikap Sosial (KI-2)</span>
-        <span class="badge bg-secondary">{{ $sikapSosial->count() }} siswa</span>
+        <span class="badge bg-soft-muted">{{ $sikapSosial->count() }} siswa</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -117,7 +117,7 @@
                     @if(!blank($sikapSosial))
                         @foreach($sikapSosial as $i => $s)
                     <tr>
-                        <td class="text-center text-muted">{{ $i + 1 }}</td>
+                        <td class="text-center text-body-secondary">{{ $i + 1 }}</td>
                         <td>{{ $s['siswa']->user->nama_lengkap ?? $s['siswa']->nis ?? '—' }}</td>
                         <td class="d-none d-md-table-cell">{{ $s['siswa']->kelas->nama_kelas ?? '—' }}</td>
                         @foreach($soFields as $f)
@@ -134,7 +134,7 @@
                     </tr>
                         @endforeach
                     @else
-                    <tr><td colspan="9" class="text-center text-muted py-3">Belum ada data.</td></tr>
+                    <tr><td colspan="9" class="text-center text-body-secondary py-3">Belum ada data.</td></tr>
                     @endif
                 </tbody>
             </table>

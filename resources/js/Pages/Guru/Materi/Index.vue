@@ -113,18 +113,18 @@ async function destroy(item: MateriItem): Promise<void> {
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th>Judul</th>
-                                    <th>Kelas</th>
-                                    <th>Mapel</th>
-                                    <th>Tanggal</th>
-                                    <th>Aksi</th>
+                                    <th scope="col">Judul</th>
+                                    <th scope="col">Kelas</th>
+                                    <th scope="col">Mapel</th>
+                                    <th scope="col">Tanggal</th>
+                                    <th scope="col">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="item in materi" :key="item.id">
                                     <td>
                                         <strong>{{ item.judul }}</strong>
-                                        <div v-if="item.deskripsi_ringkas" class="text-muted small">{{ item.deskripsi_ringkas }}</div>
+                                        <div v-if="item.deskripsi_ringkas" class="text-body-secondary small">{{ item.deskripsi_ringkas }}</div>
                                     </td>
                                     <td>{{ item.kelas }}</td>
                                     <td>{{ item.mata_pelajaran }}</td>

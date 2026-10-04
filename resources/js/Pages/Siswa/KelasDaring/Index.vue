@@ -95,26 +95,26 @@ function statusColor(status: string) {
                 <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>Sesi</th>
-                            <th>Jadwal</th>
-                            <th>Status</th>
-                            <th>Presensi</th>
-                            <th class="text-end">Akses</th>
+                            <th scope="col">Sesi</th>
+                            <th scope="col">Jadwal</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Presensi</th>
+                            <th scope="col" class="text-end">Akses</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="session in sessions" :key="session.id">
                             <td>
                                 <strong>{{ session.judul }}</strong>
-                                <div class="text-muted small">{{ session.mata_pelajaran }} - {{ session.guru }}</div>
-                                <div v-if="session.deskripsi" class="text-muted small">{{ session.deskripsi }}</div>
+                                <div class="text-body-secondary small">{{ session.mata_pelajaran }} - {{ session.guru }}</div>
+                                <div v-if="session.deskripsi" class="text-body-secondary small">{{ session.deskripsi }}</div>
                             </td>
-                            <td>{{ session.tanggal }}<div class="text-muted small">Pelajaran ke-{{ session.pelajaran_ke }}</div></td>
+                            <td>{{ session.tanggal }}<div class="text-body-secondary small">Pelajaran ke-{{ session.pelajaran_ke }}</div></td>
                             <td><Badge :color="statusColor(session.status)">{{ session.status }}</Badge></td>
                             <td>
-                                <span v-if="session.sudah_presensi" class="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1">
+                                <Badge v-if="session.sudah_presensi" color="success" class="d-inline-flex align-items-center gap-1">
                                     <i class="bi bi-check-circle-fill" aria-hidden="true"></i> Hadir
-                                </span>
+                                </Badge>
                                 <Button
                                     v-else-if="session.can_presensi"
                                     color="primary"
@@ -125,7 +125,7 @@ function statusColor(status: string) {
                                 >
                                     {{ processingPresensiId === session.id ? 'Menyimpan...' : 'Presensi Hadir' }}
                                 </Button>
-                                <span v-else class="text-muted small">-</span>
+                                <span v-else class="text-body-secondary small">-</span>
                             </td>
                             <td class="text-end">
                                 <a
@@ -133,7 +133,7 @@ function statusColor(status: string) {
                                     :href="session.meeting_url"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    class="btn btn-sm btn-success"
+                                    class="btn btn-sm btn-primary"
                                 >
                                     <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
                                     Buka Link
@@ -179,6 +179,6 @@ function statusColor(status: string) {
 .course-filter:hover {
     border-color: var(--primary-500);
     background: color-mix(in srgb, var(--primary-500) 12%, var(--surface-card));
-    color: var(--primary-700, #0d6efd);
+    color: var(--primary-700);
 }
 </style>

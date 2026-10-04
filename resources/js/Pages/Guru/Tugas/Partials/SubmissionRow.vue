@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Badge, IconButton } from '../../../../Components/UI';
+import { Badge, Button, IconButton } from '../../../../Components/UI';
 import SubmissionGradeForm from './SubmissionGradeForm.vue';
 import type { AssignmentSubmission, SubmissionStatus } from '../../../../types';
 
@@ -11,10 +11,10 @@ defineEmits<{ detail: []; whatsapp: [] }>();
 
 <template>
     <tr>
-        <td class="text-center text-muted">{{ item.no }}</td>
+        <td class="text-center text-body-secondary">{{ item.no }}</td>
         <td>
             <strong>{{ item.siswa }}</strong>
-            <div class="text-muted small">{{ item.nis }}</div>
+            <div class="text-body-secondary small">{{ item.nis }}</div>
         </td>
         <td><Badge :color="statusColor(item.status)">{{ statusLabel(item.status) }}</Badge></td>
         <td>{{ item.tanggal_kumpul ?? '-' }}</td>
@@ -23,7 +23,7 @@ defineEmits<{ detail: []; whatsapp: [] }>();
                 {{ item.hari_terlambat }} hari<br>
                 <span v-if="item.penalty_perkiraan">-{{ item.penalty_perkiraan }} poin</span>
             </span>
-            <span v-else class="text-muted">-</span>
+            <span v-else class="text-body-secondary">-</span>
         </td>
         <td>
             <template v-if="item.files.length">
@@ -42,13 +42,13 @@ defineEmits<{ detail: []; whatsapp: [] }>();
             <a v-else-if="item.legacy_file_url" :href="item.legacy_file_url" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">
                 <i class="bi bi-download" aria-hidden="true"></i>
             </a>
-            <span v-else class="text-muted">-</span>
+            <span v-else class="text-body-secondary">-</span>
         </td>
         <td>
-            <button v-if="item.teks_jawaban" class="btn btn-sm btn-outline-info" type="button" :title="item.teks_jawaban" @click="$emit('detail')">
+            <Button color="outline-info" v-if="item.teks_jawaban" type="button" :title="item.teks_jawaban" @click="$emit('detail')">
                 <i class="bi bi-text-left" aria-hidden="true"></i>
-            </button>
-            <span v-else class="text-muted">-</span>
+            </Button>
+            <span v-else class="text-body-secondary">-</span>
         </td>
         <td>
             <SubmissionGradeForm :item="item" compact />
@@ -57,14 +57,14 @@ defineEmits<{ detail: []; whatsapp: [] }>();
             </small>
         </td>
         <td>
-            <span v-if="item.catatan" class="text-muted small">{{ item.catatan.length > 30 ? item.catatan.slice(0, 30) + '...' : item.catatan }}</span>
-            <span v-else class="text-muted">-</span>
+            <span v-if="item.catatan" class="text-body-secondary small">{{ item.catatan.length > 30 ? item.catatan.slice(0, 30) + '...' : item.catatan }}</span>
+            <span v-else class="text-body-secondary">-</span>
         </td>
         <td>
-            <button v-if="item.whatsapp_url" type="button" class="btn btn-sm btn-success me-1" title="Kirim WhatsApp" :disabled="whatsappSending" @click="$emit('whatsapp')">
+            <Button color="success" class="me-1" v-if="item.whatsapp_url" type="button" title="Kirim WhatsApp" :disabled="whatsappSending" @click="$emit('whatsapp')">
                 <span v-if="whatsappSending" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                 <i v-else class="bi bi-whatsapp" aria-hidden="true"></i>
-            </button>
+            </Button>
             <IconButton icon="bi-eye" label="Lihat detail" color="info" @click="$emit('detail')" />
             <small v-if="item.whatsapp_last_sent_at" class="d-block text-success mt-1">Diingatkan {{ item.whatsapp_last_sent_at }}</small>
             <small v-else-if="item.whatsapp_last_error" class="d-block text-danger mt-1" :title="item.whatsapp_last_error">Gagal: {{ item.whatsapp_last_error }}</small>

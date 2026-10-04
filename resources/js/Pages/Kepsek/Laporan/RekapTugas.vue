@@ -132,10 +132,10 @@ function exportUrl(format: 'excel' | 'pdf'): string {
                     <div class="text-sm mb-1">
                         <i class="bi bi-book text-primary me-1" aria-hidden="true"></i>
                         {{ item.mapel }}
-                        <span class="text-muted mx-1">-</span>
+                        <span class="text-body-secondary mx-1">-</span>
                         {{ item.kelas }}
                     </div>
-                    <div class="text-muted tugas-meta mb-2">
+                    <div class="text-body-secondary tugas-meta mb-2">
                         <i class="bi bi-person me-1" aria-hidden="true"></i>{{ item.guru }}
                         <template v-if="item.batas_waktu">
                             <span class="mx-1">-</span>
@@ -148,19 +148,19 @@ function exportUrl(format: 'excel' | 'pdf'): string {
                     <div class="d-flex justify-content-between text-center">
                         <div>
                             <div class="metric">{{ item.total_siswa }}</div>
-                            <small class="text-muted">Total</small>
+                            <small class="text-body-secondary">Total</small>
                         </div>
                         <div>
                             <div class="metric text-primary">{{ item.sudah_kumpul }}</div>
-                            <small class="text-muted">Sudah</small>
+                            <small class="text-body-secondary">Sudah</small>
                         </div>
                         <div>
                             <div class="metric text-danger">{{ item.belum_kumpul }}</div>
-                            <small class="text-muted">Belum</small>
+                            <small class="text-body-secondary">Belum</small>
                         </div>
                         <div>
                             <div class="metric">{{ item.rata_nilai ?? '-' }}</div>
-                            <small class="text-muted">Rata</small>
+                            <small class="text-body-secondary">Rata</small>
                         </div>
                     </div>
 
@@ -172,7 +172,7 @@ function exportUrl(format: 'excel' | 'pdf'): string {
                                 :style="{ width: `${item.persen_kumpul}%` }"
                             ></div>
                         </div>
-                        <small class="text-muted tugas-percent">{{ item.persen_kumpul }}% terkumpul</small>
+                        <small class="text-body-secondary tugas-percent">{{ item.persen_kumpul }}% terkumpul</small>
                     </template>
                 </Card>
             </div>

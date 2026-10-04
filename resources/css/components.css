@@ -49,6 +49,32 @@
     color: var(--text-strong);
 }
 .btn.is-loading { cursor: progress; }
+.btn-info {
+    /* aksi sekunder (mis. Detail): varian lembut dari token status, bukan biru solid */
+    --bs-btn-bg: var(--status-info-bg);
+    --bs-btn-color: var(--status-info-text);
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-bg: color-mix(in srgb, var(--status-info-bg) 82%, var(--status-info-text));
+    --bs-btn-hover-color: var(--status-info-text);
+    --bs-btn-hover-border-color: transparent;
+    --bs-btn-active-bg: color-mix(in srgb, var(--status-info-bg) 82%, var(--status-info-text));
+    --bs-btn-active-color: var(--status-info-text);
+    --bs-btn-active-border-color: transparent;
+}
+/* Bootstrap 5.3 mewarnai <a> lewat --bs-link-color-rgb (tidak ikut token); paksa mengikuti --bs-link-color. */
+a { color: var(--bs-link-color); }
+a:hover { color: var(--bs-link-hover-color); }
+.btn-light {
+    --bs-btn-bg: var(--surface-muted);
+    --bs-btn-color: var(--text-strong);
+    --bs-btn-border-color: var(--modern-border);
+    --bs-btn-hover-bg: var(--surface-hover);
+    --bs-btn-hover-color: var(--text-strong);
+    --bs-btn-hover-border-color: var(--border-strong);
+    --bs-btn-active-bg: var(--surface-hover);
+    --bs-btn-active-color: var(--text-strong);
+    --bs-btn-active-border-color: var(--border-strong);
+}
 
 /* ── Badge: penanda titik pada Badge bawaan komponen (tanpa ikon) ── */
 .app-badge {
@@ -171,3 +197,103 @@ textarea.form-control { min-height: calc(var(--control-height) * 2); }
     background: var(--surface-muted);
     color: var(--text-muted);
 }
+
+/* ── Shell (Fase 3): sidebar, topbar, navigasi bawah mobile ── */
+.modern-sidebar,
+.modern-topbar { box-shadow: none; }
+.modern-topbar { border-bottom-color: var(--border-soft); }
+.modern-sidebar { border-right-color: var(--border-soft); }
+.modern-sidebar .nav-link {
+    border-radius: var(--radius-control);
+    font-weight: var(--fw-medium);
+    transition: background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard);
+}
+.modern-sidebar .nav-link:hover {
+    border-color: transparent;
+    background: var(--surface-hover);
+    color: var(--text-strong);
+}
+.modern-sidebar .nav-link:hover i { color: var(--text-strong); }
+.modern-sidebar .nav-link.active {
+    border-color: transparent;
+    background: var(--brand-soft-bg);
+    color: var(--brand-soft-text);
+    font-weight: var(--fw-semibold);
+}
+.modern-sidebar .nav-link.active i { color: var(--brand-soft-text); }
+.modern-sidebar .nav-link:focus-visible { outline: 2px solid var(--primary-500); outline-offset: -2px; }
+.modern-sidebar .nav-section { color: var(--text-muted); font-weight: var(--fw-semibold); }
+
+.topbar-search {
+    border-radius: var(--radius-control);
+    background: var(--surface-muted);
+}
+.topbar-search:hover { background: var(--surface-hover); }
+.topbar-search kbd { background: var(--surface-card); }
+.modern-topbar .topbar-toggle-btn,
+.modern-topbar .topbar-icon-btn,
+.modern-topbar .topbar-account-btn,
+.modern-topbar .topbar-search { border-radius: var(--radius-control); }
+.modern-topbar .topbar-toggle-btn:focus-visible,
+.modern-topbar .topbar-icon-btn:focus-visible,
+.modern-topbar .topbar-account-btn:focus-visible,
+.topbar-search:focus-visible { outline: 2px solid var(--primary-500); outline-offset: 2px; }
+
+@media (max-width: 991.98px) {
+    .modern-sidebar { background: var(--surface-card); box-shadow: var(--shadow-float); }
+    .mobile-bottom-nav {
+        border-color: var(--border-soft);
+        border-radius: var(--radius-xl);
+        background: color-mix(in srgb, var(--surface-card) 94%, transparent);
+        box-shadow: var(--shadow-float);
+    }
+    .mobile-bottom-link {
+        min-height: var(--control-height);
+        border-radius: var(--radius-lg);
+        font-weight: var(--fw-semibold);
+        transition: background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard);
+    }
+    .mobile-bottom-link:focus-visible { outline: 2px solid var(--primary-500); outline-offset: -2px; }
+    .mobile-bottom-link.active { background: var(--brand-soft-bg); color: var(--brand-soft-text); }
+}
+
+/* ── Utilitas ukuran (pengganti style inline statis) ── */
+.u-h-6px { height: 6px; }
+.u-maxw-250px { max-width: 250px; }
+.u-maxw-280px { max-width: 280px; }
+.u-maxw-300px { max-width: 300px; }
+.u-minw-180px { min-width: 180px; }
+.u-minw-48px { min-width: 48px; }
+.u-minw-62px { min-width: 62px; }
+.u-minw-72px { min-width: 72px; }
+.u-minw-90px { min-width: 90px; }
+.u-sq-12px { width: 12px; height: 12px; }
+.u-sq-32px { width: 32px; height: 32px; }
+.u-w-10pct { width: 10%; }
+.u-w-12pct { width: 12%; }
+.u-w-130px { width: 130px; }
+.u-w-13pct { width: 13%; }
+.u-w-14pct { width: 14%; }
+.u-w-15pct { width: 15%; }
+.u-w-16pct { width: 16%; }
+.u-w-17pct { width: 17%; }
+.u-w-18pct { width: 18%; }
+.u-w-20pct { width: 20%; }
+.u-w-22pct { width: 22%; }
+.u-w-25pct { width: 25%; }
+.u-w-28pct { width: 28%; }
+.u-w-30pct { width: 30%; }
+.u-w-40px { width: 40px; }
+.u-w-42pct { width: 42%; }
+.u-w-42px { width: 42px; }
+.u-w-44pct { width: 44%; }
+.u-w-44px { width: 44px; }
+.u-w-45pct { width: 45%; }
+.u-w-4pct { width: 4%; }
+.u-w-5pct { width: 5%; }
+.u-w-70px { width: 70px; }
+.u-w-80px { width: 80px; }
+.u-w-8pct { width: 8%; }
+.u-w-9pct { width: 9%; }
+.u-ws-pre-line { white-space: pre-line; }
+.u-ws-pre-wrap { white-space: pre-wrap; }

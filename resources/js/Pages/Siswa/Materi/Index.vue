@@ -21,13 +21,11 @@ defineProps({
             <div class="row">
                 <div v-for="item in kelasMapel" :key="item.id" class="col-md-4 mb-3">
                     <a :href="item.href" class="text-decoration-none">
-                        <div class="card border h-100 hover-shadow" style="transition:all 0.2s;">
-                            <div class="card-body text-center">
-                                <div style="font-size:2rem;color:var(--primary-500);">{{ item.initials }}</div>
-                                <strong>{{ item.mata_pelajaran }}</strong>
-                                <div class="text-muted" style="font-size:0.8rem;">{{ item.guru }}</div>
-                            </div>
-                        </div>
+                        <Card class="h-100 hover-shadow" body-class="text-center">
+                            <div class="materi-initials">{{ item.initials }}</div>
+                            <strong>{{ item.mata_pelajaran }}</strong>
+                            <div class="text-body-secondary small">{{ item.guru }}</div>
+                        </Card>
                     </a>
                 </div>
             </div>
@@ -38,3 +36,7 @@ defineProps({
         </Card>
     </AppShell>
 </template>
+
+<style scoped>
+.materi-initials { font-size: var(--fs-2xl); color: var(--text-brand); }
+</style>

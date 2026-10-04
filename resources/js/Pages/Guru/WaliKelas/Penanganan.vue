@@ -129,22 +129,22 @@ function statusLabel(status: string) {
                     <TableWrapper v-if="penanganan.data.length">
                         <table class="table table-hover mb-0">
                             <thead>
-                                <tr><th>Siswa</th><th>Kondisi</th><th>Tindak Lanjut</th><th>Status</th><th>Aksi</th></tr>
+                                <tr><th scope="col">Siswa</th><th scope="col">Kondisi</th><th scope="col">Tindak Lanjut</th><th scope="col">Status</th><th scope="col">Aksi</th></tr>
                             </thead>
                             <tbody>
                                 <template v-for="item in penanganan.data" :key="item.id">
                                     <tr>
                                         <td>
                                             <strong>{{ item.siswa }}</strong>
-                                            <div class="small text-muted">{{ item.nis }}</div>
+                                            <div class="small text-body-secondary">{{ item.nis }}</div>
                                         </td>
                                         <td>
                                             {{ item.kondisi }}
-                                            <div class="small text-muted">{{ item.deskripsi }}</div>
+                                            <div class="small text-body-secondary">{{ item.deskripsi }}</div>
                                         </td>
                                         <td>
                                             {{ item.tindak_lanjut }}
-                                            <div class="small text-muted">{{ item.hasil }}</div>
+                                            <div class="small text-body-secondary">{{ item.hasil }}</div>
                                         </td>
                                         <td><Badge :color="statusColor(item.status)">{{ statusLabel(item.status) }}</Badge></td>
                                         <td>

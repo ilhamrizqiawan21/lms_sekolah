@@ -77,7 +77,7 @@ defineProps({
                 <Card title="Ringkasan Pengerjaan" icon="bi-info-circle-fill">
                     <div class="row g-3">
                         <div class="col-sm-4">
-                            <span class="text-muted small">Status Attempt</span>
+                            <span class="text-body-secondary small">Status Attempt</span>
                             <div class="mt-1">
                                 <Badge :color="attempt.status === 'selesai' ? 'success' : attempt.status === 'waktu_habis' ? 'danger' : 'primary'">
                                     {{ attempt.status.replace('_', ' ').toUpperCase() }}
@@ -85,14 +85,14 @@ defineProps({
                             </div>
                         </div>
                         <div class="col-sm-4">
-                            <span class="text-muted small">Skor Skala 100</span>
+                            <span class="text-body-secondary small">Skor Skala 100</span>
                             <h4 class="fw-bold text-primary mb-0 mt-1">
                                 {{ attempt.skor_100 ?? 0 }}
-                                <span class="fs-6 text-muted fw-normal">({{ attempt.skor_total ?? 0 }} / {{ attempt.skor_maksimal ?? 0 }} poin)</span>
+                                <span class="fs-6 text-body-secondary fw-normal">({{ attempt.skor_total ?? 0 }} / {{ attempt.skor_maksimal ?? 0 }} poin)</span>
                             </h4>
                         </div>
                         <div class="col-sm-4">
-                            <span class="text-muted small">Waktu Submit</span>
+                            <span class="text-body-secondary small">Waktu Submit</span>
                             <div class="fw-semibold mt-1">{{ attempt.waktu_submit ?? '-' }}</div>
                         </div>
                     </div>
@@ -103,12 +103,12 @@ defineProps({
             <div class="col-md-4">
                 <Card title="Log Pindah Tab (Anti-Cheat)" icon="bi-window-stack">
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge" :class="attempt.tab_switch_count >= 3 ? 'bg-danger' : attempt.tab_switch_count > 0 ? 'bg-warning text-dark' : 'bg-success'">
+                        <Badge :color="attempt.tab_switch_count >= 3 ? 'danger' : attempt.tab_switch_count > 0 ? 'warning' : 'success'">
                             {{ attempt.tab_switch_count }}x Pindah Tab Terdeteksi
-                        </span>
+                        </Badge>
                     </div>
 
-                    <div v-if="attempt.tab_switch_log && attempt.tab_switch_log.length > 0" class="small text-muted" style="max-height: 120px; overflow-y: auto;">
+                    <div v-if="attempt.tab_switch_log && attempt.tab_switch_log.length > 0" class="small text-body-secondary" style="max-height: 120px; overflow-y: auto;">
                         <ul class="list-unstyled mb-0">
                             <li v-for="(logTime, idx) in attempt.tab_switch_log" :key="idx" class="border-bottom py-1">
                                 <i class="bi bi-clock me-1 text-secondary" />
@@ -116,7 +116,7 @@ defineProps({
                             </li>
                         </ul>
                     </div>
-                    <div v-else class="small text-muted fst-italic">
+                    <div v-else class="small text-body-secondary fst-italic">
                         Siswa tidak pernah berpindah tab selama pengerjaan.
                     </div>
                 </Card>
@@ -141,7 +141,7 @@ defineProps({
                         <Badge v-if="item.topik" color="secondary" class="ms-2">{{ item.topik }}</Badge>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <span class="small text-muted">Bobot: {{ item.poin_maksimal }} Poin</span>
+                        <span class="small text-body-secondary">Bobot: {{ item.poin_maksimal }} Poin</span>
                         <Badge v-if="item.is_benar === true" color="success">
                             <i class="bi bi-check-circle-fill me-1" />
                             Benar (+{{ item.poin_didapat }})
@@ -175,12 +175,12 @@ defineProps({
                             </div>
 
                             <div class="d-flex gap-1">
-                                <span v-if="opsi.id === item.soal_bank_opsi_id" class="badge bg-primary">
+                                <Badge v-if="opsi.id === item.soal_bank_opsi_id" color="primary">
                                     Pilihan Siswa
-                                </span>
-                                <span v-if="opsi.is_benar" class="badge bg-success">
+                                </Badge>
+                                <Badge v-if="opsi.is_benar" color="success">
                                     Kunci Jawaban Benar
-                                </span>
+                                </Badge>
                             </div>
                         </div>
                     </div>

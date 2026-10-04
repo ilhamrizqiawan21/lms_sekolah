@@ -311,7 +311,7 @@
                         </li>
                         @endforeach
                     @else
-                        <li><span class="dropdown-item-text text-muted text-center notification-action-link">Belum ada notifikasi</span></li>
+                        <li><span class="dropdown-item-text text-body-secondary text-center notification-action-link">Belum ada notifikasi</span></li>
                     @endif
                     <li><hr class="dropdown-divider my-1"></li>
                     <li><a href="{{ $topbarNotifRoute }}" class="dropdown-item text-center notification-action-link">Lihat Semua Notifikasi</a></li>
@@ -328,7 +328,7 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><span class="dropdown-item-text fw-bold">{{ auth()->user()->nama_lengkap }}</span></li>
-                    <li><span class="dropdown-item-text text-muted small">{{ auth()->user()->username }} - {{ $layoutRoleLabel }}</span></li>
+                    <li><span class="dropdown-item-text text-body-secondary small">{{ auth()->user()->username }} - {{ $layoutRoleLabel }}</span></li>
                     <li><hr class="dropdown-divider"></li>
                     @if($layoutProfileRoute)
                     <li><a href="{{ $layoutProfileRoute }}" class="dropdown-item"><i class="bi bi-person-gear me-1" aria-hidden="true"></i> Profil</a></li>

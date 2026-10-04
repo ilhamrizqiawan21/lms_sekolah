@@ -13,6 +13,16 @@
 
 :root {
     /* Netral */
+    /* Aksen kategori (ikon, grafik, kartu mapel); bukan warna status */
+    --accent-blue: #2563eb;
+    --accent-green: #16a34a;
+    --accent-violet: #8b5cf6;
+    --accent-amber: #f59e0b;
+    --accent-cyan: #06b6d4;
+    --accent-red: #dc2626;
+    --accent-orange: #f97316;
+    --accent-slate: #6b7280;
+    --on-brand: #ffffff; /* teks di atas warna tema/solid; tetap putih di mode gelap */
     --gold-400: #fbbf24;
     --gold-500: #f59e0b;
     --gold-600: #d97706;
@@ -111,6 +121,7 @@
     --bs-warning: var(--gold-500);
     --bs-link-color: var(--primary-600);
     --bs-link-hover-color: var(--primary-700);
+    --bs-code-color: var(--text-brand);
 
     /* ---- Tambahan Calm Academic (dipakai komponen mulai Fase 2) ---- */
 
@@ -216,6 +227,14 @@
     --bs-border-color-translucent: var(--border-soft);
     --bs-emphasis-color: #f8fafc;
     --bs-secondary-color: var(--text-muted);
+    /* Utilitas Bootstrap (.bg-light, .bg-white, .text-dark, .text-secondary, .bg-body-tertiary) membaca varian -rgb.
+       Nilai ini salinan --surface-muted (30,41,59), --text-body (219,228,240), --text-muted (159,176,197); ubah bersamaan. */
+    --bs-light-rgb: 30, 41, 59;
+    --bs-white-rgb: 30, 41, 59;
+    --bs-dark-rgb: 219, 228, 240;
+    --bs-secondary-rgb: 159, 176, 197;
+    --bs-tertiary-bg-rgb: 30, 41, 59;
+    --bs-light-bg-subtle: var(--surface-muted);
     --bs-primary-bg-subtle: var(--primary-100);
     --bs-primary-text-emphasis: #bbf7d0;
     --bs-success-bg-subtle: var(--status-success-bg);

@@ -3,7 +3,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import PageHeader from '../../Components/AppShell/PageHeader.vue';
 import TextInput from '../../Components/Form/TextInput.vue';
 import AppShell from '../../Layouts/AppShell.vue';
-import { Badge, Button, Card } from '../../Components/UI';
+import { Badge, Button, Card, TableWrapper } from '../../Components/UI';
 interface StudentProfile { nis: string; nama_lengkap: string; username: string; kelas: string; status: string; }
 interface Props { profile: StudentProfile; updateUrl: string; }
 interface PasswordForm { current_password: string; password: string; password_confirmation: string; }
@@ -40,7 +40,7 @@ function submit(): void {
         <div class="row">
             <div class="col-lg-6 mb-4">
                 <Card title="Informasi Saya" icon="bi-info-circle">
-                    <div class="table-responsive">
+                    <TableWrapper :min-width="480" :scroll-hint="false">
                         <table class="table table-sm align-middle mb-0 profile-table">
                             <tbody>
                                 <tr>
@@ -69,7 +69,7 @@ function submit(): void {
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
+                    </TableWrapper>
                 </Card>
             </div>
 

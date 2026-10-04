@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { TextInput } from '../../../Components/Form';
 import type { PropType } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
@@ -90,15 +91,9 @@ async function destroyUjian(item: UjianItem) {
         <Card title="Daftar Ujian CBT Kelas" icon="bi-journal-text" body-class="p-0">
             <div class="p-3 border-bottom bg-light-subtle d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div class="d-flex align-items-center gap-2">
-                    <input
-                        v-model="search"
-                        type="text"
-                        class="form-control form-control-sm"
-                        placeholder="Cari judul ujian..."
-                        style="max-width: 250px;"
-                    />
+                    <TextInput v-model="search" name="search_ujian" placeholder="Cari judul ujian..." aria-label="Cari judul ujian" wrapper-class="u-maxw-250px" class="form-control-sm" />
                 </div>
-                <div class="text-muted small">
+                <div class="text-body-secondary small">
                     Total {{ ujian.length }} ujian CBT &bull; {{ totalSiswa }} siswa terdaftar
                 </div>
             </div>
@@ -106,29 +101,29 @@ async function destroyUjian(item: UjianItem) {
             <TableWrapper v-if="filteredUjian.length">
                 <table class="table table-hover mb-0 app-table-proportional">
                     <colgroup>
-                        <col style="width: 28%">
-                        <col style="width: 10%">
-                        <col style="width: 10%">
-                        <col style="width: 18%">
-                        <col style="width: 18%">
-                        <col style="width: 16%">
+                        <col class="u-w-28pct">
+                        <col class="u-w-10pct">
+                        <col class="u-w-10pct">
+                        <col class="u-w-18pct">
+                        <col class="u-w-18pct">
+                        <col class="u-w-16pct">
                     </colgroup>
                     <thead>
                         <tr>
-                            <th>Judul & Deskripsi</th>
-                            <th>Kategori</th>
-                            <th>Durasi</th>
-                            <th>Jadwal Akses</th>
-                            <th>Pengerjaan Siswa</th>
-                            <th>Aksi</th>
+                            <th scope="col">Judul & Deskripsi</th>
+                            <th scope="col">Kategori</th>
+                            <th scope="col">Durasi</th>
+                            <th scope="col">Jadwal Akses</th>
+                            <th scope="col">Pengerjaan Siswa</th>
+                            <th scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="item in filteredUjian" :key="item.id">
                             <td>
                                 <div class="fw-bold">{{ item.judul }}</div>
-                                <div class="small text-muted">{{ item.total_soal }} Soal Pilihan Ganda</div>
-                                <div v-if="item.deskripsi" class="small text-muted text-truncate" style="max-width: 300px;">
+                                <div class="small text-body-secondary">{{ item.total_soal }} Soal Pilihan Ganda</div>
+                                <div v-if="item.deskripsi" class="small text-body-secondary text-truncate u-maxw-300px">
                                     {{ item.deskripsi }}
                                 </div>
                             </td>
@@ -139,15 +134,15 @@ async function destroyUjian(item: UjianItem) {
                             <td>
                                 <div v-if="item.waktu_mulai || item.waktu_selesai" class="small">
                                     <div>Mulai: {{ item.waktu_mulai ?? 'Bebas' }}</div>
-                                    <div class="text-muted">Selesai: {{ item.waktu_selesai ?? 'Bebas' }}</div>
+                                    <div class="text-body-secondary">Selesai: {{ item.waktu_selesai ?? 'Bebas' }}</div>
                                 </div>
-                                <span v-else class="badge bg-light text-dark">Selalu Buka</span>
+                                <Badge v-else color="secondary">Selalu Buka</Badge>
                             </td>
                             <td>
                                 <div class="small fw-semibold mb-1">
                                     {{ item.selesai_attempts }} / {{ item.total_siswa }} Selesai
                                 </div>
-                                <div class="progress" style="height: 6px;">
+                                <div class="progress u-h-6px">
                                     <div
                                         class="progress-bar bg-success"
                                         role="progressbar"

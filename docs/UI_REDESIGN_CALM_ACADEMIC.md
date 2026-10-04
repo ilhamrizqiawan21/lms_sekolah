@@ -1,6 +1,6 @@
 # UI Redesign: "Calm Academic"
 
-Dokumen ini berisi hasil audit style UI, spesifikasi desain tema **Calm Academic**, serta TODO dan checklist pengerjaannya. Status (2026-10-04): Fase 0 (baseline), Fase 1 (fondasi token), dan Fase 2 (komponen bersama) selesai; login sudah dikerjakan sebagian oleh Gemini (belum memakai token bersama); Fase 3 dan seterusnya belum dimulai.
+Dokumen ini berisi hasil audit style UI, spesifikasi desain tema **Calm Academic**, serta TODO dan checklist pengerjaannya. Status (2026-10-04): Fase 0 (baseline), Fase 1 (fondasi token), dan Fase 2 (komponen bersama) selesai; login sudah dikerjakan sebagian oleh Gemini (belum memakai token bersama); Fase 3 (shell) selesai; Fase 4 selesai (sisa yang sengaja dibiarkan tercatat di bagian Fase 4); Fase 5 (pembersihan CSS) selesai; Fase 6 belum dimulai.
 
 Dokumen terkait: `LMS_MODERN_UI_TODO.md` (rombakan layout/workspace sebelumnya), `FRONTEND_CONTRAST_CHECKLIST.md` (kontras warna per tema).
 
@@ -170,10 +170,10 @@ Temuan dan tindak lanjut dari Fase 2:
 - Fokus awal `Modal` jatuh ke elemen fokus pertama (tombol tutup bila ada judul). Untuk form, beri atribut `data-autofocus` pada kolom pertama saat migrasi di Fase 4.
 - `Modal` mengunci scroll lewat kelas `modal-open` di `body` (sama seperti sebelumnya), bukan lewat style inline.
 
-### Fase 3: Shell
+### Fase 3: Shell (selesai 2026-10-04)
 
-- [ ] Sidebar: gaya netral ringan, item aktif pil hijau, keadaan collapsed/mobile.
-- [ ] Topbar dan bottom navigation mobile.
+- [x] Sidebar: gaya netral ringan, tanpa bayangan, hover netral, item aktif pil hijau lembut (`--brand-soft-bg`/`--brand-soft-text`), fokus keyboard terlihat; drawer mobile memakai `--shadow-float`.
+- [x] Topbar (tanpa bayangan, kolom cari dan tombol memakai `--radius-control`, ring fokus) dan bottom navigation mobile (pil aktif hijau lembut, tinggi sentuh `--control-height`). Gaya ada di bagian "Shell (Fase 3)" `components.css`; override dark sidebar/bottom-nav di `app.css` yang bentrok dihapus.
 - [ ] Halaman Login (`Pages/Auth/Login.vue` dan `login-isolation.css`) sesuai desain dua panel di bagian 2:
   - [x] Layout dua panel; panel kiri latar flat hijau tenang + Papan Informasi, panel kanan form.
   - [x] Tombol tampilkan/sembunyikan password (`aria-pressed`, `aria-label`).
@@ -181,29 +181,87 @@ Temuan dan tindak lanjut dari Fase 2:
   - [x] Mobile < 900 px: header, form, Papan Informasi, footer dalam satu kolom.
   - [x] Kasus tanpa pengumuman publik dan tanpa `support_contact` tetap rapi.
   - [x] Halaman login dikunci ke tema light; kontras teks panel kiri dan kanan lolos AA.
-  - [ ] Uji Playwright: login berhasil, login gagal, tampilan mobile (data terisolasi, tanpa kredensial karangan).
-- [ ] Indikator fokus pengganti untuk `.command-palette-input input { outline: 0 }`.
+  - [x] Uji Playwright `tests/Browser/login.spec.ts`: login berhasil, login gagal, tombol tampilkan password, mobile 390 px tanpa overflow (data seed terisolasi).
+- [x] Indikator fokus pengganti untuk `.command-palette-input input { outline: 0 }`: garis bawah inset di `:focus-within` (sudah ada sejak Fase 2).
 
-### Fase 4: Migrasi halaman per modul
+Verifikasi Fase 3: `npm run typecheck` dan `npm run build` hijau; tangkapan layar dashboard siswa terang/gelap, 1440 dan 390 px ditinjau. `npm run test:browser`: 19 lolos, 2 gagal (`grade paste and attendance save`, `searchable select opens upward`) dan keduanya juga gagal tanpa perubahan Fase 3 (nilai `kelas_id` hidden = 2, bukan 1), jadi sudah ada sebelumnya dan perlu ditinjau terpisah. Playwright di WSL ini jalan dengan `LD_LIBRARY_PATH` berisi `libnspr4`/`libnss3`/`libasound2` hasil `apt-get download` + `dpkg-deb -x` (tanpa sudo).
 
-Untuk tiap modul: ganti markup Bootstrap mentah dengan komponen bersama, hapus warna hardcoded dan style inline, ganti `text-muted` menjadi `text-body-secondary`.
+### Fase 4: Migrasi halaman per modul (selesai 2026-10-04)
 
-- [ ] Siswa (Dashboard, Progress, Notifikasi, Tugas, Materi, Nilai, Ujian, Kalender, Chat)
-- [ ] Guru (Dashboard, Ujian, SoalBank, Absensi, Tugas, JadwalMengajar, Chat)
-- [ ] Admin (Dashboard, Users, Kelas, KelasMapel, Pengaturan, LogLogin, LogError, dan lainnya)
-- [ ] Kepsek (Dashboard, Statistik, Laporan)
-- [ ] Account, Notifications, PerformaGuru
-- [ ] Ganti warna `accent`/`color` hardcoded di `Siswa/Dashboard.vue`, `Siswa/Notifikasi/Index.vue`, `Admin/Dashboard.vue`, dan warna chart `Kepsek/Dashboard.vue` dengan token (pola acuan: `Siswa/Progress.vue:59` memakai `cssVar`).
-- [ ] Ganti `window.confirm` di `Admin/Pengumuman/Index.vue:98` dengan `ConfirmDialog`.
-- [ ] Refactor modal `CalendarWorkspace.vue` dan `Guru/Tugas/Pengumpulan.vue` ke komponen `Modal`.
-- [ ] Pindahkan style inline halaman Ujian (`Hasil`, `Kerjakan`, `List`, `Index`) dan `SoalBank/Index.vue` ke kelas.
+Dikerjakan lintas modul (bukan per modul) karena sebagian besar perubahan mekanis. Hasil ukur ulang `scripts/ui-audit.sh`:
 
-### Fase 5: Pembersihan CSS
+| Temuan | Baseline | Sekarang |
+|---|---|---|
+| Hex di template/script `.vue` | 54 | 5 (palet tema `Admin/Pengaturan`, sah) |
+| `style="…"` inline statis | 117 | 15 statis + `:style` dinamis (sisanya nilai satu-kali: `top`, `grid-template-columns`, `cursor`) |
+| `text-muted` (kelas) | 223 | 0 (33 baris tersisa adalah `var(--text-muted)` di `<style>`, sah) |
+| `window.confirm` | 1 | 0 |
+| Modal tanpa Esc/fokus | 2 | 0 (plus 2 modal manual `modal fade show d-block` di `Kerjakan.vue` dan `SoalBank/Index.vue` ikut dimigrasi) |
+| `<th>` dengan `scope` | 31 dari 311 | 316 dari 318 |
+| `button.btn` mentah | 20 | 1 (tombol `btn-login` di Login, sengaja) |
+| Badge mentah | 46 | 16 (sebagian besar kelas `*-badge` khusus jadwal, bukan `.badge`) |
+| `<table>` vs `<TableWrapper>` | 63 vs 58 | 63 vs 63 |
+| Card mentah | 58 | 41 (sebagian besar cocok `course-card`/`schedule-card`, bukan `.card`; 4 halaman Pengumuman dan `Admin/Rekap` dimigrasi) |
 
-- [ ] Hapus override dark mode yang sudah tergantikan token.
-- [ ] Kurangi `!important` ke < 10; tiap sisa diberi komentar alasannya.
-- [ ] Hapus kelas dan aturan CSS yang tidak terpakai.
-- [ ] Gabungkan `responsive-polish.css` ke struktur CSS akhir.
+Yang dikerjakan:
+
+- `text-muted` menjadi `text-body-secondary` di seluruh `resources/js`.
+- Tombol utama: `btn-success` menjadi `btn-primary` (tombol konfirmasi fallback, Pengumuman, Materi, Kelas Daring). `btn-outline-success` (ekspor Excel) dan `btn-success` di tombol WhatsApp dan navigasi soal ujian dipertahankan karena bermakna semantik.
+- Warna: token aksen kategori `--accent-*` di `tokens.css`; notifikasi, dashboard, kartu mapel, dan grafik memakai token. Helper `resources/js/utils/cssColor.ts` (`cssVar`, `withAlpha`) dipakai grafik Chart.js (butuh nilai terselesaikan, bukan `var()`).
+- `Badge` kini satu gaya lembut (`bg-soft-*` dari token status; `secondary`/`light` menjadi netral). `.bg-soft-primary` memakai `--brand-soft-bg`/`--brand-soft-text` sehingga mengikuti tema pilihan admin; override dark hex-nya dihapus.
+- Style inline statis menjadi kelas utilitas `u-*` (dibangkitkan di akhir `components.css`).
+- Modal: `CalendarWorkspace`, `Guru/Tugas/Pengumpulan`, `Siswa/Ujian/Kerjakan` (konfirmasi selesai), `Guru/SoalBank` (form soal) kini memakai `Modal` (submit di footer lewat atribut `form="…"`). Tes baru `tests/Browser/modals.spec.ts` (SoalBank: Esc dan simpan lewat footer; detail pengumpulan: dialog berlabel dan Esc).
+- `ConfirmDialog` menggantikan `window.confirm` di `Admin/Pengumuman`.
+
+Lanjutan (putaran kedua, 2026-10-04):
+
+- Form non-tabel dialihkan ke komponen form (`TextInput`/`SelectInput`/`TextareaInput`): filter dan form `SoalBank`, form `Admin/Pengumuman`, `Guru/Rekap/Absensi` dan `Rekap/Nilai`, pencarian di `Guru/Tugas/{List,Index,Pengumpulan}` dan `Guru/Ujian/{Index,List}`, serta `Guru/Ujian/Builder` (kategori, jadwal, filter bank soal). Form mentah turun 56 menjadi 44.
+- Badge dinamis (`Guru/Rekap/{Sikap,Nilai}`, `Guru/Ujian/{AttemptDetail,Hasil}`, `Siswa/Ujian/Hasil`) memakai `<Badge :color>`; `Siswa/Materi/Index` memakai `Card`. Badge mentah 16 menjadi 10, card mentah 41 menjadi 39.
+- Tes baru di `tests/Browser/modals.spec.ts`: form Pengumuman (judul, target, isi) tersimpan, dan filter/pencarian pengumpulan tugas.
+
+Sisa yang sengaja tidak diubah:
+
+- Input padat di dalam tabel (`score-input`, `attendance-select`, `attitude-select`, `wali-attendance-select`, bobot poin di Builder): dipakai handler keyboard/paste dan tes; membungkusnya dengan komponen form (yang menambah `div` pembungkus dan label) berisiko merusak navigasi Enter/paste.
+- `<select>` dengan nilai numerik/null yang dibandingkan secara ketat (`Admin/Rekap`, `Guru/Nilai/Index`, `Guru/Sikap/Index`, `Guru/Rekap/Sikap`) dan `select multiple` di `Admin/Pengumuman`: `SelectInput` selalu memancarkan string.
+- `Durasi` di `Guru/Ujian/Builder` (`v-model.number` pada komponen akan menempelkan `modelModifiers` ke elemen `input`).
+- Antarmuka pengerjaan ujian (`Siswa/Ujian/Kerjakan.vue`): bilah atas `bg-primary text-white`, kartu soal, navigator, dan legenda nomor adalah chrome CBT khusus; kartu dan badge legenda dibiarkan.
+- Kartu bersarang di `Guru/Ujian/Index` dan `AttemptDetail` (kartu `border shadow-none` di dalam kartu).
+- Badge `*-badge` khusus di `Guru/JadwalMengajar` (kelas komponen sendiri, bukan `.badge` Bootstrap).
+- Pemindahan `<style>` di `.vue` ke token (74 hex): Fase 5.
+- Tinjauan visual semua 88 halaman per peran: ditunda ke Fase 6 (verifikasi akhir); saat ini hanya dashboard siswa, Pengumuman admin, Rekap admin, dan modal SoalBank yang ditinjau lewat tangkapan layar.
+
+Verifikasi: `npm run typecheck` dan `npm run build` hijau; `npm run test:browser` 23 lolos, 2 gagal yang sudah gagal sebelum Fase 3 (`grade paste and attendance save`, `searchable select opens upward`).
+
+### Fase 5: Pembersihan CSS (selesai 2026-10-04)
+
+Dibandingkan per piksel dengan tangkapan baseline (4 peran x terang/gelap x 1366/390 px, 3 sampai 7 halaman per peran, dijalankan lewat `toHaveScreenshot`; berkas pembanding sementara sudah dihapus). Perbedaan yang tersisa semuanya dijelaskan: halaman Log Login (memuat waktu), kanvas grafik Chart.js (animasi), kalender (sengaja dipindah ke token), dan kolom "Rata-rata" di `Siswa/Nilai` mode gelap (kini hijau seperti mode terang, sebelumnya tertimpa override gelap).
+
+| Temuan | Baseline | Sekarang |
+|---|---|---|
+| Hex di file CSS (di luar `tokens.css`) | 115 | 0 |
+| Hex di `<style>` .vue | 74 | 32 (semuanya `Login.vue`, terisolasi sengaja; alasan dicatat di komentar file) |
+| `!important` di CSS | 101 | 18 baris (16 `lms-app.css`, 1 `app.css`, 1 `login-isolation.css`), sebagian komentar |
+| `!important` di `<style>` .vue | 18 | 10 (7 Login, 1 Topbar, sisanya komentar/sah) |
+| Selector `[data-bs-theme="dark"]` di CSS dan `<style>` .vue | 136 + 26 | 0 (gelap sepenuhnya dari token) |
+| Variasi media query | 20 | 12 (sisanya spesifik komponen/login) |
+
+Yang dikerjakan:
+
+- Override gelap per komponen dihapus seluruhnya. Mode gelap kini murni dari token: varian `-rgb` Bootstrap (`--bs-light-rgb`, `--bs-white-rgb`, `--bs-dark-rgb`, `--bs-secondary-rgb`, `--bs-tertiary-bg-rgb`, `--bs-light-bg-subtle`, `--bs-code-color`) dipetakan di blok gelap `tokens.css`. Nilai `-rgb` adalah salinan `--surface-muted`, `--text-body`, `--text-muted` (dicatat di komentar; ubah bersamaan).
+- Utilitas yang melawan Bootstrap (`.bg-soft-*`, `.bg-primary/success/warning/danger/info`, `.text-primary/success/warning/danger/info`, `.border-primary/success`) dipusatkan: tiap kelas hanya menetapkan variabel nada (`--soft-bg/--soft-fg`, `--solid-bg/--solid-fg`, `--text-tone`), lalu satu aturan `!important` per jenis. `!important` di blok itu sah karena utilitas Bootstrap sendiri `!important` (ada komentar di file).
+- Tombol topbar tidak lagi memakai `!important`; gayanya lewat variabel `--bs-btn-*`. `btn-light` kini dari token (`components.css`), bukan override gelap.
+- `!important` lain dihapus dengan spesifisitas atau variabel: radius kartu, pagination, overlay sidebar, `main-content`, ukuran kolom (`w-score` dan sejenisnya), `quick-action` (sebelumnya mematikan ring fokus), badge `.badge.bg-*`/`text-bg-*` (digantikan komponen `Badge`).
+- Yang sengaja tetap `!important` (dengan komentar): utilitas warna di atas, ring fokus tombol/form, `.text-xs`, `margin-bottom:0` pada `.form-section` (melawan `.mb-3`), `gap` kolom aksi tabel (melawan `.gap-*`), `prefers-reduced-motion`, penyembunyian nprogress (gaya inline), `margin:0` ikon akun topbar (melawan `.me-1`), dan Login.
+- Fallback hex pada `var(--x, #hex)` dibuang; hex lepas dipetakan ke token (`--on-brand` baru untuk teks di atas warna tema; ikon metrik dan orbit memakai token status/brand-soft; toast memakai `--danger-600`, `--gold-600`, `--info-600`).
+- Kelas yang tidak dirujuk di mana pun dibuang (23 selector, mis. `badge-admin`, `form-section-header`, `login-help`, `sticky-student`). Kelas yang dibentuk dinamis (`app-modal--*`, `bg-soft-*`, `btn-soft`, `dashboard-hero-*`, `metric-*`) sengaja dipertahankan.
+- `responsive-polish.css` digabung ke akhir `app.css` (urutan kaskade sama) dan impornya di `app.ts`/`inertia.ts` dihapus.
+- `CalendarWorkspace`, `AcademicTimeline`, `ChatRoom`: blok gelap `<style>` diganti token.
+
+Temuan dari pemeriksaan browser langsung (setelah Fase 5): pemetaan `--bs-link-color` di Fase 1 tidak pernah berlaku di mode terang karena Bootstrap 5.3 mewarnai `<a>` lewat `--bs-link-color-rgb`; tautan tetap biru bawaan. Diperbaiki di `components.css` (`a { color: var(--bs-link-color) }`). `btn-info` (dipakai 16 tombol "Detail" dan sejenisnya) kini varian lembut dari token status, bukan biru solid, dan `code` memakai `--text-brand` (sebelumnya magenta Bootstrap).
+
+Bug yang ditemukan dan diperbaiki saat pembandingan: menaikkan spesifisitas `.card-header` membuat padding responsif tidak berlaku di mobile (kartu +5 px); `btn-light` menjadi putih di mode gelap setelah override gelap dihapus.
+
+Catatan: audit `!important` mencatat baris, termasuk baris komentar. Target "< 10" tidak tercapai secara harfiah; sisanya adalah daftar sah di atas.
 
 ### Fase 6: Verifikasi akhir
 

@@ -10,7 +10,7 @@ Baca `CLAUDE.md` dan `AGENTS.md` di root repo dulu untuk konvensi stack, environ
 - Ikuti checklist di `docs/LMS_MODERN_UI_TODO.md`. Urutan pengerjaan yang direkomendasikan:
   1. `resources/js/Components/UI/*.vue` (komponen bersama) — perubahan di sini menyebar ke banyak halaman sekaligus.
   2. `resources/js/Layouts/AppShell.vue` dan `resources/js/Components/AppShell/*.vue` (sidebar, topbar, command palette).
-  3. Token/CSS global: `public/css/lms-app.css`, `resources/css/app.css`, `resources/css/responsive-polish.css`.
+  3. Token/CSS global: `resources/css/tokens.css` (token), `lms-app.css`, `components.css`, dan `app.css` di `resources/css/`.
   4. Halaman per menu sesuai daftar "Inventaris Menu untuk Inspeksi Sekaligus", untuk kasus yang tidak tercakup komponen bersama.
 - Centang (`- [x]`) item checklist di `docs/LMS_MODERN_UI_TODO.md` setelah kamu selesaikan, supaya progres terlihat.
 

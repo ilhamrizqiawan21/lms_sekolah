@@ -213,342 +213,11 @@
     width: 38px;
     height: 38px;
     flex: 0 0 38px;
-    padding: 0 !important;
+    padding: 0;
 }
 
 .theme-toggle-btn i {
-    margin: 0 !important;
-}
-
-[data-bs-theme="dark"] body {
-    background: var(--surface-body);
-}
-
-[data-bs-theme="dark"] .modern-sidebar,
-[data-bs-theme="dark"] .modern-topbar {
-    background: var(--surface-card);
-    color: var(--text-body);
-}
-
-[data-bs-theme="dark"] .modern-sidebar {
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.22);
-}
-
-[data-bs-theme="dark"] .modern-topbar {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.24);
-}
-
-[data-bs-theme="dark"] .modern-sidebar .sidebar-logo-icon,
-[data-bs-theme="dark"] .modern-sidebar .sidebar-user-avatar,
-[data-bs-theme="dark"] .modern-topbar .topbar-toggle-btn,
-[data-bs-theme="dark"] .modern-topbar .topbar-icon-btn,
-[data-bs-theme="dark"] .modern-topbar .topbar-account-btn,
-[data-bs-theme="dark"] .modern-topbar .topbar-actions .dropdown-toggle,
-[data-bs-theme="dark"] .topbar-search,
-[data-bs-theme="dark"] .topbar-search kbd {
-    background: var(--surface-muted) !important;
-    color: var(--text-strong) !important;
-    border-color: var(--modern-border) !important;
-}
-
-[data-bs-theme="dark"] .modern-topbar .topbar-toggle-btn:hover,
-[data-bs-theme="dark"] .modern-topbar .topbar-icon-btn:hover,
-[data-bs-theme="dark"] .modern-topbar .topbar-account-btn:hover {
-    background: var(--surface-hover) !important;
-}
-
-[data-bs-theme="dark"] .modern-sidebar .nav-link:hover,
-[data-bs-theme="dark"] .modern-sidebar .nav-link.active,
-[data-bs-theme="dark"] .workspace-tab:hover,
-[data-bs-theme="dark"] .workspace-tab.is-active,
-[data-bs-theme="dark"] .mobile-bottom-link.active {
-    background: color-mix(in srgb, var(--primary-500) 20%, #111827);
-}
-
-[data-bs-theme="dark"] .card,
-[data-bs-theme="dark"] .workspace-panel,
-[data-bs-theme="dark"] .metric-tile,
-[data-bs-theme="dark"] .workspace-tabs,
-[data-bs-theme="dark"] .command-palette,
-[data-bs-theme="dark"] .mobile-bottom-nav {
-    background: var(--surface-card);
-    border-color: var(--modern-border);
-}
-
-[data-bs-theme="dark"] .card-header,
-[data-bs-theme="dark"] .card-footer,
-[data-bs-theme="dark"] .workspace-panel-header,
-[data-bs-theme="dark"] .command-palette-input,
-[data-bs-theme="dark"] .modal-header,
-[data-bs-theme="dark"] .modal-footer {
-    background: var(--surface-card);
-    border-color: var(--border-soft);
-    color: var(--text-strong);
-}
-
-[data-bs-theme="dark"] .dashboard-hero {
-    background: var(--surface-card);
-    border-color: var(--modern-border);
-}
-
-[data-bs-theme="dark"] .quick-action.btn-light,
-[data-bs-theme="dark"] .btn-light {
-    background: var(--surface-muted);
-    border-color: var(--modern-border);
-    color: var(--text-strong);
-}
-
-[data-bs-theme="dark"] .quick-action.btn-light:hover,
-[data-bs-theme="dark"] .btn-light:hover {
-    background: var(--surface-hover);
-    border-color: var(--border-strong);
-    color: var(--text-strong);
-}
-
-[data-bs-theme="dark"] .workspace-summary-item:hover,
-[data-bs-theme="dark"] .action-queue-link:hover,
-[data-bs-theme="dark"] .command-palette-item:hover,
-[data-bs-theme="dark"] .command-palette-item:focus-visible,
-[data-bs-theme="dark"] .command-palette-item.is-active {
-    background: var(--surface-hover);
-}
-
-[data-bs-theme="dark"] .workspace-summary-icon {
-    background: var(--surface-muted);
-}
-
-[data-bs-theme="dark"] .course-card {
-    background: var(--surface-card);
-    border-color: var(--modern-border);
-}
-
-[data-bs-theme="dark"] .dashboard-hero-admin .dashboard-hero-orbit,
-[data-bs-theme="dark"] .dashboard-hero-teacher .dashboard-hero-orbit,
-[data-bs-theme="dark"] .dashboard-hero-student .dashboard-hero-orbit,
-[data-bs-theme="dark"] .metric-icon,
-[data-bs-theme="dark"] .course-card-mark,
-[data-bs-theme="dark"] .action-queue-icon,
-[data-bs-theme="dark"] .empty-state-icon {
-    background: color-mix(in srgb, currentColor 18%, #111827);
-}
-
-[data-bs-theme="dark"] .searchable-select-menu,
-[data-bs-theme="dark"] .app-table-wrapper,
-[data-bs-theme="dark"] .modal-content,
-[data-bs-theme="dark"] .dropdown-menu {
-    color: var(--bs-body-color);
-    background-color: var(--surface-card);
-    border-color: var(--bs-border-color);
-}
-
-[data-bs-theme="dark"] .content-summary,
-[data-bs-theme="dark"] .bg-light-subtle,
-[data-bs-theme="dark"] .bg-body-tertiary {
-    background: var(--bs-tertiary-bg) !important;
-}
-
-[data-bs-theme="dark"] .page-header h1,
-[data-bs-theme="dark"] .page-header h4 {
-    color: var(--text-strong);
-    background: none;
-    -webkit-background-clip: unset;
-    background-clip: unset;
-}
-
-[data-bs-theme="dark"] .text-dark {
-    color: var(--bs-body-color) !important;
-}
-
-[data-bs-theme="dark"] .text-secondary {
-    color: var(--text-muted) !important;
-}
-
-[data-bs-theme="dark"] .bg-light,
-[data-bs-theme="dark"] .bg-white {
-    background-color: var(--surface-muted) !important;
-    color: var(--text-body) !important;
-}
-
-[data-bs-theme="dark"] .border,
-[data-bs-theme="dark"] .border-top,
-[data-bs-theme="dark"] .border-end,
-[data-bs-theme="dark"] .border-bottom,
-[data-bs-theme="dark"] .border-start,
-[data-bs-theme="dark"] .dropdown-divider {
-    border-color: var(--border-soft) !important;
-}
-
-[data-bs-theme="dark"] .form-control,
-[data-bs-theme="dark"] .form-select,
-[data-bs-theme="dark"] .input-group-text {
-    background-color: var(--surface-input);
-    border-color: var(--border-strong);
-    color: var(--text-strong);
-}
-
-[data-bs-theme="dark"] .form-control::placeholder {
-    color: color-mix(in srgb, var(--text-muted) 82%, transparent);
-}
-
-[data-bs-theme="dark"] .form-control:focus,
-[data-bs-theme="dark"] .form-select:focus {
-    background-color: #101a2c;
-    border-color: color-mix(in srgb, var(--primary-500) 58%, var(--border-strong));
-    color: var(--text-strong);
-}
-
-[data-bs-theme="dark"] .form-label,
-[data-bs-theme="dark"] .form-check-label {
-    color: var(--text-body);
-}
-
-[data-bs-theme="dark"] .table {
-    --bs-table-color: var(--text-body);
-    --bs-table-bg: var(--surface-card);
-    --bs-table-border-color: var(--border-soft);
-    --bs-table-striped-bg: color-mix(in srgb, var(--surface-muted) 58%, var(--surface-card));
-    --bs-table-hover-color: var(--text-strong);
-    --bs-table-hover-bg: var(--surface-hover);
-    --bs-table-active-color: var(--text-strong);
-    --bs-table-active-bg: color-mix(in srgb, var(--primary-500) 18%, var(--surface-card));
-}
-
-[data-bs-theme="dark"] .table th,
-[data-bs-theme="dark"] .table-light {
-    --bs-table-bg: var(--surface-muted);
-    --bs-table-color: var(--text-strong);
-    --bs-table-border-color: var(--border-soft);
-    background: var(--surface-muted);
-    color: var(--text-strong);
-    border-color: var(--border-soft);
-}
-
-[data-bs-theme="dark"] .table td,
-[data-bs-theme="dark"] .table > :not(caption) > * > * {
-    color: var(--text-body);
-    border-color: var(--border-soft);
-}
-
-[data-bs-theme="dark"] .table-hover > tbody > tr:hover > * {
-    --bs-table-bg-state: var(--surface-hover);
-    color: var(--text-strong);
-}
-
-[data-bs-theme="dark"] .table .text-muted {
-    color: var(--text-muted) !important;
-}
-
-[data-bs-theme="dark"] .app-table .sticky-student,
-[data-bs-theme="dark"] .app-table thead .sticky-student {
-    background: var(--surface-card);
-    box-shadow: 1px 0 0 var(--border-soft);
-}
-
-[data-bs-theme="dark"] .table-responsive {
-    scrollbar-color: var(--border-strong) transparent;
-}
-
-[data-bs-theme="dark"] .table-responsive::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
-}
-
-[data-bs-theme="dark"] .dropdown-item,
-[data-bs-theme="dark"] .dropdown-item-text {
-    color: var(--text-body);
-}
-
-[data-bs-theme="dark"] .dropdown-item:hover,
-[data-bs-theme="dark"] .dropdown-item:focus {
-    background: var(--surface-hover);
-    color: var(--text-strong);
-}
-
-[data-bs-theme="dark"] .notification-link.unread,
-[data-bs-theme="dark"] .app-info-item-unread {
-    background: color-mix(in srgb, var(--status-danger-bg) 65%, var(--surface-card));
-}
-
-[data-bs-theme="dark"] .app-info-item,
-[data-bs-theme="dark"] .app-mobile-list-item,
-[data-bs-theme="dark"] .action-queue-item,
-[data-bs-theme="dark"] .workspace-summary-item,
-[data-bs-theme="dark"] .form-section,
-[data-bs-theme="dark"] .form-help-panel,
-[data-bs-theme="dark"] .login-help {
-    background: var(--surface-card);
-    border-color: var(--border-soft);
-    color: var(--text-body);
-}
-
-[data-bs-theme="dark"] .app-info-item-link:hover,
-[data-bs-theme="dark"] .app-info-item-link:focus-visible,
-[data-bs-theme="dark"] .workspace-summary-item:hover,
-[data-bs-theme="dark"] .action-queue-link:hover {
-    background: var(--surface-hover);
-}
-
-[data-bs-theme="dark"] .app-info-icon,
-[data-bs-theme="dark"] .form-section-icon {
-    background: color-mix(in srgb, currentColor 18%, var(--surface-card));
-}
-
-[data-bs-theme="dark"] .badge.bg-secondary,
-[data-bs-theme="dark"] .badge.text-bg-secondary,
-[data-bs-theme="dark"] .badge.bg-light {
-    background: var(--surface-muted) !important;
-    color: var(--text-body) !important;
-}
-
-[data-bs-theme="dark"] .badge.bg-success,
-[data-bs-theme="dark"] .badge.text-bg-success,
-[data-bs-theme="dark"] .badge-hadir,
-[data-bs-theme="dark"] .bg-soft-success {
-    background: var(--status-success-bg) !important;
-    color: var(--status-success-text) !important;
-}
-
-[data-bs-theme="dark"] .badge.bg-warning,
-[data-bs-theme="dark"] .badge.text-bg-warning,
-[data-bs-theme="dark"] .badge-sakit,
-[data-bs-theme="dark"] .bg-soft-warning {
-    background: var(--status-warning-bg) !important;
-    color: var(--status-warning-text) !important;
-}
-
-[data-bs-theme="dark"] .badge.bg-danger,
-[data-bs-theme="dark"] .badge.text-bg-danger,
-[data-bs-theme="dark"] .badge-alpha,
-[data-bs-theme="dark"] .bg-soft-danger {
-    background: var(--status-danger-bg) !important;
-    color: var(--status-danger-text) !important;
-}
-
-[data-bs-theme="dark"] .badge.bg-info,
-[data-bs-theme="dark"] .badge.text-bg-info,
-[data-bs-theme="dark"] .badge-izin,
-[data-bs-theme="dark"] .bg-soft-info {
-    background: var(--status-info-bg) !important;
-    color: var(--status-info-text) !important;
-}
-
-[data-bs-theme="dark"] .bg-soft-primary {
-    background: var(--primary-100) !important;
-    color: #bbf7d0 !important;
-}
-
-[data-bs-theme="dark"] .alert-success,
-[data-bs-theme="dark"] .alert-warning,
-[data-bs-theme="dark"] .alert-danger,
-[data-bs-theme="dark"] .alert-info {
-    border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-}
-
-[data-bs-theme="dark"] .progress {
-    background: var(--surface-muted);
-}
-
-[data-bs-theme="dark"] code {
-    color: #f0abfc;
+    margin: 0;
 }
 
 @media (max-width: 991.98px) {
@@ -587,7 +256,7 @@
     }
 
     .app-table-filter {
-        margin-bottom: 1rem !important;
+        margin-bottom: 1rem;
     }
 
     .app-table-filter .btn {
@@ -637,9 +306,522 @@
 /* Sembunyikan loading bar progress bawaan */
 #nprogress,
 .nprogress-busy #nprogress {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
+    display: none !important; /* nprogress menyuntik gaya inline */
 }
 
+/* ── Penyempurnaan responsif (dulu responsive-polish.css; dimuat terakhir agar menang atas aturan di atas) ── */
+/* Global responsive layout polish
+ * Keeps existing page/component markup intact while making shared surfaces
+ * behave predictably across desktop, tablet and mobile widths.
+ */
+
+:root {
+    --responsive-page-gutter: clamp(0.9rem, 2vw, 1.5rem);
+    --responsive-card-gap: clamp(0.75rem, 1.5vw, 1.25rem);
+    --responsive-card-radius: 0.875rem;
+}
+
+html,
+body,
+#app {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    max-width: 100%;
+}
+
+.page-content {
+    width: 100%;
+    min-width: 0;
+    padding-left: var(--responsive-page-gutter);
+    padding-right: var(--responsive-page-gutter);
+}
+
+.page-content > * {
+    min-width: 0;
+}
+
+.page-content .row {
+    --bs-gutter-x: var(--responsive-card-gap);
+    --bs-gutter-y: var(--responsive-card-gap);
+    min-width: 0;
+}
+
+.page-content .row > [class*="col-"] {
+    min-width: 0;
+}
+
+.card,
+.workspace-panel,
+.metric-tile,
+.dashboard-hero,
+.workspace-tabs,
+.content-summary {
+    max-width: 100%;
+    min-width: 0;
+    border-radius: min(var(--card-radius, var(--responsive-card-radius)), var(--responsive-card-radius));
+}
+
+.card-header,
+.card-body,
+.card-footer {
+    min-width: 0;
+}
+
+.card-header {
+    gap: 0.75rem;
+}
+
+.card-header > * {
+    min-width: 0;
+}
+
+.card-header h1,
+.card-header h2,
+.card-header h3,
+.card-header h4,
+.card-header h5,
+.card-header h6 {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Metrics keep a stable card width on desktop, then settle into predictable
+ * tablet and mobile columns. */
+.metric-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 205px), 1fr));
+    gap: var(--responsive-card-gap);
+    width: 100%;
+    min-width: 0;
+}
+
+.metric-tile {
+    width: 100%;
+    min-width: 0;
+    min-height: 74px;
+}
+
+.metric-copy {
+    min-width: 0;
+}
+
+.metric-copy strong,
+.metric-copy small {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Hero surfaces should shrink rather than create horizontal overflow. */
+.dashboard-hero {
+    min-height: 0;
+}
+
+.dashboard-hero > *,
+.dashboard-hero .dashboard-hero-copy {
+    min-width: 0;
+}
+
+/* Shared tables stay usable: desktop keeps columns proportional, while
+ * smaller screens get a controlled horizontal viewport when no mobile-card
+ * representation exists. */
+.app-table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.app-table-wrapper .app-table,
+.app-table-wrapper table {
+    max-width: none;
+}
+
+.app-table-wrapper.table-responsive {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+
+.app-table-wrapper .app-table th,
+.app-table-wrapper .app-table td {
+    max-width: 0;
+}
+
+.app-table-wrapper .app-table td .text-truncate,
+.app-table-wrapper .app-table td > strong,
+.app-table-wrapper .app-table td > span {
+    min-width: 0;
+}
+
+/* Forms and action bars should never force the page wider than its viewport. */
+.form-control,
+.form-select,
+.input-group,
+.input-group > *,
+.app-page-actions,
+.content-summary-actions {
+    min-width: 0;
+}
+
+.app-page-actions,
+.content-summary-actions {
+    max-width: 100%;
+}
+
+/* Long labels, names and URLs are common in the LMS. */
+.page-content .text-break,
+.page-content td,
+.page-content th,
+.page-content .dropdown-item {
+    overflow-wrap: anywhere;
+}
+
+/* Dropdowns/modals should remain inside narrow viewports. */
+.dropdown-menu {
+    max-width: min(92vw, 420px);
+}
+
+.modal-dialog {
+    width: auto;
+    max-width: calc(100vw - 1.5rem);
+}
+
+.modal-content {
+    min-width: 0;
+}
+
+/* Mobile navigation respects devices with a home indicator. */
+.mobile-bottom-nav {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+/* Tablet: give dense two-column pages enough breathing room. */
+@media (max-width: 991.98px) {
+    .page-content {
+        padding-top: clamp(1rem, 2.5vw, 1.5rem);
+        padding-bottom: clamp(1rem, 2.5vw, 1.5rem);
+    }
+
+    .page-content > .row > [class*="col-md-"],
+    .page-content > .row > [class*="col-lg-"] {
+        width: 100%;
+    }
+
+    .metric-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .app-page-header {
+        align-items: stretch;
+    }
+
+    .app-page-actions {
+        justify-content: flex-start;
+    }
+
+    .topbar {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+        gap: 0.5rem;
+    }
+
+    .topbar-actions {
+        gap: 0.35rem;
+    }
+
+    .topbar-actions .dropdown-toggle {
+        max-width: 42vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .sidebar {
+        width: min(var(--sidebar-width), 88vw);
+    }
+}
+
+/* Phone landscape / large phones. */
+@media (max-width: 767.98px) {
+    .metric-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .metric-tile {
+        min-height: 76px;
+    }
+
+    .dashboard-hero {
+        padding: clamp(1rem, 4vw, 1.5rem);
+    }
+
+    .dashboard-hero .dashboard-hero-orbit {
+        display: none;
+    }
+
+    .page-header {
+        margin-bottom: 1rem;
+    }
+
+    .page-header h1 {
+        font-size: clamp(1.35rem, 5vw, 1.8rem);
+    }
+
+    .content-summary {
+        align-items: stretch;
+    }
+
+    .content-summary-actions,
+    .app-page-actions {
+        width: 100%;
+    }
+
+    .content-summary-actions > *,
+    .app-page-actions > * {
+        flex: 1 1 auto;
+        min-width: min(160px, 100%);
+    }
+
+    .card-header {
+        flex-wrap: wrap;
+    }
+
+    .card-header .assignment-search,
+    .card-header .app-table-filter,
+    .card-header .form-control {
+        width: 100%;
+    }
+
+    .app-table-wrapper .app-table {
+        min-width: var(--app-table-min-width, 680px);
+    }
+
+    .modal-dialog {
+        margin: 0.75rem;
+        max-width: calc(100vw - 1.5rem);
+    }
+}
+
+/* Small phones: compact but still touch-friendly. */
+@media (max-width: 575.98px) {
+    .metric-strip {
+        grid-template-columns: 1fr;
+    }
+
+    .metric-tile {
+        min-height: 68px;
+    }
+
+    .page-content {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .topbar {
+        padding-left: 0.6rem;
+        padding-right: 0.6rem;
+    }
+
+    .topbar-brand {
+        gap: 0.45rem;
+    }
+
+    .topbar-title-main {
+        font-size: 0.82rem;
+    }
+
+    .topbar-title-sub {
+        display: none;
+    }
+
+    .topbar-actions .dropdown-toggle {
+        max-width: 44vw;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .topbar-actions .theme-toggle-btn,
+    .topbar-actions .topbar-icon-btn {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
+    }
+
+    .card-header,
+    .card-body,
+    .card-footer {
+        padding-left: 0.9rem;
+        padding-right: 0.9rem;
+    }
+
+    .card-header .btn,
+    .card-footer .btn {
+        max-width: 100%;
+    }
+
+    .content-summary-actions > *,
+    .app-page-actions > * {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .form-label {
+        font-size: 0.82rem;
+    }
+
+    .btn {
+        min-height: 38px;
+    }
+
+    .app-table-wrapper {
+        border-radius: 0.55rem;
+    }
+
+    .app-table-wrapper .app-table {
+        min-width: var(--app-table-min-width, 620px);
+    }
+
+    .notification-menu {
+        width: min(92vw, 340px);
+    }
+}
+
+/* Ultra-small screens: prevent action groups and badges from overflowing. */
+@media (max-width: 399.98px) {
+    .metric-tile {
+        padding: 0.7rem;
+    }
+
+    .metric-icon {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+    }
+
+    .topbar-toggle-btn {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
+    }
+
+    .topbar-actions .dropdown-toggle {
+        max-width: 38vw;
+    }
+}
+
+/* Final visual pass: keep the application calm and readable while retaining
+ * the school's dynamic color theme. These overrides apply to the modern
+ * Inertia shell and leave legacy Blade pages unchanged. */
+.app-shell .modern-topbar {
+    background: var(--surface-card);
+    backdrop-filter: none;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.app-shell .modern-sidebar {
+    background: var(--surface-card);
+    box-shadow: 4px 0 18px rgba(15, 23, 42, 0.05);
+}
+
+.modern-topbar .topbar-search,
+.modern-topbar .topbar-toggle-btn,
+.modern-topbar .topbar-icon-btn,
+.modern-topbar .topbar-account-btn {
+    border: 1px solid var(--modern-border, rgba(148, 163, 184, 0.24));
+}
+
+.dashboard-hero {
+    background: var(--surface-card);
+    border: 1px solid var(--modern-border, rgba(148, 163, 184, 0.24));
+    box-shadow: var(--modern-shadow-sm, 0 8px 20px rgba(15, 23, 42, 0.06));
+}
+
+.app-shell .card,
+.app-shell .workspace-panel,
+.app-shell .metric-tile {
+    box-shadow: var(--modern-shadow-sm, 0 8px 20px rgba(15, 23, 42, 0.06));
+}
+
+.app-shell .card:hover,
+.app-shell .stat-card:hover,
+.app-shell .metric-tile:hover {
+    transform: none;
+    box-shadow: var(--modern-shadow, 0 14px 36px rgba(15, 23, 42, 0.08));
+}
+
+.app-shell .btn-primary,
+.app-shell .btn-success {
+    background-color: var(--primary-600, var(--app-primary));
+    border-color: var(--primary-600, var(--app-primary));
+}
+
+.app-shell .btn-primary:hover,
+.app-shell .btn-success:hover {
+    background-color: var(--primary-700, var(--app-primary));
+    border-color: var(--primary-700, var(--app-primary));
+    transform: none;
+}
+
+.app-shell .page-header h1,
+.app-shell .page-header h4,
+.app-shell .dashboard-hero h1 {
+    letter-spacing: -0.02em;
+}
+
+@media (max-width: 767.98px) {
+    .app-shell .app-table-wrapper {
+        box-shadow: none;
+    }
+
+    .app-shell .app-table-wrapper .table-action-column {
+        position: sticky;
+        right: 0;
+        z-index: 3;
+        background: var(--surface-card);
+        box-shadow: -5px 0 8px rgba(15, 23, 42, 0.06);
+    }
+
+    .app-shell .app-table-wrapper thead .table-action-column {
+        background: var(--surface-muted);
+    }
+
+    .content-summary-actions,
+    .app-page-actions {
+        gap: 0.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-shell .card:hover,
+    .app-shell .stat-card:hover,
+    .app-shell .metric-tile:hover,
+    .app-shell .btn-primary:hover,
+    .app-shell .btn-success:hover {
+        box-shadow: var(--modern-shadow-sm, 0 8px 20px rgba(15, 23, 42, 0.06));
+    }
+}
+
+/* Keep the mobile navigation and drawer mutually exclusive. The drawer sits
+ * above the page overlay, while the bottom navigation remains interactive
+ * above that overlay unless it is explicitly hidden in the open state. */
+@media (max-width: 991.98px) {
+    .app-shell.sidebar-is-open .mobile-bottom-nav {
+        display: none;
+    }
+}

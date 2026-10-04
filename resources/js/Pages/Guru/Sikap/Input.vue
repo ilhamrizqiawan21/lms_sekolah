@@ -114,7 +114,7 @@ function submit() {
 
             <Card title="Sikap Spiritual (KI-1)" icon="bi-star-fill" body-class="p-0" class="mb-3">
                 <template #actions>
-                    <span class="text-muted text-xs">Skala 1-5</span>
+                    <span class="text-body-secondary text-xs">Skala 1-5</span>
                 </template>
 
                 <TableWrapper>
@@ -131,21 +131,21 @@ function submit() {
                         </colgroup>
                         <thead class="table-light">
                             <tr>
-                                <th class="text-center">#</th>
-                                <th>Nama Siswa</th>
-                                <th
+                                <th scope="col" class="text-center">#</th>
+                                <th scope="col">Nama Siswa</th>
+                                <th scope="col"
                                     v-for="field in spiritualFields"
                                     :key="field.key"
                                     class="text-center"
                                 >
                                     {{ field.label }}
                                 </th>
-                                <th class="text-center">Rata-rata</th>
+                                <th scope="col" class="text-center">Rata-rata</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="student in students" :key="`spiritual-${student.id}`">
-                                <td class="text-center text-muted">{{ student.no }}</td>
+                                <td class="text-center text-body-secondary">{{ student.no }}</td>
                                 <td>{{ student.nama }}</td>
                                 <td v-for="field in spiritualFields" :key="`${student.id}-${field.key}`">
                                     <select
@@ -164,7 +164,7 @@ function submit() {
                                     >
                                         {{ formatAverage(average('spiritual', student.id, spiritualFields)) }}
                                     </strong>
-                                    <span v-else class="text-muted">-</span>
+                                    <span v-else class="text-body-secondary">-</span>
                                 </td>
                             </tr>
                             <tr v-if="!students.length">
@@ -179,7 +179,7 @@ function submit() {
 
             <Card title="Sikap Sosial (KI-2)" icon="bi-people-fill" body-class="p-0" class="mb-3">
                 <template #actions>
-                    <span class="text-muted text-xs">Skala 1-5</span>
+                    <span class="text-body-secondary text-xs">Skala 1-5</span>
                 </template>
 
                 <TableWrapper>
@@ -196,21 +196,21 @@ function submit() {
                         </colgroup>
                         <thead class="table-light">
                             <tr>
-                                <th class="text-center">#</th>
-                                <th>Nama Siswa</th>
-                                <th
+                                <th scope="col" class="text-center">#</th>
+                                <th scope="col">Nama Siswa</th>
+                                <th scope="col"
                                     v-for="field in sosialFields"
                                     :key="field.key"
                                     class="text-center"
                                 >
                                     {{ field.label }}
                                 </th>
-                                <th class="text-center">Rata-rata</th>
+                                <th scope="col" class="text-center">Rata-rata</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="student in students" :key="`sosial-${student.id}`">
-                                <td class="text-center text-muted">{{ student.no }}</td>
+                                <td class="text-center text-body-secondary">{{ student.no }}</td>
                                 <td>{{ student.nama }}</td>
                                 <td v-for="field in sosialFields" :key="`${student.id}-${field.key}`">
                                     <select
@@ -229,7 +229,7 @@ function submit() {
                                     >
                                         {{ formatAverage(average('sosial', student.id, sosialFields)) }}
                                     </strong>
-                                    <span v-else class="text-muted">-</span>
+                                    <span v-else class="text-body-secondary">-</span>
                                 </td>
                             </tr>
                             <tr v-if="!students.length">
@@ -247,7 +247,7 @@ function submit() {
                     <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Kembali
                 </a>
                 <div class="d-flex align-items-center gap-3">
-                    <span class="text-muted text-xs">{{ students.length }} siswa</span>
+                    <span class="text-body-secondary text-xs">{{ students.length }} siswa</span>
                     <Button type="submit" color="success" size="" icon="bi-save" :disabled="form.processing">
                         {{ form.processing ? 'Menyimpan...' : 'Simpan Semua' }}
                     </Button>

@@ -299,23 +299,23 @@ function exportAllUrl(format: 'excel' | 'pdf') {
                             <table class="table table-bordered table-hover mb-0 attendance-table">
                                 <thead>
                                     <tr>
-                                        <th class="text-center" style="width:44px;">No</th>
-                                        <th class="text-center" style="width:70px;">NIS</th>
-                                        <th>Nama</th>
-                                        <th
+                                        <th scope="col" class="text-center u-w-44px">No</th>
+                                        <th scope="col" class="text-center u-w-70px">NIS</th>
+                                        <th scope="col">Nama</th>
+                                        <th scope="col"
                                             v-for="week in weeks"
                                             :key="week.key"
-                                            class="text-center"
-                                            style="min-width:72px;"
+                                            class="text-center u-minw-72px"
+                                           
                                         >
                                             {{ week.title }}<br>
-                                            <small class="text-muted">{{ week.label }}</small>
-                                            <small v-if="week.lesson_title" class="text-muted d-block">{{ week.lesson_title }}</small>
+                                            <small class="text-body-secondary">{{ week.label }}</small>
+                                            <small v-if="week.lesson_title" class="text-body-secondary d-block">{{ week.lesson_title }}</small>
                                         </th>
-                                        <th class="text-center" style="width:42px;">H</th>
-                                        <th class="text-center" style="width:42px;">S</th>
-                                        <th class="text-center" style="width:42px;">I</th>
-                                        <th class="text-center" style="width:42px;">A</th>
+                                        <th scope="col" class="text-center u-w-42px">H</th>
+                                        <th scope="col" class="text-center u-w-42px">S</th>
+                                        <th scope="col" class="text-center u-w-42px">I</th>
+                                        <th scope="col" class="text-center u-w-42px">A</th>
                                     </tr>
                                     <tr>
                                         <td colspan="3"></td>
@@ -348,7 +348,7 @@ function exportAllUrl(format: 'excel' | 'pdf') {
                                         :key="student.id"
                                         :class="{ 'attendance-row-highlighted': Number(student.id) === Number(highlightedSiswaId) }"
                                     >
-                                        <td class="text-center text-muted align-middle">{{ student.no }}</td>
+                                        <td class="text-center text-body-secondary align-middle">{{ student.no }}</td>
                                         <td class="align-middle">{{ student.nis }}</td>
                                         <td class="align-middle">
                                             <strong>{{ student.nama }}</strong>
@@ -373,7 +373,7 @@ function exportAllUrl(format: 'excel' | 'pdf') {
                                                     {{ option.label }}
                                                 </option>
                                             </select>
-                                            <span v-else class="text-muted">-</span>
+                                            <span v-else class="text-body-secondary">-</span>
                                         </td>
                                         <td class="text-center align-middle text-success fw-bold">{{ counts(student.id).hadir }}</td>
                                         <td class="text-center align-middle text-warning">{{ counts(student.id).sakit }}</td>
@@ -428,9 +428,9 @@ function exportAllUrl(format: 'excel' | 'pdf') {
     align-items: center;
     gap: 0.55rem;
     padding: 0.7rem 0.9rem;
-    border-bottom: 1px solid var(--gray-200, #e5e7eb);
-    background: var(--primary-50, #f0fdf4);
-    color: var(--text-body, #374151);
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--primary-50);
+    color: var(--text-body);
     font-size: 0.8rem;
 }
 
@@ -439,7 +439,7 @@ function exportAllUrl(format: 'excel' | 'pdf') {
 }
 
 .attendance-row-highlighted > td {
-    background: var(--primary-50, #f0fdf4) !important;
+    background: var(--primary-50);
 }
 
 .attendance-row-highlighted > td:first-child {
@@ -455,7 +455,7 @@ function exportAllUrl(format: 'excel' | 'pdf') {
     .attendance-table td:nth-child(-n + 3) {
         position: sticky;
         z-index: 2;
-        background: var(--surface-card, #fff);
+        background: var(--surface-card);
     }
 
     .attendance-table th:nth-child(1),
@@ -467,12 +467,12 @@ function exportAllUrl(format: 'excel' | 'pdf') {
 
     .attendance-table thead th:nth-child(-n + 3) {
         z-index: 4;
-        background: var(--surface-muted, #f8fafc);
+        background: var(--surface-muted);
     }
 
     .attendance-table tbody tr:hover > td:nth-child(-n + 3),
     .attendance-table .attendance-row-highlighted > td:nth-child(-n + 3) {
-        background: var(--surface-hover, var(--surface-card, #fff)) !important;
+        background: var(--surface-hover);
     }
 
     .attendance-select {

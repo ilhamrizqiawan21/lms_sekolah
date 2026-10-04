@@ -70,7 +70,7 @@
                         $predBg = $rata >= 92 ? 'success' : ($rata >= 83 ? 'primary' : ($rata >= 75 ? 'warning text-dark' : 'danger'));
                     @endphp
                     <tr>
-                        <td class="text-center text-muted">{{ $nilai->firstItem() + $i }}</td>
+                        <td class="text-center text-body-secondary">{{ $nilai->firstItem() + $i }}</td>
                         <td>{{ $n->siswa->user->nama_lengkap ?? $n->siswa->nis ?? '—' }}</td>
                         <td class="d-none d-md-table-cell">{{ $n->siswa->kelas->nama_kelas ?? '—' }}</td>
                         <td>{{ $n->kelasMapel->mataPelajaran->nama_mapel ?? '—' }}</td>
@@ -89,13 +89,13 @@
                             @if($rata)
                             <span class="badge bg-{{ $predBg }}">{{ $predikat }}</span>
                             @else
-                            <span class="text-muted">—</span>
+                            <span class="text-body-secondary">—</span>
                             @endif
                         </td>
                     </tr>
                         @endforeach
                     @else
-                    <tr><td colspan="14" class="text-center text-muted py-4">Tidak ada data nilai.</td></tr>
+                    <tr><td colspan="14" class="text-center text-body-secondary py-4">Tidak ada data nilai.</td></tr>
                     @endif
                 </tbody>
             </table>

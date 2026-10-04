@@ -277,10 +277,10 @@ function submit() {
                 <TableWrapper>
                     <div class="p-3 border-bottom bg-light-subtle">
                         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
-                            <span class="text-muted small">Tekan Enter untuk ke siswa berikutnya pada kolom nilai yang sama.</span>
+                            <span class="text-body-secondary small">Tekan Enter untuk ke siswa berikutnya pada kolom nilai yang sama.</span>
                             <div class="d-flex align-items-center gap-2">
-                                <span v-if="pasteStatus" class="badge bg-soft-success">{{ pasteStatus }}</span>
-                                <span class="badge bg-soft-primary">{{ activeGroup.students.length }} siswa</span>
+                                <Badge v-if="pasteStatus" color="success">{{ pasteStatus }}</Badge>
+                                <Badge color="primary">{{ activeGroup.students.length }} siswa</Badge>
                             </div>
                         </div>
                     </div>
@@ -295,35 +295,35 @@ function submit() {
                         </colgroup>
                         <thead class="table-light">
                             <tr>
-                                <th class="text-center w-row-number">#</th>
-                                <th class="min-w-nis">NIS</th>
-                                <th class="min-w-student">Nama Siswa</th>
-                                <th colspan="4" class="text-center bg-soft-success">Sumatif Harian</th>
-                                <th :colspan="Math.max(taskFields.length, 1)" class="text-center bg-soft-success">Nilai Harian</th>
-                                <th class="text-center bg-soft-warning">STS</th>
-                                <th class="text-center bg-soft-warning">SAS</th>
-                                <th class="text-center bg-soft-danger">SAT</th>
-                                <th class="text-center bg-soft-muted">Rata-rata Akhir</th>
+                                <th scope="col" class="text-center w-row-number">#</th>
+                                <th scope="col" class="min-w-nis">NIS</th>
+                                <th scope="col" class="min-w-student">Nama Siswa</th>
+                                <th scope="colgroup" colspan="4" class="text-center bg-soft-success">Sumatif Harian</th>
+                                <th scope="colgroup" :colspan="Math.max(taskFields.length, 1)" class="text-center bg-soft-success">Nilai Harian</th>
+                                <th scope="col" class="text-center bg-soft-warning">STS</th>
+                                <th scope="col" class="text-center bg-soft-warning">SAS</th>
+                                <th scope="col" class="text-center bg-soft-danger">SAT</th>
+                                <th scope="col" class="text-center bg-soft-muted">Rata-rata Akhir</th>
                             </tr>
                             <tr class="table-light">
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th v-for="field in fieldGroups.slice(0, 4)" :key="field.key" class="text-center w-score">
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col" v-for="field in fieldGroups.slice(0, 4)" :key="field.key" class="text-center w-score">
                                     {{ field.label }}
                                 </th>
-                                <th v-for="task in taskFields" :key="task.id" class="text-center w-score" :title="task.judul">
+                                <th scope="col" v-for="task in taskFields" :key="task.id" class="text-center w-score" :title="task.judul">
                                     {{ task.label }}
                                 </th>
-                                <th v-for="field in fieldGroups.slice(4)" :key="field.key" class="text-center w-score">
+                                <th scope="col" v-for="field in fieldGroups.slice(4)" :key="field.key" class="text-center w-score">
                                     {{ field.label }}
                                 </th>
-                                <th class="text-center w-score-total">Auto</th>
+                                <th scope="col" class="text-center w-score-total">Auto</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="(student, studentIndex) in activeGroup.students" :key="`${activeGroup.kelas_mapel_id}-${student.id}`">
-                                <td class="text-center text-muted">{{ student.no }}</td>
+                                <td class="text-center text-body-secondary">{{ student.no }}</td>
                                 <td><code>{{ student.nis }}</code></td>
                                 <td>{{ student.nama }}</td>
                                 <template v-for="field in fieldGroups.slice(0, 4)" :key="`${activeGroup.kelas_mapel_id}-${student.id}-${field.key}`">
@@ -379,7 +379,7 @@ function submit() {
                                     <strong v-if="formatScore(student.rata_akhir)" class="score-result" :class="scoreClass(student.rata_akhir)">
                                         {{ formatScore(student.rata_akhir) }}
                                     </strong>
-                                    <span v-else class="text-muted">-</span>
+                                    <span v-else class="text-body-secondary">-</span>
                                 </td>
                             </tr>
                             <tr v-if="!activeGroup.students.length">
@@ -455,7 +455,7 @@ function submit() {
 }
 
 .grade-table .score-input {
-    width: 100% !important;
+    width: 100%;
     min-width: 0;
     height: 31px;
     min-height: 31px;

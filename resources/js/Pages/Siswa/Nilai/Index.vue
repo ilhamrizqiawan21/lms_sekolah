@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Card, EmptyState, TableWrapper } from '../../../Components/UI';
+import { Badge, Card, EmptyState, TableWrapper } from '../../../Components/UI';
 
 interface NilaiItem { id: number; mata_pelajaran: string; rata_akhir?: number | string | null; [key: string]: unknown }
 interface NilaiGroup { periode: string; nilai: NilaiItem[] }
@@ -30,8 +30,8 @@ function display(value: unknown): string | number {
 
     <AppShell title="Nilai Saya">
         <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-            <span class="badge bg-soft-primary">Ringkasan nilai per periode</span>
-            <span class="text-muted small">Nilai yang terlihat di sini mengikuti data terakhir yang tersedia.</span>
+            <Badge color="primary">Ringkasan nilai per periode</Badge>
+            <span class="text-body-secondary small">Nilai yang terlihat di sini mengikuti data terakhir yang tersedia.</span>
         </div>
 
         <template v-if="props.nilaiGroups.length">
@@ -45,14 +45,14 @@ function display(value: unknown): string | number {
             >
                 <TableWrapper>
                     <div class="p-3 border-bottom bg-light-subtle">
-                        <span class="text-muted small">Periode {{ group.periode }}</span>
+                        <span class="text-body-secondary small">Periode {{ group.periode }}</span>
                     </div>
                     <table class="table table-hover mb-0 nilai-table">
                         <thead class="nilai-thead">
                             <tr>
-                                <th>Mata Pelajaran</th>
-                                <th v-for="field in fields" :key="field.key" class="text-center">{{ field.label }}</th>
-                                <th class="text-center average-head">Rata-rata</th>
+                                <th scope="col">Mata Pelajaran</th>
+                                <th scope="col" v-for="field in fields" :key="field.key" class="text-center">{{ field.label }}</th>
+                                <th scope="col" class="text-center average-head">Rata-rata</th>
                             </tr>
                         </thead>
                         <tbody>

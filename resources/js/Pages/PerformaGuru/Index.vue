@@ -55,38 +55,38 @@ function scoreColor(score: number) {
                         <table class="table table-hover align-middle mb-0 performance-table">
                             <thead>
                                 <tr>
-                                    <th>Guru</th>
-                                    <th>Skor</th>
-                                    <th>Kelas/Mapel</th>
-                                    <th>Tugas</th>
-                                    <th>Pengumpulan</th>
-                                    <th>Penilaian</th>
-                                    <th>Feedback</th>
-                                    <th>Rata Nilai</th>
+                                    <th scope="col">Guru</th>
+                                    <th scope="col">Skor</th>
+                                    <th scope="col">Kelas/Mapel</th>
+                                    <th scope="col">Tugas</th>
+                                    <th scope="col">Pengumpulan</th>
+                                    <th scope="col">Penilaian</th>
+                                    <th scope="col">Feedback</th>
+                                    <th scope="col">Rata Nilai</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="teacher in teachers" :key="teacher.id">
                                     <td>
                                         <strong>{{ teacher.nama }}</strong>
-                                        <div class="text-muted small">@{{ teacher.username }}</div>
+                                        <div class="text-body-secondary small">@{{ teacher.username }}</div>
                                     </td>
                                     <td>
                                         <Badge :color="scoreColor(teacher.score)">{{ teacher.score }}</Badge>
-                                        <div class="text-muted small">{{ teacher.kategori }}</div>
+                                        <div class="text-body-secondary small">{{ teacher.kategori }}</div>
                                     </td>
                                     <td>
                                         <strong>{{ teacher.total_kelas_mapel }}</strong>
-                                        <div class="text-muted small">{{ teacher.courses.slice(0, 2).join(', ') || '-' }}</div>
+                                        <div class="text-body-secondary small">{{ teacher.courses.slice(0, 2).join(', ') || '-' }}</div>
                                     </td>
                                     <td>{{ teacher.total_tugas }}</td>
                                     <td>
                                         {{ teacher.pengumpulan_siswa }}/{{ teacher.target_pengumpulan }}
-                                        <div class="text-muted small">{{ teacher.persen_pengumpulan }}%</div>
+                                        <div class="text-body-secondary small">{{ teacher.persen_pengumpulan }}%</div>
                                     </td>
                                     <td>
                                         {{ teacher.sudah_dinilai }}
-                                        <div class="text-muted small">{{ teacher.persen_dinilai }}% · {{ teacher.perlu_dinilai }} perlu</div>
+                                        <div class="text-body-secondary small">{{ teacher.persen_dinilai }}% · {{ teacher.perlu_dinilai }} perlu</div>
                                     </td>
                                     <td>{{ teacher.persen_feedback }}%</td>
                                     <td>{{ teacher.rata_nilai_tugas ?? '-' }}</td>
@@ -104,15 +104,15 @@ function scoreColor(score: number) {
                         <table class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th>Siswa</th>
-                                    <th>Kelas</th>
-                                    <th>Alasan</th>
-                                    <th>Nilai</th>
+                                    <th scope="col">Siswa</th>
+                                    <th scope="col">Kelas</th>
+                                    <th scope="col">Alasan</th>
+                                    <th scope="col">Nilai</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="student in earlyWarnings" :key="student.id">
-                                    <td><strong>{{ student.nama }}</strong><div class="text-muted small">{{ student.nis }}</div></td>
+                                    <td><strong>{{ student.nama }}</strong><div class="text-body-secondary small">{{ student.nis }}</div></td>
                                     <td>{{ student.kelas }}</td>
                                     <td>{{ student.reasons }}</td>
                                     <td>{{ student.average_grade ?? '-' }}</td>

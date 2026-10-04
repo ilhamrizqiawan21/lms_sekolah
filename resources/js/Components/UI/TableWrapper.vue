@@ -18,7 +18,7 @@ withDefaults(defineProps<Props>(), { responsive: true, minWidth: 720, scrollHint
     >
         <div
             v-if="responsive && scrollHint"
-            class="d-flex d-md-none align-items-center gap-2 px-3 py-2 border-bottom bg-body-tertiary text-muted small"
+            class="d-flex d-md-none align-items-center gap-2 px-3 py-2 border-bottom bg-body-tertiary text-body-secondary small"
         >
             <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
             <span>Geser tabel ke samping untuk melihat kolom lainnya.</span>

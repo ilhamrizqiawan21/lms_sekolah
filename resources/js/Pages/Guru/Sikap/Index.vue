@@ -153,14 +153,14 @@ function submit() {
                         </div>
                     </template>
 
-                    <div class="text-muted text-sm">
+                    <div class="text-body-secondary text-sm">
                         Skala penilaian 1-5. Nilai rata-rata dihitung otomatis dari kolom yang terisi.
                     </div>
                 </Card>
 
                 <Card title="Sikap Spiritual (KI-1)" icon="bi-star-fill" body-class="p-0" class="mb-3">
                     <template #actions>
-                        <span class="text-muted text-xs">Skala 1-5</span>
+                        <span class="text-body-secondary text-xs">Skala 1-5</span>
                     </template>
 
                     <TableWrapper>
@@ -178,22 +178,22 @@ function submit() {
                             </colgroup>
                             <thead class="table-light">
                                 <tr>
-                                    <th class="text-center">#</th>
-                                    <th>NIS</th>
-                                    <th>Nama Siswa</th>
-                                    <th
+                                    <th scope="col" class="text-center">#</th>
+                                    <th scope="col">NIS</th>
+                                    <th scope="col">Nama Siswa</th>
+                                    <th scope="col"
                                         v-for="field in spiritualFields"
                                         :key="field.key"
                                         class="text-center"
                                     >
                                         {{ field.label }}
                                     </th>
-                                    <th class="text-center">Rata-rata</th>
+                                    <th scope="col" class="text-center">Rata-rata</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="student in activeGroup.students" :key="`spiritual-${activeGroup.kelas_mapel_id}-${student.id}`">
-                                    <td class="text-center text-muted">{{ student.no }}</td>
+                                    <td class="text-center text-body-secondary">{{ student.no }}</td>
                                     <td><code>{{ student.nis }}</code></td>
                                     <td>{{ student.nama }}</td>
                                     <td v-for="field in spiritualFields" :key="`${activeGroup.kelas_mapel_id}-${student.id}-${field.key}`">
@@ -213,7 +213,7 @@ function submit() {
                                         >
                                             {{ formatAverage(average('spiritual', student.id, spiritualFields)) }}
                                         </strong>
-                                        <span v-else class="text-muted">-</span>
+                                        <span v-else class="text-body-secondary">-</span>
                                     </td>
                                 </tr>
                                 <tr v-if="!activeGroup.students.length">
@@ -228,7 +228,7 @@ function submit() {
 
                 <Card title="Sikap Sosial (KI-2)" icon="bi-people-fill" body-class="p-0" class="mb-3">
                     <template #actions>
-                        <span class="text-muted text-xs">Skala 1-5</span>
+                        <span class="text-body-secondary text-xs">Skala 1-5</span>
                     </template>
 
                     <TableWrapper>
@@ -246,22 +246,22 @@ function submit() {
                             </colgroup>
                             <thead class="table-light">
                                 <tr>
-                                    <th class="text-center">#</th>
-                                    <th>NIS</th>
-                                    <th>Nama Siswa</th>
-                                    <th
+                                    <th scope="col" class="text-center">#</th>
+                                    <th scope="col">NIS</th>
+                                    <th scope="col">Nama Siswa</th>
+                                    <th scope="col"
                                         v-for="field in sosialFields"
                                         :key="field.key"
                                         class="text-center"
                                     >
                                         {{ field.label }}
                                     </th>
-                                    <th class="text-center">Rata-rata</th>
+                                    <th scope="col" class="text-center">Rata-rata</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="student in activeGroup.students" :key="`sosial-${activeGroup.kelas_mapel_id}-${student.id}`">
-                                    <td class="text-center text-muted">{{ student.no }}</td>
+                                    <td class="text-center text-body-secondary">{{ student.no }}</td>
                                     <td><code>{{ student.nis }}</code></td>
                                     <td>{{ student.nama }}</td>
                                     <td v-for="field in sosialFields" :key="`${activeGroup.kelas_mapel_id}-${student.id}-${field.key}`">
@@ -281,7 +281,7 @@ function submit() {
                                         >
                                             {{ formatAverage(average('sosial', student.id, sosialFields)) }}
                                         </strong>
-                                        <span v-else class="text-muted">-</span>
+                                        <span v-else class="text-body-secondary">-</span>
                                     </td>
                                 </tr>
                                 <tr v-if="!activeGroup.students.length">

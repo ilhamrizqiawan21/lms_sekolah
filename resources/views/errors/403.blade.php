@@ -11,7 +11,7 @@
         <div class="text-center py-5">
             <div class="display-1 fw-bold">403</div>
             <h1 class="h3 mb-3">Akses Ditolak</h1>
-            <p class="text-muted mb-4">Anda tidak memiliki izin untuk mengakses halaman atau data tersebut.</p>
+            <p class="text-body-secondary mb-4">Anda tidak memiliki izin untuk mengakses halaman atau data tersebut.</p>
             <a href="{{ url()->previous() !== url()->current() ? url()->previous() : url('/') }}" class="btn btn-primary">Kembali</a>
         </div>
     </main>

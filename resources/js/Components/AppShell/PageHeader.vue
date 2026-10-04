@@ -14,7 +14,7 @@ defineProps({
                 <i v-if="icon" class="bi me-2" :class="icon" aria-hidden="true"></i>
                 {{ title }}
             </h4>
-            <p v-if="subtitle" class="text-muted mb-0">{{ subtitle }}</p>
+            <p v-if="subtitle" class="text-body-secondary mb-0">{{ subtitle }}</p>
         </div>
         <div v-if="$slots.actions" class="app-page-actions">
             <slot name="actions" />

@@ -3,7 +3,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import PageHeader from '../../Components/AppShell/PageHeader.vue';
 import TextInput from '../../Components/Form/TextInput.vue';
 import AppShell from '../../Layouts/AppShell.vue';
-import { Badge, Button, Card } from '../../Components/UI';
+import { Badge, Button, Card, TableWrapper } from '../../Components/UI';
 interface GuruProfile { username: string; nama_lengkap: string; nip_nis?: string | null; role_label: string; is_active: boolean; }
 interface Props { profile: GuruProfile; updateUrl: string; }
 interface ProfileForm { username: string; nama_lengkap: string; nip_nis: string; current_password: string; password: string; password_confirmation: string; }
@@ -113,7 +113,7 @@ function submit(): void {
 
             <div class="col-lg-6 mb-4">
                 <Card title="Informasi Akun" icon="bi-info-circle">
-                    <div class="table-responsive">
+                    <TableWrapper :min-width="480" :scroll-hint="false">
                         <table class="table table-sm align-middle mb-0 profile-table">
                             <tbody>
                                 <tr>
@@ -142,7 +142,7 @@ function submit(): void {
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
+                    </TableWrapper>
                 </Card>
             </div>
         </div>

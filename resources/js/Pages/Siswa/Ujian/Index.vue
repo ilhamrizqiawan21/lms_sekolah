@@ -70,40 +70,40 @@ async function mulaiUjian(item: UjianItem) {
             <TableWrapper v-if="ujianList.length">
                 <table class="table table-hover mb-0 app-table-proportional">
                     <colgroup>
-                        <col style="width: 25%">
-                        <col style="width: 18%">
-                        <col style="width: 10%">
-                        <col style="width: 15%">
-                        <col style="width: 17%">
-                        <col style="width: 15%">
+                        <col class="u-w-25pct">
+                        <col class="u-w-18pct">
+                        <col class="u-w-10pct">
+                        <col class="u-w-15pct">
+                        <col class="u-w-17pct">
+                        <col class="u-w-15pct">
                     </colgroup>
                     <thead>
                         <tr>
-                            <th>Ujian & Guru</th>
-                            <th>Mata Pelajaran</th>
-                            <th>Durasi</th>
-                            <th>Jadwal Pelaksanaan</th>
-                            <th>Status Pengerjaan</th>
-                            <th>Aksi</th>
+                            <th scope="col">Ujian & Guru</th>
+                            <th scope="col">Mata Pelajaran</th>
+                            <th scope="col">Durasi</th>
+                            <th scope="col">Jadwal Pelaksanaan</th>
+                            <th scope="col">Status Pengerjaan</th>
+                            <th scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="item in ujianList" :key="item.id">
                             <td>
                                 <div class="fw-bold">{{ item.judul }}</div>
-                                <div class="small text-muted">{{ item.guru }} &bull; {{ item.total_soal }} Soal</div>
+                                <div class="small text-body-secondary">{{ item.guru }} &bull; {{ item.total_soal }} Soal</div>
                             </td>
                             <td>
                                 <div>{{ item.mata_pelajaran }}</div>
-                                <span class="badge bg-soft-primary text-primary">{{ item.kategori_nilai }}</span>
+                                <Badge color="primary">{{ item.kategori_nilai }}</Badge>
                             </td>
                             <td>{{ item.durasi_menit }} Menit</td>
                             <td>
                                 <div v-if="item.waktu_mulai || item.waktu_selesai" class="small">
                                     <div>Mulai: {{ item.waktu_mulai ?? 'Bebas' }}</div>
-                                    <div class="text-muted">Selesai: {{ item.waktu_selesai ?? 'Bebas' }}</div>
+                                    <div class="text-body-secondary">Selesai: {{ item.waktu_selesai ?? 'Bebas' }}</div>
                                 </div>
-                                <span v-else class="badge bg-light text-dark">Terbuka</span>
+                                <Badge v-else color="secondary">Terbuka</Badge>
                             </td>
                             <td>
                                 <div v-if="item.attempt">

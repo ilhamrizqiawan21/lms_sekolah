@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import AppShell from '../../Layouts/AppShell.vue';
 import { ActionQueue, Card, CourseCard, DashboardHero, EmptyState, MetricStrip, QuickActionBar } from '../../Components/UI';
+import { cssVar, withAlpha } from '../../utils/cssColor';
 import type { AppPageProps } from '../../types';
 
 interface GuruStats { total_kelas_mapel?: number; total_siswa?: number; }
@@ -51,34 +52,13 @@ function averagePercentage<T extends { total: number }>(items: T[], percentage: 
     return Math.round(total / filledItems.length);
 }
 
-function cssColor(variable: string, fallback: string): string {
-    const value = window.getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
-    return value || fallback;
-}
-
-function withAlpha(color: string, alpha: number): string {
-    const normalized = color.trim().replace('#', '');
-    const hex = normalized.length === 3
-        ? normalized.split('').map((character) => `${character}${character}`).join('')
-        : normalized;
-
-    if (/^[0-9a-f]{6}$/i.test(hex)) {
-        const red = Number.parseInt(hex.slice(0, 2), 16);
-        const green = Number.parseInt(hex.slice(2, 4), 16);
-        const blue = Number.parseInt(hex.slice(4, 6), 16);
-        return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-    }
-
-    return color;
-}
-
 function chartPalette() {
     return {
-        primary: cssColor('--app-primary', '#198754'),
-        accent: cssColor('--app-accent', '#0d6efd'),
-        surface: cssColor('--surface-card', '#ffffff'),
-        muted: cssColor('--text-muted', '#64748b'),
-        border: cssColor('--gray-200', '#e5e7eb'),
+        primary: cssVar('--app-primary'),
+        accent: cssVar('--app-accent'),
+        surface: cssVar('--surface-card'),
+        muted: cssVar('--text-muted'),
+        border: cssVar('--gray-200'),
     };
 }
 
@@ -250,7 +230,7 @@ const gradingItems = computed(() => props.tugasPerluDinilai.map((item) => ({
     badge: item.total,
     badgeColor: 'info',
     icon: 'bi-pencil-square',
-    accent: 'var(--app-accent, #0d6efd)',
+    accent: 'var(--app-accent)',
 })));
 const missingItems = computed(() => props.tugasBelumDikumpulkan.map((item) => ({
     id: item.id,
@@ -261,7 +241,7 @@ const missingItems = computed(() => props.tugasBelumDikumpulkan.map((item) => ({
     badge: `${item.belum}/${item.total_siswa}`,
     badgeColor: 'warning text-dark',
     icon: 'bi-exclamation-circle',
-    accent: 'var(--gold-500, #f59e0b)',
+    accent: 'var(--gold-500)',
 })));
 const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({
     id: item.id,
@@ -272,7 +252,7 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({
     badge: `${item.persen_hadir}%`,
     badgeColor: item.persen_hadir < 60 ? 'danger' : 'warning text-dark',
     icon: 'bi-person-exclamation',
-    accent: 'var(--status-danger-text, #991b1b)',
+    accent: 'var(--status-danger-text)',
 })));
 </script>
 
@@ -458,15 +438,15 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({
 .teacher-trend-summary > div {
     min-width: 0;
     padding: 0.65rem 0.7rem;
-    border: 1px solid var(--gray-200, #e5e7eb);
+    border: 1px solid var(--gray-200);
     border-radius: 8px;
-    background: var(--surface-muted, #f8fafc);
+    background: var(--surface-muted);
 }
 
 .teacher-trend-label {
     display: block;
     margin-bottom: 0.2rem;
-    color: var(--text-muted, #64748b);
+    color: var(--text-muted);
     font-size: 0.68rem;
     font-weight: 700;
     line-height: 1.2;
@@ -475,7 +455,7 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({
 
 .teacher-trend-summary strong {
     display: block;
-    color: var(--text-strong, #0f172a);
+    color: var(--text-strong);
     font-size: 1.2rem;
     line-height: 1.1;
 }

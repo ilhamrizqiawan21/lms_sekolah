@@ -2,7 +2,7 @@
 import type { PropType } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
-import { TextareaInput, TextInput } from '../../../Components/Form';
+import { SelectInput, TextInput, TextareaInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, DashboardHero, EmptyState } from '../../../Components/UI';
 
@@ -182,6 +182,10 @@ function submit() {
         });
     }
 }
+
+const kategoriOptions = [{ value: 'NH', label: 'Nilai Harian (NH)' }, { value: 'STS', label: 'STS' }, { value: 'SAS', label: 'SAS' }, { value: 'SAT', label: 'SAT' }];
+const kesulitanOptions = [{ value: 'mudah', label: 'Mudah' }, { value: 'sedang', label: 'Sedang' }, { value: 'sulit', label: 'Sulit' }];
+const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic, label: topic })));
 </script>
 
 <template>
@@ -254,46 +258,17 @@ function submit() {
                             </div>
 
                             <div class="col-6">
-                                <label class="form-label required">Kategori Nilai</label>
-                                <select
-                                    v-model="form.kategori_nilai"
-                                    class="form-select"
-                                    :class="{ 'is-invalid': form.errors.kategori_nilai }"
-                                    :disabled="hasActiveAttempts"
-                                    required
-                                >
-                                    <option value="NH">Nilai Harian (NH)</option>
-                                    <option value="STS">STS</option>
-                                    <option value="SAS">SAS</option>
-                                    <option value="SAT">SAT</option>
-                                </select>
-                                <div v-if="form.errors.kategori_nilai" class="invalid-feedback">{{ form.errors.kategori_nilai }}</div>
+                                <SelectInput v-model="form.kategori_nilai" name="kategori_nilai" label="Kategori Nilai" required :options="kategoriOptions" :disabled="hasActiveAttempts" :error="form.errors.kategori_nilai" wrapper-class="" />
                             </div>
                         </div>
 
                         <div class="row g-3 mb-3">
                             <div class="col-6">
-                                <label class="form-label">Waktu Mulai Buka</label>
-                                <input
-                                    v-model="form.waktu_mulai"
-                                    type="datetime-local"
-                                    class="form-control form-control-sm"
-                                    :class="{ 'is-invalid': form.errors.waktu_mulai }"
-                                />
-                                <div class="form-text small text-muted">Kosongkan jika langsung buka.</div>
-                                <div v-if="form.errors.waktu_mulai" class="invalid-feedback">{{ form.errors.waktu_mulai }}</div>
+                                <TextInput v-model="form.waktu_mulai" name="waktu_mulai" type="datetime-local" label="Waktu Mulai Buka" help="Kosongkan jika langsung buka." :error="form.errors.waktu_mulai" wrapper-class="" class="form-control-sm" />
                             </div>
 
                             <div class="col-6">
-                                <label class="form-label">Waktu Selesai Tutup</label>
-                                <input
-                                    v-model="form.waktu_selesai"
-                                    type="datetime-local"
-                                    class="form-control form-control-sm"
-                                    :class="{ 'is-invalid': form.errors.waktu_selesai }"
-                                />
-                                <div class="form-text small text-muted">Kosongkan jika tanpa batas.</div>
-                                <div v-if="form.errors.waktu_selesai" class="invalid-feedback">{{ form.errors.waktu_selesai }}</div>
+                                <TextInput v-model="form.waktu_selesai" name="waktu_selesai" type="datetime-local" label="Waktu Selesai Tutup" help="Kosongkan jika tanpa batas." :error="form.errors.waktu_selesai" wrapper-class="" class="form-control-sm" />
                             </div>
                         </div>
 
@@ -327,8 +302,8 @@ function submit() {
 
                         <div class="d-flex justify-content-between align-items-center border-top pt-3">
                             <div>
-                                <div class="small text-muted">Terpilih: <strong>{{ form.soal.length }} soal</strong></div>
-                                <div class="small text-muted">Total Bobot: <strong>{{ totalPoin }} poin</strong></div>
+                                <div class="small text-body-secondary">Terpilih: <strong>{{ form.soal.length }} soal</strong></div>
+                                <div class="small text-body-secondary">Total Bobot: <strong>{{ totalPoin }} poin</strong></div>
                             </div>
                             <Button type="submit" color="primary" icon="bi-check-lg" :disabled="form.processing || form.soal.length === 0">
                                 {{ isEdit ? 'Simpan Ujian' : 'Terbitkan Ujian' }}
@@ -347,26 +322,13 @@ function submit() {
                         <!-- Filter toolbar -->
                         <div class="row g-2 mb-3 align-items-center">
                             <div class="col-md-5">
-                                <input
-                                    v-model="bankFilter.search"
-                                    type="text"
-                                    class="form-control form-control-sm"
-                                    placeholder="Cari teks soal..."
-                                />
+                                <TextInput v-model="bankFilter.search" name="bank_search" placeholder="Cari teks soal..." aria-label="Cari teks soal" wrapper-class="" class="form-control-sm" />
                             </div>
                             <div class="col-md-4">
-                                <select v-model="bankFilter.topik" class="form-select form-select-sm">
-                                    <option value="">Semua Topik</option>
-                                    <option v-for="t in topics" :key="t" :value="t">{{ t }}</option>
-                                </select>
+                                <SelectInput v-model="bankFilter.topik" name="bank_topik" placeholder="Semua Topik" :options="topicOptions" aria-label="Filter topik" wrapper-class="" class="form-select-sm" />
                             </div>
                             <div class="col-md-3">
-                                <select v-model="bankFilter.kesulitan" class="form-select form-select-sm">
-                                    <option value="">Semua Kesulitan</option>
-                                    <option value="mudah">Mudah</option>
-                                    <option value="sedang">Sedang</option>
-                                    <option value="sulit">Sulit</option>
-                                </select>
+                                <SelectInput v-model="bankFilter.kesulitan" name="bank_kesulitan" placeholder="Semua Kesulitan" :options="kesulitanOptions" aria-label="Filter kesulitan" wrapper-class="" class="form-select-sm" />
                             </div>
                         </div>
 
@@ -395,15 +357,15 @@ function submit() {
                             </div>
 
                             <div v-if="!hasActiveAttempts && form.soal.length > 0">
-                                <button
+                                <Button color="outline-secondary"
                                     type="button"
-                                    class="btn btn-sm btn-outline-secondary"
+                                   
                                     title="Bagi poin rata sehingga total 100"
                                     @click="distributePointsEvenly"
                                 >
                                     <i class="bi bi-calculator me-1" />
                                     Bagi Rata (100 Poin)
-                                </button>
+                                </Button>
                             </div>
                         </div>
 
@@ -434,7 +396,7 @@ function submit() {
                                                 {{ soal.kesulitan }}
                                             </Badge>
                                             <Badge v-if="soal.kategori_nilai" color="info">{{ soal.kategori_nilai }}</Badge>
-                                            <span class="small text-muted ms-auto">{{ soal.opsi_count }} opsi</span>
+                                            <span class="small text-body-secondary ms-auto">{{ soal.opsi_count }} opsi</span>
                                         </div>
 
                                         <label :for="`soal-check-${soal.id}`" class="d-block cursor-pointer fw-semibold text-break mb-2">
@@ -449,8 +411,8 @@ function submit() {
                                                 step="0.01"
                                                 min="0.01"
                                                 max="100"
-                                                class="form-control form-control-sm"
-                                                style="width: 80px;"
+                                                class="form-control form-control-sm u-w-80px"
+                                               
                                                 :value="getPoin(soal.id)"
                                                 :disabled="hasActiveAttempts"
                                                 @input="setPoin(soal.id, Number(($event.target as HTMLInputElement).value))"
