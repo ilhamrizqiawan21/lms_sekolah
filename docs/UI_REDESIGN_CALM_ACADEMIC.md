@@ -2,7 +2,7 @@
 
 Dokumen ini berisi hasil audit style UI, spesifikasi desain tema **Calm Academic**, serta TODO dan checklist pengerjaannya. Status (2026-10-04): Fase 0 (baseline), Fase 1 (fondasi token), dan Fase 2 (komponen bersama) selesai; login sudah dikerjakan sebagian oleh Gemini (belum memakai token bersama); Fase 3 (shell) selesai; Fase 4 selesai (sisa yang sengaja dibiarkan tercatat di bagian Fase 4); Fase 5 (pembersihan CSS) selesai; Fase 6 belum dimulai.
 
-Dokumen terkait: `UI_REDESIGN_AURORA.md` (eksperimen tampilan lebih berani di branch `experimental/ui-modern`), `LMS_MODERN_UI_TODO.md` (rombakan layout/workspace sebelumnya), `FRONTEND_CONTRAST_CHECKLIST.md` (kontras warna per tema).
+Dokumen terkait: `UI_REDESIGN_AURORA.md` (lapisan tampilan akhir yang dipilih, di branch `experimental/ui-modern`; Calm Academic menjadi fondasi token dan komponennya), `LMS_MODERN_UI_TODO.md` (rombakan layout/workspace sebelumnya), `FRONTEND_CONTRAST_CHECKLIST.md` (kontras warna per tema).
 
 ## 1. Baseline Audit
 

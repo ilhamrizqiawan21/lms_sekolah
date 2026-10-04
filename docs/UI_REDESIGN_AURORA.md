@@ -1,6 +1,6 @@
 # UI Eksperimen "Aurora"
 
-Dokumen ini mencatat eksperimen tampilan yang jauh lebih modern di atas redesain **Calm Academic** (`docs/UI_REDESIGN_CALM_ACADEMIC.md`). Status (2026-10-04): selesai sebagai eksperimen; belum di-merge dan belum di-push.
+Dokumen ini mencatat eksperimen tampilan yang jauh lebih modern di atas redesain **Calm Academic** (`docs/UI_REDESIGN_CALM_ACADEMIC.md`). Status (2026-10-04): **dipilih sebagai arah akhir** oleh pemilik proyek (menggantikan tampilan Calm Academic); belum di-merge dan belum di-push.
 
 - Branch: `experimental/ui-modern`, dibuat dari `redesign_calm_academic` (titik aman: commit `9b8dc05`, "Calm Academic fase 3-5").
 - Commit eksperimen: `b75b472` (lapisan dasar) sampai `2df8242`, ditambah satu commit polesan dan dokumentasi (lihat `git log`).
@@ -84,4 +84,4 @@ Cara menjalankan Playwright di WSL tanpa sudo: unduh `libnspr4`, `libnss3`, `lib
 - **Navigasi bawah mobile** masih menutupi sedikit bagian bawah konten saat di-scroll (konten sudah punya padding bawah sehingga tetap bisa dibaca dengan scroll). Opsi: sembunyikan saat scroll turun.
 - **Tema pilihan admin** selain hijau (biru-azure, biru-aqua, indigo, marun) diuji manual oleh pemilik proyek, bukan oleh pengujian otomatis. Tema aqua tetap menyisakan catatan kontras dari fase Calm Academic (`#0891b2` hanya 3,68:1 dengan teks putih); gradien tombol dan hero memakai warna yang sama.
 - **Sisa Fase 4 Calm Academic** yang sengaja ditunda (input padat di tabel, kartu CBT, badge dinamis) tidak ikut berubah di eksperimen ini.
-- **Keputusan arah:** pilih Calm Academic atau Aurora sebagai arah akhir, lalu push dan merge. Belum ada branch yang di-push.
+- **Keputusan arah: Aurora dipilih (2026-10-04).** Langkah berikutnya: push dan merge `experimental/ui-modern` (yang sudah memuat seluruh pekerjaan Calm Academic fase 0-5). Belum ada branch yang di-push.
