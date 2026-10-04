@@ -906,6 +906,145 @@ function submit() {
 
 /* Khusus login hanya tema light: tidak ada override tema gelap */
 
+/* =========================================
+   AURORA (eksperimen experimental/ui-modern)
+   Latar mesh-gradien, panel merek gradien penuh, kartu form kaca.
+   ========================================= */
+.login-page {
+    --login-bg: #f3f5fb;
+    --login-input-bg: #f5f7fc;
+    --login-input-border: rgba(15, 23, 42, 0.1);
+    --login-glass-bg: rgba(255, 255, 255, 0.14);
+    --login-glass-border: rgba(255, 255, 255, 0.28);
+    --login-chip-bg: color-mix(in srgb, var(--login-primary) 9%, #ffffff);
+    --login-chip-text: var(--login-primary-dark);
+    grid-template-columns: minmax(420px, 47%) minmax(0, 1fr);
+    gap: 16px;
+    padding: 16px;
+    background:
+        radial-gradient(48rem 32rem at 100% -8%, color-mix(in srgb, var(--login-primary) 22%, transparent), transparent 70%),
+        radial-gradient(40rem 28rem at 60% 112%, rgba(99, 102, 241, 0.14), transparent 70%),
+        var(--login-bg);
+}
+
+.login-brand-panel {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: 2rem;
+    background:
+        radial-gradient(30rem 20rem at 90% -12%, rgba(255, 255, 255, 0.3), transparent 62%),
+        radial-gradient(26rem 18rem at -12% 112%, rgba(255, 255, 255, 0.14), transparent 62%),
+        linear-gradient(150deg, var(--login-primary), color-mix(in srgb, var(--login-primary) 48%, #312e81));
+    box-shadow: 0 40px 80px -32px color-mix(in srgb, var(--login-primary) 85%, transparent);
+}
+
+.login-brand-panel::before,
+.login-brand-panel::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    pointer-events: none;
+}
+
+.login-brand-panel::before { width: 26rem; height: 26rem; right: -9rem; top: 28%; }
+.login-brand-panel::after { width: 16rem; height: 16rem; right: -2rem; top: 40%; }
+
+.brand-logo-box {
+    width: 3.4rem;
+    height: 3.4rem;
+    border: 0;
+    border-radius: 1.1rem;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 14px 28px -12px rgba(0, 0, 0, 0.4);
+}
+
+.brand-school-name { font-size: 1.1rem; letter-spacing: -0.02em; }
+
+.brand-headline {
+    font-size: clamp(2rem, 3.6vw, 3rem);
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -0.04em;
+}
+
+.brand-motto { font-size: 0.98rem; }
+
+.brand-board {
+    border-radius: 1.5rem;
+    background: var(--login-glass-bg);
+    border: 1px solid var(--login-glass-border);
+    box-shadow: 0 24px 50px -28px rgba(0, 0, 0, 0.5);
+}
+
+.board-count-pill { background: rgba(255, 255, 255, 0.24); }
+
+.login-form-panel { background: transparent; padding: 24px; }
+
+.login-form-wrapper {
+    max-width: 30rem;
+    padding: clamp(28px, 4vw, 44px);
+    border-radius: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.78);
+    -webkit-backdrop-filter: blur(24px) saturate(170%);
+    backdrop-filter: blur(24px) saturate(170%);
+    box-shadow: 0 40px 80px -36px rgba(16, 24, 40, 0.3), 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.login-eyebrow {
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--login-primary) 11%, transparent);
+    letter-spacing: 0.12em;
+}
+
+.login-title { font-size: clamp(1.6rem, 2.8vw, 2rem); font-weight: 800; letter-spacing: -0.035em; }
+
+.input-shell {
+    height: 3.1rem;
+    min-height: 3.1rem;
+    border-radius: 1rem;
+    border-color: transparent;
+    box-shadow: inset 0 0 0 1px var(--login-input-border);
+}
+
+.input-shell:focus-within {
+    background: #ffffff;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--login-primary) 18%, transparent), inset 0 0 0 1px var(--login-primary);
+}
+
+.btn-login {
+    height: 3.2rem;
+    min-height: 3.2rem;
+    border: 0;
+    border-radius: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    background: linear-gradient(135deg, var(--login-primary), var(--login-primary-dark));
+    box-shadow: 0 16px 30px -12px color-mix(in srgb, var(--login-primary) 80%, transparent);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.btn-login:hover:not(:disabled) {
+    border: 0;
+    background: linear-gradient(135deg, var(--login-primary), var(--login-primary-dark));
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 20px 36px -12px color-mix(in srgb, var(--login-primary) 85%, transparent);
+}
+
+.role-chip {
+    border: 0;
+    border-radius: 999px;
+    background: var(--login-chip-bg);
+    color: var(--login-chip-text);
+    font-weight: 650;
+}
+
+
 
 /* =========================================
    RESPONSIVE MOBILE (< 900 px)
@@ -1053,6 +1192,43 @@ function submit() {
     .brand-footer-row {
         justify-content: center;
     }
+}
+
+/* Aurora, mobile */
+@media (max-width: 899.98px) {
+    .login-page { padding: 14px; }
+
+    /* panel memakai display: contents, jadi lingkaran dekoratif akan menjuntai keluar viewport */
+    .login-brand-panel::before,
+    .login-brand-panel::after { display: none; }
+
+    .brand-header {
+        border: 0;
+        border-radius: 1.75rem;
+        background:
+            radial-gradient(22rem 14rem at 95% -20%, rgba(255, 255, 255, 0.3), transparent 62%),
+            linear-gradient(150deg, var(--login-primary), color-mix(in srgb, var(--login-primary) 48%, #312e81));
+        box-shadow: 0 28px 56px -26px color-mix(in srgb, var(--login-primary) 85%, transparent);
+    }
+
+    .brand-headline { font-size: 1.55rem; }
+
+    .login-form-panel {
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .login-form-wrapper {
+        max-width: 100%;
+        padding: 24px 20px;
+        border-radius: 1.75rem;
+    }
+
+    .brand-board { border-radius: 1.5rem; background: rgba(255, 255, 255, 0.78); }
+    .board-count-pill { background: color-mix(in srgb, var(--login-primary) 12%, transparent); }
 }
 
 /* Reduced motion */
