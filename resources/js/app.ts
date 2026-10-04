@@ -1,4 +1,5 @@
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import '../css/modern.css';
 import { initColorMode } from './theme';
 
 interface ConfirmOptions { title?: string; confirmText?: string; cancelText?: string; danger?: boolean }
