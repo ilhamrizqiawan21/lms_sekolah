@@ -1,5 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+import type { AppPageProps } from '../../types';
+
 defineSlots<{ actions?: () => unknown }>();
+const page = usePage<AppPageProps>();
+const fotoUrl = computed(() => page.props.auth?.user?.foto_url ?? null);
 defineProps({
     eyebrow: { type: String, default: '' },
     title: { type: String, required: true },
@@ -19,8 +25,9 @@ defineProps({
                 <slot name="actions" />
             </div>
         </div>
-        <div class="dashboard-hero-orbit" aria-hidden="true">
-            <i class="bi" :class="icon"></i>
+        <div class="dashboard-hero-orbit" :class="{ 'has-photo': fotoUrl }" :aria-hidden="fotoUrl ? undefined : 'true'">
+            <img v-if="fotoUrl" :src="fotoUrl" :alt="`Foto ${page.props.auth?.user?.nama_lengkap ?? 'pengguna'}`" class="dashboard-hero-photo" decoding="async">
+            <i v-else class="bi" :class="icon"></i>
         </div>
     </section>
 </template>

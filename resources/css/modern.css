@@ -507,3 +507,6 @@ h1, h2, h3, .h1, .h2, .h3 { letter-spacing: -0.025em; }
 /* Kolom aksi: selebar tombolnya saja agar tidak terpotong dan tidak merebut ruang kolom data */
 .table-action-column { width: 1%; min-width: 9.5rem; white-space: nowrap; }
 .app-table-wrapper .table td, .app-table-wrapper .table th { padding-left: 0.7rem; padding-right: 0.7rem; }
+
+.dashboard-hero-orbit.has-photo { overflow: hidden; padding: 0; }
+.dashboard-hero-orbit .dashboard-hero-photo { width: 100%; height: 100%; object-fit: cover; display: block; }

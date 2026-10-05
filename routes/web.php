@@ -164,6 +164,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
     Route::get('/rekap-absensi/export/pdf', [ExportController::class, 'guruRekapAbsensiPdf'])->name('rekap-absensi.export.pdf');
     Route::get('/jadwal-mengajar', [JadwalMengajarController::class, 'index'])->name('jadwal-mengajar.index');
     Route::post('/jadwal-mengajar', [JadwalMengajarController::class, 'store'])->name('jadwal-mengajar.store');
+    Route::get('/jadwal-mengajar/export/pdf', [JadwalMengajarController::class, 'exportPdf'])->name('jadwal-mengajar.export.pdf');
     Route::delete('/jadwal-mengajar/{jadwalMengajar}', [JadwalMengajarController::class, 'destroy'])->name('jadwal-mengajar.destroy');
     Route::get('/kelas-daring', [KelasDaringController::class, 'index'])->name('kelas-daring.index');
     Route::post('/kelas-daring', [KelasDaringController::class, 'store'])->name('kelas-daring.store');

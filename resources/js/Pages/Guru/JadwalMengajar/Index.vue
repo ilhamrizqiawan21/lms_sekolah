@@ -14,6 +14,7 @@ const props = defineProps({
     kelasMapel: { type: Array as PropType<{ id: number; label: string }[]>, default: () => [] },
     schedules: { type: Array as PropType<Schedule[]>, default: () => [] },
     storeUrl: { type: String, required: true },
+    exportPdfUrl: { type: String, required: true },
 });
 
 const form = useForm({
@@ -164,8 +165,12 @@ async function destroySchedule(schedule: Schedule) {
                         Jadwal dikelompokkan berdasarkan hari agar lebih mudah dipindai.
                     </p>
                 </div>
-                <div v-if="schedules.length" class="schedule-count-badge">
-                    {{ schedules.length }} jadwal
+                <div v-if="schedules.length" class="d-flex align-items-center gap-2">
+                    <div class="schedule-count-badge">{{ schedules.length }} jadwal</div>
+                    <a :href="exportPdfUrl" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+                        Export PDF
+                    </a>
                 </div>
             </div>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Guru;
 use App\Http\Controllers\Controller;
 use App\Models\JadwalMengajar;
 use App\Models\KelasMapel;
+use App\Services\Reports\Exports\TablePdfRenderer;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,7 @@ class JadwalMengajarController extends Controller
             ])->values(),
             'schedules' => $schedules->map(fn (JadwalMengajar $item) => $this->formatSchedule($item))->values(),
             'storeUrl' => route('guru.jadwal-mengajar.store'),
+            'exportPdfUrl' => route('guru.jadwal-mengajar.export.pdf'),
         ]);
     }
 
@@ -86,6 +88,38 @@ class JadwalMengajarController extends Controller
         }
 
         return back()->with('success', 'Jadwal mengajar berhasil ditambahkan.');
+    }
+
+    public function exportPdf(Request $request, TablePdfRenderer $pdf)
+    {
+        $schedules = JadwalMengajar::with(['kelasMapel.kelas', 'kelasMapel.mataPelajaran'])
+            ->where('guru_id', Auth::id())
+            ->get()
+            ->groupBy(fn (JadwalMengajar $item) => $item->hari.'-'.$item->pelajaran_ke);
+
+        $rows = collect(range(1, 5))->map(function (int $slot) use ($schedules) {
+            $row = [$slot];
+            foreach (array_keys(JadwalMengajar::DAYS) as $day) {
+                $item = $schedules->get($day.'-'.$slot)?->first();
+                $row[] = $item
+                    ? ($item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-').' - '.($item->kelasMapel?->kelas?->displayName() ?? '-')
+                    : '-';
+            }
+
+            return $row;
+        })->all();
+
+        return $pdf->table(
+            'jadwal_mengajar_'.now()->format('Ymd_His').'.pdf',
+            'JADWAL MENGAJAR',
+            'Guru: '.($request->user()->nama_lengkap ?? $request->user()->username),
+            ['Jam Ke', ...array_values(JadwalMengajar::DAYS)],
+            $rows,
+            null,
+            null,
+            $pdf->teacherSigner($request),
+            'landscape',
+        );
     }
 
     public function destroy(JadwalMengajar $jadwalMengajar)
