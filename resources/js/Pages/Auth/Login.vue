@@ -128,18 +128,30 @@ function submit() {
                 </div>
             </header>
 
-            <!-- Papan Informasi (kartu kaca tipis di dalam panel kiri) -->
+            <!-- Papan Informasi / Pengumuman Resmi Sekolah -->
             <section
-                v-if="publicAnnouncements.length"
                 class="brand-board"
-                aria-label="Papan Informasi"
+                :class="{ 'has-announcements': publicAnnouncements.length > 0 }"
+                aria-label="Papan Informasi Sekolah"
             >
                 <div class="board-header">
-                    <span class="board-eyebrow">PENGUMUMAN</span>
-                    <span class="board-count-pill">{{ publicAnnouncements.length }} baru</span>
+                    <div class="board-header-left">
+                        <i
+                            :class="publicAnnouncements.length ? 'bi bi-megaphone-fill text-amber' : 'bi bi-info-circle-fill'"
+                            class="board-icon"
+                            aria-hidden="true"
+                        ></i>
+                        <span class="board-eyebrow">
+                            {{ publicAnnouncements.length ? 'PENGUMUMAN SEKOLAH' : 'PAPAN INFORMASI' }}
+                        </span>
+                    </div>
+                    <span class="board-count-pill">
+                        {{ publicAnnouncements.length ? `${publicAnnouncements.length} pengumuman` : 'Info Portal' }}
+                    </span>
                 </div>
 
-                <div class="board-list">
+                <!-- Jika ada pengumuman publik yang disematkan -->
+                <div v-if="publicAnnouncements.length" class="board-list">
                     <article
                         v-for="announcement in publicAnnouncements"
                         :key="announcement.id"
@@ -148,8 +160,13 @@ function submit() {
                         <div class="board-item-header">
                             <h2 class="board-item-title">{{ announcement.judul }}</h2>
                             <span v-if="formatDate(announcement.created_at)" class="board-item-time">
+                                <i class="bi bi-clock me-1" aria-hidden="true"></i>
                                 {{ formatDate(announcement.created_at) }}
                             </span>
+                        </div>
+                        <div v-if="announcement.creator_name" class="board-item-author">
+                            <i class="bi bi-person-fill me-1" aria-hidden="true"></i>
+                            {{ announcement.creator_name }}
                         </div>
                         <p class="board-item-desc">{{ announcement.isi }}</p>
                         <a
@@ -159,13 +176,43 @@ function submit() {
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            <i class="bi bi-paperclip" aria-hidden="true"></i>
+                            <i class="bi bi-file-earmark-arrow-down" aria-hidden="true"></i>
                             <span class="attachment-name">{{ announcement.attachment.name }}</span>
                             <small v-if="formatFileSize(announcement.attachment.size)" class="attachment-size">
                                 ({{ formatFileSize(announcement.attachment.size) }})
                             </small>
                         </a>
                     </article>
+                </div>
+
+                <!-- Jika belum ada pengumuman publik (mengisi panel dengan panduan yang bermanfaat) -->
+                <div v-else class="board-empty-state">
+                    <p class="board-empty-intro">
+                        Selamat datang di portal pembelajaran digital {{ branding.school_name }}. Papan ini memuat informasi dan pengumuman resmi yang ditujukan bagi seluruh civitas sekolah.
+                    </p>
+                    <div class="board-quick-guide">
+                        <div class="guide-item">
+                            <i class="bi bi-mortarboard-fill guide-icon" aria-hidden="true"></i>
+                            <div class="guide-content">
+                                <strong class="guide-title">Akses Pembelajaran Terpadu</strong>
+                                <span class="guide-text">Masuk menggunakan kredensial resmi sekolah untuk mengakses materi, tugas, dan ujian daring.</span>
+                            </div>
+                        </div>
+                        <div class="guide-item">
+                            <i class="bi bi-shield-check guide-icon" aria-hidden="true"></i>
+                            <div class="guide-content">
+                                <strong class="guide-title">Jaga Keamanan Akun</strong>
+                                <span class="guide-text">Jangan bagikan kata sandi kepada orang lain dan selalu keluar setelah menggunakan perangkat bersama.</span>
+                            </div>
+                        </div>
+                        <div class="guide-item">
+                            <i class="bi bi-question-circle-fill guide-icon" aria-hidden="true"></i>
+                            <div class="guide-content">
+                                <strong class="guide-title">Bantuan &amp; Kendala Akses</strong>
+                                <span class="guide-text">Jika lupa kata sandi atau akun bermasalah, silakan hubungi wali kelas atau admin sekolah.</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -375,7 +422,6 @@ function submit() {
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.14);
     border: 1px solid rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(8px);
 }
 
 .brand-logo-box img {
@@ -427,15 +473,17 @@ function submit() {
     line-height: 1.5;
 }
 
-/* Papan Informasi (kartu kaca tipis) */
+/* Papan Informasi / Pengumuman Resmi */
 .brand-board {
     border-radius: 14px;
-    padding: 18px 20px;
+    padding: clamp(16px, 2.5vw, 22px);
     background: var(--login-glass-bg);
     border: 1px solid var(--login-glass-border);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
 .board-header {
@@ -444,34 +492,54 @@ function submit() {
     justify-content: space-between;
     gap: 12px;
     margin-bottom: 14px;
-    padding-bottom: 8px;
+    padding-bottom: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.14);
 }
 
+.board-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.board-icon {
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.board-icon.text-amber {
+    color: #fbbf24;
+}
+
 .board-eyebrow {
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.92);
 }
 
 .board-count-pill {
     font-size: 0.7rem;
     font-weight: 600;
-    padding: 2px 8px;
+    padding: 2px 9px;
     border-radius: 9999px;
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     color: #ffffff;
+    white-space: nowrap;
 }
 
 .board-list {
     display: flex;
     flex-direction: column;
     gap: 14px;
-    max-height: 240px;
+    max-height: clamp(260px, 45vh, 480px);
     overflow-y: auto;
-    padding-right: 4px;
+    padding-right: 6px;
+    flex: 1;
+    min-height: 0;
 }
 
 .board-list::-webkit-scrollbar {
@@ -484,7 +552,7 @@ function submit() {
 }
 
 .board-item {
-    padding-bottom: 12px;
+    padding-bottom: 14px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -498,12 +566,12 @@ function submit() {
     align-items: baseline;
     justify-content: space-between;
     gap: 8px;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .board-item-title {
     margin: 0;
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     font-weight: 700;
     line-height: 1.35;
     color: #ffffff;
@@ -512,13 +580,23 @@ function submit() {
 .board-item-time {
     flex-shrink: 0;
     font-size: 0.72rem;
-    color: rgba(255, 255, 255, 0.72);
+    color: rgba(255, 255, 255, 0.75);
+    display: inline-flex;
+    align-items: center;
+}
+
+.board-item-author {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: 6px;
+    display: inline-flex;
+    align-items: center;
 }
 
 .board-item-desc {
     margin: 0;
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.86);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.88);
     line-height: 1.5;
     white-space: pre-line;
     word-break: break-word;
@@ -529,7 +607,7 @@ function submit() {
     align-items: center;
     gap: 6px;
     margin-top: 8px;
-    padding: 4px 10px;
+    padding: 5px 11px;
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.22);
@@ -537,12 +615,70 @@ function submit() {
     font-size: 0.74rem;
     font-weight: 600;
     text-decoration: none;
-    transition: background-color 0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .board-item-attachment:hover {
     background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.35);
     color: #ffffff;
+}
+
+/* Empty State / Panduan Informasi Sekolah */
+.board-empty-state {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+    justify-content: center;
+}
+
+.board-empty-intro {
+    margin: 0;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.84);
+    line-height: 1.5;
+}
+
+.board-quick-guide {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.guide-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.guide-icon {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.85);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.guide-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.guide-title {
+    font-size: 0.79rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.guide-text {
+    font-size: 0.73rem;
+    color: rgba(255, 255, 255, 0.74);
+    line-height: 1.35;
 }
 
 /* Footer Panel Kiri */
@@ -906,9 +1042,34 @@ function submit() {
     line-height: 1.45;
 }
 
-/* Khusus login hanya tema light: tidak ada override tema gelap */
+/* Responsive Layout */
+@media (max-width: 960px) {
+    .login-page {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
 
+    .login-brand-panel {
+        padding: 32px 24px 28px;
+        gap: 24px;
+    }
 
+    .brand-top-row {
+        margin-bottom: 20px;
+    }
+
+    .brand-headline {
+        font-size: 1.45rem;
+    }
+
+    .board-list {
+        max-height: 280px;
+    }
+
+    .login-form-panel {
+        padding: 36px 20px 48px;
+    }
+}
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
