@@ -119,7 +119,7 @@
     --bs-primary: var(--app-primary);
     --bs-success: var(--app-primary);
     --bs-warning: var(--gold-500);
-    --bs-link-color: var(--primary-600);
+    --bs-link-color: var(--text-brand);
     --bs-link-hover-color: var(--primary-700);
     --bs-code-color: var(--text-brand);
 

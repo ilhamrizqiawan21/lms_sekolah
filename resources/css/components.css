@@ -122,7 +122,6 @@ textarea.form-control { min-height: calc(var(--control-height) * 2); }
     padding: 1rem;
     overflow-y: auto;
     background: var(--backdrop);
-    backdrop-filter: blur(3px);
 }
 .app-modal-backdrop--top {
     align-items: flex-start;

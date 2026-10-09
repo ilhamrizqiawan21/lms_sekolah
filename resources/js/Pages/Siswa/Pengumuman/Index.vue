@@ -130,7 +130,7 @@ function formatDate(value?: string | null) {
 }
 
 .read-link {
-    color: var(--primary-600);
+    color: var(--text-brand);
     font-size: 0.76rem;
     font-weight: 700;
 }

@@ -184,6 +184,6 @@ function statusColor(status: string) {
 .course-filter:hover {
     border-color: var(--primary-500);
     background: color-mix(in srgb, var(--primary-500) 12%, var(--surface-card));
-    color: var(--primary-700);
+    color: var(--text-brand);
 }
 </style>

@@ -78,7 +78,7 @@ Hasil evaluasi UI 2026-10-09 (38 halaman, 4 peran, desktop 1440 px dan mobile 39
 - [x] Jadwal Mengajar, Kelas Daring, Wali Kelas (absensi dengan pola grid, pertemuan & penanganan sebagai kartu di HP, biodata).
 - [x] Chat, Notifikasi, Kalender ("Linimasa Akademik"), Pengumuman (header `PageHeader`, tanggal kosong tidak lagi "1/1/1970", label target manusiawi; halaman ini dipakai juga oleh admin & kepsek).
 - [x] Verifikasi fase (lihat log progres).
-- [ ] **Titik review pemilik proyek.**
+- [x] **Titik review pemilik proyek.** Di-commit `532ff21`.
 
 ### Fase 2 — Siswa
 
@@ -88,7 +88,7 @@ Hasil evaluasi UI 2026-10-09 (38 halaman, 4 peran, desktop 1440 px dan mobile 39
 - [x] Ujian CBT: daftar, layar pengerjaan (ringan di HP murah, tanpa blur), hasil.
 - [x] Nilai, Progress, Jadwal, Kelas Daring, Materi, Kalender, Pengumuman, Chat, Notifikasi.
 - [x] Verifikasi fase.
-- [ ] **Titik review pemilik proyek.**
+- [x] **Titik review pemilik proyek.** Di-commit `496bc42` (bersama Fase 3 dan 4).
 
 ### Fase 3 — Admin
 
@@ -99,7 +99,7 @@ Hasil evaluasi UI 2026-10-09 (38 halaman, 4 peran, desktop 1440 px dan mobile 39
 - [x] Rekap (absensi, nilai, sikap, tugas): `PageHeader`, ekspor netral, label filter terhubung ke kontrol. Judul tab `/admin/rekap/*` sudah diisi di Fase 1 (bersama perbaikan judul Rekap Nilai/Sikap guru).
 - [x] Log login, log error, log akademik, IP terblokir: tabel log login/error dan IP terblokir menjadi kartu di HP; log akademik tetap tabel geser (kolom sebelum/sesudah berupa JSON). Paginasi nonaktif lolos kontras.
 - [x] Verifikasi fase (lihat log progres).
-- [ ] **Titik review pemilik proyek.**
+- [x] **Titik review pemilik proyek.** Di-commit `496bc42`.
 
 ### Fase 4 — Kepala Sekolah, Login, halaman error
 
@@ -109,15 +109,15 @@ Hasil evaluasi UI 2026-10-09 (38 halaman, 4 peran, desktop 1440 px dan mobile 39
 - [x] Halaman error (`errors/status.blade.php`) tanpa mesh-gradien/kaca, flat surface rapi dengan dark mode solid.
 - [x] Pengaturan Akun (semua peran): PageHeader dan Card bersih dari icon berlebih, tombol dan tabel selaras.
 - [x] Verifikasi fase.
-- [ ] **Titik review pemilik proyek.**
+- [x] **Titik review pemilik proyek.** Di-commit `496bc42`.
 
 ### Fase 5 — Penutup
 
 - [x] Gabungkan CSS lama menjadi satu sistem; hapus aturan yang tak lagi dipakai, termasuk menghapus `resources/css/modern.css`.
 - [x] Ganti warna hex hardcoded di komponen Vue dengan token (seluruh komponen Vue memakai token CSS / tema).
-- [ ] Audit axe-core di semua rute: tanpa pelanggaran serius/kritis.
-- [ ] Semua rute di `tests/Browser/migration.spec.ts` dicek di 390 px: tanpa overflow horizontal.
-- [ ] Cek kelima tema sekolah (hijau, biru-azure, biru-aqua, indigo, marun) terang dan gelap.
+- [x] Audit axe-core di semua rute: tanpa pelanggaran serius/kritis (101 rute GET + 3 rute ujian berdata, lihat log 2026-10-09 pra-deploy).
+- [x] Semua rute dicek di 390 dan 1440 px: tanpa overflow horizontal (dicakup sapuan axe di atas, lebih luas dari `migration.spec.ts`).
+- [x] Cek kelima tema sekolah (hijau, biru-azure, biru-aqua, indigo, marun) terang dan gelap (hijau: semua rute; empat tema lain: 11 kelompok rute representatif).
 - [x] Perbarui `docs/UI_REDESIGN_AURORA.md` (status: digantikan) dan dokumentasi terkait.
 - [ ] **Review akhir pemilik proyek, lalu PR.**
 
@@ -125,8 +125,8 @@ Hasil evaluasi UI 2026-10-09 (38 halaman, 4 peran, desktop 1440 px dan mobile 39
 
 - `Admin/Pengumuman/Show.vue` dan `Kepsek/Pengumuman/Show.vue` punya dua `<h1>` (judul header + judul konten); `Siswa/Ujian/Hasil.vue` perlu dicek. `Siswa/Nilai` tidak punya `<h1>`.
 - Dashboard Guru: empty state antrean sudah ringkas; susunan final (urutan seksi, grafik dari token) tetap di Fase 1.
-- Tes browser `grade paste and attendance save` gagal **sejak sebelum redesain**: commit `3c81887` (2026-09-30, "Remove Decimal di Menu Nilai") membulatkan tampilan nilai, sedangkan tes masih mengharapkan `81.5`. Perlu keputusan pemilik proyek: tes diselaraskan dengan pembulatan, atau pembulatan ditinjau ulang. Bukan bagian redesain.
-- Tes browser `searchable select opens upward at the last option` gagal sejak sebelum redesain (`kelas_id` 2 vs 1), sudah tercatat di `docs/UI_REDESIGN_AURORA.md`.
+- ~~Tes browser `grade paste and attendance save` gagal **sejak sebelum redesain**: commit `3c81887` (2026-09-30, "Remove Decimal di Menu Nilai") membulatkan tampilan nilai, sedangkan tes masih mengharapkan `81.5`. Perlu keputusan pemilik proyek: tes diselaraskan dengan pembulatan, atau pembulatan ditinjau ulang. Bukan bagian redesain.~~ **Selesai 2026-10-09:** tes diselaraskan dengan pembulatan (nilai tampil tanpa desimal sesuai `3c81887`).
+- ~~Tes browser `searchable select opens upward at the last option` gagal sejak sebelum redesain (`kelas_id` 2 vs 1).~~ **Selesai 2026-10-09:** seed punya dua kelas, ekspektasi opsi terakhir diubah ke `2`.
 
 - Lingkungan evaluasi: server uji dengan `APP_ENV=testing` di HTTP memicu CSP `upgrade-insecure-requests`, sehingga redirect setelah simpan di Chrome naik ke HTTPS dan gagal. Bukan bug aplikasi (lokal `APP_ENV=local` dan produksi HTTPS tidak terdampak); verifikasi alur simpan memakai server `APP_ENV=local` dengan SQLite terisolasi yang sama.
 - `Guru/Tugas/Pengumpulan`: di HP tombol Excel/PDF masih bertumpuk penuh (fungsional; dirapikan bila ada waktu di Fase 5).
@@ -154,3 +154,4 @@ Sebuah fase baru boleh dicentang selesai bila semua ini sudah dijalankan dan has
 | 2026-10-09 | 2 | Semua halaman siswa selesai, menunggu review. Diselaraskan ke prinsip Ruang Kelas: Dashboard Siswa (quick actions konsisten); Tugas Saya (daftar kartu mobile & hitungan tugas belum dikumpulkan); Detail Tugas & Pengumpulan (PageHeader ringkas dengan eyebrow mapel, tombol kembali Button, statusMap selaras, tanpa icon dekoratif); Ujian CBT (PageHeader, TableWrapper stack di mobile, layar Kerjakan ringan tanpa efek berat/animasi berulang & bebas bg-white hardcoded agar ramah dark mode, Hasil Ujian tanpa duplikasi `<h1>` dan angka tabular-nums); Nilai Saya (PageHeader dengan `<h1>`, tabel bersih tanpa background silau pada rata-rata); Progress Belajar (PageHeader ringkas, `aria-label` pada seluruh progress bar untuk WCAG AA, angka tabular-nums); Jadwal, Kelas Daring, Materi (Index & List), KelasMapel Show, Kalender, Pengumuman (Index & Show dengan formatDate), Chat (Index & Show), Notifikasi, dan Profil (tanpa icon dekoratif pada Card). Verifikasi: `npm run typecheck` lolos (exit 0); `npm run build` lolos (exit 0). Belum di-commit. |
 | 2026-10-09 | 3 | Semua halaman admin selesai, menunggu review. Dikerjakan paralel dengan Fase 2 (dikerjakan pemilik proyek); tidak ada berkas `Pages/Siswa/*` yang disentuh. Verifikasi: `npm run typecheck` hijau; `npm run build` hijau; phpunit 148/148 lolos; `npm run test:browser` 23 lolos, 2 gagal (kegagalan lama yang sama); 24 rute admin di 1440 & 390 px: 200, satu `<h1>`, berjudul, hero hanya di dashboard, tanpa overflow, tanpa error JS; axe-core (WCAG 2 A/AA) 0 pelanggaran serius/kritis di 24 rute × terang/gelap (sebelumnya 9 jenis: select/input filter tanpa label di Guru & Staf, Kelas & Siswa, Rekap, Log; kontras paginasi nonaktif); alur diuji nyata di SQLite sementara: tambah siswa (NIS duplikat menahan panel terbuka, NIS valid menutupnya dan baris baru muncul), tab Pengaturan, simpan + toast + indikator. Belum di-commit. |
 | 2026-10-09 | 4 | Semua halaman Kepala Sekolah, Login, halaman error, dan Pengaturan Akun selesai, menunggu review. Dashboard Kepsek (skala absensi integer `precision: 0`, token warna, tabel login terlindungi dengan `:min-width="480"`, kartu tanpa icon dekoratif ganda); Statistik & Performa Guru (skala grafik integer, PageHeader/Card bersih, tombol ekspor netral `outline-secondary`, angka `tabular-nums`); Laporan Kepsek (Absensi, Nilai, RekapAbsensi, RekapSikap, RekapTugas, WaliKelas Index & Show: tombol ekspor seragam, progressbar dengan `aria-label`, data-label & stack di mobile); Login (pembersihan penuh override aurora, latar & kartu datar solid, chip peran dengan cursor default statis tanpa affordance tombol, judul tab tunggal `Login`); Error page (`status.blade.php`: permukaan datar solid bebas efek kaca/blur & mesh gradient); Pengaturan Akun (pembersihan ikon Card/PageHeader, styling seragam). Verifikasi: `npm run typecheck` hijau; `npm run build` hijau; phpunit `ErrorPageTest` 7/7 passed. Belum di-commit. |
+| 2026-10-09 | 5 + pra-deploy | Fase 5 (gabung CSS, hapus `modern.css`, token warna) di-commit `8d58f6b`; commit `50cf7ca` "Add Papan Informasi" menambah panel informasi di `Login.vue`. Verifikasi pra-deploy: sapuan Playwright + axe-core (WCAG 2 A/AA) di SQLite terisolasi, 390 dan 1440 px, terang dan gelap: tema hijau 412 pemuatan (101 rute GET + rute ujian guru/siswa dengan data uji), empat tema lain 164 pemuatan masing-masing; hasil akhir 0 pelanggaran serius/kritis, 0 overflow, 0 error JS, satu `<h1>` dan judul tab di semua halaman. Temuan yang diperbaiki: latar tab `.workspace-tab.is-active` memakai `white` hardcoded (kontras 1,8–2,4:1 di mode gelap, semua tema); warna teks aksen `--primary-600/700` di 12 tempat (Kelas Daring, Pengumuman siswa, Tugas guru, Pengaturan, `lms-app.css`) diganti `--text-brand`; tautan `--bs-link-color` (kontras 4,19:1 di tema Aqua terang); sisa `backdrop-filter` modal di `components.css`. Dua tes browser lama diselaraskan. `npm run typecheck` hijau; `npm run build` hijau; phpunit 148/148; `npm run test:browser` 25/25. Belum di-commit. |

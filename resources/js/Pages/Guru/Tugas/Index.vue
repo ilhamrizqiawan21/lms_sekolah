@@ -243,7 +243,7 @@ function submit() {
 }
 
 .assignment-option-link:hover {
-    color: var(--primary-600);
+    color: var(--text-brand);
 }
 
 .assignment-submit {

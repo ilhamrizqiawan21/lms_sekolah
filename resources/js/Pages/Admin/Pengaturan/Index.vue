@@ -377,7 +377,7 @@ function saveSchool() {
     border: 1px solid var(--modern-border);
     border-radius: 1rem;
     background: var(--surface-muted);
-    color: var(--primary-600);
+    color: var(--text-brand);
     font-size: 2rem;
 }
 
