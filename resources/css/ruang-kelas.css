@@ -1,6 +1,6 @@
 /*
  * "Ruang Kelas Digital": lapisan tampilan (lihat docs/REDESIGN_RUANG_KELAS_TODO.md).
- * Dimuat paling akhir lewat app.ts dan inertia.ts; menggantikan modern.css (Aurora).
+ * Dimuat paling akhir lewat app.ts dan inertia.ts; menggantikan modern.css (Aurora, kini telah dihapus).
  *
  * Prinsip: datar dan solid, padat, warna tema sekolah hanya sebagai aksen, warna
  * status hanya untuk makna. Tanpa kaca, gradien latar, blur, atau animasi masuk.

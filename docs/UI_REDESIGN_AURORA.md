@@ -1,10 +1,10 @@
-# UI Eksperimen "Aurora"
+# UI Eksperimen "Aurora" (STATUS: DIGANTIKAN)
 
-Dokumen ini mencatat eksperimen tampilan yang jauh lebih modern di atas redesain **Calm Academic** (`docs/UI_REDESIGN_CALM_ACADEMIC.md`). Status (2026-10-04): **dipilih sebagai arah akhir** oleh pemilik proyek (menggantikan tampilan Calm Academic); belum di-merge dan belum di-push.
+> [!NOTE]
+> **Status: DIGANTIKAN (2026-10-09)** oleh arah desain **"Ruang Kelas Digital"** (lihat `docs/REDESIGN_RUANG_KELAS_TODO.md`).
+> Berkas `resources/css/modern.css` telah dihapus dan seluruh override Aurora di Login/Error page telah dibersihkan. Dokumen ini dipertahankan sebagai catatan riwayat eksperimen.
 
-- Branch: `experimental/ui-modern`, dibuat dari `redesign_calm_academic` (titik aman: commit `9b8dc05`, "Calm Academic fase 3-5").
-- Commit eksperimen: `b75b472` (lapisan dasar) sampai `2df8242`, ditambah satu commit polesan dan dokumentasi (lihat `git log`).
-- Alasan: tampilan Calm Academic sengaja konservatif (token-first di atas Bootstrap) sehingga terasa hampir sama dengan versi lama. Aurora dibuat untuk melihat seberapa jauh tampilan bisa berubah tanpa menulis ulang markup.
+Dokumen ini mencatat eksperimen tampilan "Aurora" yang sempat dicoba di atas redesain Calm Academic sebelum akhirnya digantikan oleh arah Ruang Kelas Digital demi performa, keterbacaan, dan kesederhanaan.
 
 ## 1. Konsep
 

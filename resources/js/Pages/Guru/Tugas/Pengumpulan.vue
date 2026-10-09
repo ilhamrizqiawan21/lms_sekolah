@@ -134,12 +134,14 @@ const statusOptions = [
                         <TextInput v-model="search" name="search_siswa" type="search" placeholder="Cari siswa" aria-label="Cari siswa" wrapper-class="" class="form-control-sm" />
                     </div>
                     <SelectInput v-model="statusFilter" name="status_filter" :options="statusOptions" aria-label="Filter status pengumpulan" wrapper-class="" class="form-select-sm" />
-                    <a :href="kelasMapel.export_excel_url" class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Excel
-                    </a>
-                    <a :href="kelasMapel.export_pdf_url" class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>PDF
-                    </a>
+                    <div class="assignment-export-buttons">
+                        <a :href="kelasMapel.export_excel_url" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Excel
+                        </a>
+                        <a :href="kelasMapel.export_pdf_url" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>PDF
+                        </a>
+                    </div>
                 </div>
             </template>
 
@@ -293,6 +295,16 @@ const statusOptions = [
     .assignment-search,
     .assignment-review-actions .form-select {
         width: 100%;
+    }
+
+    .assignment-export-buttons {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .assignment-export-buttons .btn {
+        flex: 1 1 0;
     }
 }
 </style>

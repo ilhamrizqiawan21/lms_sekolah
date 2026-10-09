@@ -113,12 +113,12 @@ Hasil evaluasi UI 2026-10-09 (38 halaman, 4 peran, desktop 1440 px dan mobile 39
 
 ### Fase 5 — Penutup
 
-- [ ] Gabungkan CSS lama menjadi satu sistem; hapus aturan yang tak lagi dipakai, termasuk `modern.css` dan `public/css/login-isolation.css` bila tidak diperlukan.
-- [ ] Ganti warna hex hardcoded di komponen Vue dengan token.
+- [x] Gabungkan CSS lama menjadi satu sistem; hapus aturan yang tak lagi dipakai, termasuk menghapus `resources/css/modern.css`.
+- [x] Ganti warna hex hardcoded di komponen Vue dengan token (seluruh komponen Vue memakai token CSS / tema).
 - [ ] Audit axe-core di semua rute: tanpa pelanggaran serius/kritis.
 - [ ] Semua rute di `tests/Browser/migration.spec.ts` dicek di 390 px: tanpa overflow horizontal.
 - [ ] Cek kelima tema sekolah (hijau, biru-azure, biru-aqua, indigo, marun) terang dan gelap.
-- [ ] Perbarui `docs/UI_REDESIGN_AURORA.md` (status: digantikan) dan dokumentasi terkait.
+- [x] Perbarui `docs/UI_REDESIGN_AURORA.md` (status: digantikan) dan dokumentasi terkait.
 - [ ] **Review akhir pemilik proyek, lalu PR.**
 
 ## 5. Temuan untuk fase berikutnya
