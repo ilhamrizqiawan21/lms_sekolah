@@ -35,8 +35,14 @@ const form = useForm({
 const isAdmin = computed(() => page.props.auth?.user?.role === 'admin');
 const targetOptions = computed(() => [
     ...(isAdmin.value ? [{ value: 'semua', label: 'Semua' }, { value: 'guru', label: 'Guru' }, { value: 'siswa', label: 'Siswa' }] : []),
+    { value: 'semua_kelas', label: 'Semua kelas' },
     { value: 'kelas_mapel', label: 'Kelas tertentu' },
 ]);
+
+const allKelasIds = () => props.targetKelasOptions.map((k) => k.id);
+form.transform((data) => data.target === 'semua_kelas'
+    ? { ...data, target: 'kelas_mapel', target_kelas_ids: allKelasIds() }
+    : data);
 const canPublish = computed(() => ['admin', 'guru'].includes(page.props.auth?.user?.role ?? ''));
 
 function resetForm() {
@@ -58,6 +64,9 @@ function openEdit(item: Announcement) {
     form.isi = item.isi ?? '';
     form.target = item.target ?? 'semua';
     form.target_kelas_ids = Array.isArray(item.target_kelas_ids) ? [...item.target_kelas_ids] : [];
+    if (form.target === 'kelas_mapel' && allKelasIds().length > 0 && allKelasIds().every((id) => form.target_kelas_ids.includes(id))) {
+        form.target = 'semua_kelas';
+    }
     form.is_public_login = Boolean(item.is_public_login);
     form.public_file = null;
     form.remove_public_file = false;
