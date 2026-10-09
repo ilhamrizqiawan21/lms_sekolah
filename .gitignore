@@ -39,3 +39,5 @@ coverage/
 /.codewhale/
 /promo
 /archive-*/
+*.rar
+/.playwright-mcp/
