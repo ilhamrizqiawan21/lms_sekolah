@@ -4,6 +4,7 @@ import type { PropType } from 'vue';
 import { computed, ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AppShell from '../../Layouts/AppShell.vue';
+import PageHeader from '../../Components/AppShell/PageHeader.vue';
 import { Card, EmptyState, TableWrapper } from '../../Components/UI';
 
 const props = defineProps({
@@ -47,16 +48,17 @@ const empty = computed(() => props.rekap.length === 0 && props.tugasList.length 
     <Head :title="title" />
 
     <AppShell :title="title">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-            <div><h1 class="h3 mb-1">{{ title }}</h1><p class="text-body-secondary mb-0">Rekap akademik terintegrasi untuk administrasi sekolah.</p></div>
-            <div v-if="kelasId || type === 'absensi'" class="d-flex gap-2"><a :href="exportUrl('excel')" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a><a :href="exportUrl('pdf')" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a></div>
-        </div>
+        <PageHeader eyebrow="Laporan" :title="title" subtitle="Rekap akademik terintegrasi untuk administrasi sekolah.">
+            <template v-if="kelasId || type === 'absensi'" #actions>
+                <a :href="exportUrl('excel')" class="btn btn-outline-secondary"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a><a :href="exportUrl('pdf')" class="btn btn-outline-secondary"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+            </template>
+        </PageHeader>
         <Card class="mb-4"><div class="row g-3 align-items-end">
-            <div class="col-md-5"><label class="form-label">Kelas</label><select v-model="kelasId" class="form-select" @change="reload"><option :value="null">{{ type === 'absensi' ? 'Semua Kelas' : 'Pilih kelas' }}</option><option v-for="k in kelasList" :key="k.id" :value="k.id">{{ k.tingkat }} {{ k.nama_kelas }}</option></select></div>
-            <div class="col-md-3"><label class="form-label">Semester</label><select v-model="semester" class="form-select" @change="reload"><option value="1">Semester 1</option><option value="2">Semester 2</option></select></div>
+            <div class="col-md-5"><label for="rekap-kelas" class="form-label">Kelas</label><select id="rekap-kelas" v-model="kelasId" class="form-select" @change="reload"><option :value="null">{{ type === 'absensi' ? 'Semua Kelas' : 'Pilih kelas' }}</option><option v-for="k in kelasList" :key="k.id" :value="k.id">{{ k.tingkat }} {{ k.nama_kelas }}</option></select></div>
+            <div class="col-md-3"><label for="rekap-semester" class="form-label">Semester</label><select id="rekap-semester" v-model="semester" class="form-select" @change="reload"><option value="1">Semester 1</option><option value="2">Semester 2</option></select></div>
             <div v-if="type === 'absensi'" class="col-md-3">
-                <label class="form-label">Bulan</label>
-                <input v-model="bulan" type="month" class="form-control" :disabled="semuaBulan" @change="reload">
+                <label for="rekap-bulan" class="form-label">Bulan</label>
+                <input id="rekap-bulan" v-model="bulan" type="month" class="form-control" :disabled="semuaBulan" @change="reload">
                 <div class="form-check mt-1">
                     <input id="admin-rekap-semua-bulan" v-model="semuaBulan" class="form-check-input" type="checkbox" @change="onToggleSemuaBulan">
                     <label class="form-check-label small" for="admin-rekap-semua-bulan">Semua Bulan</label>

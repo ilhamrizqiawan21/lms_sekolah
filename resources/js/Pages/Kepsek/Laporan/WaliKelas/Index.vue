@@ -17,10 +17,10 @@ defineProps({
     <Head title="Laporan Wali Kelas" />
 
     <AppShell title="Laporan Wali Kelas">
-        <PageHeader title="Laporan Wali Kelas" icon="bi-person-badge-fill" />
+        <PageHeader title="Laporan Wali Kelas" />
 
-        <Card title="Daftar Wali Kelas Aktif" icon="bi-list-ul" body-class="p-0">
-            <TableWrapper v-if="waliKelas.data.length">
+        <Card title="Daftar Wali Kelas Aktif" body-class="p-0">
+            <TableWrapper v-if="waliKelas.data.length" :min-width="640">
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
@@ -35,17 +35,17 @@ defineProps({
                     </thead>
                     <tbody>
                         <tr v-for="item in waliKelas.data" :key="item.id">
-                            <td><strong>{{ item.kelas }}</strong></td>
-                            <td>{{ item.guru }}</td>
-                            <td>{{ item.tahun_ajaran }}</td>
-                            <td>{{ item.absensi_count }}</td>
-                            <td>{{ item.pertemuan_count }}</td>
-                            <td>
-                                <Badge color="warning text-dark">{{ item.penanganan_aktif_count }} aktif</Badge>
-                                <span class="text-body-secondary small"> / {{ item.penanganan_siswa_count }} total</span>
+                            <td data-label="Kelas" class="stack-title"><strong>{{ item.kelas }}</strong></td>
+                            <td data-label="Wali Kelas">{{ item.guru }}</td>
+                            <td data-label="Tahun Ajaran">{{ item.tahun_ajaran }}</td>
+                            <td data-label="Absensi" class="tabular-nums">{{ item.absensi_count }}</td>
+                            <td data-label="Pertemuan" class="tabular-nums">{{ item.pertemuan_count }}</td>
+                            <td data-label="Penanganan">
+                                <Badge color="warning text-dark" class="tabular-nums">{{ item.penanganan_aktif_count }} aktif</Badge>
+                                <span class="text-body-secondary small tabular-nums"> / {{ item.penanganan_siswa_count }} total</span>
                             </td>
-                            <td>
-                                <Button :href="item.show_url" color="outline-primary" icon="bi-eye">Detail</Button>
+                            <td data-label="Aksi" class="stack-actions">
+                                <Button :href="item.show_url" color="outline-primary" icon="bi-eye" size="sm">Detail</Button>
                             </td>
                         </tr>
                     </tbody>

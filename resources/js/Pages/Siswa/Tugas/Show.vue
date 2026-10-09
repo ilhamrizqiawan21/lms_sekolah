@@ -35,11 +35,11 @@ const uploadFileError = computed(() => {
 });
 
 const statusMap: Record<string, { color: string; label: string }> = {
-    belum: { color: 'secondary', label: 'Belum' },
-    sudah: { color: 'success', label: 'Sudah' },
+    belum: { color: 'warning', label: 'Belum dikumpulkan' },
+    sudah: { color: 'info', label: 'Dikumpulkan' },
     terlambat: { color: 'danger', label: 'Terlambat' },
-    dinilai: { color: 'primary', label: 'Dinilai' },
-    perlu_perbaikan: { color: 'warning', label: 'Perlu Perbaikan' },
+    dinilai: { color: 'success', label: 'Dinilai' },
+    perlu_perbaikan: { color: 'warning', label: 'Perlu perbaikan' },
 };
 
 function statusColor(status: string) {
@@ -114,14 +114,24 @@ function submit() {
 </script>
 
 <template>
-    <Head title="Detail Tugas" />
+    <Head :title="`Tugas: ${tugas.judul}`" />
 
     <AppShell title="Detail Tugas">
-        <PageHeader title="Detail Tugas" icon="bi-journal-text" />
+        <PageHeader
+            title="Detail Tugas"
+            :eyebrow="tugas.mata_pelajaran"
+            :subtitle="tugas.judul"
+        >
+            <template #actions>
+                <Button :href="tugas.back_url" color="outline-secondary" icon="bi-arrow-left">
+                    Kembali
+                </Button>
+            </template>
+        </PageHeader>
 
         <div class="row">
             <div class="col-md-8">
-                <Card :title="tugas.judul" icon="bi-journal-text" class="mb-3">
+                <Card :title="tugas.judul" class="mb-3">
                     <template #actions>
                         <Badge color="secondary">{{ tugas.kategori_nilai }}</Badge>
                     </template>
@@ -146,7 +156,7 @@ function submit() {
                     </div>
                 </Card>
 
-                <Card v-if="pengumpulan" title="Riwayat Pengumpulan" icon="bi-clock-history" class="mb-3">
+                <Card v-if="pengumpulan" title="Riwayat Pengumpulan" class="mb-3">
                     <div class="row mb-2">
                         <div class="col-md-4">
                             <small class="text-body-secondary">Status</small>
@@ -158,7 +168,7 @@ function submit() {
                         </div>
                         <div class="col-md-4">
                             <small class="text-body-secondary">Nilai</small>
-                            <p class="fw-bold" :class="pengumpulan.nilai ? 'text-success' : 'text-body-secondary'">
+                            <p class="fw-bold tabular-nums" :class="pengumpulan.nilai ? 'text-success' : 'text-body-secondary'">
                                 {{ pengumpulan.nilai ?? 'Belum dinilai' }}
                             </p>
                         </div>
@@ -192,7 +202,7 @@ function submit() {
                     </div>
                 </Card>
 
-                <Card v-if="canSubmit" title="Kumpulkan Tugas" icon="bi-upload">
+                <Card v-if="canSubmit" title="Kumpulkan Tugas">
                     <form @submit.prevent="submit">
                         <FileInput
                             :key="fileInputKey"
@@ -217,7 +227,7 @@ function submit() {
                             :error="form.errors.teks_jawaban"
                         />
                         <div class="d-flex justify-content-end gap-2">
-                            <a :href="tugas.back_url" class="btn btn-secondary">Kembali</a>
+                            <Button :href="tugas.back_url" color="outline-secondary">Kembali</Button>
                             <Button type="submit" color="primary" size="" icon="bi-send" :disabled="form.processing">
                                 {{ form.processing ? 'Mengumpulkan...' : 'Kumpulkan' }}
                             </Button>
@@ -226,14 +236,14 @@ function submit() {
                 </Card>
 
                 <div v-else class="d-flex justify-content-between mt-3">
-                    <a :href="tugas.back_url" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Kembali
-                    </a>
+                    <Button :href="tugas.back_url" color="outline-secondary" icon="bi-arrow-left">
+                        Kembali
+                    </Button>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <Card title="Info" icon="bi-info-circle" class="mb-3">
+                <Card title="Info" class="mb-3">
                     <small class="text-body-secondary d-block">Guru Pengampu</small>
                     <p class="fw-bold">{{ tugas.guru }}</p>
 

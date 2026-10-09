@@ -64,9 +64,9 @@ function statusColor(status: string) {
 
     <AppShell title="Kelas Daring">
         <PageHeader
+            eyebrow="Pembelajaran"
             title="Kelas Daring"
             :subtitle="`Kelas ${kelas.nama}`"
-            icon="bi-camera-video-fill"
         />
 
         <MetricStrip :items="metrics" />
@@ -90,8 +90,8 @@ function statusColor(status: string) {
             </div>
         </section>
 
-        <Card title="Daftar Sesi" icon="bi-camera-video" body-class="p-0">
-            <TableWrapper v-if="sessions.length" min-width="820">
+        <Card title="Daftar Sesi" body-class="p-0">
+            <TableWrapper v-if="sessions.length" stack :min-width="820">
                 <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
@@ -99,19 +99,24 @@ function statusColor(status: string) {
                             <th scope="col">Jadwal</th>
                             <th scope="col">Status</th>
                             <th scope="col">Presensi</th>
-                            <th scope="col" class="text-end">Akses</th>
+                            <th scope="col" class="text-md-end">Akses</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="session in sessions" :key="session.id">
-                            <td>
-                                <strong>{{ session.judul }}</strong>
-                                <div class="text-body-secondary small">{{ session.mata_pelajaran }} - {{ session.guru }}</div>
+                            <td data-label="Sesi">
+                                <strong class="stack-title">{{ session.judul }}</strong>
+                                <div class="text-body-secondary small">{{ session.mata_pelajaran }} &bull; {{ session.guru }}</div>
                                 <div v-if="session.deskripsi" class="text-body-secondary small">{{ session.deskripsi }}</div>
                             </td>
-                            <td>{{ session.tanggal }}<div class="text-body-secondary small">Pelajaran ke-{{ session.pelajaran_ke }}</div></td>
-                            <td><Badge :color="statusColor(session.status)">{{ session.status }}</Badge></td>
-                            <td>
+                            <td data-label="Jadwal">
+                                {{ session.tanggal }}
+                                <div class="text-body-secondary small">Pelajaran ke-{{ session.pelajaran_ke }}</div>
+                            </td>
+                            <td data-label="Status">
+                                <Badge :color="statusColor(session.status)">{{ session.status }}</Badge>
+                            </td>
+                            <td data-label="Presensi">
                                 <Badge v-if="session.sudah_presensi" color="success" class="d-inline-flex align-items-center gap-1">
                                     <i class="bi bi-check-circle-fill" aria-hidden="true"></i> Hadir
                                 </Badge>
@@ -127,7 +132,7 @@ function statusColor(status: string) {
                                 </Button>
                                 <span v-else class="text-body-secondary small">-</span>
                             </td>
-                            <td class="text-end">
+                            <td data-label="Akses" class="stack-actions text-md-end">
                                 <a
                                     v-if="session.status === 'terjadwal'"
                                     :href="session.meeting_url"

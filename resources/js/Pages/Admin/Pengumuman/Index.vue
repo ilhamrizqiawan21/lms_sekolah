@@ -6,6 +6,7 @@ import type { AppPageProps } from '../../../types/inertia';
 import { computed, ref } from 'vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
+import { formatDate, targetLabel } from '../../../utils/announcements';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { FileInput, SelectInput, TextareaInput, TextInput } from '../../../Components/Form';
 
@@ -36,14 +37,6 @@ const targetOptions = computed(() => [
     ...(isAdmin.value ? [{ value: 'semua', label: 'Semua' }, { value: 'guru', label: 'Guru' }, { value: 'siswa', label: 'Siswa' }] : []),
     { value: 'kelas_mapel', label: 'Kelas tertentu' },
 ]);
-const TARGET_LABELS: Record<string, string> = { semua: 'Semua pengguna', guru: 'Guru', siswa: 'Siswa', kelas_mapel: 'Kelas tertentu' };
-function targetLabel(target?: string | null) {
-    return target ? TARGET_LABELS[target] ?? target : '-';
-}
-function formatDate(value?: string | null) {
-    const date = value ? new Date(value) : null;
-    return date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '–';
-}
 const canPublish = computed(() => ['admin', 'guru'].includes(page.props.auth?.user?.role ?? ''));
 
 function resetForm() {

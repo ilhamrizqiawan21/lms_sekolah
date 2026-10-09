@@ -62,10 +62,9 @@ function exportUrl(format: 'excel' | 'pdf'): string {
     <AppShell title="Rekap Tugas">
         <PageHeader
             title="Rekap Tugas Per Kelas"
-            icon="bi-journal-check"
         />
 
-        <Card title="Filter" icon="bi-funnel" class="mb-3">
+        <Card title="Filter" class="mb-3">
             <form class="row g-2 app-table-filter" @submit.prevent="applyFilters">
                 <div class="col-md-3">
                     <SearchableSelect
@@ -103,10 +102,10 @@ function exportUrl(format: 'excel' | 'pdf'): string {
         </Card>
 
         <div v-if="tugas.data.length" class="d-flex flex-wrap gap-2 mb-3">
-            <a :href="exportUrl('excel')" class="btn btn-sm btn-outline-success">
+            <a :href="exportUrl('excel')" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
             </a>
-            <a :href="exportUrl('pdf')" class="btn btn-sm btn-outline-danger">
+            <a :href="exportUrl('pdf')" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i> PDF
             </a>
         </div>
@@ -139,7 +138,7 @@ function exportUrl(format: 'excel' | 'pdf'): string {
                         <i class="bi bi-person me-1" aria-hidden="true"></i>{{ item.guru }}
                         <template v-if="item.batas_waktu">
                             <span class="mx-1">-</span>
-                            <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ item.batas_waktu }}
+                            <i class="bi bi-clock me-1" aria-hidden="true"></i><span class="tabular-nums">{{ item.batas_waktu }}</span>
                         </template>
                     </div>
 
@@ -147,32 +146,32 @@ function exportUrl(format: 'excel' | 'pdf'): string {
 
                     <div class="d-flex justify-content-between text-center">
                         <div>
-                            <div class="metric">{{ item.total_siswa }}</div>
+                            <div class="metric tabular-nums">{{ item.total_siswa }}</div>
                             <small class="text-body-secondary">Total</small>
                         </div>
                         <div>
-                            <div class="metric text-primary">{{ item.sudah_kumpul }}</div>
+                            <div class="metric text-primary tabular-nums">{{ item.sudah_kumpul }}</div>
                             <small class="text-body-secondary">Sudah</small>
                         </div>
                         <div>
-                            <div class="metric text-danger">{{ item.belum_kumpul }}</div>
+                            <div class="metric text-danger tabular-nums">{{ item.belum_kumpul }}</div>
                             <small class="text-body-secondary">Belum</small>
                         </div>
                         <div>
-                            <div class="metric">{{ item.rata_nilai ?? '-' }}</div>
+                            <div class="metric tabular-nums">{{ item.rata_nilai ?? '-' }}</div>
                             <small class="text-body-secondary">Rata</small>
                         </div>
                     </div>
 
                     <template v-if="item.persen_kumpul !== null">
-                        <div class="progress mt-2 tugas-progress">
+                        <div class="progress mt-2 tugas-progress" role="progressbar" :aria-valuenow="item.persen_kumpul" aria-valuemin="0" aria-valuemax="100" :aria-label="`Terkumpul ${item.persen_kumpul}%`">
                             <div
                                 class="progress-bar"
                                 :class="progressColor(item.persen_kumpul)"
                                 :style="{ width: `${item.persen_kumpul}%` }"
                             ></div>
                         </div>
-                        <small class="text-body-secondary tugas-percent">{{ item.persen_kumpul }}% terkumpul</small>
+                        <small class="text-body-secondary tugas-percent tabular-nums">{{ item.persen_kumpul }}% terkumpul</small>
                     </template>
                 </Card>
             </div>

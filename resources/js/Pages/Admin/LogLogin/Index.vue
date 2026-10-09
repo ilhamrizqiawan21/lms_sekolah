@@ -65,13 +65,13 @@ function truncate(value: string | null, length = 56) {
                     <TextInput v-model="filterForm.search" name="search" wrapper-class="mb-0" placeholder="Cari user..." />
                     <Button type="submit" color="primary" icon="bi-search" aria-label="Cari riwayat login" />
                     <Button type="button" color="outline-secondary" icon="bi-arrow-clockwise" aria-label="Reset filter" @click="resetFilters" />
-                    <a :href="exportExcelUrl()" class="btn btn-outline-success btn-sm">
+                    <a :href="exportExcelUrl()" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
                     </a>
                 </form>
             </template>
 
-            <TableWrapper v-if="logs.data?.length">
+            <TableWrapper stack v-if="logs.data?.length">
                 <table class="table table-hover mb-0 small">
                     <thead>
                         <tr>
@@ -85,12 +85,12 @@ function truncate(value: string | null, length = 56) {
                     </thead>
                     <tbody>
                         <tr v-for="log in logs.data" :key="log.id">
-                            <td class="text-nowrap">{{ log.login_time ?? '-' }}</td>
-                            <td><strong>{{ log.username }}</strong></td>
-                            <td>{{ log.nama_lengkap }}</td>
-                            <td><Badge color="primary">{{ roleLabel(log.role) }}</Badge></td>
-                            <td><code>{{ log.ip_address }}</code></td>
-                            <td class="text-body-secondary user-agent" :title="log.user_agent">{{ truncate(log.user_agent) }}</td>
+                            <td data-label="Waktu" class="text-nowrap">{{ log.login_time ?? '-' }}</td>
+                            <td class="stack-title"><strong>{{ log.username }}</strong></td>
+                            <td data-label="Nama">{{ log.nama_lengkap }}</td>
+                            <td data-label="Role"><Badge color="primary">{{ roleLabel(log.role) }}</Badge></td>
+                            <td data-label="IP Address"><code>{{ log.ip_address }}</code></td>
+                            <td data-label="User Agent" class="text-body-secondary user-agent" :title="log.user_agent">{{ truncate(log.user_agent) }}</td>
                         </tr>
                     </tbody>
                 </table>

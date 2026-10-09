@@ -10,6 +10,12 @@ import { Badge, Card, EmptyState, Pagination } from '../../../Components/UI';
 defineProps({
     pengumuman: { type: Object as PropType<{ data: StudentAnnouncement[]; links?: PaginationLink[] }>, default: () => ({ data: [], links: [] }) },
 });
+
+function formatDate(value?: string | null) {
+    if (!value) return '–';
+    const date = new Date(value);
+    return !Number.isNaN(date.getTime()) ? date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : value;
+}
 </script>
 
 <template>
@@ -18,11 +24,10 @@ defineProps({
     <AppShell title="Pengumuman">
         <PageHeader
             title="Pengumuman"
-            icon="bi-megaphone-fill"
             subtitle="Informasi terbaru dari sekolah dan kelas."
         />
 
-        <Card title="Daftar Pengumuman" icon="bi-list-ul" body-class="p-0">
+        <Card title="Daftar Pengumuman" body-class="p-0">
             <div v-if="pengumuman.data?.length" class="announcement-list">
                 <Link
                     v-for="item in pengumuman.data"
@@ -33,17 +38,17 @@ defineProps({
                     <div class="announcement-main">
                         <div class="announcement-title">{{ item.judul }}</div>
                         <div class="announcement-meta">
-                            {{ item.creator }} - {{ item.created_at }}
+                            {{ item.creator }} &bull; {{ formatDate(item.created_at) }}
                         </div>
                         <div class="announcement-text">{{ item.isi }}</div>
                     </div>
                     <div class="announcement-side">
-                        <Badge color="info text-dark">{{ item.target_label }}</Badge>
+                        <Badge color="secondary">{{ item.target_label }}</Badge>
                         <span class="read-link">Selengkapnya</span>
                     </div>
                 </Link>
             </div>
-            <EmptyState v-else title="Belum ada pengumuman" icon="bi-megaphone" />
+            <EmptyState v-else title="Belum ada pengumuman" message="Informasi pengumuman dari sekolah akan muncul di sini." icon="bi-megaphone" />
 
             <template v-if="pengumuman.links?.length" #footer>
                 <Pagination :links="pengumuman.links" />

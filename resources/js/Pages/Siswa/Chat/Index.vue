@@ -13,7 +13,7 @@ withDefaults(defineProps<Props>(), { rooms: () => [], emptyMessage: 'Belum ada m
     <Head title="Chat Kelas" />
 
     <AppShell title="Chat Kelas">
-        <PageHeader title="Chat Kelas" icon="bi-chat-dots-fill" />
+        <PageHeader title="Chat Kelas" subtitle="Ruang diskusi mata pelajaran kelas Anda." />
         <RoomGrid :rooms="rooms" :empty-message="emptyMessage" />
     </AppShell>
 </template>

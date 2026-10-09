@@ -3,7 +3,8 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { SelectInput, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, IconButton, MetricStrip, TableWrapper } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card, EmptyState, IconButton, MetricStrip, TableWrapper } from '../../../Components/UI';
 
 interface Kelas { id: number; tingkat: string; nama_kelas: string; siswa_count?: number; kelas_mapel_count?: number; wali_kelas_count?: number; siswa_url?: string }
 interface KelasMetrics { total_kelas?: number; total_siswa?: number; total_penugasan?: number }
@@ -101,12 +102,10 @@ async function destroy(item: Kelas): Promise<void> {
     <Head title="Data Kelas" />
 
     <AppShell title="Data Kelas">
-        <DashboardHero
+        <PageHeader
             eyebrow="Master Data"
             title="Data Kelas"
             subtitle="Kelola rombongan belajar, siswa aktif, dan kesiapan penugasan mengajar."
-            icon="bi-building-fill"
-            tone="admin"
         />
 
         <MetricStrip :items="metrics" />
@@ -184,7 +183,7 @@ async function destroy(item: Kelas): Promise<void> {
 
             <div class="col-md-7 mb-4">
                 <Card title="Daftar Kelas" icon="bi-building" body-class="p-0">
-                    <TableWrapper v-if="kelas.length">
+                    <TableWrapper stack v-if="kelas.length">
                         <table class="table table-hover app-table mb-0">
                             <thead>
                                 <tr>
@@ -198,12 +197,12 @@ async function destroy(item: Kelas): Promise<void> {
                             </thead>
                             <tbody>
                                 <tr v-for="item in kelas" :key="item.id">
-                                    <td><Badge color="secondary">{{ item.tingkat }}</Badge></td>
-                                    <td><strong>{{ item.nama_kelas }}</strong></td>
-                                    <td>{{ item.siswa_count ?? 0 }} siswa</td>
-                                    <td>{{ item.kelas_mapel_count ?? 0 }} mapel</td>
-                                    <td>{{ item.wali_kelas_count ? 'Sudah ada' : 'Belum ada' }}</td>
-                                    <td class="table-action-column">
+                                    <td data-label="Tingkat"><Badge color="secondary">{{ item.tingkat }}</Badge></td>
+                                    <td class="stack-title"><strong>{{ item.nama_kelas }}</strong></td>
+                                    <td data-label="Siswa Aktif">{{ item.siswa_count ?? 0 }} siswa</td>
+                                    <td data-label="Penugasan">{{ item.kelas_mapel_count ?? 0 }} mapel</td>
+                                    <td data-label="Wali Kelas">{{ item.wali_kelas_count ? 'Sudah ada' : 'Belum ada' }}</td>
+                                    <td class="table-action-column stack-actions">
                                         <div class="d-flex justify-content-end gap-1">
                                             <Button :href="item.siswa_url" color="outline-secondary" icon="bi-people" aria-label="Lihat siswa">Siswa</Button>
                                             <IconButton

@@ -2,10 +2,10 @@
 import type { PropType } from 'vue';
 type SchoolField = 'school_name' | 'school_short_name' | 'address' | 'village' | 'district' | 'city' | 'province' | 'postal_code' | 'phone' | 'whatsapp' | 'email' | 'website' | 'npsn' | 'nsm' | 'accreditation' | 'school_status' | 'principal_name' | 'principal_nip' | 'principal_nuptk' | 'foundation_name' | 'school_year' | 'semester' | 'vision' | 'mission' | 'motto' | 'logo_url' | 'favicon_url';
 import { Head, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { ref, watch } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, MetricStrip, QuickActionBar } from '../../../Components/UI';
+import { Badge, Button, Card } from '../../../Components/UI';
 import { FileInput, SelectInput, TextareaInput, TextInput } from '../../../Components/Form';
 
 const props = defineProps({
@@ -61,19 +61,10 @@ const schoolForm = useForm({
     favicon: null as File | null,
 });
 
-const metrics = computed(() => [
-    { label: 'Tema', value: themeOptions.find((theme) => theme.value === systemForm.warna_tema)?.label ?? 'Default', icon: 'bi-palette', tone: 'primary' },
-    { label: 'Semester LMS', value: `Semester ${systemForm.semester_aktif}`, icon: 'bi-calendar3', tone: 'info' },
-    { label: 'Tahun Ajaran', value: props.tahunAjaranAktif?.tahun ?? 'Belum diatur', icon: 'bi-calendar-check', tone: 'success', href: props.urls.tahun_ajaran },
-    { label: 'Mode Kenaikan', value: systemForm.mode_kenaikan === 'auto' ? 'Otomatis' : 'Manual', icon: 'bi-arrow-up-circle', tone: 'warning' },
-    { label: 'Penalti terlambat', value: `${systemForm.penalty_terlambat_poin || 0} poin/hari`, icon: 'bi-clock-history', tone: 'danger' },
-]);
-
-const quickActions = [
-    { label: 'Tahun Ajaran', href: props.urls.tahun_ajaran, icon: 'bi-calendar-event', color: 'light' },
-    { label: 'IP Diblokir', href: props.urls.blocked_ips, icon: 'bi-shield-fill-x', color: 'light' },
-    { label: 'Log Login', href: '/admin/log-login', icon: 'bi-clock-history', color: 'light' },
-];
+// Dua tab; tab yang berisi error validasi dibuka otomatis agar error tidak tersembunyi.
+const tab = ref<'sekolah' | 'sistem'>('sekolah');
+watch(() => schoolForm.hasErrors, (has) => { if (has) tab.value = 'sekolah'; });
+watch(() => systemForm.hasErrors, (has) => { if (has) tab.value = 'sistem'; });
 
 function saveSystem() {
     if (systemForm.processing) {
@@ -111,18 +102,25 @@ function saveSchool() {
 
     <AppShell title="Pengaturan Sistem">
         <PageHeader
+            eyebrow="Sistem"
             title="Pengaturan Sistem"
             subtitle="Kelola identitas sekolah, tampilan LMS, dan konfigurasi akademik."
-            icon="bi-gear-fill"
-        >
-            <template #actions>
-                <QuickActionBar :actions="quickActions" />
-            </template>
-        </PageHeader>
+        />
 
-        <MetricStrip :items="metrics" />
+        <ul class="nav nav-pills settings-tabs" role="tablist" aria-label="Kelompok pengaturan">
+            <li class="nav-item" role="presentation">
+                <button id="tab-sekolah" type="button" class="nav-link" :class="{ active: tab === 'sekolah' }" role="tab" aria-controls="panel-sekolah" :aria-selected="tab === 'sekolah'" @click="tab = 'sekolah'">
+                    <i class="bi bi-buildings me-1" aria-hidden="true"></i>Identitas Sekolah
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button id="tab-sistem" type="button" class="nav-link" :class="{ active: tab === 'sistem' }" role="tab" aria-controls="panel-sistem" :aria-selected="tab === 'sistem'" @click="tab = 'sistem'">
+                    <i class="bi bi-sliders me-1" aria-hidden="true"></i>Tampilan &amp; Akademik
+                </button>
+            </li>
+        </ul>
 
-        <form @submit.prevent="saveSchool">
+        <form v-show="tab === 'sekolah'" id="panel-sekolah" role="tabpanel" aria-labelledby="tab-sekolah" @submit.prevent="saveSchool">
             <div class="dashboard-grid settings-grid">
                 <section class="workspace-panel settings-main">
                     <header class="workspace-panel-header">
@@ -130,9 +128,6 @@ function saveSchool() {
                             <i class="bi bi-buildings-fill" aria-hidden="true"></i>
                             Identitas Sekolah
                         </span>
-                        <Button type="submit" color="primary" icon="bi-save" :disabled="schoolForm.processing">
-                            {{ schoolForm.processing ? 'Menyimpan...' : 'Simpan Sekolah' }}
-                        </Button>
                     </header>
                     <div class="workspace-panel-body">
                         <div class="row">
@@ -246,22 +241,26 @@ function saveSchool() {
                             wrapper-class="mb-0"
                         />
                     </Card>
-                    <Button type="submit" color="primary" icon="bi-save" class="w-100" :disabled="schoolForm.processing">
-                        {{ schoolForm.processing ? 'Menyimpan...' : 'Simpan Pengaturan Sekolah' }}
-                    </Button>
                 </aside>
+            </div>
+
+            <div class="sticky-savebar sticky-savebar-standalone">
+                <span class="sticky-savebar-status" role="status" aria-live="polite">
+                    <template v-if="schoolForm.isDirty"><i class="bi bi-circle-fill dirty-dot" aria-hidden="true"></i>Belum disimpan</template>
+                    <template v-else-if="schoolForm.recentlySuccessful"><i class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></i>Tersimpan</template>
+                </span>
+                <Button type="submit" color="primary" icon="bi-save" :loading="schoolForm.processing">
+                    {{ schoolForm.processing ? 'Menyimpan...' : 'Simpan Pengaturan Sekolah' }}
+                </Button>
             </div>
         </form>
 
-        <section class="workspace-panel">
+        <section v-show="tab === 'sistem'" id="panel-sistem" role="tabpanel" aria-labelledby="tab-sistem" class="workspace-panel">
             <header class="workspace-panel-header">
                 <span class="workspace-panel-title">
                     <i class="bi bi-sliders" aria-hidden="true"></i>
                     Pengaturan Sistem
                 </span>
-                <Button type="button" color="primary" icon="bi-save" :disabled="systemForm.processing" @click="saveSystem">
-                    {{ systemForm.processing ? 'Menyimpan...' : 'Simpan Sistem' }}
-                </Button>
             </header>
             <div class="workspace-panel-body">
                 <div class="theme-option-grid">
@@ -342,11 +341,21 @@ function saveSchool() {
                     </div>
                 </div>
             </div>
+            <div class="sticky-savebar">
+                <span class="sticky-savebar-status" role="status" aria-live="polite">
+                    <template v-if="systemForm.isDirty"><i class="bi bi-circle-fill dirty-dot" aria-hidden="true"></i>Belum disimpan</template>
+                    <template v-else-if="systemForm.recentlySuccessful"><i class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></i>Tersimpan</template>
+                </span>
+                <Button type="button" color="primary" icon="bi-save" :loading="systemForm.processing" @click="saveSystem">
+                    {{ systemForm.processing ? 'Menyimpan...' : 'Simpan Pengaturan' }}
+                </Button>
+            </div>
         </section>
     </AppShell>
 </template>
 
 <style scoped>
+.settings-tabs { margin-bottom: 1rem; }
 .settings-grid {
     grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
 }

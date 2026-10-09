@@ -25,14 +25,14 @@ const metrics = [
 
     <AppShell title="Jadwal Pelajaran">
         <PageHeader
+            eyebrow="Jadwal"
             title="Jadwal Pelajaran"
             :subtitle="`Kelas ${kelas.nama}`"
-            icon="bi-calendar-week-fill"
         />
 
         <MetricStrip :items="metrics" />
 
-        <Card title="Jadwal Mingguan" icon="bi-table" body-class="p-0">
+        <Card title="Jadwal Mingguan" body-class="p-0">
             <TableWrapper v-if="summary.total_jadwal > 0" min-width="900">
                 <table class="table table-hover align-middle mb-0 student-schedule-table">
                     <thead>

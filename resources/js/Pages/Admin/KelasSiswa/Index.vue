@@ -3,10 +3,11 @@ import type { PropType } from 'vue';
 import type { PaginationLink } from '../../../types/pagination';
 interface Student { id: number; nis: string; nama_lengkap: string; kelas_id: number | null; jenis_kelamin: string | null; tinggal_kelas: boolean; kelas: string; status: string; password_is_default: boolean; password_status: string; is_active: boolean }
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { FileInput, SelectInput, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, IconButton, MetricStrip, Pagination, TableWrapper } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card, EmptyState, IconButton, MetricStrip, Pagination, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
     kelasList: { type: Array as PropType<{ id: number; label: string; tingkat: string; nama_kelas: string; siswa_count: number }[]>, default: () => [] },
@@ -45,6 +46,19 @@ const metrics = () => [
 const editing = ref<Student | null>(null);
 const importForm = useForm({ file_siswa: null as File | null });
 const createForm = useForm(blankStudent());
+
+// Import/tambah dibuka dari tombol header; otomatis terbuka bila ada error agar tidak tersembunyi.
+const panel = ref<'tambah' | 'import' | null>(null);
+function togglePanel(name: 'tambah' | 'import') {
+    panel.value = panel.value === name ? null : name;
+}
+watch(() => props.importErrors.length, (count) => { if (count) panel.value = 'import'; }, { immediate: true });
+watch(() => importForm.hasErrors, (has) => { if (has) panel.value = 'import'; });
+watch(() => createForm.hasErrors, (has) => { if (has) panel.value = 'tambah'; });
+watch(() => props.studentPassword, (value) => { if (value) panel.value = null; });
+
+// Kelulusan hanya relevan untuk kelas tingkat IX.
+const kelasLulus = computed(() => props.kelasList.filter((kelas) => kelas.tingkat === 'IX'));
 const editForm = useForm({ ...blankStudent(), tinggal_kelas: false });
 
 function blankStudent() {
@@ -96,7 +110,7 @@ function submitImport() {
     importForm.post('/admin/kelas-siswa/import', {
         preserveScroll: true,
         forceFormData: true,
-        onSuccess: () => importForm.reset('file_siswa'),
+        onSuccess: () => { importForm.reset('file_siswa'); panel.value = null; },
     });
 }
 
@@ -107,7 +121,7 @@ function submitCreate() {
 
     createForm.post('/admin/kelas-siswa/siswa', {
         preserveScroll: true,
-        onSuccess: () => createForm.reset(),
+        onSuccess: () => { createForm.reset(); panel.value = null; },
     });
 }
 
@@ -190,13 +204,12 @@ function passwordStatusColor(isDefault: boolean) {
     <Head title="Kelas dan Siswa" />
 
     <AppShell title="Kelas dan Siswa">
-        <DashboardHero
-            eyebrow="Administrasi Akademik"
-            title="Kelas dan Siswa"
-            subtitle="Import, tambah, perbarui, dan pantau status siswa per kelas."
-            icon="bi-mortarboard-fill"
-            tone="admin"
-        />
+        <PageHeader eyebrow="Administrasi Akademik" title="Kelas dan Siswa" subtitle="Pantau, tambah, import, dan perbarui data siswa per kelas.">
+            <template #actions>
+                <Button type="button" color="outline-secondary" icon="bi-file-earmark-spreadsheet" :aria-expanded="panel === 'import'" @click="togglePanel('import')">Import Excel</Button>
+                <Button type="button" color="primary" icon="bi-person-plus" :aria-expanded="panel === 'tambah'" @click="togglePanel('tambah')">Tambah Siswa</Button>
+            </template>
+        </PageHeader>
 
         <MetricStrip :items="metrics()" />
 
@@ -215,9 +228,9 @@ function passwordStatusColor(isDefault: boolean) {
             <div class="small mt-2">Catat dan serahkan password ini secara langsung. Password hanya ditampilkan setelah proses berhasil.</div>
         </div>
 
-        <Card title="Import Siswa dari Excel" icon="bi-file-earmark-spreadsheet-fill" class="mb-3">
+        <Card v-if="panel === 'import'" title="Import Siswa dari Excel" icon="bi-file-earmark-spreadsheet-fill" class="mb-3">
             <template #actions>
-                <a :href="templateUrl" class="btn btn-outline-success btn-sm">
+                <a :href="templateUrl" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-download me-1" aria-hidden="true"></i> Download Template
                 </a>
             </template>
@@ -245,7 +258,7 @@ function passwordStatusColor(isDefault: boolean) {
             </form>
         </Card>
 
-        <Card title="Tambah Siswa Baru" icon="bi-person-plus-fill" class="mb-3">
+        <Card v-if="panel === 'tambah'" title="Tambah Siswa Baru" icon="bi-person-plus-fill" class="mb-3">
             <form class="row g-3 align-items-end" @submit.prevent="submitCreate">
                 <div class="col-md-3">
                     <TextInput v-model="createForm.nis" name="nis" label="NIS" placeholder="NIS" required wrapper-class="mb-0" :error="createForm.errors.nis" />
@@ -260,25 +273,25 @@ function passwordStatusColor(isDefault: boolean) {
                     <SelectInput v-model="createForm.jenis_kelamin" name="jenis_kelamin" label="Jenis Kelamin" placeholder="--" required wrapper-class="mb-0" :options="genderOptions" :error="createForm.errors.jenis_kelamin" />
                 </div>
                 <div class="col-md-1 d-grid">
-                    <Button type="submit" color="success" size="" icon="bi-plus-lg" :disabled="createForm.processing" aria-label="Tambah siswa" />
+                    <Button type="submit" color="primary" size="" icon="bi-plus-lg" :loading="createForm.processing" aria-label="Simpan siswa baru" />
                 </div>
             </form>
         </Card>
 
-        <Card title="Kelulusan Kelas IX" icon="bi-mortarboard-fill" class="mb-3" body-class="p-0">
-            <TableWrapper v-if="kelasList.length">
+        <Card v-if="kelasLulus.length" title="Kelulusan Kelas IX" icon="bi-mortarboard-fill" class="mb-3" body-class="p-0">
+            <TableWrapper :scroll-hint="false">
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr><th scope="col">Tingkat</th><th scope="col">Kelas</th><th scope="col">Siswa Aktif</th><th scope="col" class="table-action-column">Aksi</th></tr>
                     </thead>
                     <tbody>
-                        <tr v-for="kelas in kelasList" :key="kelas.id">
+                        <tr v-for="kelas in kelasLulus" :key="kelas.id">
                             <td><Badge color="secondary">{{ kelas.tingkat }}</Badge></td>
                             <td><strong>{{ kelas.nama_kelas }}</strong></td>
                             <td>{{ kelas.siswa_count ?? 0 }} siswa</td>
                             <td class="table-action-column">
                                 <div class="d-flex justify-content-end gap-1">
-                                    <Button v-if="kelas.tingkat === 'IX'" type="button" color="outline-success" icon="bi-check-circle" @click="graduateClass(kelas)">
+                                    <Button type="button" color="outline-success" icon="bi-check-circle" @click="graduateClass(kelas)">
                                         Luluskan
                                     </Button>
                                 </div>
@@ -287,24 +300,25 @@ function passwordStatusColor(isDefault: boolean) {
                     </tbody>
                 </table>
             </TableWrapper>
-            <EmptyState v-else title="Belum ada kelas" icon="bi-building" />
         </Card>
 
         <Card title="Daftar Siswa" icon="bi-people-fill" body-class="p-0">
             <template #actions>
-                <form class="d-flex flex-wrap gap-2" @submit.prevent="applyFilters">
+                <form class="d-flex flex-wrap gap-2 filter-bar" @submit.prevent="applyFilters">
                     <SelectInput v-model="filterForm.kelas_id" name="kelas_id" wrapper-class="mb-0 filter-control" placeholder="Semua Kelas" :options="kelasOptions()" />
                     <SelectInput v-model="filterForm.status" name="status" wrapper-class="mb-0 filter-control" placeholder="Semua Status" :options="statusOptions" />
-                    <TextInput v-model="filterForm.search" name="search" wrapper-class="mb-0 filter-control" placeholder="Cari NIS/Nama..." />
-                    <Button type="submit" color="primary" icon="bi-search" aria-label="Cari siswa" />
-                    <Button type="button" color="outline-secondary" icon="bi-arrow-clockwise" aria-label="Reset filter" @click="resetFilters" />
-                    <a :href="exportExcelUrl()" class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
-                    </a>
+                    <TextInput v-model="filterForm.search" name="search" wrapper-class="mb-0 filter-control filter-search" placeholder="Cari NIS/Nama..." />
+                    <div class="filter-actions">
+                        <Button type="submit" color="primary" icon="bi-search" aria-label="Cari siswa" />
+                        <Button type="button" color="outline-secondary" icon="bi-arrow-clockwise" aria-label="Reset filter" @click="resetFilters" />
+                        <a :href="exportExcelUrl()" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
+                        </a>
+                    </div>
                 </form>
             </template>
 
-            <TableWrapper v-if="siswa.data?.length">
+            <TableWrapper v-if="siswa.data?.length" stack>
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr><th scope="col">NIS</th><th scope="col">Nama</th><th scope="col">JK</th><th scope="col">Kelas</th><th scope="col">Status Siswa</th><th scope="col">Status Password</th><th scope="col" class="table-action-column">Aksi</th></tr>
@@ -312,19 +326,19 @@ function passwordStatusColor(isDefault: boolean) {
                     <tbody>
                         <template v-for="item in siswa.data" :key="item.id">
                             <tr>
-                                <td>{{ item.nis }}</td>
-                                <td><strong>{{ item.nama_lengkap ?? '-' }}</strong></td>
-                                <td>{{ item.jenis_kelamin ?? '-' }}</td>
-                                <td>{{ item.kelas || '-' }}</td>
-                                <td><Badge :color="item.status === 'aktif' ? 'success' : 'secondary'">{{ item.status }}</Badge></td>
-                                <td>
+                                <td data-label="NIS">{{ item.nis }}</td>
+                                <td class="stack-title"><strong>{{ item.nama_lengkap ?? '-' }}</strong></td>
+                                <td data-label="JK">{{ item.jenis_kelamin ?? '-' }}</td>
+                                <td data-label="Kelas">{{ item.kelas || '-' }}</td>
+                                <td data-label="Status siswa"><Badge :color="item.status === 'aktif' ? 'success' : 'secondary'">{{ item.status }}</Badge></td>
+                                <td data-label="Password">
                                     <Badge :color="passwordStatusColor(item.password_is_default)">
                                         {{ item.password_status }}
                                     </Badge>
                                     <Badge v-if="item.tinggal_kelas" color="warning text-dark" class="ms-1">Tinggal Kelas</Badge>
                                     <Badge v-if="!item.is_active" color="secondary" class="ms-1">Akun nonaktif</Badge>
                                 </td>
-                                <td class="table-action-column">
+                                <td class="table-action-column stack-actions">
                                     <div class="d-inline-flex gap-1">
                                         <IconButton icon="bi-pencil" :label="`Edit ${item.nama_lengkap ?? item.nis}`" color="outline-primary" @click="startEdit(item)" />
                                         <IconButton icon="bi-key" :label="`Reset password ${item.nama_lengkap ?? item.nis}`" color="outline-warning" @click="resetPassword(item)" />
@@ -374,7 +388,9 @@ function passwordStatusColor(isDefault: boolean) {
 </template>
 
 <style scoped>
-.filter-control {
-    min-width: 180px;
+@media (min-width: 768px) {
+    .filter-control {
+        min-width: 180px;
+    }
 }
 </style>

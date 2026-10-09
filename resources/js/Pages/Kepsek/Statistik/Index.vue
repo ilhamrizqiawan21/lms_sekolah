@@ -51,7 +51,16 @@ async function renderCharts() {
                     borderRadius: 8,
                 }],
             },
-            options: { responsive: true, plugins: { legend: { display: false } } },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 },
+                    },
+                },
+            },
         });
     }
 
@@ -105,7 +114,12 @@ async function renderCharts() {
             },
             options: {
                 responsive: true,
-                scales: { y: { beginAtZero: true } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 },
+                    },
+                },
             },
         });
     }
@@ -127,7 +141,6 @@ onBeforeUnmount(() => {
     <AppShell title="Statistik">
         <PageHeader
             title="Statistik Sekolah"
-            icon="bi-graph-up-arrow"
             subtitle="Pantau kondisi siswa, guru, kelas, pembelajaran, absensi, dan hasil belajar sekolah."
         />
 
@@ -140,31 +153,31 @@ onBeforeUnmount(() => {
 
         <div class="row mb-4">
             <div class="col-12">
-                <Card title="Statistik Pembelajaran" icon="bi-journal-check">
+                <Card title="Statistik Pembelajaran">
                     <div class="row g-3">
                         <div class="col-6 col-xl-3">
                             <div class="border rounded p-3 h-100">
                                 <div class="text-body-secondary small">Total Tugas Aktif</div>
-                                <div class="fs-4 fw-bold">{{ pembelajaran.total_tugas }}</div>
+                                <div class="fs-4 fw-bold tabular-nums">{{ pembelajaran.total_tugas }}</div>
                             </div>
                         </div>
                         <div class="col-6 col-xl-3">
                             <div class="border rounded p-3 h-100">
                                 <div class="text-body-secondary small">Total Pengumpulan</div>
-                                <div class="fs-4 fw-bold">{{ pembelajaran.total_pengumpulan }}</div>
+                                <div class="fs-4 fw-bold tabular-nums">{{ pembelajaran.total_pengumpulan }}</div>
                             </div>
                         </div>
                         <div class="col-6 col-xl-3">
                             <div class="border rounded p-3 h-100">
                                 <div class="text-body-secondary small">Sudah Dinilai</div>
-                                <div class="fs-4 fw-bold">{{ pembelajaran.total_dinilai }}</div>
-                                <div class="text-body-secondary small">{{ pembelajaran.persentase_dinilai }}% dari pengumpulan</div>
+                                <div class="fs-4 fw-bold tabular-nums">{{ pembelajaran.total_dinilai }}</div>
+                                <div class="text-body-secondary small tabular-nums">{{ pembelajaran.persentase_dinilai }}% dari pengumpulan</div>
                             </div>
                         </div>
                         <div class="col-6 col-xl-3">
                             <div class="border rounded p-3 h-100">
                                 <div class="text-body-secondary small">Rata-rata Nilai Tugas</div>
-                                <div class="fs-4 fw-bold">{{ pembelajaran.rata_nilai_tugas ?? '-' }}</div>
+                                <div class="fs-4 fw-bold tabular-nums">{{ pembelajaran.rata_nilai_tugas ?? '-' }}</div>
                             </div>
                         </div>
                     </div>
@@ -174,14 +187,14 @@ onBeforeUnmount(() => {
 
         <div class="row mb-4">
             <div class="col-md-6 mb-4">
-                <Card title="Jumlah Siswa Per Kelas" icon="bi-people-fill">
+                <Card title="Jumlah Siswa Per Kelas">
                     <canvas v-if="siswaPerKelas.length" ref="siswaCanvas" height="250"></canvas>
                     <EmptyState v-else title="Belum ada data siswa." icon="bi-people" />
                 </Card>
             </div>
 
             <div class="col-md-6 mb-4">
-                <Card title="Distribusi Nilai" icon="bi-bar-chart-fill">
+                <Card title="Distribusi Nilai">
                     <canvas v-if="distribusiNilai.some((item) => item.value > 0)" ref="nilaiCanvas" height="250"></canvas>
                     <EmptyState v-else title="Belum ada data nilai." icon="bi-bar-chart" />
                 </Card>
@@ -190,15 +203,15 @@ onBeforeUnmount(() => {
 
         <div class="row">
             <div class="col-lg-7 mb-4">
-                <Card title="Tren Kehadiran 6 Bulan Terakhir" icon="bi-clipboard-check-fill">
+                <Card title="Tren Kehadiran 6 Bulan Terakhir">
                     <canvas v-if="absensiBulanan.length" ref="absensiCanvas" height="220"></canvas>
                     <EmptyState v-else title="Belum ada data absensi." icon="bi-clipboard-check" />
                 </Card>
             </div>
 
             <div class="col-lg-5 mb-4">
-                <Card title="Statistik Absensi Bulanan" icon="bi-list-ul" body-class="p-0">
-                    <TableWrapper v-if="absensiBulanan.length">
+                <Card title="Statistik Absensi Bulanan" body-class="p-0">
+                    <TableWrapper v-if="absensiBulanan.length" :min-width="360">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -211,9 +224,9 @@ onBeforeUnmount(() => {
                             <tbody>
                                 <tr v-for="item in absensiBulanan" :key="item.bulan">
                                     <td><strong>{{ item.bulan_label || item.bulan }}</strong></td>
-                                    <td>{{ item.hadir }}</td>
-                                    <td>{{ item.total }}</td>
-                                    <td>{{ item.persentase }}%</td>
+                                    <td class="tabular-nums">{{ item.hadir }}</td>
+                                    <td class="tabular-nums">{{ item.total }}</td>
+                                    <td class="tabular-nums">{{ item.persentase }}%</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -225,15 +238,15 @@ onBeforeUnmount(() => {
 
         <div class="row">
             <div class="col-lg-7 mb-4">
-                <Card title="Tren Pengumpulan Tugas Bulanan" icon="bi-journal-check">
+                <Card title="Tren Pengumpulan Tugas Bulanan">
                     <canvas v-if="pengumpulanBulanan.length" ref="pengumpulanCanvas" height="220"></canvas>
                     <EmptyState v-else title="Belum ada data pengumpulan tugas." icon="bi-journal-check" />
                 </Card>
             </div>
 
             <div class="col-lg-5 mb-4">
-                <Card title="Rekap Pengumpulan Bulanan" icon="bi-list-check" body-class="p-0">
-                    <TableWrapper v-if="pengumpulanBulanan.length">
+                <Card title="Rekap Pengumpulan Bulanan" body-class="p-0">
+                    <TableWrapper v-if="pengumpulanBulanan.length" :min-width="360">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -246,9 +259,9 @@ onBeforeUnmount(() => {
                             <tbody>
                                 <tr v-for="item in pengumpulanBulanan" :key="item.bulan">
                                     <td><strong>{{ item.bulan_label || item.bulan }}</strong></td>
-                                    <td>{{ item.total }}</td>
-                                    <td>{{ item.tepat_waktu }}</td>
-                                    <td>{{ item.terlambat }}</td>
+                                    <td class="tabular-nums">{{ item.total }}</td>
+                                    <td class="tabular-nums">{{ item.tepat_waktu }}</td>
+                                    <td class="tabular-nums">{{ item.terlambat }}</td>
                                 </tr>
                             </tbody>
                         </table>

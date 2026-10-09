@@ -108,11 +108,11 @@ async function deleteAvatar(): Promise<void> {
     <Head title="Pengaturan Akun" />
 
     <AppShell title="Pengaturan Akun">
-        <PageHeader title="Pengaturan Akun" icon="bi-person-gear" />
+        <PageHeader title="Pengaturan Akun" />
 
         <section v-if="profile.role === 'siswa'" class="workspace-panel mb-4" aria-labelledby="phoneTitle">
             <header class="workspace-panel-header">
-                <h2 id="phoneTitle" class="h6 mb-0"><i class="bi bi-telephone me-2" aria-hidden="true"></i>Nomor Telepon Siswa</h2>
+                <h2 id="phoneTitle" class="h6 mb-0">Nomor Telepon Siswa</h2>
                 <Badge v-if="profile.siswa?.phone_required" color="warning">Wajib dilengkapi</Badge>
             </header>
             <div class="workspace-panel-body">
@@ -135,14 +135,14 @@ async function deleteAvatar(): Promise<void> {
                         <label for="whatsapp_opt_in" class="form-check-label">Saya setuju menerima informasi tugas dan pengingat sekolah melalui WhatsApp. <span class="text-danger">*</span></label>
                         <InputError :message="phoneForm.errors.whatsapp_opt_in" />
                     </div>
-                    <Button type="submit" color="success" icon="bi-save" :disabled="phoneForm.processing">{{ phoneForm.processing ? 'Menyimpan...' : 'Simpan Nomor Telepon' }}</Button>
+                    <Button type="submit" color="primary" icon="bi-save" :disabled="phoneForm.processing">{{ phoneForm.processing ? 'Menyimpan...' : 'Simpan Nomor Telepon' }}</Button>
                 </form>
             </div>
         </section>
 
         <div class="row">
             <div class="col-xl-7 mb-4">
-                <Card title="Data Akun" icon="bi-info-circle">
+                <Card title="Data Akun">
                     <div class="account-summary">
                         <div class="account-identity">
                             <img
@@ -219,7 +219,6 @@ async function deleteAvatar(): Promise<void> {
                 <Card
                     v-if="siswaRows.length"
                     title="Data Siswa"
-                    icon="bi-mortarboard-fill"
                     class="mt-4"
                 >
                     <TableWrapper :min-width="480" :scroll-hint="false">
@@ -236,7 +235,7 @@ async function deleteAvatar(): Promise<void> {
             </div>
 
             <div class="col-xl-5 mb-4">
-                <Card title="Ganti Password" icon="bi-key-fill">
+                <Card title="Ganti Password">
                     <form @submit.prevent="submit">
                         <TextInput
                             v-model="form.current_password"

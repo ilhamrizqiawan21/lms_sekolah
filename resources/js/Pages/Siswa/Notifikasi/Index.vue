@@ -39,9 +39,9 @@ function markAllRead() {
 <template>
     <Head title="Notifikasi" />
     <AppShell title="Notifikasi">
-        <PageHeader title="Notifikasi" subtitle="Daftar notifikasi Anda" icon="bi-bell-fill">
+        <PageHeader title="Notifikasi" subtitle="Daftar notifikasi dan aktivitas Anda">
             <template v-if="unreadCount > 0" #actions>
-                <Button type="button" color="outline-primary" icon="bi-check-all" @click="markAllRead">Tandai Semua Sudah Dibaca</Button>
+                <Button type="button" color="outline-secondary" icon="bi-check-all" @click="markAllRead">Tandai Semua Sudah Dibaca</Button>
             </template>
         </PageHeader>
         <Card body-class="p-0">

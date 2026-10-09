@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { PropType } from 'vue';
 
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Card, DashboardHero, EmptyState, QuickActionBar } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Button, Card, EmptyState } from '../../../Components/UI';
 
 const props = defineProps({
     kelasMapel: { type: Object as PropType<{ mata_pelajaran: string; guru: string; workspace_url: string; tugas_url: string; chat_url: string }>, required: true },
@@ -22,22 +23,27 @@ const courseTabs = [
     <Head :title="`Materi: ${kelasMapel.mata_pelajaran}`" />
 
     <AppShell title="Materi">
-        <DashboardHero
+        <PageHeader
             eyebrow="Kelas & Mapel"
             :title="kelasMapel.mata_pelajaran"
-            :subtitle="`Guru: ${kelasMapel.guru} - Materi pembelajaran untuk kelas Anda.`"
-            icon="bi-file-earmark-text-fill"
-            tone="student"
+            :subtitle="`Guru: ${kelasMapel.guru}`"
         >
             <template #actions>
-                <QuickActionBar :actions="[{ label: 'Ringkasan', href: kelasMapel.workspace_url, icon: 'bi-grid-1x2', color: 'light' }]" />
+                <Button :href="kelasMapel.workspace_url" color="outline-secondary" icon="bi-grid-1x2">
+                    Ringkasan
+                </Button>
             </template>
-        </DashboardHero>
+        </PageHeader>
 
         <nav class="workspace-tabs" aria-label="Navigasi kelas dan mata pelajaran">
-            <a v-for="tab in courseTabs" :key="tab.label" :href="tab.href" class="workspace-tab" :class="{ 'is-active': tab.active }">
-                <i class="bi" :class="tab.icon" aria-hidden="true"></i>{{ tab.label }}
-            </a>
+            <template v-for="tab in courseTabs" :key="tab.label">
+                <span v-if="tab.active" class="workspace-tab is-active">
+                    <i class="bi" :class="tab.icon" aria-hidden="true"></i>{{ tab.label }}
+                </span>
+                <Link v-else :href="tab.href" class="workspace-tab">
+                    <i class="bi" :class="tab.icon" aria-hidden="true"></i>{{ tab.label }}
+                </Link>
+            </template>
         </nav>
 
         <div v-if="materi.length" class="row">

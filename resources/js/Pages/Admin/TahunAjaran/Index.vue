@@ -186,7 +186,7 @@ async function destroy(item: TahunAjaran): Promise<void> {
 
             <div class="col-md-7 mb-4">
                 <Card title="Daftar Tahun Ajaran" icon="bi-calendar-event-fill" body-class="p-0">
-                    <TableWrapper v-if="tahunAjaran.length">
+                    <TableWrapper stack v-if="tahunAjaran.length">
                         <table class="table table-hover app-table mb-0">
                             <thead>
                                 <tr>
@@ -197,13 +197,13 @@ async function destroy(item: TahunAjaran): Promise<void> {
                             </thead>
                             <tbody>
                                 <tr v-for="item in tahunAjaran" :key="item.id">
-                                    <td><strong>{{ item.tahun }}</strong></td>
-                                    <td>
+                                    <td class="stack-title"><strong>{{ item.tahun }}</strong></td>
+                                    <td data-label="Status">
                                         <Badge :color="item.is_active ? 'success' : 'secondary'">
                                             {{ item.is_active ? 'Aktif' : 'Tidak Aktif' }}
                                         </Badge>
                                     </td>
-                                    <td class="table-action-column">
+                                    <td class="table-action-column stack-actions">
                                         <div class="d-flex justify-content-end gap-1">
                                             <IconButton
                                                 icon="bi-pencil"

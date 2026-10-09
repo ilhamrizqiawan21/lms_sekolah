@@ -69,7 +69,7 @@ function truncate(value: string | null, length = 72) {
                 </form>
             </template>
 
-            <TableWrapper v-if="errors.data?.length">
+            <TableWrapper stack v-if="errors.data?.length">
                 <table class="table table-hover mb-0 small">
                     <thead>
                         <tr>
@@ -83,12 +83,12 @@ function truncate(value: string | null, length = 72) {
                     </thead>
                     <tbody>
                         <tr v-for="item in errors.data" :key="item.id">
-                            <td><Badge :color="levelColor(item.error_level)">{{ item.error_level }}</Badge></td>
-                            <td class="text-nowrap">{{ item.created_at ?? '-' }}</td>
-                            <td><strong :title="item.message">{{ truncate(item.message, 100) }}</strong></td>
-                            <td class="text-body-secondary" :title="item.file">{{ truncate(item.file, 44) }}</td>
-                            <td class="text-center">{{ item.line }}</td>
-                            <td class="text-body-secondary" :title="item.url">{{ truncate(item.url, 44) }}</td>
+                            <td data-label="Level"><Badge :color="levelColor(item.error_level)">{{ item.error_level }}</Badge></td>
+                            <td data-label="Waktu" class="text-nowrap">{{ item.created_at ?? '-' }}</td>
+                            <td class="stack-title"><strong :title="item.message">{{ truncate(item.message, 100) }}</strong></td>
+                            <td data-label="File" class="text-body-secondary" :title="item.file">{{ truncate(item.file, 44) }}</td>
+                            <td data-label="Line" class="text-center">{{ item.line }}</td>
+                            <td data-label="URL" class="text-body-secondary" :title="item.url">{{ truncate(item.url, 44) }}</td>
                         </tr>
                     </tbody>
                 </table>

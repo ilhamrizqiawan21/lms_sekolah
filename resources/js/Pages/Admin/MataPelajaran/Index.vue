@@ -185,7 +185,7 @@ async function destroy(item: MataPelajaran): Promise<void> {
 
             <div class="col-md-7 mb-4">
                 <Card title="Daftar Mata Pelajaran" icon="bi-book-fill" body-class="p-0">
-                    <TableWrapper v-if="mapel.length">
+                    <TableWrapper stack v-if="mapel.length">
                         <table class="table table-hover app-table mb-0">
                             <thead>
                                 <tr>
@@ -197,10 +197,10 @@ async function destroy(item: MataPelajaran): Promise<void> {
                             </thead>
                             <tbody>
                                 <tr v-for="item in mapel" :key="item.id">
-                                    <td><Badge color="secondary">{{ item.kode }}</Badge></td>
-                                    <td>{{ item.nama_mapel }}</td>
-                                    <td>{{ item.urutan }}</td>
-                                    <td class="table-action-column">
+                                    <td data-label="Kode"><Badge color="secondary">{{ item.kode }}</Badge></td>
+                                    <td class="stack-title">{{ item.nama_mapel }}</td>
+                                    <td data-label="Urutan">{{ item.urutan }}</td>
+                                    <td class="table-action-column stack-actions">
                                         <div class="d-flex justify-content-end gap-1">
                                             <IconButton
                                                 icon="bi-pencil"

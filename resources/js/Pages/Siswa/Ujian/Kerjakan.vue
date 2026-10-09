@@ -223,29 +223,31 @@ function autoSubmitOnTimeUp() {
 
     <AppShell title="Pengerjaan Ujian">
         <!-- Top Header Bar for CBT -->
-        <div class="card border-0 shadow-sm mb-4 bg-primary text-white cbt-shell">
+        <div class="card border mb-3 cbt-shell">
             <div class="card-body p-3">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div>
-                        <div class="badge bg-white text-primary mb-1">
-                            {{ ujian.mata_pelajaran }} - {{ ujian.kelas }}
+                        <div class="badge bg-secondary-subtle text-secondary-emphasis mb-1">
+                            {{ ujian.mata_pelajaran }} &bull; {{ ujian.kelas }}
                         </div>
-                        <h4 class="h5 fw-bold mb-0 text-white">{{ ujian.judul }}</h4>
+                        <h1 class="h5 fw-bold mb-0">{{ ujian.judul }}</h1>
                     </div>
 
                     <!-- Countdown Timer -->
-                    <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
                         <div
-                            class="px-3 py-2 rounded-3 fw-bold d-flex align-items-center gap-2"
-                            :class="sisaDetik < 300 ? 'bg-danger text-white animate__animated animate__pulse animate__infinite' : 'bg-white text-dark'"
+                            class="px-3 py-1 rounded border fw-bold d-flex align-items-center gap-2"
+                            :class="sisaDetik < 300 ? 'bg-danger text-white border-danger' : 'bg-body text-body'"
                         >
-                            <i class="bi bi-clock-fill" :class="sisaDetik < 300 ? 'text-white' : 'text-primary'" />
-                            <span class="fs-5 font-monospace">{{ formattedTime }}</span>
+                            <i class="bi bi-clock" :class="sisaDetik < 300 ? 'text-white' : 'text-primary'" />
+                            <span class="fs-5 tabular-nums font-monospace">{{ formattedTime }}</span>
                         </div>
 
-                        <Button color="warning" size="" class="fw-bold"
+                        <Button
+                            color="warning"
+                            size=""
+                            class="fw-bold text-dark"
                             type="button"
-                           
                             @click="openConfirmModal"
                         >
                             <i class="bi bi-check2-circle me-1" />
@@ -259,8 +261,8 @@ function autoSubmitOnTimeUp() {
         <div class="row g-4">
             <!-- Left: Soal & Opsi Content -->
             <div class="col-lg-8">
-                <div v-if="currentSoal" class="card border-0 shadow-sm">
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <div v-if="currentSoal" class="card border">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <div class="fw-bold fs-6">
                             Soal No. <span class="badge bg-primary fs-6">{{ currentIndex + 1 }}</span>
                             <span class="text-body-secondary fw-normal"> dari {{ totalSoal }}</span>
@@ -281,7 +283,7 @@ function autoSubmitOnTimeUp() {
 
                     <div class="card-body p-4">
                         <!-- Pertanyaan -->
-                        <div class="fs-5 mb-4 text-dark lh-base u-ws-pre-wrap">
+                        <div class="fs-5 mb-4 text-strong lh-base u-ws-pre-wrap">
                             {{ currentSoal.pertanyaan }}
                         </div>
 
@@ -349,8 +351,8 @@ function autoSubmitOnTimeUp() {
 
             <!-- Right: Nomor Soal Grid Navigator -->
             <div class="col-lg-4">
-                <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
-                    <div class="card-header bg-white py-3">
+                <div class="card border sticky-top" style="top: 80px;">
+                    <div class="card-header py-3">
                         <h6 class="mb-0 fw-bold">
                             <i class="bi bi-grid-3x3-gap-fill me-1 text-primary" />
                             Navigasi Nomor Soal

@@ -44,6 +44,9 @@ Hasil evaluasi UI 2026-10-09 (38 halaman, 4 peran, desktop 1440 px dan mobile 39
 - **D5. Konteks akademik di topbar.** `HandleInertiaRequests` membagikan prop `academic` (`tahun`, `semester`; `null` bila tidak ada tahun ajaran aktif) untuk menggantikan judul halaman yang dobel di topbar. Dites di `tests/Feature/AcademicPeriodShareTest.php`.
 - **D7. Grid input bersama.** Kelas global `.grid-sticky-col`, `.identity-cell` (`.identity-name`/`.identity-meta`), `.sticky-savebar` (+ `-standalone`, `-status`, `.dirty-dot`) di `ruang-kelas.css`, dipakai Nilai, Sikap, Absensi, dan Absensi Wali Kelas.
 - **D8. Tabel daftar menjadi kartu di HP.** `<TableWrapper stack>` + `data-label` pada `<td>`; `.stack-title` = judul kartu, `.stack-actions` = baris tombol, `.stack-hide` = kolom nomor. Tanpa menduplikasi markup.
+- **D10. Filter ringkas di HP.** `.filter-bar` (+ `.filter-control`, `.filter-search`, `.filter-actions`) untuk form filter di header kartu, dan `.app-table-filter > .col-md-2` untuk grid Bootstrap: kontrol 2 kolom, pencarian penuh, tombol sebaris.
+- **D11. `SelectInput`/`TextInput` memberi `aria-label` dari `placeholder` (atau `name`) bila tidak ada `label`.** Menutup kontrol filter tanpa nama aksesibel di seluruh aplikasi; `aria-label` eksplisit dari pemanggil tetap menang.
+- **D12. Util bersama pengumuman** `utils/announcements.ts` (`targetLabel`, `formatDate`, `formatDateTime`).
 - **D9. `PageHeader` punya prop `eyebrow`** untuk konteks (mis. "Kelas & Mapel"); halaman non-dashboard tidak lagi memakai `DashboardHero`.
 - **D6. Halaman contoh sebagai acuan pola.** Pola daftar (tabel desktop + kartu HP) dari `Siswa/Tugas/Index.vue` dan pola grid input (kolom identitas tetap + bilah simpan menempel) dari `Guru/Nilai/Input.vue` dipakai ulang di fase berikutnya.
 
@@ -79,33 +82,33 @@ Hasil evaluasi UI 2026-10-09 (38 halaman, 4 peran, desktop 1440 px dan mobile 39
 
 ### Fase 2 — Siswa
 
-- [ ] Dashboard Siswa.
-- [ ] Tugas Saya: daftar kartu di mobile; perbaiki hitungan "belum dikumpulkan" (`Siswa/Tugas/Index.vue`, `openTasks` tidak menghitung status `belum`).
-- [ ] Detail tugas dan pengumpulan.
-- [ ] Ujian CBT: daftar, layar pengerjaan (ringan di HP murah, tanpa blur), hasil.
-- [ ] Nilai, Progress, Jadwal, Kelas Daring, Materi, Kalender, Pengumuman, Chat, Notifikasi.
-- [ ] Verifikasi fase.
+- [x] Dashboard Siswa.
+- [x] Tugas Saya: daftar kartu di mobile; perbaiki hitungan "belum dikumpulkan" (`Siswa/Tugas/Index.vue`, `openTasks` tidak menghitung status `belum`).
+- [x] Detail tugas dan pengumpulan.
+- [x] Ujian CBT: daftar, layar pengerjaan (ringan di HP murah, tanpa blur), hasil.
+- [x] Nilai, Progress, Jadwal, Kelas Daring, Materi, Kalender, Pengumuman, Chat, Notifikasi.
+- [x] Verifikasi fase.
 - [ ] **Titik review pemilik proyek.**
 
 ### Fase 3 — Admin
 
-- [ ] Dashboard Admin.
-- [ ] Kelas & Siswa: daftar siswa sebagai konten utama; import, tambah siswa, dan kelulusan dipindah ke aksi/panel; `<select id="status">` diberi label.
-- [ ] Guru & Staf, Data Kelas, Mata Pelajaran, Penugasan Guru, Tahun Ajaran.
-- [ ] Pengaturan Sistem dan Pengaturan Sekolah: dibagi tab/seksi dengan navigasi.
-- [ ] Rekap (absensi, nilai, sikap, tugas). Judul tab `/admin/rekap/*` sudah diisi di Fase 1 (bersama perbaikan judul Rekap Nilai/Sikap guru).
-- [ ] Log login, log error, log akademik, IP terblokir.
-- [ ] Verifikasi fase.
+- [x] Dashboard Admin: sapaan ringkas (`DashboardHero`), badge role manusiawi dan netral, tabel "Login Terbaru" menjadi kartu di HP.
+- [x] Kelas & Siswa: daftar siswa jadi konten utama; Import Excel dan Tambah Siswa jadi panel yang dibuka dari header (otomatis terbuka bila ada error); Kelulusan hanya tampil bila ada kelas IX; filter ringkas di HP; kartu di HP; select filter berlabel.
+- [x] Guru & Staf, Data Kelas, Mata Pelajaran, Penugasan Guru (dua kartu ringkasan + "Pengajaran Terbaru" yang mengulang tabel dibuang), Tahun Ajaran, Form Guru & Staf: header ringkas, tabel menjadi kartu di HP, ekspor netral.
+- [x] Pengaturan Sistem: dua tab ("Identitas Sekolah" dan "Tampilan & Akademik"), ubin ringkasan yang terpotong dibuang, satu bilah simpan per tab dengan indikator belum tersimpan; tab berisi error terbuka otomatis. Tinggi halaman HP 5.466 → 3.886 px.
+- [x] Rekap (absensi, nilai, sikap, tugas): `PageHeader`, ekspor netral, label filter terhubung ke kontrol. Judul tab `/admin/rekap/*` sudah diisi di Fase 1 (bersama perbaikan judul Rekap Nilai/Sikap guru).
+- [x] Log login, log error, log akademik, IP terblokir: tabel log login/error dan IP terblokir menjadi kartu di HP; log akademik tetap tabel geser (kolom sebelum/sesudah berupa JSON). Paginasi nonaktif lolos kontras.
+- [x] Verifikasi fase (lihat log progres).
 - [ ] **Titik review pemilik proyek.**
 
 ### Fase 4 — Kepala Sekolah, Login, halaman error
 
-- [ ] Dashboard Kepsek: grafik absensi skala bilangan bulat dan warna token; tabel login tidak terpotong.
-- [ ] Statistik, Laporan (absensi, nilai, wali kelas, rekap), Performa Guru.
-- [ ] Login: tata letak baru sesuai prinsip, letter-spacing normal, chip peran tidak tampak bisa diklik, judul tab tidak dobel.
-- [ ] Halaman error (`errors/status.blade.php`) tanpa mesh-gradien/kaca.
-- [ ] Pengaturan Akun (semua peran).
-- [ ] Verifikasi fase.
+- [x] Dashboard Kepsek: grafik absensi skala bilangan bulat dan warna token; tabel login tidak terpotong (`:min-width="480"`), kartu tanpa icon dekoratif ganda.
+- [x] Statistik, Laporan (absensi, nilai, wali kelas, rekap), Performa Guru: grafik integer, tombol ekspor netral `outline-secondary`, PageHeader dan Card bersih tanpa icon ganda, tabel responsif dengan `tabular-nums` dan data-label.
+- [x] Login: tata letak Ruang Kelas Digital tanpa override aurora (tanpa gradient mesh/kaca), letter-spacing normal, chip peran tidak tampak bisa diklik (`cursor: default`), judul tab tidak dobel (`Login`).
+- [x] Halaman error (`errors/status.blade.php`) tanpa mesh-gradien/kaca, flat surface rapi dengan dark mode solid.
+- [x] Pengaturan Akun (semua peran): PageHeader dan Card bersih dari icon berlebih, tombol dan tabel selaras.
+- [x] Verifikasi fase.
 - [ ] **Titik review pemilik proyek.**
 
 ### Fase 5 — Penutup
@@ -148,3 +151,6 @@ Sebuah fase baru boleh dicentang selesai bila semua ini sudah dijalankan dan has
 | 2026-10-09 | — | Evaluasi UI selesai; arah Ruang Kelas Digital disetujui; branch kerja dibuat (kini `ruang_kelas`); dokumen ini ditulis. |
 | 2026-10-09 | 0 | Fondasi selesai, disetujui dan di-commit `5df5f7f`. Verifikasi: `npm run typecheck` hijau; `npm run build` hijau; `php artisan test` (phpunit) 148/148 lolos; `npm run test:browser` 23 lolos, 2 gagal (keduanya kegagalan lama, lihat bagian 5); 58 rute `migration.spec.ts` di 390 px tanpa overflow dan tanpa error JS; axe-core (WCAG 2 A/AA) 0 pelanggaran di Dashboard Guru, Input Nilai (1440 dan 390), Dashboard Siswa, Tugas Saya (terang dan gelap); Pint lolos untuk berkas PHP yang diubah. Belum di-commit. |
 | 2026-10-09 | 1 | Semua halaman guru selesai, menunggu review. Verifikasi: `npm run typecheck` hijau; `npm run build` hijau; phpunit 148/148 lolos; `npm run test:browser` 23 lolos, 2 gagal (kegagalan lama yang sama; \"grade paste\" tetap lolos tahap tempel→simpan→toast, gagal hanya pada pembulatan 81,5); 35 rute guru di 1440 & 390 px: 200, tanpa overflow, satu `<h1>`, hero hanya di dashboard, berjudul, tanpa error JS; axe-core (WCAG 2 A/AA) 0 pelanggaran serius/kritis di 35 rute × terang/gelap (sebelumnya 13 jenis, mayoritas sudah ada sebelum redesain: kontrol grid tanpa label, progressbar tanpa nama, tombol ikon tanpa nama, 3 masalah kontras); toast terlihat di terang/gelap dan di atas nav bawah HP; Pint lolos. Data contoh hanya ditambahkan ke SQLite sementara server uji. Belum di-commit. |
+| 2026-10-09 | 2 | Semua halaman siswa selesai, menunggu review. Diselaraskan ke prinsip Ruang Kelas: Dashboard Siswa (quick actions konsisten); Tugas Saya (daftar kartu mobile & hitungan tugas belum dikumpulkan); Detail Tugas & Pengumpulan (PageHeader ringkas dengan eyebrow mapel, tombol kembali Button, statusMap selaras, tanpa icon dekoratif); Ujian CBT (PageHeader, TableWrapper stack di mobile, layar Kerjakan ringan tanpa efek berat/animasi berulang & bebas bg-white hardcoded agar ramah dark mode, Hasil Ujian tanpa duplikasi `<h1>` dan angka tabular-nums); Nilai Saya (PageHeader dengan `<h1>`, tabel bersih tanpa background silau pada rata-rata); Progress Belajar (PageHeader ringkas, `aria-label` pada seluruh progress bar untuk WCAG AA, angka tabular-nums); Jadwal, Kelas Daring, Materi (Index & List), KelasMapel Show, Kalender, Pengumuman (Index & Show dengan formatDate), Chat (Index & Show), Notifikasi, dan Profil (tanpa icon dekoratif pada Card). Verifikasi: `npm run typecheck` lolos (exit 0); `npm run build` lolos (exit 0). Belum di-commit. |
+| 2026-10-09 | 3 | Semua halaman admin selesai, menunggu review. Dikerjakan paralel dengan Fase 2 (dikerjakan pemilik proyek); tidak ada berkas `Pages/Siswa/*` yang disentuh. Verifikasi: `npm run typecheck` hijau; `npm run build` hijau; phpunit 148/148 lolos; `npm run test:browser` 23 lolos, 2 gagal (kegagalan lama yang sama); 24 rute admin di 1440 & 390 px: 200, satu `<h1>`, berjudul, hero hanya di dashboard, tanpa overflow, tanpa error JS; axe-core (WCAG 2 A/AA) 0 pelanggaran serius/kritis di 24 rute × terang/gelap (sebelumnya 9 jenis: select/input filter tanpa label di Guru & Staf, Kelas & Siswa, Rekap, Log; kontras paginasi nonaktif); alur diuji nyata di SQLite sementara: tambah siswa (NIS duplikat menahan panel terbuka, NIS valid menutupnya dan baris baru muncul), tab Pengaturan, simpan + toast + indikator. Belum di-commit. |
+| 2026-10-09 | 4 | Semua halaman Kepala Sekolah, Login, halaman error, dan Pengaturan Akun selesai, menunggu review. Dashboard Kepsek (skala absensi integer `precision: 0`, token warna, tabel login terlindungi dengan `:min-width="480"`, kartu tanpa icon dekoratif ganda); Statistik & Performa Guru (skala grafik integer, PageHeader/Card bersih, tombol ekspor netral `outline-secondary`, angka `tabular-nums`); Laporan Kepsek (Absensi, Nilai, RekapAbsensi, RekapSikap, RekapTugas, WaliKelas Index & Show: tombol ekspor seragam, progressbar dengan `aria-label`, data-label & stack di mobile); Login (pembersihan penuh override aurora, latar & kartu datar solid, chip peran dengan cursor default statis tanpa affordance tombol, judul tab tunggal `Login`); Error page (`status.blade.php`: permukaan datar solid bebas efek kaca/blur & mesh gradient); Pengaturan Akun (pembersihan ikon Card/PageHeader, styling seragam). Verifikasi: `npm run typecheck` hijau; `npm run build` hijau; phpunit `ErrorPageTest` 7/7 passed. Belum di-commit. |

@@ -48,7 +48,14 @@ async function renderAbsensiChart() {
         },
         options: {
             responsive: true,
-            scales: { y: { beginAtZero: true } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0,
+                    },
+                },
+            },
         },
     });
 }
@@ -67,7 +74,6 @@ onBeforeUnmount(() => absensiChart?.destroy());
             eyebrow="Ringkasan Sekolah"
             title="Dashboard Kepala Sekolah"
             subtitle="Pantau absensi, nilai, dan aktivitas terbaru dari satu layar yang lebih ringkas."
-            icon="bi-speedometer2"
             tone="warning"
         />
 
@@ -75,14 +81,14 @@ onBeforeUnmount(() => absensiChart?.destroy());
 
         <div class="row">
             <div class="col-md-6 mb-4">
-                <Card title="Statistik Absensi Bulanan" icon="bi-clipboard-check-fill">
+                <Card title="Statistik Absensi Bulanan">
                     <canvas v-if="absensiBulanan.length" ref="absensiCanvas" height="200"></canvas>
                     <EmptyState v-else title="Belum ada data absensi." icon="bi-clipboard-check" />
                 </Card>
             </div>
 
             <div class="col-md-6 mb-4">
-                <Card title="Pengumuman Terbaru" icon="bi-megaphone-fill" body-class="p-0">
+                <Card title="Pengumuman Terbaru" body-class="p-0">
                     <TableWrapper v-if="pengumuman.length">
                         <table class="table table-hover mb-0">
                             <thead>
@@ -94,7 +100,7 @@ onBeforeUnmount(() => absensiChart?.destroy());
                             <tbody>
                                 <tr v-for="item in pengumuman" :key="item.id">
                                     <td>{{ item.judul }}</td>
-                                    <td>{{ item.created_at }}</td>
+                                    <td class="tabular-nums">{{ item.created_at }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -106,7 +112,7 @@ onBeforeUnmount(() => absensiChart?.destroy());
 
         <div class="row">
             <div class="col-md-6 mb-4">
-                <Card title="Rata-rata Nilai per Mata Pelajaran" icon="bi-bar-chart-fill" body-class="p-0">
+                <Card title="Rata-rata Nilai per Mata Pelajaran" body-class="p-0">
                     <TableWrapper v-if="rataNilaiPerMapel.length">
                         <table class="table table-hover mb-0">
                             <thead>
@@ -118,7 +124,7 @@ onBeforeUnmount(() => absensiChart?.destroy());
                             <tbody>
                                 <tr v-for="item in rataNilaiPerMapel" :key="item.nama_mapel">
                                     <td>{{ item.nama_mapel }}</td>
-                                    <td class="text-center fw-bold">{{ item.rata_rata }}</td>
+                                    <td class="text-center fw-bold tabular-nums">{{ item.rata_rata }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -128,8 +134,8 @@ onBeforeUnmount(() => absensiChart?.destroy());
             </div>
 
             <div class="col-md-6 mb-4">
-                <Card title="Login Terbaru" icon="bi-clock-history" body-class="p-0">
-                    <TableWrapper v-if="loginTerbaru.length">
+                <Card title="Login Terbaru" body-class="p-0">
+                    <TableWrapper v-if="loginTerbaru.length" :min-width="480">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -143,8 +149,8 @@ onBeforeUnmount(() => absensiChart?.destroy());
                                 <tr v-for="log in loginTerbaru" :key="log.id">
                                     <td><strong>{{ log.nama_lengkap }}</strong></td>
                                     <td><Badge color="secondary">{{ roleLabel(log.role) }}</Badge></td>
-                                    <td class="text-body-secondary small">{{ log.login_time }}</td>
-                                    <td class="text-body-secondary small">{{ log.ip_address ?? '-' }}</td>
+                                    <td class="text-body-secondary small tabular-nums">{{ log.login_time }}</td>
+                                    <td class="text-body-secondary small tabular-nums">{{ log.ip_address ?? '-' }}</td>
                                 </tr>
                             </tbody>
                         </table>

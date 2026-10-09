@@ -51,15 +51,15 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({
                     <a href="/admin/log-login" class="app-card-action-link">Lihat Semua</a>
                 </header>
                 <div class="workspace-panel-body p-0">
-                    <TableWrapper v-if="loginTerbaru.length">
+                    <TableWrapper stack v-if="loginTerbaru.length">
                         <table class="table table-hover mb-0 admin-login-table">
                             <thead><tr><th scope="col">Nama</th><th scope="col">Role</th><th scope="col">Waktu</th><th scope="col">IP</th></tr></thead>
                             <tbody>
                                 <tr v-for="log in loginTerbaru" :key="log.id">
-                                    <td><strong>{{ log.nama_lengkap }}</strong></td>
-                                    <td><Badge color="secondary">{{ roleLabel(log.role) }}</Badge></td>
-                                    <td class="text-body-secondary small">{{ log.login_time ?? '-' }}</td>
-                                    <td class="text-body-secondary small admin-login-ip">{{ log.ip_address ?? '-' }}</td>
+                                    <td class="stack-title"><strong>{{ log.nama_lengkap }}</strong></td>
+                                    <td data-label="Role"><Badge color="secondary">{{ roleLabel(log.role) }}</Badge></td>
+                                    <td data-label="Waktu" class="text-body-secondary small">{{ log.login_time ?? '-' }}</td>
+                                    <td data-label="IP" class="text-body-secondary small admin-login-ip">{{ log.ip_address ?? '-' }}</td>
                                 </tr>
                             </tbody>
                         </table>

@@ -34,12 +34,12 @@ function submit(): void {
     <AppShell title="Profil">
         <PageHeader
             title="Profil Siswa"
-            icon="bi-person-circle"
+            subtitle="Data diri akun siswa dan pengaturan kata sandi."
         />
 
         <div class="row">
             <div class="col-lg-6 mb-4">
-                <Card title="Informasi Saya" icon="bi-info-circle">
+                <Card title="Informasi Saya">
                     <TableWrapper :min-width="480" :scroll-hint="false">
                         <table class="table table-sm align-middle mb-0 profile-table">
                             <tbody>
@@ -74,7 +74,7 @@ function submit(): void {
             </div>
 
             <div class="col-lg-6 mb-4">
-                <Card title="Ganti Password" icon="bi-key-fill">
+                <Card title="Ganti Password">
                     <form @submit.prevent="submit">
                         <TextInput
                             v-model="form.current_password"
@@ -109,7 +109,7 @@ function submit(): void {
 
                         <Button
                             type="submit"
-                            color="success"
+                            color="primary"
                             icon="bi-save"
                             :disabled="form.processing"
                         >

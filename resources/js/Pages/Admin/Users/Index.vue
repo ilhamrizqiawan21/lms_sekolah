@@ -120,10 +120,10 @@ async function destroy(user: AdminUser): Promise<void> {
 
         <Card title="Daftar Guru dan Staf" icon="bi-people-fill">
             <template #actions>
-                <a :href="exportExcelUrl()" class="btn btn-outline-success btn-sm">
+                <a :href="exportExcelUrl()" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
                 </a>
-                <Link href="/admin/users/create" class="btn btn-success btn-sm"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Tambah Guru dan Staf</Link>
+                <Link href="/admin/users/create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Tambah Guru dan Staf</Link>
             </template>
 
             <form class="row g-2 app-table-filter mb-3" @submit.prevent="applyFilters">
@@ -156,7 +156,7 @@ async function destroy(user: AdminUser): Promise<void> {
                 </div>
             </form>
 
-            <TableWrapper v-if="users.data?.length">
+            <TableWrapper stack v-if="users.data?.length">
                 <table class="table table-hover app-table mb-0">
                     <thead>
                         <tr>
@@ -170,16 +170,16 @@ async function destroy(user: AdminUser): Promise<void> {
                     </thead>
                     <tbody>
                         <tr v-for="user in users.data" :key="user.id">
-                            <td :title="user.username"><strong>{{ user.username }}</strong></td>
-                            <td :title="user.nama_lengkap">{{ user.nama_lengkap }}</td>
-                            <td :title="user.email ?? undefined">{{ user.email ?? '-' }}</td>
-                            <td><Badge color="primary">{{ roleLabel(user.role?.nama_role) }}</Badge></td>
-                            <td>
+                            <td data-label="Username" :title="user.username"><strong>{{ user.username }}</strong></td>
+                            <td class="stack-title" :title="user.nama_lengkap">{{ user.nama_lengkap }}</td>
+                            <td data-label="Email" :title="user.email ?? undefined">{{ user.email ?? '-' }}</td>
+                            <td data-label="Role"><Badge color="primary">{{ roleLabel(user.role?.nama_role) }}</Badge></td>
+                            <td data-label="Status Password">
                                 <Badge :color="passwordStatusColor(user.password_is_default)">
                                     {{ user.password_status }}
                                 </Badge>
                             </td>
-                            <td class="table-action-column">
+                            <td class="table-action-column stack-actions">
                                 <div class="d-inline-flex align-items-center gap-1">
                                     <a
                                         :href="`/admin/users/${user.id}/edit`"

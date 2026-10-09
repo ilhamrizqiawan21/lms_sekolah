@@ -383,7 +383,7 @@ thead .grid-sticky-col { z-index: 3; background: var(--surface-subtle); text-ali
     border-radius: 0 0 var(--card-radius) var(--card-radius);
     background: var(--surface-card);
 }
-.sticky-savebar-standalone { margin-top: 0.75rem; border: 1px solid var(--border-soft); border-radius: var(--card-radius); }
+.sticky-savebar-standalone { margin-top: 0.75rem; border: 1px solid var(--border-soft); border-radius: var(--card-radius); box-shadow: 0 -6px 14px -8px rgba(20, 22, 26, 0.18); }
 .sticky-savebar-status { flex: 1 1 auto; color: var(--text-muted); font-size: 0.85rem; text-align: right; }
 .dirty-dot { margin-right: 0.4rem; color: var(--status-warning-text); font-size: 0.5rem; vertical-align: middle; }
 @media (max-width: 991.98px) {
@@ -677,7 +677,8 @@ thead .grid-sticky-col { z-index: 3; background: var(--surface-subtle); text-ali
     .app-table-stack thead,
     .app-table-stack colgroup,
     .app-table-stack .stack-hide { display: none !important; }
-    .app-table-stack tbody tr { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border-soft); }
+    .app-table-stack tbody tr { display: flex; flex-direction: column; padding: 0.8rem 1rem; border-bottom: 1px solid var(--border-soft); }
+    .app-table-stack td.stack-title { order: -1; }
     .app-table-stack tbody tr:last-child { border-bottom: 0; }
     .app-table-stack tbody tr:hover { background: transparent; }
     .app-table-stack td {
@@ -721,6 +722,20 @@ thead .grid-sticky-col { z-index: 3; background: var(--surface-subtle); text-ali
     .app-table-stack.app-table-wrapper .table > :not(caption) > * > * { white-space: normal; overflow-wrap: anywhere; }
 }
 
+/* Filter di HP: jangan menumpuk 5 kontrol penuh lebar.
+ * .app-table-filter (grid Bootstrap): tombol di kolom sempit berdampingan.
+ * .filter-bar (form flex di header kartu): kontrol 2 kolom, pencarian penuh, tombol sebaris. */
+@media (max-width: 767.98px) {
+    .app-table-filter > .col-md-2 { flex: 0 0 auto; width: 50%; }
+    .filter-bar { display: grid !important; grid-template-columns: 1fr 1fr; gap: 0.5rem; width: 100%; }
+    .filter-bar .filter-control { min-width: 0; }
+    .filter-bar .filter-search { grid-column: 1 / -1; }
+    .filter-bar .filter-actions { grid-column: 1 / -1; display: flex; gap: 0.5rem; }
+    .filter-bar .filter-actions > .btn { flex: 1 1 0; width: auto; }
+}
+.filter-bar .filter-actions { display: contents; }
+@media (max-width: 767.98px) { .filter-bar .filter-actions { display: flex; } }
+
 /* Kepala kolom kategori di tabel nilai: tint tipis */
 .table th.bg-soft-success { --soft-bg: color-mix(in srgb, var(--status-success-text) 8%, var(--surface-card)); }
 .table th.bg-soft-warning { --soft-bg: color-mix(in srgb, var(--status-warning-text) 8%, var(--surface-card)); }
@@ -739,6 +754,11 @@ thead .grid-sticky-col { z-index: 3; background: var(--surface-subtle); text-ali
 }
 .nav-pills .nav-link { font-size: 0.875rem; font-weight: 600; }
 .nav-pills .nav-link:hover { background: var(--surface-hover); }
+
+/* ── Paginasi ── */
+.page-item.disabled .page-link { background: var(--surface-muted); color: var(--text-muted); border-color: var(--border-soft); opacity: 1; }
+.page-link { color: var(--text-brand); }
+.page-item.active .page-link { background: var(--primary-600); border-color: var(--primary-600); color: var(--on-brand); }
 
 /* ── Badge ── */
 .badge {
