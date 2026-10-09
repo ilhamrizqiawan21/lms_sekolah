@@ -96,7 +96,7 @@ function submit() {
 
     <AppShell title="Tugas">
         <DashboardHero
-            eyebrow="Teaching Workspace"
+            eyebrow="Ruang Mengajar"
             title="Penugasan Guru"
             subtitle="Buat, bagikan, dan pantau tugas lintas kelas dari satu tempat."
             icon="bi-journal-text"

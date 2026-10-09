@@ -26,7 +26,7 @@ const quickActions = [
 
     <AppShell :title="course.title">
         <DashboardHero
-            eyebrow="Workspace Kelas/Mapel"
+            eyebrow="Kelas & Mapel"
             :title="course.title"
             :subtitle="`${course.kelas} - Semester ${course.semester} - ${course.tahun_ajaran}`"
             icon="bi-book"

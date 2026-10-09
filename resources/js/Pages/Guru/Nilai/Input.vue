@@ -2,7 +2,8 @@
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, nextTick, ref, watch } from 'vue';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, QuickActionBar, TableWrapper } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
 
 import type { GradeCourse, GradeStudent, Score, ScoreField } from '../../../types/assessment';
 
@@ -238,92 +239,65 @@ function submit() {
     <Head :title="title" />
 
     <AppShell title="Input Nilai">
-        <DashboardHero
-            eyebrow="Workspace Kelas/Mapel"
-            :title="kelasMapel.mata_pelajaran"
-            :subtitle="`${kelasMapel.kelas} - Input dan pantau nilai siswa.`"
-            icon="bi-bar-chart-fill"
-            tone="teacher"
+        <PageHeader
+            :title="`${kelasMapel.mata_pelajaran} · ${kelasMapel.kelas}`"
+            :subtitle="`Input nilai · Tahun Ajaran ${tahunAjaran?.tahun ?? '-'} · Semester ${semester === '2' ? 'Genap' : 'Ganjil'}`"
         >
             <template #actions>
-                <QuickActionBar :actions="[{ label: 'Ringkasan', href: kelasMapel.workspace_url, icon: 'bi-grid-1x2', color: 'light' }]" />
+                <a :href="kelasMapel.export_excel_url" class="btn btn-outline-secondary"><i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Excel</a>
+                <a :href="kelasMapel.export_pdf_url" class="btn btn-outline-secondary"><i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>PDF</a>
             </template>
-        </DashboardHero>
+        </PageHeader>
 
         <nav class="workspace-tabs" aria-label="Navigasi kelas dan mata pelajaran">
-            <a v-for="tab in courseTabs" :key="tab.label" :href="tab.href" class="workspace-tab" :class="{ 'is-active': tab.active }">
+            <a v-for="tab in courseTabs" :key="tab.label" :href="tab.href" class="workspace-tab" :class="{ 'is-active': tab.active }" :aria-current="tab.active ? 'page' : undefined">
                 <i class="bi" :class="tab.icon" aria-hidden="true"></i>{{ tab.label }}
             </a>
         </nav>
 
-        <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-3">
-            <div class="d-flex gap-2 flex-wrap">
-                <Badge color="secondary">{{ kelasMapel.kelas }}</Badge>
-                <Badge color="info">TA {{ tahunAjaran?.tahun ?? '-' }} &middot; Semester {{ semester }}</Badge>
-            </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <a :href="kelasMapel.export_excel_url" class="btn btn-sm btn-outline-success"><i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Excel</a>
-                <a :href="kelasMapel.export_pdf_url" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>PDF</a>
-            </div>
-        </div>
-
         <form @submit.prevent="submit">
-            <Card title="Input Nilai Kurikulum Merdeka" icon="bi-table" body-class="p-0">
-                <template #actions>
-                    <Button type="submit" color="success" icon="bi-save" :disabled="form.processing">
-                        {{ form.processing ? 'Menyimpan...' : 'Simpan Semua' }}
-                    </Button>
-                </template>
+            <Card body-class="p-0">
+                <div class="grade-toolbar">
+                    <span class="grade-hint"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>Enter: pindah ke siswa berikutnya. Tempel langsung dari spreadsheet untuk mengisi banyak nilai.</span>
+                    <span class="d-flex align-items-center gap-2">
+                        <Badge v-if="pasteStatus" color="success">{{ pasteStatus }}</Badge>
+                        <Badge color="secondary">{{ students.length }} siswa</Badge>
+                    </span>
+                </div>
 
-                <TableWrapper>
-                    <div class="p-3 border-bottom bg-light-subtle">
-                        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
-                            <span class="text-body-secondary small">Tekan Enter untuk ke siswa berikutnya pada kolom nilai yang sama.</span>
-                            <div class="d-flex align-items-center gap-2">
-                                <Badge v-if="pasteStatus" color="success">{{ pasteStatus }}</Badge>
-                                <Badge color="primary">{{ students.length }} siswa</Badge>
-                            </div>
-                        </div>
-                    </div>
-                    <table class="table table-bordered table-hover app-table grade-table mb-0">
+                <TableWrapper :scroll-hint="false">
+                    <table class="table table-bordered app-table grade-table mb-0">
                         <colgroup>
-                            <col class="grade-col-no">
-                            <col class="grade-col-nis">
                             <col class="grade-col-student">
                             <col v-for="field in fieldGroups" :key="`col-${field.key}`" class="grade-col-score">
                             <col class="grade-col-total">
                         </colgroup>
-                        <thead class="table-light">
+                        <thead>
                             <tr>
-                                <th scope="col" class="text-center w-row-number">#</th>
-                                <th scope="col" class="min-w-nis">NIS</th>
-                                <th scope="col" class="min-w-student">Nama Siswa</th>
+                                <th scope="col" rowspan="2" class="grade-sticky">Siswa</th>
                                 <th scope="colgroup" colspan="4" class="text-center bg-soft-success">Sumatif Harian</th>
                                 <th scope="col" class="text-center bg-soft-success">Nilai Harian</th>
                                 <th scope="col" class="text-center bg-soft-warning">STS</th>
                                 <th scope="col" class="text-center bg-soft-warning">SAS</th>
                                 <th scope="col" class="text-center bg-soft-danger">SAT</th>
-                                <th scope="col" class="text-center bg-soft-muted">Rata-rata Akhir</th>
+                                <th scope="col" rowspan="2" class="text-center bg-soft-muted">Rata-rata<br>Akhir</th>
                             </tr>
-                            <tr class="table-light">
-                                <th scope="col"></th>
-                                <th scope="col"></th>
-                                <th scope="col"></th>
+                            <tr>
                                 <th scope="col"
                                     v-for="field in fieldGroups"
                                     :key="field.key"
-                                    class="text-center w-score"
+                                    class="text-center"
                                 >
                                     {{ field.label }}
                                 </th>
-                                <th scope="col" class="text-center w-score-total">Auto</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="(student, studentIndex) in students" :key="student.id">
-                                <td class="text-center text-body-secondary">{{ student.no }}</td>
-                                <td><code>{{ student.nis }}</code></td>
-                                <td>{{ student.nama }}</td>
+                                <th scope="row" class="grade-sticky grade-student">
+                                    <span class="grade-student-name">{{ student.nama }}</span>
+                                    <span class="grade-student-nis">{{ student.no }}. NIS {{ student.nis }}</span>
+                                </th>
                                 <td v-for="field in fieldGroups" :key="`${student.id}-${field.key}`" class="text-center">
                                     <span
                                         v-if="field.readonly"
@@ -331,7 +305,7 @@ function submit() {
                                         :class="scoreClass(form.nilai[String(student.id)][field.key])"
                                         :title="'Nilai harian dihitung otomatis dari nilai tugas'"
                                     >
-                                        {{ formatScore(form.nilai[String(student.id)][field.key]) ?? '-' }}
+                                        {{ formatScore(form.nilai[String(student.id)][field.key]) ?? '–' }}
                                     </span>
                                     <textarea
                                         v-else
@@ -339,10 +313,10 @@ function submit() {
                                         rows="1"
                                         inputmode="decimal"
                                         class="form-control form-control-sm score-input"
-                                        :class="{ 'border-danger border-opacity-25': student.rata_akhir && field.key === 'sat' }"
                                         autocomplete="off"
                                         pattern="^\\d{1,3}([,.]\\d{1,2})?$"
-                                        placeholder="-"
+                                        placeholder="–"
+                                        :aria-label="`${field.key.toUpperCase()} ${student.nama}`"
                                         :data-student-index="studentIndex"
                                         :data-field-key="field.key"
                                         @keydown.enter="handleScoreEnter($event, studentIndex, field.key)"
@@ -354,16 +328,16 @@ function submit() {
                                 <td class="text-center">
                                     <strong
                                         v-if="formatScore(student.rata_akhir)"
-                                        class="score-result"
+                                        class="score-result grade-total"
                                         :class="scoreClass(student.rata_akhir)"
                                     >
                                         {{ formatScore(student.rata_akhir) }}
                                     </strong>
-                                    <span v-else class="text-body-secondary">-</span>
+                                    <span v-else class="text-body-secondary">–</span>
                                 </td>
                             </tr>
                             <tr v-if="!students.length">
-                                <td colspan="12">
+                                <td colspan="10">
                                     <EmptyState title="Tidak ada siswa di kelas ini." icon="bi-people" />
                                 </td>
                             </tr>
@@ -371,97 +345,138 @@ function submit() {
                     </table>
                 </TableWrapper>
 
-                <template #footer>
-                    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
-                        <a href="/guru/nilai" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Kembali
-                        </a>
-                        <div class="d-flex align-items-center gap-3">
-                            <span class="text-body-secondary text-xs">{{ students.length }} siswa</span>
-                            <Button type="submit" color="success" icon="bi-save" :disabled="form.processing">
-                                {{ form.processing ? 'Menyimpan...' : 'Simpan Semua' }}
-                            </Button>
-                        </div>
-                    </div>
-                </template>
+                <div class="grade-savebar">
+                    <a href="/guru/nilai" class="btn btn-outline-secondary" aria-label="Kembali ke daftar nilai">
+                        <i class="bi bi-arrow-left" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">Kembali</span>
+                    </a>
+                    <span class="grade-savebar-status" role="status" aria-live="polite">
+                        <template v-if="form.isDirty"><i class="bi bi-circle-fill grade-dirty-dot" aria-hidden="true"></i>Belum disimpan<span class="d-none d-sm-inline">: ada perubahan nilai</span></template>
+                        <template v-else-if="form.recentlySuccessful"><i class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></i>Tersimpan</template>
+                    </span>
+                    <Button type="submit" color="primary" icon="bi-save" :loading="form.processing">
+                        {{ form.processing ? 'Menyimpan...' : 'Simpan Semua' }}
+                    </Button>
+                </div>
             </Card>
         </form>
     </AppShell>
 </template>
 
 <style scoped>
+.grade-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border-soft);
+}
+.grade-hint { color: var(--text-muted); font-size: 0.8rem; }
+
 .grade-table {
-    min-width: 1220px;
+    min-width: 960px;
     table-layout: fixed;
 }
-
-.grade-col-no {
-    width: 44px;
-}
-
-.grade-col-nis {
-    width: 110px;
-}
-
-.grade-col-student {
-    width: 320px;
-}
-
-.grade-col-score {
-    width: 78px;
-}
-
-.grade-col-total {
-    width: 108px;
-}
+.grade-col-student { width: 240px; }
+.grade-col-score { width: 78px; }
+.grade-col-total { width: 96px; }
 
 .grade-table th,
 .grade-table td {
+    padding: 0.45rem 0.4rem;
     vertical-align: middle;
 }
-
-.grade-table th {
-    padding: 0.65rem 0.45rem;
+.grade-table thead th {
     line-height: 1.2;
     white-space: normal;
+    text-align: center;
 }
 
-.grade-table td {
-    padding: 0.55rem 0.45rem;
+/* Kolom siswa tetap terlihat saat tabel digeser ke samping */
+.grade-sticky {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--surface-card);
+    box-shadow: 1px 0 0 var(--border-soft);
 }
-
-.grade-table td:nth-child(3) {
+.grade-table thead .grade-sticky { z-index: 3; background: var(--surface-subtle); text-align: left; }
+.grade-student {
+    padding-left: 0.85rem !important;
+    font-weight: 400;
+    text-align: left;
     white-space: normal;
+}
+.grade-student-name {
+    display: block;
+    color: var(--text-strong);
+    font-weight: 600;
+    line-height: 1.25;
+}
+.grade-student-nis {
+    display: block;
+    margin-top: 0.1rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
 }
 
 .grade-table .score-input {
     width: 100%;
     min-width: 0;
-    height: 31px;
-    min-height: 31px;
+    height: 32px;
+    min-height: 32px;
     overflow: hidden;
     resize: none;
     text-align: center;
+    font-variant-numeric: tabular-nums;
 }
 
 .readonly-score {
     display: inline-flex;
     width: 100%;
     min-width: 0;
-    min-height: 31px;
+    min-height: 32px;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--bs-border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-control);
     background: var(--surface-muted);
-    font-weight: 700;
+    font-weight: 650;
+}
+.grade-total { font-size: 0.95rem; }
+
+/* Satu bilah simpan yang menempel di bawah layar */
+.grade-savebar {
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1rem;
+    border-top: 1px solid var(--border-soft);
+    border-radius: 0 0 var(--card-radius) var(--card-radius);
+    background: var(--surface-card);
+}
+.grade-savebar-status {
+    flex: 1 1 auto;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-align: right;
+}
+.grade-dirty-dot {
+    margin-right: 0.4rem;
+    color: var(--status-warning-text);
+    font-size: 0.5rem;
+    vertical-align: middle;
 }
 
-@media (max-width: 767.98px) {
-    .score-input {
-        min-width: 56px;
-        padding: 0.25rem 0.35rem;
-        font-size: 0.78rem;
-    }
+@media (max-width: 991.98px) {
+    /* di atas navigasi bawah mobile */
+    .grade-savebar { bottom: calc(3.85rem + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 575.98px) {
+    .grade-col-student { width: 150px; }
+    .grade-savebar-status { font-size: 0.75rem; }
 }
 </style>

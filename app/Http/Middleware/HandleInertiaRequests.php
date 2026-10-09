@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Notifikasi;
 use App\Models\Pengaturan;
+use App\Models\TahunAjaran;
 use App\Models\WaliKelas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -90,6 +91,7 @@ class HandleInertiaRequests extends Middleware
                 'name' => $theme,
                 'colors' => $activeTheme,
             ],
+            'academic' => fn () => $user ? $this->academicPeriod() : null,
             'capabilities' => [
                 'has_wali_kelas' => fn () => $this->hasWaliKelasAktif($user, $role),
             ],
@@ -100,6 +102,23 @@ class HandleInertiaRequests extends Middleware
                 'latest' => fn () => $this->latestNotifications($user, $role),
             ],
         ]);
+    }
+
+    /**
+     * @return array{tahun: string, semester: string}|null
+     */
+    private function academicPeriod(): ?array
+    {
+        try {
+            $tahunAjaran = TahunAjaran::getAktif();
+
+            return $tahunAjaran ? [
+                'tahun' => (string) $tahunAjaran->tahun,
+                'semester' => (string) Pengaturan::getValue('semester_aktif', '1'),
+            ] : null;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     private function hasWaliKelasAktif($user, ?string $role): bool

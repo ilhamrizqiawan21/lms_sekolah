@@ -91,7 +91,7 @@ async function destroy(item: TeacherTask) {
 
     <AppShell title="Tugas">
         <DashboardHero
-            eyebrow="Workspace Kelas/Mapel"
+            eyebrow="Kelas & Mapel"
             :title="kelasMapel.mata_pelajaran"
             :subtitle="`${kelasMapel.kelas} - Buat tugas dan pantau pengumpulan siswa.`"
             icon="bi-journal-text"

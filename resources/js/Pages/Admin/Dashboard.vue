@@ -3,6 +3,7 @@ import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import AppShell from '../../Layouts/AppShell.vue';
 import { ActionQueue, Badge, DashboardHero, MetricStrip, QuickActionBar, TableWrapper } from '../../Components/UI';
+import { roleLabel } from '../../utils/roles';
 
 interface AdminStats { total_siswa?: number; total_guru?: number; total_kelas?: number; total_mapel?: number; }
 interface LoginRecord { id: number; nama_lengkap: string; role: string; login_time?: string | null; ip_address?: string | null; }
@@ -32,15 +33,12 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({
     icon: 'bi-megaphone-fill', accent: 'var(--accent-amber)',
 })));
 
-function roleBadgeColor(role: string): string {
-    return { admin: 'danger', guru: 'primary', siswa: 'success', kepala_sekolah: 'warning' }[role] ?? 'secondary';
-}
 </script>
 
 <template>
     <Head title="Dashboard Admin" />
     <AppShell title="Dashboard Admin">
-        <DashboardHero eyebrow="Health Operasional" title="Pusat Kendali Sekolah" subtitle="Pantau data inti, aktivitas login, dan pengumuman dari satu layar operasional." icon="bi-command" tone="admin">
+        <DashboardHero eyebrow="Operasional Sekolah" title="Pusat Kendali Sekolah" subtitle="Pantau data inti, aktivitas login, dan pengumuman dari satu layar operasional." icon="bi-command" tone="admin">
             <template #actions><QuickActionBar :actions="quickActions" /></template>
         </DashboardHero>
 
@@ -59,7 +57,7 @@ function roleBadgeColor(role: string): string {
                             <tbody>
                                 <tr v-for="log in loginTerbaru" :key="log.id">
                                     <td><strong>{{ log.nama_lengkap }}</strong></td>
-                                    <td><Badge :color="roleBadgeColor(log.role)">{{ log.role }}</Badge></td>
+                                    <td><Badge color="secondary">{{ roleLabel(log.role) }}</Badge></td>
                                     <td class="text-body-secondary small">{{ log.login_time ?? '-' }}</td>
                                     <td class="text-body-secondary small admin-login-ip">{{ log.ip_address ?? '-' }}</td>
                                 </tr>

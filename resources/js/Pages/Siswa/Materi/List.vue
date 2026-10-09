@@ -23,7 +23,7 @@ const courseTabs = [
 
     <AppShell title="Materi">
         <DashboardHero
-            eyebrow="Workspace Kelas/Mapel"
+            eyebrow="Kelas & Mapel"
             :title="kelasMapel.mata_pelajaran"
             :subtitle="`Guru: ${kelasMapel.guru} - Materi pembelajaran untuk kelas Anda.`"
             icon="bi-file-earmark-text-fill"

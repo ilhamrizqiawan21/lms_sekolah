@@ -70,7 +70,7 @@ async function destroyUjian(item: UjianItem) {
 
     <AppShell title="Ujian (CBT)">
         <DashboardHero
-            eyebrow="Workspace Kelas/Mapel"
+            eyebrow="Kelas & Mapel"
             :title="`Ujian CBT: ${kelasMapel.mata_pelajaran}`"
             :subtitle="`${kelasMapel.kelas} (Semester ${kelasMapel.semester}) - Buat dan kelola ujian CBT untuk kelas ini.`"
             icon="bi-pencil-square"

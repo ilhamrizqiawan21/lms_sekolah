@@ -65,7 +65,7 @@ async function destroy(item: { delete_url: string }) {
 
     <AppShell title="Materi">
         <DashboardHero
-            eyebrow="Workspace Kelas/Mapel"
+            eyebrow="Kelas & Mapel"
             :title="kelasMapel.mata_pelajaran"
             :subtitle="`${kelasMapel.kelas} - Kelola materi pembelajaran untuk kelas ini.`"
             icon="bi-file-earmark-text-fill"

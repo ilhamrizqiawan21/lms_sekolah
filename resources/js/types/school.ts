@@ -17,3 +17,8 @@ export interface ThemeShare {
     name: string;
     colors: ThemeColors;
 }
+
+export interface AcademicPeriod {
+    tahun: string;
+    semester: string;
+}

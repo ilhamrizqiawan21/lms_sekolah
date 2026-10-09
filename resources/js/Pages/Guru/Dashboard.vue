@@ -249,7 +249,7 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({
     <Head title="Dashboard Guru" />
     <AppShell title="Dashboard Guru">
         <DashboardHero
-            eyebrow="Teacher Dashboard"
+            eyebrow="Ruang Guru"
             :title="`Selamat datang, ${user?.nama_lengkap ?? 'Guru'}`"
             subtitle="Kelola pembelajaran, penilaian, dan tindak lanjut kelas hari ini."
             icon="bi-person-workspace"
@@ -307,7 +307,7 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({
         <section class="teacher-insights" aria-labelledby="teacher-insights-title">
             <div class="teacher-section-heading">
                 <div>
-                    <span class="teacher-section-eyebrow">Insight</span>
+                    <span class="teacher-section-eyebrow">Tren</span>
                     <h2 id="teacher-insights-title">Tren kelas</h2>
                 </div>
                 <p>Data tahun pelajaran sampai bulan berjalan.</p>

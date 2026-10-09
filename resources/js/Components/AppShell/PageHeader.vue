@@ -10,11 +10,11 @@ defineProps({
 <template>
     <div class="page-header app-page-header">
         <div>
-            <h4>
-                <i v-if="icon" class="bi me-2" :class="icon" aria-hidden="true"></i>
+            <h1 class="app-page-title">
+                <i v-if="icon" class="bi" :class="icon" aria-hidden="true"></i>
                 {{ title }}
-            </h4>
-            <p v-if="subtitle" class="text-body-secondary mb-0">{{ subtitle }}</p>
+            </h1>
+            <p v-if="subtitle" class="app-page-subtitle">{{ subtitle }}</p>
         </div>
         <div v-if="$slots.actions" class="app-page-actions">
             <slot name="actions" />

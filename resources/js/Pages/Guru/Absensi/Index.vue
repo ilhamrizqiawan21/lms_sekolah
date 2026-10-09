@@ -177,7 +177,7 @@ function exportAllUrl(format: 'excel' | 'pdf') {
     <AppShell title="Absensi">
         <DashboardHero
             v-if="selected"
-            eyebrow="Workspace Kelas/Mapel"
+            eyebrow="Kelas & Mapel"
             :title="selected.mata_pelajaran"
             :subtitle="`${selected.kelas} - Catat dan pantau kehadiran siswa.`"
             icon="bi-clipboard2-check-fill"

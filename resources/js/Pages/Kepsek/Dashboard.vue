@@ -4,6 +4,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AppShell from '../../Layouts/AppShell.vue';
 import { cssVar } from '../../utils/cssColor';
 import { Badge, Card, DashboardHero, EmptyState, MetricStrip, TableWrapper } from '../../Components/UI';
+import { roleLabel } from '../../utils/roles';
 interface Stats { total_siswa?: number; total_guru?: number; total_kelas?: number; total_mapel?: number; }
 interface AttendanceMonth { bulan: string; bulan_label?: string; hadir: number; sakit: number; izin: number; alpha: number; persentase?: number; total?: number; }
 interface SubjectAverage { nama_mapel: string; rata_rata: number | string; }
@@ -52,14 +53,6 @@ async function renderAbsensiChart() {
     });
 }
 
-function roleBadgeColor(role: string): string {
-    return {
-        admin: 'danger',
-        guru: 'primary',
-        siswa: 'success',
-        kepala_sekolah: 'warning',
-    }[role] ?? 'secondary';
-}
 
 onMounted(() => nextTick(renderAbsensiChart));
 watch(() => props.absensiBulanan, () => nextTick(renderAbsensiChart), { deep: true });
@@ -149,7 +142,7 @@ onBeforeUnmount(() => absensiChart?.destroy());
                             <tbody>
                                 <tr v-for="log in loginTerbaru" :key="log.id">
                                     <td><strong>{{ log.nama_lengkap }}</strong></td>
-                                    <td><Badge :color="roleBadgeColor(log.role)">{{ log.role }}</Badge></td>
+                                    <td><Badge color="secondary">{{ roleLabel(log.role) }}</Badge></td>
                                     <td class="text-body-secondary small">{{ log.login_time }}</td>
                                     <td class="text-body-secondary small">{{ log.ip_address ?? '-' }}</td>
                                 </tr>
