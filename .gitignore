@@ -37,3 +37,5 @@ coverage/
 # Keep project documentation versioned.
 # Do not add a blanket docs/ ignore rule here.
 /.codewhale/
+/promo
+/archive-*/
