@@ -16,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -251,26 +252,50 @@ class UjianController extends Controller
         }
 
         $validated = $request->validated();
-        $jawaban = UjianAttemptJawaban::where('id', $validated['attempt_jawaban_id'])
-            ->where('ujian_attempt_id', $attempt->id)
-            ->firstOrFail();
 
-        $opsiId = $validated['jawaban_opsi_id'] ?? null;
-        if ($opsiId !== null && ! in_array((int) $opsiId, array_map('intval', $jawaban->urutan_opsi_ids ?? []), true)) {
+        // Lock the answer row (the same rows submit() locks before scoring) and
+        // re-read the attempt status, so an answer cannot land after a submit
+        // that committed once this request had already loaded the attempt.
+        $jawaban = DB::transaction(function () use ($attempt, $validated) {
+            $jawaban = UjianAttemptJawaban::where('id', $validated['attempt_jawaban_id'])
+                ->where('ujian_attempt_id', $attempt->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $status = UjianAttempt::whereKey($attempt->id)->value('status');
+            if ($status !== UjianAttempt::STATUS_SEDANG_MENGERJAKAN) {
+                return null;
+            }
+
+            $opsiId = $validated['jawaban_opsi_id'] ?? null;
+            if ($opsiId !== null && ! in_array((int) $opsiId, array_map('intval', $jawaban->urutan_opsi_ids ?? []), true)) {
+                return false;
+            }
+
+            $data = [
+                'soal_bank_opsi_id' => $opsiId,
+                'dijawab_pada' => Carbon::now(),
+            ];
+            if (isset($validated['ragu_ragu'])) {
+                $data['ragu_ragu'] = (bool) $validated['ragu_ragu'];
+            }
+
+            $jawaban->update($data);
+
+            return $jawaban;
+        });
+
+        if ($jawaban === null) {
+            return response()->json([
+                'message' => 'Waktu pengerjaan ujian telah habis atau ujian telah selesai.',
+            ], 422);
+        }
+
+        if ($jawaban === false) {
             return response()->json([
                 'message' => 'Pilihan jawaban tidak valid untuk soal ini.',
             ], 422);
         }
-
-        $data = [
-            'soal_bank_opsi_id' => $opsiId,
-            'dijawab_pada' => Carbon::now(),
-        ];
-        if (isset($validated['ragu_ragu'])) {
-            $data['ragu_ragu'] = (bool) $validated['ragu_ragu'];
-        }
-
-        $jawaban->update($data);
 
         return response()->json([
             'success' => true,

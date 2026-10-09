@@ -159,6 +159,56 @@ class CbtIdorGuardTest extends TestCase
         $this->assertTrue($fresh->ragu_ragu);
     }
 
+    public function test_jawab_rechecks_attempt_status_after_concurrent_submit(): void
+    {
+        $guru = $this->makeUser('Guru Mapel', 'guru');
+        $ta = TahunAjaran::create(['tahun' => '2025/2026', 'is_active' => true]);
+        $mapel = MataPelajaran::create(['kode' => 'GEO', 'nama_mapel' => 'Geografi', 'urutan' => 1]);
+        $kelas = Kelas::create(['tingkat' => '11', 'nama_kelas' => '11-IPS']);
+        $km = KelasMapel::create([
+            'kelas_id' => $kelas->id,
+            'mapel_id' => $mapel->id,
+            'guru_id' => $guru->id,
+            'tahun_ajaran_id' => $ta->id,
+            'semester' => '1',
+            'status' => 'aktif',
+        ]);
+        $user = $this->makeUser('Siswa A', 'siswa');
+        $this->createSiswa($user, $kelas);
+
+        $ujian = Ujian::create([
+            'kelas_mapel_id' => $km->id,
+            'judul' => 'Ujian Geografi',
+            'durasi_menit' => 45,
+            'kategori_nilai' => 'NH',
+        ]);
+        $soal = SoalBank::create(['guru_id' => $guru->id, 'pertanyaan' => 'Soal 1', 'kesulitan' => 'mudah']);
+        $opsi = SoalBankOpsi::create(['soal_bank_id' => $soal->id, 'teks_opsi' => 'A', 'is_benar' => true]);
+        UjianSoal::create(['ujian_id' => $ujian->id, 'soal_bank_id' => $soal->id, 'poin' => 10, 'urutan' => 1]);
+
+        $this->actingAs($user)->post(route('siswa.ujian.mulai', $ujian->id));
+        $attempt = UjianAttempt::where('ujian_id', $ujian->id)->first();
+        $jawaban = UjianAttemptJawaban::where('ujian_attempt_id', $attempt->id)->first();
+
+        // A submit that commits right after route-model binding loaded the attempt
+        // must still block this answer from being written.
+        $submittedConcurrently = false;
+        UjianAttempt::retrieved(function (UjianAttempt $loaded) use (&$submittedConcurrently) {
+            if (! $submittedConcurrently) {
+                $submittedConcurrently = true;
+                UjianAttempt::whereKey($loaded->id)->update(['status' => UjianAttempt::STATUS_SELESAI]);
+            }
+        });
+
+        $this->actingAs($user)->postJson(route('siswa.ujian.jawab', $attempt->id), [
+            'attempt_jawaban_id' => $jawaban->id,
+            'jawaban_opsi_id' => $opsi->id,
+        ])->assertStatus(422);
+
+        $this->assertTrue($submittedConcurrently);
+        $this->assertNull($jawaban->fresh()->soal_bank_opsi_id);
+    }
+
     public function test_guru_cannot_manage_another_gurus_ujian_or_soal(): void
     {
         $guru1 = $this->makeUser('Guru 1', 'guru');

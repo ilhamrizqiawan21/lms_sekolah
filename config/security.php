@@ -13,4 +13,9 @@ return [
     'auto_block_window_minutes' => (int) env('SECURITY_AUTO_BLOCK_WINDOW_MINUTES', 10),
     'auto_block_duration_minutes' => (int) env('SECURITY_AUTO_BLOCK_DURATION_MINUTES', 15),
     'max_upload_mb' => (int) env('SECURITY_MAX_UPLOAD_MB', 5),
+    // Reverse proxy / load balancer yang dipercaya untuk header X-Forwarded-*.
+    // Isi daftar IP/CIDR dipisah koma (mis. "10.0.0.1,172.16.0.0/12") atau "*"
+    // hanya bila aplikasi tidak dapat diakses langsung selain lewat proxy.
+    // Kosong = header X-Forwarded-* diabaikan.
+    'trusted_proxies' => env('TRUSTED_PROXIES'),
 ];

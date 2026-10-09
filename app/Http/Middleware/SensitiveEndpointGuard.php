@@ -153,7 +153,10 @@ class SensitiveEndpointGuard
     {
         $user = $request->user();
 
-        if (! $user) {
+        // Guests and deactivated accounts are handed to the route's auth/role
+        // middleware, which redirects to login (and ends inactive sessions)
+        // before the legacy controller action can run.
+        if (! $user || ! $user->is_active) {
             return $next($request);
         }
 

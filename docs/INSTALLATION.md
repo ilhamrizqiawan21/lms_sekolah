@@ -134,6 +134,8 @@ Test Laravel dikonfigurasi memakai SQLite `:memory:` melalui `phpunit.xml`, sehi
 ## 7. Checklist production
 
 - [ ] `APP_ENV=production`, `APP_DEBUG=false`, dan `APP_URL` HTTPS.
+- [ ] `SESSION_SECURE_COOKIE=true` dan `LOG_LEVEL=warning` (atau lebih tinggi).
+- [ ] `TRUSTED_PROXIES` diisi IP/CIDR reverse proxy bila aplikasi berada di belakang proxy/load balancer, agar rate limit dan blokir IP memakai IP klien asli.
 - [ ] `APP_KEY` baru dan seluruh secret tidak berada di repository.
 - [ ] User database khusus dengan privilege minimal; jangan memakai `root`.
 - [ ] `composer install --no-dev --optimize-autoloader` selesai.

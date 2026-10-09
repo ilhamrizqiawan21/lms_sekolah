@@ -97,6 +97,7 @@ class AccountSettingsController extends Controller
             'password' => Hash::make($validated['password']),
             'is_password_default' => false,
         ]);
+        $request->session()->regenerate();
 
         return back()->with('success', 'Password berhasil diperbarui.');
     }

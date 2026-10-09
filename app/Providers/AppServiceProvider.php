@@ -13,6 +13,7 @@ use App\Policies\TugasPolicy;
 use App\Policies\UjianPolicy;
 use App\Policies\WaliKelasPolicy;
 use App\Services\CalendarTimelineService;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
@@ -28,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->configureTrustedProxies();
+
         Gate::define('mengajar', [KelasMapelPolicy::class, 'mengajar']);
         Gate::define('mengajar-tugas', [TugasPolicy::class, 'mengajar']);
         Gate::define('kelola-wali-kelas', [WaliKelasPolicy::class, 'kelola']);
@@ -53,5 +56,16 @@ class AppServiceProvider extends ServiceProvider
 
             return app(CalendarTimelineService::class)->forUser(request()->user(), $year, $month)->all();
         });
+    }
+
+    private function configureTrustedProxies(): void
+    {
+        $proxies = trim((string) config('security.trusted_proxies'));
+
+        if ($proxies === '') {
+            return;
+        }
+
+        TrustProxies::at($proxies === '*' ? '*' : array_values(array_filter(array_map('trim', explode(',', $proxies)))));
     }
 }
