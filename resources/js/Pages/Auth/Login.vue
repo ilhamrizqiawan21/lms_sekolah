@@ -128,6 +128,7 @@ function submit() {
                 </div>
             </header>
 
+            <div class="brand-lower">
             <!-- Papan Informasi / Pengumuman Resmi Sekolah -->
             <section
                 class="brand-board"
@@ -227,6 +228,7 @@ function submit() {
                     <span class="brand-copyright-text">&copy; {{ year }} {{ branding.school_short_name }}</span>
                 </div>
             </footer>
+            </div>
         </aside>
 
         <!-- Panel Kanan: Form Akses LMS -->
@@ -1042,6 +1044,10 @@ function submit() {
     line-height: 1.45;
 }
 
+.brand-lower {
+    display: contents;
+}
+
 /* Responsive Layout */
 @media (max-width: 960px) {
     .login-page {
@@ -1049,9 +1055,30 @@ function submit() {
         min-height: auto;
     }
 
+    /* Mobile: identitas -> form login -> papan informasi */
     .login-brand-panel {
+        display: contents;
+    }
+
+    .brand-header {
+        order: 1;
+        background-color: var(--login-brand-bg);
+        color: #ffffff;
         padding: 32px 24px 28px;
+    }
+
+    .login-form-panel {
+        order: 2;
+    }
+
+    .brand-lower {
+        display: flex;
+        flex-direction: column;
         gap: 24px;
+        order: 3;
+        background-color: var(--login-brand-bg);
+        color: #ffffff;
+        padding: 32px 24px 28px;
     }
 
     .brand-top-row {
