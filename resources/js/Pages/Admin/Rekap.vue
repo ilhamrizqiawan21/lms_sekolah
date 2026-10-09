@@ -2,7 +2,7 @@
 import type { PropType } from 'vue';
 
 import { computed, ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import AppShell from '../../Layouts/AppShell.vue';
 import { Card, EmptyState, TableWrapper } from '../../Components/UI';
 
@@ -44,6 +44,8 @@ const empty = computed(() => props.rekap.length === 0 && props.tugasList.length 
 </script>
 
 <template>
+    <Head :title="title" />
+
     <AppShell :title="title">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
             <div><h1 class="h3 mb-1">{{ title }}</h1><p class="text-body-secondary mb-0">Rekap akademik terintegrasi untuk administrasi sekolah.</p></div>

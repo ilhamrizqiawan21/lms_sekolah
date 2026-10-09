@@ -4,7 +4,8 @@ import type { PropType } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, IconButton, TableWrapper } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card, EmptyState, IconButton, TableWrapper } from '../../../Components/UI';
 
 interface UjianItem {
     id: number;
@@ -69,16 +70,14 @@ async function destroyUjian(item: UjianItem) {
     <Head :title="`Ujian CBT: ${kelasMapel.mata_pelajaran} - ${kelasMapel.kelas}`" />
 
     <AppShell title="Ujian (CBT)">
-        <DashboardHero
+        <PageHeader
             eyebrow="Kelas & Mapel"
             :title="`Ujian CBT: ${kelasMapel.mata_pelajaran}`"
             :subtitle="`${kelasMapel.kelas} (Semester ${kelasMapel.semester}) - Buat dan kelola ujian CBT untuk kelas ini.`"
-            icon="bi-pencil-square"
-            tone="teacher"
         >
             <template #actions>
                 <div class="d-flex gap-2">
-                    <Button href="/guru/ujian" color="light" icon="bi-arrow-left">
+                    <Button href="/guru/ujian" color="outline-secondary" icon="bi-arrow-left">
                         Kembali
                     </Button>
                     <Button :href="createUrl" color="primary" icon="bi-plus-lg">
@@ -86,7 +85,7 @@ async function destroyUjian(item: UjianItem) {
                     </Button>
                 </div>
             </template>
-        </DashboardHero>
+        </PageHeader>
 
         <Card title="Daftar Ujian CBT Kelas" icon="bi-journal-text" body-class="p-0">
             <div class="p-3 border-bottom bg-light-subtle d-flex flex-wrap justify-content-between align-items-center gap-2">
@@ -98,7 +97,7 @@ async function destroyUjian(item: UjianItem) {
                 </div>
             </div>
 
-            <TableWrapper v-if="filteredUjian.length">
+            <TableWrapper stack v-if="filteredUjian.length">
                 <table class="table table-hover mb-0 app-table-proportional">
                     <colgroup>
                         <col class="u-w-28pct">
@@ -120,25 +119,25 @@ async function destroyUjian(item: UjianItem) {
                     </thead>
                     <tbody>
                         <tr v-for="item in filteredUjian" :key="item.id">
-                            <td>
+                            <td class="stack-title">
                                 <div class="fw-bold">{{ item.judul }}</div>
                                 <div class="small text-body-secondary">{{ item.total_soal }} Soal Pilihan Ganda</div>
                                 <div v-if="item.deskripsi" class="small text-body-secondary text-truncate u-maxw-300px">
                                     {{ item.deskripsi }}
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="Kategori">
                                 <Badge color="info">{{ item.kategori_nilai }}</Badge>
                             </td>
-                            <td>{{ item.durasi_menit }} Menit</td>
-                            <td>
+                            <td data-label="Durasi">{{ item.durasi_menit }} Menit</td>
+                            <td data-label="Jadwal Akses">
                                 <div v-if="item.waktu_mulai || item.waktu_selesai" class="small">
                                     <div>Mulai: {{ item.waktu_mulai ?? 'Bebas' }}</div>
                                     <div class="text-body-secondary">Selesai: {{ item.waktu_selesai ?? 'Bebas' }}</div>
                                 </div>
                                 <Badge v-else color="secondary">Selalu Buka</Badge>
                             </td>
-                            <td>
+                            <td data-label="Pengerjaan Siswa">
                                 <div class="small fw-semibold mb-1">
                                     {{ item.selesai_attempts }} / {{ item.total_siswa }} Selesai
                                 </div>
@@ -146,11 +145,12 @@ async function destroyUjian(item: UjianItem) {
                                     <div
                                         class="progress-bar bg-success"
                                         role="progressbar"
+                                        aria-label="Siswa yang sudah mengerjakan"
                                         :style="{ width: `${item.progress_percent}%` }"
                                     />
                                 </div>
                             </td>
-                            <td>
+                            <td class="stack-actions">
                                 <div class="d-flex gap-1">
                                     <Button
                                         v-if="item.hasil_url"

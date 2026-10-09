@@ -21,7 +21,7 @@ const typeIcon = (type: TimelineEventType): string => ({ calendar: 'bi-calendar-
 </script>
 
 <template>
-    <Card title="Academic Timeline" icon="bi-clock-history">
+    <Card title="Linimasa Akademik" icon="bi-clock-history">
         <template #actions>
             <div class="timeline-filters">
                 <button

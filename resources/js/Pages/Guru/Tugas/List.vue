@@ -5,7 +5,8 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { TextInput, TextareaInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, IconButton, MetricStrip, QuickActionBar, TableWrapper } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card, EmptyState, IconButton, MetricStrip, QuickActionBar, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
     kelasMapel: { type: Object as PropType<{ id: number; kelas: string; mata_pelajaran: string; workspace_url: string; store_url: string; back_url: string; export_excel_url: string; export_pdf_url: string }>, required: true },
@@ -90,22 +91,19 @@ async function destroy(item: TeacherTask) {
     <Head :title="`Tugas: ${kelasMapel.mata_pelajaran} - ${kelasMapel.kelas}`" />
 
     <AppShell title="Tugas">
-        <DashboardHero
+        <PageHeader
             eyebrow="Kelas & Mapel"
             :title="kelasMapel.mata_pelajaran"
             :subtitle="`${kelasMapel.kelas} - Buat tugas dan pantau pengumpulan siswa.`"
-            icon="bi-journal-text"
-            tone="teacher"
         >
             <template #actions>
                 <QuickActionBar
                     :actions="[
-                        { label: 'Kembali', href: kelasMapel.back_url, icon: 'bi-arrow-left', color: 'light' },
-                        { label: 'Ringkasan', href: kelasMapel.workspace_url, icon: 'bi-grid-1x2', color: 'light' },
+                        { label: 'Kembali', href: kelasMapel.back_url, icon: 'bi-arrow-left', color: 'outline-secondary' },
                     ]"
                 />
             </template>
-        </DashboardHero>
+        </PageHeader>
 
         <nav class="workspace-tabs" aria-label="Navigasi kelas dan mata pelajaran">
             <a v-for="tab in courseTabs" :key="tab.label" :href="tab.href" class="workspace-tab" :class="{ 'is-active': tab.active }">
@@ -197,7 +195,7 @@ async function destroy(item: TeacherTask) {
                                         <td>
                                             <div class="assignment-progress">
                                                 <span>{{ item.sudah_mengumpulkan ?? 0 }}/{{ totalSiswa }}</span>
-                                                <div class="progress" role="progressbar" :aria-valuenow="item.progress_percent" aria-valuemin="0" aria-valuemax="100">
+                                                <div class="progress" role="progressbar" :aria-label="`Pengumpulan ${item.judul}`" :aria-valuenow="item.progress_percent" aria-valuemin="0" aria-valuemax="100">
                                                     <div class="progress-bar" :style="{ width: `${item.progress_percent || 0}%` }"></div>
                                                 </div>
                                                 <small v-if="item.perlu_dinilai" class="text-danger">{{ item.perlu_dinilai }} perlu dinilai</small>
@@ -227,7 +225,7 @@ async function destroy(item: TeacherTask) {
                                     <Badge color="primary">{{ item.sudah_mengumpulkan ?? 0 }}/{{ totalSiswa }}</Badge>
                                 </div>
                                 <span v-if="item.deskripsi" class="app-mobile-list-meta">{{ item.deskripsi }}</span>
-                                <div class="progress my-2" role="progressbar" :aria-valuenow="item.progress_percent" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress my-2" role="progressbar" :aria-label="`Pengumpulan ${item.judul}`" :aria-valuenow="item.progress_percent" aria-valuemin="0" aria-valuemax="100">
                                     <div class="progress-bar" :style="{ width: `${item.progress_percent || 0}%` }"></div>
                                 </div>
                                 <div class="app-mobile-list-row">

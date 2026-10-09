@@ -3,7 +3,8 @@ import type { PropType } from 'vue';
 import type { MetricItem, QueueItem } from '../../../types/ui';
 import { Head, Link } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { AgendaPanel, DashboardHero, MetricStrip, QuickActionBar } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { AgendaPanel, MetricStrip, QuickActionBar } from '../../../Components/UI';
 
 const props = defineProps({
     course: { type: Object as PropType<{ title: string; kelas: string; semester: string; tahun_ajaran: string; back_url: string }>, required: true },
@@ -16,8 +17,8 @@ const props = defineProps({
 
 const quickActions = [
     { label: 'Tambah Materi', href: props.tabs.find((tab) => tab.label === 'Materi')?.href, icon: 'bi-file-earmark-plus', color: 'primary' },
-    { label: 'Buat Tugas', href: props.tabs.find((tab) => tab.label === 'Tugas')?.href, icon: 'bi-journal-check', color: 'light' },
-    { label: 'Isi Absensi', href: props.attendance.href, icon: 'bi-clipboard-check', color: 'light' },
+    { label: 'Buat Tugas', href: props.tabs.find((tab) => tab.label === 'Tugas')?.href, icon: 'bi-journal-check', color: 'outline-secondary' },
+    { label: 'Isi Absensi', href: props.attendance.href, icon: 'bi-clipboard-check', color: 'outline-secondary' },
 ];
 </script>
 
@@ -25,17 +26,15 @@ const quickActions = [
     <Head :title="`${course.title} - ${course.kelas}`" />
 
     <AppShell :title="course.title">
-        <DashboardHero
+        <PageHeader
             eyebrow="Kelas & Mapel"
             :title="course.title"
             :subtitle="`${course.kelas} - Semester ${course.semester} - ${course.tahun_ajaran}`"
-            icon="bi-book"
-            tone="teacher"
         >
             <template #actions>
                 <QuickActionBar :actions="quickActions" />
             </template>
-        </DashboardHero>
+        </PageHeader>
 
         <nav class="workspace-tabs" aria-label="Navigasi kelas dan mata pelajaran">
             <Link

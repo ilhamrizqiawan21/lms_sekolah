@@ -4,7 +4,7 @@ import { computed, nextTick, reactive, ref, watch } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { SearchableSelect, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, QuickActionBar, TableWrapper } from '../../../Components/UI';
+import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
 
 import type { AttendanceMeeting, AttendanceStatus, AttendanceStudent, GradeCourse } from '../../../types/assessment';
 
@@ -175,19 +175,13 @@ function exportAllUrl(format: 'excel' | 'pdf') {
     <Head title="Absensi" />
 
     <AppShell title="Absensi">
-        <DashboardHero
+        <PageHeader
             v-if="selected"
             eyebrow="Kelas & Mapel"
             :title="selected.mata_pelajaran"
-            :subtitle="`${selected.kelas} - Catat dan pantau kehadiran siswa.`"
-            icon="bi-clipboard2-check-fill"
-            tone="teacher"
-        >
-            <template #actions>
-                <QuickActionBar :actions="[{ label: 'Ringkasan', href: selected.workspace_url, icon: 'bi-grid-1x2', color: 'light' }]" />
-            </template>
-        </DashboardHero>
-        <PageHeader v-else title="Absensi" icon="bi-clipboard-check-fill" />
+            :subtitle="`${selected.kelas} · Catat dan pantau kehadiran siswa.`"
+        />
+        <PageHeader v-else eyebrow="Kehadiran" title="Absensi" subtitle="Pilih kelas dan bulan untuk mencatat kehadiran siswa." />
 
         <nav v-if="selected" class="workspace-tabs" aria-label="Navigasi kelas dan mata pelajaran">
             <a v-for="tab in courseTabs" :key="tab.label" :href="tab.href" class="workspace-tab" :class="{ 'is-active': tab.active }">
@@ -232,10 +226,10 @@ function exportAllUrl(format: 'excel' | 'pdf') {
                             </div>
                         </div>
                         <div class="col-12 d-flex flex-wrap gap-2">
-                            <a :href="exportAllUrl('excel')" class="btn btn-sm btn-outline-success">
+                            <a :href="exportAllUrl('excel')" class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Export Excel ({{ filterForm.kelas_mapel_id ? 'Kelas Terpilih' : 'Semua Kelas' }}{{ semuaBulan ? ' - Semua Bulan' : '' }})
                             </a>
-                            <a :href="exportAllUrl('pdf')" class="btn btn-sm btn-outline-danger">
+                            <a :href="exportAllUrl('pdf')" class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i> Export PDF ({{ filterForm.kelas_mapel_id ? 'Kelas Terpilih' : 'Semua Kelas' }}{{ semuaBulan ? ' - Semua Bulan' : '' }})
                             </a>
                         </div>
@@ -286,22 +280,20 @@ function exportAllUrl(format: 'excel' | 'pdf') {
                             <Badge color="danger">A=Alpha</Badge>
                             <Badge color="secondary">Mengikuti jadwal mengajar</Badge>
                             <span class="ms-auto d-flex flex-wrap gap-2">
-                                <a :href="selectedExportUrl('excel')" class="btn btn-sm btn-outline-success">
+                                <a :href="selectedExportUrl('excel')" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
                                 </a>
-                                <a :href="selectedExportUrl('pdf')" class="btn btn-sm btn-outline-danger">
+                                <a :href="selectedExportUrl('pdf')" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i> PDF
                                 </a>
                             </span>
                         </div>
 
-                        <TableWrapper>
+                        <TableWrapper :scroll-hint="false">
                             <table class="table table-bordered table-hover mb-0 attendance-table">
                                 <thead>
                                     <tr>
-                                        <th scope="col" class="text-center u-w-44px">No</th>
-                                        <th scope="col" class="text-center u-w-70px">NIS</th>
-                                        <th scope="col">Nama</th>
+                                        <th scope="col" class="grid-sticky-col attendance-col-student">Siswa</th>
                                         <th scope="col"
                                             v-for="week in weeks"
                                             :key="week.key"
@@ -318,7 +310,7 @@ function exportAllUrl(format: 'excel' | 'pdf') {
                                         <th scope="col" class="text-center u-w-42px">A</th>
                                     </tr>
                                     <tr>
-                                        <td colspan="3"></td>
+                                        <th scope="row" class="grid-sticky-col identity-cell"><span class="identity-meta">Isi satu kolom</span></th>
                                         <td
                                             v-for="week in weeks"
                                             :key="`fill-${week.key}`"
@@ -327,6 +319,7 @@ function exportAllUrl(format: 'excel' | 'pdf') {
                                             <select
                                                 v-if="week.date"
                                                 class="form-select form-select-sm attendance-select"
+                                                :aria-label="`Isi semua siswa, ${week.title} ${week.label}`"
                                                 @change="fillColumn(week.key, $event)"
                                             >
                                                 <option
@@ -348,12 +341,11 @@ function exportAllUrl(format: 'excel' | 'pdf') {
                                         :key="student.id"
                                         :class="{ 'attendance-row-highlighted': Number(student.id) === Number(highlightedSiswaId) }"
                                     >
-                                        <td class="text-center text-body-secondary align-middle">{{ student.no }}</td>
-                                        <td class="align-middle">{{ student.nis }}</td>
-                                        <td class="align-middle">
-                                            <strong>{{ student.nama }}</strong>
+                                        <th scope="row" class="grid-sticky-col identity-cell">
+                                            <span class="identity-name">{{ student.nama }}</span>
+                                            <span class="identity-meta">{{ student.no }}. NIS {{ student.nis }}</span>
                                             <span v-if="Number(student.id) === Number(highlightedSiswaId)" class="visually-hidden">Siswa yang dipilih dari dashboard</span>
-                                        </td>
+                                        </th>
                                         <td
                                             v-for="week in weeks"
                                             :key="`${student.id}-${week.key}`"
@@ -362,6 +354,7 @@ function exportAllUrl(format: 'excel' | 'pdf') {
                                             <select
                                                 v-if="week.date"
                                                 v-model="form.absensi[String(student.id)][String(week.key)]"
+                                                :aria-label="`${student.nama}, ${week.title} ${week.label}`"
                                                 class="form-select form-select-sm attendance-select"
                                                 :class="form.absensi[String(student.id)][String(week.key)]"
                                             >
@@ -384,14 +377,16 @@ function exportAllUrl(format: 'excel' | 'pdf') {
                             </table>
                         </TableWrapper>
 
-                        <template #footer>
-                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
-                                <Button type="button" color="outline-secondary" icon="bi-arrow-left" @click="resetFilters">Reset</Button>
-                                <Button type="submit" color="success" icon="bi-save" :disabled="form.processing">
-                                    {{ form.processing ? 'Menyimpan...' : 'Simpan Absensi' }}
-                                </Button>
-                            </div>
-                        </template>
+                        <div class="sticky-savebar">
+                            <Button type="button" color="outline-secondary" icon="bi-arrow-counterclockwise" @click="resetFilters">Reset</Button>
+                            <span class="sticky-savebar-status" role="status" aria-live="polite">
+                                <template v-if="form.isDirty"><i class="bi bi-circle-fill dirty-dot" aria-hidden="true"></i>Belum disimpan<span class="d-none d-sm-inline">: ada perubahan absensi</span></template>
+                                <template v-else-if="form.recentlySuccessful"><i class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></i>Tersimpan</template>
+                            </span>
+                            <Button type="submit" color="primary" icon="bi-save" :loading="form.processing">
+                                {{ form.processing ? 'Menyimpan...' : 'Simpan Absensi' }}
+                            </Button>
+                        </div>
                     </Card>
                 </form>
             </div>
@@ -438,12 +433,18 @@ function exportAllUrl(format: 'excel' | 'pdf') {
     color: var(--app-primary);
 }
 
-.attendance-row-highlighted > td {
+.attendance-row-highlighted > td,
+.attendance-row-highlighted > th {
     background: var(--primary-50);
 }
 
-.attendance-row-highlighted > td:first-child {
-    box-shadow: inset 3px 0 0 var(--app-primary);
+.attendance-row-highlighted > th:first-child {
+    box-shadow: inset 3px 0 0 var(--app-primary), 1px 0 0 var(--border-soft);
+}
+
+.attendance-col-student { min-width: 200px; }
+@media (max-width: 575.98px) {
+    .attendance-col-student { min-width: 140px; }
 }
 
 @media (max-width: 767.98px) {

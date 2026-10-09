@@ -322,13 +322,13 @@ async function deleteAvatar(): Promise<void> {
 }
 
 .account-name {
-    color: var(--gray-900);
+    color: var(--text-strong);
     font-size: 1.1rem;
     font-weight: 700;
 }
 
 .account-username {
-    color: var(--gray-500);
+    color: var(--text-muted);
     font-size: 0.9rem;
 }
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from 'vue';
 interface AttitudeRow { siswa: { id: number; nama: string; kelas: string | null }; nilai: Record<string, number | null>; rata: number | null }
-import { router } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
@@ -37,6 +37,8 @@ function badgeClass(value: number | null) {
 </script>
 
 <template>
+    <Head title="Rekap Sikap" />
+
     <AppShell title="Rekap Sikap">
         <PageHeader :title="title" subtitle="Rekap sikap spiritual dan sosial dari kelas yang Anda ampu." icon="bi-file-earmark-text-fill" />
 

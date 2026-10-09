@@ -77,6 +77,7 @@
     --text-strong: #f0f0ee;
     --text-body: #d3d4d1;
     --text-muted: #a3a6a9;
+    --gray-900: var(--text-strong); /* tokens.css tidak memetakan gray-900 untuk mode gelap */
 
     --brand-soft-bg: color-mix(in srgb, var(--primary-500) 18%, var(--surface-card));
     --brand-soft-text: color-mix(in srgb, var(--primary-500) 55%, #ffffff);
@@ -292,6 +293,11 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 { letter-spacing: normal; }
     .sidebar:not(.sidebar-open) { transform: translateX(-100%); }
 }
 
+/* Toast di atas navigasi bawah mobile, bukan tertutup olehnya */
+@media (max-width: 991.98px) {
+    .toast-container { bottom: calc(4.25rem + env(safe-area-inset-bottom)); }
+}
+
 /* Layar ujian: navigasi bawah menutupi tombol Sebelumnya/Selanjutnya */
 @media (max-width: 991.98px) {
     .app-shell:has(.cbt-shell) .mobile-bottom-nav { display: none; }
@@ -338,6 +344,53 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 { letter-spacing: normal; }
     .app-page-actions > *,
     .app-page-actions > .btn,
     .app-page-actions > a { flex: 0 0 auto; width: auto; min-width: 0; }
+}
+
+.app-page-heading { min-width: 0; }
+.app-page-eyebrow {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--text-brand);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+/* Grid input (nilai, sikap, absensi): kolom identitas tetap + bilah simpan menempel.
+ * Dipakai bersama: .grid-sticky-col pada th/td identitas, .identity-cell untuk nama + NIS,
+ * .sticky-savebar sebagai satu-satunya tempat tombol simpan. */
+.grid-sticky-col {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--surface-card);
+    box-shadow: 1px 0 0 var(--border-soft);
+}
+thead .grid-sticky-col { z-index: 3; background: var(--surface-subtle); text-align: left; }
+.identity-cell { padding-left: 0.85rem; font-weight: 400; text-align: left; white-space: normal; }
+.identity-name { display: block; color: var(--text-strong); font-weight: 600; line-height: 1.25; }
+.identity-meta { display: block; margin-top: 0.1rem; color: var(--text-muted); font-size: 0.75rem; font-weight: 400; }
+.sticky-savebar {
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1rem;
+    border-top: 1px solid var(--border-soft);
+    border-radius: 0 0 var(--card-radius) var(--card-radius);
+    background: var(--surface-card);
+}
+.sticky-savebar-standalone { margin-top: 0.75rem; border: 1px solid var(--border-soft); border-radius: var(--card-radius); }
+.sticky-savebar-status { flex: 1 1 auto; color: var(--text-muted); font-size: 0.85rem; text-align: right; }
+.dirty-dot { margin-right: 0.4rem; color: var(--status-warning-text); font-size: 0.5rem; vertical-align: middle; }
+@media (max-width: 991.98px) {
+    .sticky-savebar { bottom: calc(3.85rem + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 575.98px) {
+    .sticky-savebar-status { font-size: 0.75rem; }
 }
 
 /* Hero ringkas: sapaan, bukan spanduk */
@@ -545,6 +598,11 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 { letter-spacing: normal; }
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .input-group-text { background-color: var(--surface-muted); color: var(--text-muted); }
+/* Ruang untuk ikon panah: aturan lama memberi padding seragam sehingga teks menabrak panah */
+.form-select { padding-right: 2.25rem; }
+.form-select-sm { padding-right: 2rem; }
+/* Select di sel tabel (nilai sikap, absensi): ruang panah lebih kecil agar nilai tetap terbaca */
+.table .form-select-sm { padding-left: 0.5rem; padding-right: 1.5rem; background-position: right 0.35rem center; background-size: 12px 10px; }
 .form-control-sm, .form-select-sm { min-height: var(--control-height-sm); border-radius: var(--radius-control); }
 .form-control::placeholder { color: color-mix(in srgb, var(--text-muted) 85%, transparent); }
 .form-control:focus,
@@ -602,12 +660,85 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 { letter-spacing: normal; }
 .app-table-wrapper .table td, .app-table-wrapper .table th { padding-left: 0.75rem; padding-right: 0.75rem; }
 .table-action-column { width: 1%; min-width: 9.5rem; white-space: nowrap; }
 
+/* Tabel daftar menjadi kartu di HP: <TableWrapper stack> + data-label pada tiap <td>.
+ * .stack-title = sel judul kartu, .stack-actions = baris tombol, .stack-hide = disembunyikan di HP. */
+@media (max-width: 767.98px) {
+    .app-table-stack.table-responsive { overflow: visible; }
+    .app-table-stack table,
+    .app-table-stack tbody,
+    .app-table-stack tr,
+    .app-table-stack td {
+        display: block;
+        width: 100%;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+    .app-table-stack table { table-layout: auto; }
+    .app-table-stack thead,
+    .app-table-stack colgroup,
+    .app-table-stack .stack-hide { display: none !important; }
+    .app-table-stack tbody tr { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border-soft); }
+    .app-table-stack tbody tr:last-child { border-bottom: 0; }
+    .app-table-stack tbody tr:hover { background: transparent; }
+    .app-table-stack td {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.2rem 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+        text-align: right;
+        white-space: normal;
+        overflow: visible !important;
+    }
+    .app-table-stack td[data-label]::before {
+        content: attr(data-label);
+        flex: 0 0 auto;
+        max-width: 45%;
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        font-weight: 500;
+        text-align: left;
+    }
+    .app-table-stack td.stack-title {
+        display: block;
+        padding-bottom: 0.35rem !important;
+        color: var(--text-strong);
+        font-size: 0.95rem;
+        text-align: left;
+    }
+    .app-table-stack td.stack-actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        padding-top: 0.55rem !important;
+        text-align: left;
+    }
+    .app-table-stack td.stack-actions > * { flex-wrap: wrap; }
+    .app-table-stack td[colspan] { display: block; text-align: left; }
+    /* aturan lama .app-table-wrapper .table > :not(caption) > * > * memaksa nowrap */
+    .app-table-stack.app-table-wrapper .table > :not(caption) > * > * { white-space: normal; overflow-wrap: anywhere; }
+}
+
 /* Kepala kolom kategori di tabel nilai: tint tipis */
 .table th.bg-soft-success { --soft-bg: color-mix(in srgb, var(--status-success-text) 8%, var(--surface-card)); }
 .table th.bg-soft-warning { --soft-bg: color-mix(in srgb, var(--status-warning-text) 8%, var(--surface-card)); }
 .table th.bg-soft-danger { --soft-bg: color-mix(in srgb, var(--status-danger-text) 8%, var(--surface-card)); }
 .table th.bg-soft-info { --soft-bg: color-mix(in srgb, var(--status-info-text) 8%, var(--surface-card)); }
 .table th.bg-soft-muted { --soft-bg: var(--surface-muted); }
+
+/* ── Tab pil (Bootstrap .nav-pills): aktif mengikuti warna sekolah, bukan biru bawaan ── */
+.nav-pills {
+    --bs-nav-pills-link-active-bg: var(--brand-soft-bg);
+    --bs-nav-pills-link-active-color: var(--brand-soft-text);
+    --bs-nav-link-color: var(--text-body);
+    --bs-nav-link-hover-color: var(--text-strong);
+    --bs-nav-pills-border-radius: var(--radius-control);
+    gap: 0.25rem;
+}
+.nav-pills .nav-link { font-size: 0.875rem; font-weight: 600; }
+.nav-pills .nav-link:hover { background: var(--surface-hover); }
 
 /* ── Badge ── */
 .badge {
@@ -684,6 +815,8 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 { letter-spacing: normal; }
 .action-queue .empty-state-icon { grid-row: 1 / span 2; align-self: center; width: 2.25rem; height: 2.25rem; margin: 0; }
 .action-queue .empty-state-title { font-size: 0.9rem; margin: 0; }
 .action-queue .empty-state-message { margin: 0; font-size: 0.8rem; }
+
+.app-info-meta { color: var(--text-muted); font-size: 0.72rem; }
 
 /* ── Kaki halaman ── */
 .app-footer { color: var(--text-muted); }

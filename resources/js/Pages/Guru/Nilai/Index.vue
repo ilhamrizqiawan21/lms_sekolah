@@ -224,18 +224,10 @@ function submit() {
 
     <AppShell title="Nilai">
         <PageHeader
+            eyebrow="Penilaian"
             title="Input Nilai"
-            subtitle="Pilih kelas penugasan, lalu input nilai siswa."
-            icon="bi-pencil-square"
-        >
-            <template #actions>
-                <Badge color="info">
-                    <template v-if="tahunAjaran">TA {{ tahunAjaran.tahun }}</template>
-                    <template v-else>-</template>
-                    &middot; Semester {{ semester }}
-                </Badge>
-            </template>
-        </PageHeader>
+            subtitle="Pilih kelas, lalu isi nilai siswa. Nilai harian dihitung otomatis dari tugas."
+        />
 
         <form v-if="kelasMapel.length" @submit.prevent="submit">
             <Card title="Kelas dan Mata Pelajaran" icon="bi-funnel" class="mb-4">
@@ -250,12 +242,6 @@ function submit() {
                 </div>
             </Card>
 
-            <div class="d-flex justify-content-end mb-3">
-                <Button type="submit" color="success" icon="bi-save" :disabled="form.processing || !activeGroup">
-                    {{ form.processing ? 'Menyimpan...' : 'Simpan Nilai' }}
-                </Button>
-            </div>
-
             <Card
                 v-if="activeGroup"
                 :title="`${activeGroup.mata_pelajaran} - ${activeGroup.kelas}`"
@@ -265,50 +251,41 @@ function submit() {
             >
                 <template #actions>
                     <div class="d-flex align-items-center gap-2">
-                        <a :href="activeGroup.export_excel_url" class="btn btn-sm btn-outline-success">
+                        <a :href="activeGroup.export_excel_url" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
                         </a>
-                        <a :href="activeGroup.export_pdf_url" class="btn btn-sm btn-outline-danger">
+                        <a :href="activeGroup.export_pdf_url" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i> PDF
                         </a>
                     </div>
                 </template>
 
-                <TableWrapper>
-                    <div class="p-3 border-bottom bg-light-subtle">
-                        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
-                            <span class="text-body-secondary small">Tekan Enter untuk ke siswa berikutnya pada kolom nilai yang sama.</span>
-                            <div class="d-flex align-items-center gap-2">
-                                <Badge v-if="pasteStatus" color="success">{{ pasteStatus }}</Badge>
-                                <Badge color="primary">{{ activeGroup.students.length }} siswa</Badge>
-                            </div>
-                        </div>
-                    </div>
+                <div class="grade-toolbar">
+                    <span class="grade-hint"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>Enter: pindah ke siswa berikutnya. Tempel langsung dari spreadsheet untuk mengisi banyak nilai.</span>
+                    <span class="d-flex align-items-center gap-2">
+                        <Badge v-if="pasteStatus" color="success">{{ pasteStatus }}</Badge>
+                        <Badge color="secondary">{{ activeGroup.students.length }} siswa</Badge>
+                    </span>
+                </div>
+                <TableWrapper :scroll-hint="false">
                     <table class="table table-bordered table-hover app-table grade-table mb-0">
                         <colgroup>
-                            <col class="grade-col-no">
-                            <col class="grade-col-nis">
                             <col class="grade-col-student">
                             <col v-for="field in fieldGroups" :key="`col-${field.key}`" class="grade-col-score">
                             <col v-for="task in taskFields" :key="`col-${task.id}`" class="grade-col-score">
                             <col class="grade-col-total">
                         </colgroup>
-                        <thead class="table-light">
+                        <thead>
                             <tr>
-                                <th scope="col" class="text-center w-row-number">#</th>
-                                <th scope="col" class="min-w-nis">NIS</th>
-                                <th scope="col" class="min-w-student">Nama Siswa</th>
+                                <th scope="col" rowspan="2" class="grid-sticky-col">Siswa</th>
                                 <th scope="colgroup" colspan="4" class="text-center bg-soft-success">Sumatif Harian</th>
                                 <th scope="colgroup" :colspan="Math.max(taskFields.length, 1)" class="text-center bg-soft-success">Nilai Harian</th>
                                 <th scope="col" class="text-center bg-soft-warning">STS</th>
                                 <th scope="col" class="text-center bg-soft-warning">SAS</th>
                                 <th scope="col" class="text-center bg-soft-danger">SAT</th>
-                                <th scope="col" class="text-center bg-soft-muted">Rata-rata Akhir</th>
+                                <th scope="col" rowspan="2" class="text-center bg-soft-muted">Rata-rata<br>Akhir</th>
                             </tr>
-                            <tr class="table-light">
-                                <th scope="col"></th>
-                                <th scope="col"></th>
-                                <th scope="col"></th>
+                            <tr>
                                 <th scope="col" v-for="field in fieldGroups.slice(0, 4)" :key="field.key" class="text-center w-score">
                                     {{ field.label }}
                                 </th>
@@ -318,14 +295,14 @@ function submit() {
                                 <th scope="col" v-for="field in fieldGroups.slice(4)" :key="field.key" class="text-center w-score">
                                     {{ field.label }}
                                 </th>
-                                <th scope="col" class="text-center w-score-total">Auto</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="(student, studentIndex) in activeGroup.students" :key="`${activeGroup.kelas_mapel_id}-${student.id}`">
-                                <td class="text-center text-body-secondary">{{ student.no }}</td>
-                                <td><code>{{ student.nis }}</code></td>
-                                <td>{{ student.nama }}</td>
+                                <th scope="row" class="grid-sticky-col identity-cell">
+                                    <span class="identity-name">{{ student.nama }}</span>
+                                    <span class="identity-meta">{{ student.no }}. NIS {{ student.nis }}</span>
+                                </th>
                                 <template v-for="field in fieldGroups.slice(0, 4)" :key="`${activeGroup.kelas_mapel_id}-${student.id}-${field.key}`">
                                 <td class="text-center">
                                     <span
@@ -383,24 +360,28 @@ function submit() {
                                 </td>
                             </tr>
                             <tr v-if="!activeGroup.students.length">
-                                <td :colspan="12 + taskFields.length">
+                                <td :colspan="9 + taskFields.length">
                                     <EmptyState title="Tidak ada siswa di kelas ini." icon="bi-people" />
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </TableWrapper>
+
+                <div class="sticky-savebar">
+                    <span class="sticky-savebar-status" role="status" aria-live="polite">
+                        <template v-if="form.isDirty"><i class="bi bi-circle-fill dirty-dot" aria-hidden="true"></i>Belum disimpan<span class="d-none d-sm-inline">: ada perubahan nilai</span></template>
+                        <template v-else-if="form.recentlySuccessful"><i class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></i>Tersimpan</template>
+                    </span>
+                    <Button type="submit" color="primary" icon="bi-save" :loading="form.processing" :disabled="!activeGroup">
+                        {{ form.processing ? 'Menyimpan...' : 'Simpan Nilai' }}
+                    </Button>
+                </div>
             </Card>
 
             <Card v-else>
                 <EmptyState title="Pilih kelas penugasan." icon="bi-funnel" />
             </Card>
-
-            <div class="d-flex justify-content-end">
-                <Button type="submit" color="success" icon="bi-save" :disabled="form.processing || !activeGroup">
-                    {{ form.processing ? 'Menyimpan...' : 'Simpan Nilai' }}
-                </Button>
-            </div>
         </form>
 
         <Card v-else>
@@ -410,78 +391,60 @@ function submit() {
 </template>
 
 <style scoped>
+.grade-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border-soft);
+}
+.grade-hint { color: var(--text-muted); font-size: 0.8rem; }
+
 .grade-table {
-    min-width: 1220px;
+    min-width: 960px;
     table-layout: fixed;
 }
-
-.grade-col-no {
-    width: 44px;
-}
-
-.grade-col-nis {
-    width: 110px;
-}
-
-.grade-col-student {
-    width: 320px;
-}
-
-.grade-col-score {
-    width: 78px;
-}
-
-.grade-col-total {
-    width: 108px;
-}
+.grade-col-student { width: 240px; }
+.grade-col-score { width: 78px; }
+.grade-col-total { width: 96px; }
 
 .grade-table th,
 .grade-table td {
+    padding: 0.45rem 0.4rem;
     vertical-align: middle;
 }
-
-.grade-table th {
-    padding: 0.65rem 0.45rem;
+.grade-table thead th {
     line-height: 1.2;
     white-space: normal;
-}
-
-.grade-table td {
-    padding: 0.55rem 0.45rem;
-}
-
-.grade-table td:nth-child(3) {
-    white-space: normal;
+    text-align: center;
 }
 
 .grade-table .score-input {
     width: 100%;
     min-width: 0;
-    height: 31px;
-    min-height: 31px;
+    height: 32px;
+    min-height: 32px;
     overflow: hidden;
     resize: none;
     text-align: center;
+    font-variant-numeric: tabular-nums;
 }
 
 .readonly-score {
     display: inline-flex;
     width: 100%;
     min-width: 0;
-    min-height: 31px;
+    min-height: 32px;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--bs-border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-control);
     background: var(--surface-muted);
-    font-weight: 700;
+    font-weight: 650;
 }
 
-@media (max-width: 767.98px) {
-    .score-input {
-        min-width: 56px;
-        padding: 0.25rem 0.35rem;
-        font-size: 0.78rem;
-    }
+@media (max-width: 575.98px) {
+    .grade-col-student { width: 150px; }
 }
 </style>

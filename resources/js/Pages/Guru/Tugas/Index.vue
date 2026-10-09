@@ -5,7 +5,8 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { TextInput, TextareaInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Button, Card, DashboardHero, EmptyState, MetricStrip } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Button, Card, EmptyState, MetricStrip } from '../../../Components/UI';
 
 const props = defineProps({
     kelasMapel: { type: Array as PropType<{ id: number; kelas: string; mata_pelajaran: string; semester: string; label: string; href: string }[]>, default: () => [] },
@@ -95,19 +96,12 @@ function submit() {
     <Head title="Tugas" />
 
     <AppShell title="Tugas">
-        <DashboardHero
+        <PageHeader
             eyebrow="Ruang Mengajar"
-            title="Penugasan Guru"
+            title="Tugas"
             subtitle="Buat, bagikan, dan pantau tugas lintas kelas dari satu tempat."
-            icon="bi-journal-text"
-            tone="teacher"
         >
-            <template #actions>
-                <a v-if="kelasMapel.length" :href="kelasMapel[0].href" class="btn btn-light btn-sm">
-                    <i class="bi bi-arrow-right-circle me-1" aria-hidden="true"></i> Buka kelas pertama
-                </a>
-            </template>
-        </DashboardHero>
+        </PageHeader>
 
         <MetricStrip v-if="kelasMapel.length" :items="metrics" />
 
@@ -270,7 +264,7 @@ function submit() {
     font-size: 0.8rem;
 }
 
-.assignment-search .form-control {
+.assignment-search :deep(.form-control) {
     padding-left: 30px;
 }
 
@@ -329,7 +323,7 @@ function submit() {
 }
 
 .assignment-course-kicker {
-    color: var(--primary-700);
+    color: var(--text-brand);
     font-size: 0.66rem;
     font-weight: 800;
     letter-spacing: 0.04em;

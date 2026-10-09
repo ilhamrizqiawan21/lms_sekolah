@@ -1,6 +1,7 @@
 <script setup lang="ts">
 defineSlots<{ actions?: () => unknown }>();
 defineProps({
+    eyebrow: { type: String, default: '' },
     title: { type: String, required: true },
     subtitle: { type: String, default: '' },
     icon: { type: String, default: '' },
@@ -9,7 +10,8 @@ defineProps({
 
 <template>
     <div class="page-header app-page-header">
-        <div>
+        <div class="app-page-heading">
+            <span v-if="eyebrow" class="app-page-eyebrow">{{ eyebrow }}</span>
             <h1 class="app-page-title">
                 <i v-if="icon" class="bi" :class="icon" aria-hidden="true"></i>
                 {{ title }}

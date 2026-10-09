@@ -4,7 +4,8 @@ import { Head } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, MetricStrip, Modal, QuickActionBar, TableWrapper } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card, EmptyState, MetricStrip, Modal, QuickActionBar, TableWrapper } from '../../../Components/UI';
 import SubmissionGradeForm from './Partials/SubmissionGradeForm.vue';
 import SubmissionRow from './Partials/SubmissionRow.vue';
 import type { AssignmentContext, AssignmentSubmission, AssignmentSummary, SubmissionStatus } from '../../../types';
@@ -109,22 +110,19 @@ const statusOptions = [
     <Head title="Pengumpulan Tugas" />
 
     <AppShell title="Pengumpulan Tugas">
-        <DashboardHero
+        <PageHeader
             eyebrow="Penilaian Tugas"
             :title="tugas.judul"
             :subtitle="`${kelasMapel.mata_pelajaran} - ${kelasMapel.kelas}. Deadline ${tugas.batas_waktu ?? '-'}.`"
-            icon="bi-journal-check"
-            tone="teacher"
         >
             <template #actions>
                 <QuickActionBar
                     :actions="[
-                        { label: 'Daftar tugas', href: kelasMapel.back_url, icon: 'bi-arrow-left', color: 'light' },
-                        { label: 'Ringkasan', href: kelasMapel.workspace_url, icon: 'bi-grid-1x2', color: 'light' },
+                        { label: 'Daftar tugas', href: kelasMapel.back_url, icon: 'bi-arrow-left', color: 'outline-secondary' },
                     ]"
                 />
             </template>
-        </DashboardHero>
+        </PageHeader>
 
         <MetricStrip :items="metrics" />
 
@@ -281,7 +279,7 @@ const statusOptions = [
     font-size: 0.8rem;
 }
 
-.assignment-search .form-control {
+.assignment-search :deep(.form-control) {
     padding-left: 30px;
 }
 

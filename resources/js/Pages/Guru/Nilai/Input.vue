@@ -274,7 +274,7 @@ function submit() {
                         </colgroup>
                         <thead>
                             <tr>
-                                <th scope="col" rowspan="2" class="grade-sticky">Siswa</th>
+                                <th scope="col" rowspan="2" class="grid-sticky-col">Siswa</th>
                                 <th scope="colgroup" colspan="4" class="text-center bg-soft-success">Sumatif Harian</th>
                                 <th scope="col" class="text-center bg-soft-success">Nilai Harian</th>
                                 <th scope="col" class="text-center bg-soft-warning">STS</th>
@@ -294,9 +294,9 @@ function submit() {
                         </thead>
                         <tbody>
                             <tr v-for="(student, studentIndex) in students" :key="student.id">
-                                <th scope="row" class="grade-sticky grade-student">
-                                    <span class="grade-student-name">{{ student.nama }}</span>
-                                    <span class="grade-student-nis">{{ student.no }}. NIS {{ student.nis }}</span>
+                                <th scope="row" class="grid-sticky-col identity-cell">
+                                    <span class="identity-name">{{ student.nama }}</span>
+                                    <span class="identity-meta">{{ student.no }}. NIS {{ student.nis }}</span>
                                 </th>
                                 <td v-for="field in fieldGroups" :key="`${student.id}-${field.key}`" class="text-center">
                                     <span
@@ -345,12 +345,12 @@ function submit() {
                     </table>
                 </TableWrapper>
 
-                <div class="grade-savebar">
+                <div class="sticky-savebar">
                     <a href="/guru/nilai" class="btn btn-outline-secondary" aria-label="Kembali ke daftar nilai">
                         <i class="bi bi-arrow-left" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">Kembali</span>
                     </a>
-                    <span class="grade-savebar-status" role="status" aria-live="polite">
-                        <template v-if="form.isDirty"><i class="bi bi-circle-fill grade-dirty-dot" aria-hidden="true"></i>Belum disimpan<span class="d-none d-sm-inline">: ada perubahan nilai</span></template>
+                    <span class="sticky-savebar-status" role="status" aria-live="polite">
+                        <template v-if="form.isDirty"><i class="bi bi-circle-fill dirty-dot" aria-hidden="true"></i>Belum disimpan<span class="d-none d-sm-inline">: ada perubahan nilai</span></template>
                         <template v-else-if="form.recentlySuccessful"><i class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></i>Tersimpan</template>
                     </span>
                     <Button type="submit" color="primary" icon="bi-save" :loading="form.processing">
@@ -393,34 +393,6 @@ function submit() {
     text-align: center;
 }
 
-/* Kolom siswa tetap terlihat saat tabel digeser ke samping */
-.grade-sticky {
-    position: sticky;
-    left: 0;
-    z-index: 2;
-    background: var(--surface-card);
-    box-shadow: 1px 0 0 var(--border-soft);
-}
-.grade-table thead .grade-sticky { z-index: 3; background: var(--surface-subtle); text-align: left; }
-.grade-student {
-    padding-left: 0.85rem !important;
-    font-weight: 400;
-    text-align: left;
-    white-space: normal;
-}
-.grade-student-name {
-    display: block;
-    color: var(--text-strong);
-    font-weight: 600;
-    line-height: 1.25;
-}
-.grade-student-nis {
-    display: block;
-    margin-top: 0.1rem;
-    color: var(--text-muted);
-    font-size: 0.75rem;
-}
-
 .grade-table .score-input {
     width: 100%;
     min-width: 0;
@@ -431,6 +403,8 @@ function submit() {
     text-align: center;
     font-variant-numeric: tabular-nums;
 }
+
+.grade-total { font-size: 0.95rem; }
 
 .readonly-score {
     display: inline-flex;
@@ -443,40 +417,8 @@ function submit() {
     background: var(--surface-muted);
     font-weight: 650;
 }
-.grade-total { font-size: 0.95rem; }
 
-/* Satu bilah simpan yang menempel di bawah layar */
-.grade-savebar {
-    position: sticky;
-    bottom: 0;
-    z-index: 4;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.7rem 1rem;
-    border-top: 1px solid var(--border-soft);
-    border-radius: 0 0 var(--card-radius) var(--card-radius);
-    background: var(--surface-card);
-}
-.grade-savebar-status {
-    flex: 1 1 auto;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    text-align: right;
-}
-.grade-dirty-dot {
-    margin-right: 0.4rem;
-    color: var(--status-warning-text);
-    font-size: 0.5rem;
-    vertical-align: middle;
-}
-
-@media (max-width: 991.98px) {
-    /* di atas navigasi bawah mobile */
-    .grade-savebar { bottom: calc(3.85rem + env(safe-area-inset-bottom)); }
-}
 @media (max-width: 575.98px) {
     .grade-col-student { width: 150px; }
-    .grade-savebar-status { font-size: 0.75rem; }
 }
 </style>

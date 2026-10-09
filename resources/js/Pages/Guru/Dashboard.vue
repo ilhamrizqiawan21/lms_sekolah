@@ -57,7 +57,7 @@ function chartPalette() {
         primary: cssVar('--app-primary'),
         accent: cssVar('--app-accent'),
         muted: cssVar('--text-muted'),
-        border: cssVar('--gray-200'),
+        border: cssVar('--border-soft'),
     };
 }
 
@@ -155,8 +155,8 @@ async function renderPengumpulanChart() {
                 {
                     label: 'Tren Pengumpulan',
                     data: props.pengumpulanTugasChart.map((item) => item.persen_dikumpulkan),
-                    backgroundColor: withAlpha(palette.accent, 0.82),
-                    hoverBackgroundColor: palette.accent,
+                    backgroundColor: withAlpha(palette.primary, 0.82),
+                    hoverBackgroundColor: palette.primary,
                     borderRadius: 8,
                     borderSkipped: false,
                     maxBarThickness: 34,
@@ -307,8 +307,7 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({
         <section class="teacher-insights" aria-labelledby="teacher-insights-title">
             <div class="teacher-section-heading">
                 <div>
-                    <span class="teacher-section-eyebrow">Tren</span>
-                    <h2 id="teacher-insights-title">Tren kelas</h2>
+                                        <h2 id="teacher-insights-title">Tren kelas</h2>
                 </div>
                 <p>Data tahun pelajaran sampai bulan berjalan.</p>
             </div>

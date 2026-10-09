@@ -4,8 +4,9 @@ import type { PropType } from 'vue';
 import type { Announcement } from '../../../types/announcements';
 import type { AppPageProps } from '../../../types/inertia';
 import { computed, ref } from 'vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { FileInput, SelectInput, TextareaInput, TextInput } from '../../../Components/Form';
 
 const page = usePage<AppPageProps>();
@@ -35,6 +36,14 @@ const targetOptions = computed(() => [
     ...(isAdmin.value ? [{ value: 'semua', label: 'Semua' }, { value: 'guru', label: 'Guru' }, { value: 'siswa', label: 'Siswa' }] : []),
     { value: 'kelas_mapel', label: 'Kelas tertentu' },
 ]);
+const TARGET_LABELS: Record<string, string> = { semua: 'Semua pengguna', guru: 'Guru', siswa: 'Siswa', kelas_mapel: 'Kelas tertentu' };
+function targetLabel(target?: string | null) {
+    return target ? TARGET_LABELS[target] ?? target : '-';
+}
+function formatDate(value?: string | null) {
+    const date = value ? new Date(value) : null;
+    return date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '–';
+}
 const canPublish = computed(() => ['admin', 'guru'].includes(page.props.auth?.user?.role ?? ''));
 
 function resetForm() {
@@ -113,16 +122,16 @@ async function remove(item: Announcement) {
 </script>
 
 <template>
+    <Head title="Pengumuman" />
+
     <AppShell title="Pengumuman">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-            <div>
-                <h1 class="h3 mb-1">Pengumuman</h1>
-                <p class="text-body-secondary mb-0">Kelola informasi resmi sekolah dan distribusi kepada pengguna.</p>
-            </div>
-            <Button color="primary" size="" v-if="canPublish" type="button" @click="showForm ? (showForm = false) : openCreate()">
-                <i class="bi bi-plus-lg me-1"></i>{{ showForm ? 'Tutup Form' : 'Buat Pengumuman' }}
-            </Button>
-        </div>
+        <PageHeader title="Pengumuman" subtitle="Informasi resmi sekolah dan distribusinya kepada pengguna.">
+            <template v-if="canPublish" #actions>
+                <Button color="primary" size="" type="button" :icon="showForm ? 'bi-x-lg' : 'bi-plus-lg'" @click="showForm ? (showForm = false) : openCreate()">
+                    {{ showForm ? 'Tutup Form' : 'Buat Pengumuman' }}
+                </Button>
+            </template>
+        </PageHeader>
 
         <Card v-if="showForm" class="mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -208,11 +217,11 @@ async function remove(item: Announcement) {
                     <div class="d-flex justify-content-between gap-3">
                         <div>
                             <h5 class="mb-1">{{ item.judul }}</h5>
-                            <div class="small text-body-secondary">{{ item.creator?.nama_lengkap || '-' }} · {{ new Date(item.created_at).toLocaleDateString('id-ID') }}</div>
+                            <div class="small text-body-secondary">{{ item.creator?.nama_lengkap || '-' }} · {{ formatDate(item.created_at) }}</div>
                         </div>
                         <div class="d-flex flex-wrap gap-2 justify-content-end">
                             <Badge v-if="item.is_public_login" color="success" class="align-self-start">Login publik</Badge>
-                            <Badge color="secondary" class="align-self-start">{{ item.target }}</Badge>
+                            <Badge color="secondary" class="align-self-start">{{ targetLabel(item.target) }}</Badge>
                         </div>
                     </div>
                     <p class="mt-3 mb-3 text-secondary u-ws-pre-line">{{ item.isi }}</p>

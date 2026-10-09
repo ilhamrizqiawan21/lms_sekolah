@@ -68,18 +68,18 @@ async function destroy(item: { delete_url: string }) {
 
             <div class="col-lg-8">
                 <Card title="Daftar Pertemuan" icon="bi-list-ul" body-class="p-0">
-                    <TableWrapper v-if="pertemuan.data.length">
+                    <TableWrapper stack v-if="pertemuan.data.length">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr><th scope="col">Tanggal</th><th scope="col">Topik</th><th scope="col">Hasil</th><th scope="col">Aksi</th></tr>
                             </thead>
                             <tbody>
                                 <tr v-for="item in pertemuan.data" :key="item.id">
-                                    <td>{{ item.tanggal }}</td>
-                                    <td><strong>{{ item.topik }}</strong></td>
-                                    <td>{{ item.hasil }}</td>
-                                    <td>
-                                        <Button type="button" color="danger" icon="bi-trash" @click="destroy(item)" />
+                                    <td class="stack-title">{{ item.tanggal }}</td>
+                                    <td data-label="Topik"><strong>{{ item.topik }}</strong></td>
+                                    <td data-label="Hasil">{{ item.hasil }}</td>
+                                    <td class="stack-actions">
+                                        <Button type="button" color="outline-danger" icon="bi-trash" :aria-label="`Hapus pertemuan ${item.topik}`" @click="destroy(item)" />
                                     </td>
                                 </tr>
                             </tbody>

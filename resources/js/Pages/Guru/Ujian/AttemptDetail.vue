@@ -2,7 +2,8 @@
 import type { PropType } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card } from '../../../Components/UI';
 
 interface OpsiItem {
     id: number;
@@ -57,19 +58,17 @@ defineProps({
     <Head :title="`Detail Jawaban: ${attempt.siswa.nama} - ${ujian.judul}`" />
 
     <AppShell title="Detail Jawaban Ujian">
-        <DashboardHero
-            eyebrow="Review Attempt Siswa"
+        <PageHeader
+            eyebrow="Hasil Ujian"
             :title="attempt.siswa.nama"
             :subtitle="`NIS: ${attempt.siswa.nis} &bull; Ujian: ${ujian.judul} (${kelasMapel.mata_pelajaran} - ${kelasMapel.kelas})`"
-            icon="bi-person-check-fill"
-            tone="teacher"
         >
             <template #actions>
-                <Button :href="backUrl" color="light" icon="bi-arrow-left">
+                <Button :href="backUrl" color="outline-secondary" icon="bi-arrow-left">
                     Kembali ke Rekap Hasil
                 </Button>
             </template>
-        </DashboardHero>
+        </PageHeader>
 
         <div class="row g-4 mb-4">
             <!-- Summary stats -->

@@ -5,7 +5,8 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { FileInput, TextareaInput, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Button, Card, DashboardHero, EmptyState, IconButton, QuickActionBar, TableWrapper } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Button, Card, EmptyState, IconButton, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
     kelasMapel: { type: Object as PropType<{ id: number; kelas: string; mata_pelajaran: string; workspace_url: string; store_url: string }>, required: true },
@@ -64,17 +65,12 @@ async function destroy(item: { delete_url: string }) {
     <Head :title="`Materi: ${kelasMapel.mata_pelajaran} - ${kelasMapel.kelas}`" />
 
     <AppShell title="Materi">
-        <DashboardHero
+        <PageHeader
             eyebrow="Kelas & Mapel"
             :title="kelasMapel.mata_pelajaran"
             :subtitle="`${kelasMapel.kelas} - Kelola materi pembelajaran untuk kelas ini.`"
-            icon="bi-file-earmark-text-fill"
-            tone="teacher"
         >
-            <template #actions>
-                <QuickActionBar :actions="[{ label: 'Ringkasan', href: kelasMapel.workspace_url, icon: 'bi-grid-1x2', color: 'light' }]" />
-            </template>
-        </DashboardHero>
+        </PageHeader>
 
         <nav class="workspace-tabs" aria-label="Navigasi kelas dan mata pelajaran">
             <a v-for="tab in courseTabs" :key="tab.label" :href="tab.href" class="workspace-tab" :class="{ 'is-active': tab.active }">
@@ -128,7 +124,7 @@ async function destroy(item: { delete_url: string }) {
             <div class="col-md-7 mb-4">
                 <Card title="Daftar Materi" icon="bi-list-ul" body-class="p-0">
                     <template #default>
-                        <TableWrapper v-if="materi.length">
+                        <TableWrapper stack v-if="materi.length">
                             <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
@@ -140,10 +136,10 @@ async function destroy(item: { delete_url: string }) {
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in materi" :key="item.id">
-                                        <td><strong>{{ item.judul }}</strong></td>
-                                        <td style="font-size:0.82rem;">{{ item.deskripsi_ringkas }}</td>
-                                        <td style="white-space:nowrap;font-size:0.82rem;">{{ item.tanggal }}</td>
-                                        <td>
+                                        <td class="stack-title"><strong>{{ item.judul }}</strong></td>
+                                        <td data-label="Deskripsi" style="font-size:0.82rem;">{{ item.deskripsi_ringkas }}</td>
+                                        <td data-label="Tanggal" style="white-space:nowrap;font-size:0.82rem;">{{ item.tanggal }}</td>
+                                        <td class="stack-actions">
                                             <div class="d-inline-flex align-items-center gap-1 flex-wrap">
                                                 <a
                                                     v-if="item.download_url"

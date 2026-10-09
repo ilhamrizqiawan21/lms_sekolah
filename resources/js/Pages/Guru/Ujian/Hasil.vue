@@ -3,7 +3,8 @@ import type { PropType } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, StatCard, TableWrapper } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card, EmptyState, StatCard, TableWrapper } from '../../../Components/UI';
 
 interface AttemptItem {
     id: number;
@@ -111,29 +112,27 @@ function statusLabel(status: string) {
     <Head :title="`Hasil CBT: ${ujian.judul} - ${kelasMapel.mata_pelajaran}`" />
 
     <AppShell title="Hasil Ujian CBT">
-        <DashboardHero
-            eyebrow="Hasil & Rekap Nilai CBT"
+        <PageHeader
+            eyebrow="Hasil Ujian"
             :title="ujian.judul"
             :subtitle="`${kelasMapel.mata_pelajaran} - ${kelasMapel.kelas} | Kategori: ${ujian.kategori_nilai} | Durasi: ${ujian.durasi_menit} Menit | ${ujian.total_soal} Soal`"
-            icon="bi-bar-chart-fill"
-            tone="teacher"
         >
             <template #actions>
                 <div class="d-flex gap-2 flex-wrap">
-                    <Button :href="`/guru/ujian/${kelasMapel.id}/list`" color="light" icon="bi-arrow-left">
+                    <Button :href="`/guru/ujian/${kelasMapel.id}/list`" color="outline-secondary" icon="bi-arrow-left">
                         Kembali ke Daftar
                     </Button>
-                    <a :href="exportExcelUrl" class="btn btn-success">
+                    <a :href="exportExcelUrl" class="btn btn-outline-secondary">
                         <i class="bi bi-file-earmark-excel me-1" />
                         Export Excel
                     </a>
-                    <a :href="exportPdfUrl" class="btn btn-danger" target="_blank">
+                    <a :href="exportPdfUrl" class="btn btn-outline-secondary" target="_blank">
                         <i class="bi bi-file-earmark-pdf me-1" />
                         Export PDF
                     </a>
                 </div>
             </template>
-        </DashboardHero>
+        </PageHeader>
 
         <!-- Stats Overview -->
         <div class="row g-3 mb-4">
@@ -222,7 +221,7 @@ function statusLabel(status: string) {
 
             <!-- Tab: Sudah Mengerjakan -->
             <div v-if="activeTab === 'selesai'">
-                <TableWrapper v-if="filteredAttempts.length > 0">
+                <TableWrapper stack v-if="filteredAttempts.length > 0">
                     <table class="table table-hover align-middle mb-0">
                         <colgroup>
                             <col class="u-w-5pct">
@@ -248,31 +247,31 @@ function statusLabel(status: string) {
                         </thead>
                         <tbody>
                             <tr v-for="(att, idx) in filteredAttempts" :key="att.id">
-                                <td>{{ idx + 1 }}</td>
-                                <td>
+                                <td class="stack-hide">{{ idx + 1 }}</td>
+                                <td class="stack-title">
                                     <div class="fw-bold">{{ att.siswa.nama_lengkap }}</div>
                                     <div class="small text-body-secondary">NIS: {{ att.siswa.nis ?? '-' }}</div>
                                 </td>
-                                <td>
+                                <td data-label="Status">
                                     <Badge :color="statusBadgeColor(att.status)">
                                         {{ statusLabel(att.status) }}
                                     </Badge>
                                 </td>
-                                <td>
+                                <td data-label="Waktu Pengerjaan">
                                     <div class="small">{{ att.durasi_pengerjaan }}</div>
                                     <div class="small text-body-secondary">{{ att.waktu_selesai ?? att.waktu_mulai }}</div>
                                 </td>
-                                <td>
+                                <td data-label="Benar / Salah">
                                     <span class="text-success fw-bold">{{ att.total_benar }} B</span> /
                                     <span class="text-danger fw-bold">{{ att.total_salah }} S</span>
                                     <div class="small text-body-secondary">dari {{ att.total_soal }} soal</div>
                                 </td>
-                                <td>
+                                <td data-label="Nilai Akhir">
                                     <div class="fs-5 fw-bold" :class="att.nilai >= 75 ? 'text-success' : 'text-danger'">
                                         {{ att.nilai }}
                                     </div>
                                 </td>
-                                <td>
+                                <td data-label="Tab Switch">
                                     <Badge
                                         v-if="att.tab_switches_count > 0"
                                         color="warning"
@@ -283,7 +282,7 @@ function statusLabel(status: string) {
                                     </Badge>
                                     <span v-else class="text-body-secondary small">0</span>
                                 </td>
-                                <td>
+                                <td class="stack-actions">
                                     <Link :href="att.detail_url" class="btn btn-sm btn-outline-primary">
                                         <i class="bi bi-eye me-1" />
                                         Detail
@@ -304,7 +303,7 @@ function statusLabel(status: string) {
 
             <!-- Tab: Belum Mengerjakan -->
             <div v-else>
-                <TableWrapper v-if="filteredBelum.length > 0">
+                <TableWrapper stack v-if="filteredBelum.length > 0">
                     <table class="table table-hover align-middle mb-0">
                         <colgroup>
                             <col class="u-w-5pct">
@@ -322,10 +321,10 @@ function statusLabel(status: string) {
                         </thead>
                         <tbody>
                             <tr v-for="(siswa, idx) in filteredBelum" :key="siswa.id">
-                                <td>{{ idx + 1 }}</td>
-                                <td class="fw-bold">{{ siswa.nama_lengkap }}</td>
-                                <td>{{ siswa.nis ?? '-' }}</td>
-                                <td>{{ siswa.nisn ?? '-' }}</td>
+                                <td class="stack-hide">{{ idx + 1 }}</td>
+                                <td class="fw-bold stack-title">{{ siswa.nama_lengkap }}</td>
+                                <td data-label="NIS">{{ siswa.nis ?? '-' }}</td>
+                                <td data-label="NISN">{{ siswa.nisn ?? '-' }}</td>
                             </tr>
                         </tbody>
                     </table>

@@ -109,7 +109,7 @@ async function destroy(item: MateriItem): Promise<void> {
 
             <div class="col-md-7 mb-4">
                 <Card title="Daftar Materi" icon="bi-list-ul" body-class="p-0">
-                    <TableWrapper v-if="materi.length">
+                    <TableWrapper stack v-if="materi.length">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -122,14 +122,14 @@ async function destroy(item: MateriItem): Promise<void> {
                             </thead>
                             <tbody>
                                 <tr v-for="item in materi" :key="item.id">
-                                    <td>
+                                    <td class="stack-title">
                                         <strong>{{ item.judul }}</strong>
                                         <div v-if="item.deskripsi_ringkas" class="text-body-secondary small">{{ item.deskripsi_ringkas }}</div>
                                     </td>
-                                    <td>{{ item.kelas }}</td>
-                                    <td>{{ item.mata_pelajaran }}</td>
-                                    <td class="text-nowrap small">{{ item.tanggal }}</td>
-                                    <td>
+                                    <td data-label="Kelas">{{ item.kelas }}</td>
+                                    <td data-label="Mapel">{{ item.mata_pelajaran }}</td>
+                                    <td data-label="Tanggal" class="text-nowrap small">{{ item.tanggal }}</td>
+                                    <td class="stack-actions">
                                         <div class="d-inline-flex align-items-center gap-1">
                                             <a v-if="item.download_url" :href="item.download_url" class="btn btn-sm btn-outline-primary btn-icon" target="_blank" rel="noopener noreferrer" :title="`Download ${item.judul}`">
                                                 <i class="bi bi-download" aria-hidden="true"></i>

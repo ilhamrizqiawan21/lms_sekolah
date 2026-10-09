@@ -4,7 +4,8 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { SelectInput, TextInput, TextareaInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card, EmptyState } from '../../../Components/UI';
 
 interface BankSoalItem {
     id: number;
@@ -192,19 +193,17 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
     <Head :title="`${isEdit ? 'Edit Ujian' : 'Buat Ujian Baru'}: ${kelasMapel.mata_pelajaran}`" />
 
     <AppShell title="Builder Ujian">
-        <DashboardHero
-            eyebrow="Ujian & CBT"
+        <PageHeader
+            eyebrow="Ujian CBT"
             :title="isEdit ? 'Edit Pengaturan Ujian' : 'Buat Ujian CBT Baru'"
             :subtitle="`${kelasMapel.mata_pelajaran} - ${kelasMapel.kelas}. Pilih butir soal dari bank soal dan atur bobot poin serta durasi.`"
-            icon="bi-pencil-square"
-            tone="teacher"
         >
             <template #actions>
-                <Button :href="`/guru/ujian/${kelasMapel.id}/list`" color="light" icon="bi-arrow-left">
+                <Button :href="`/guru/ujian/${kelasMapel.id}/list`" color="outline-secondary" icon="bi-arrow-left">
                     Kembali ke Daftar
                 </Button>
             </template>
-        </DashboardHero>
+        </PageHeader>
 
         <div v-if="hasActiveAttempts" class="alert alert-warning d-flex align-items-center gap-2 mb-4">
             <i class="bi bi-exclamation-triangle-fill fs-5" />
@@ -243,8 +242,9 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
 
                         <div class="row g-3 mb-3">
                             <div class="col-6">
-                                <label class="form-label required">Durasi (Menit)</label>
+                                <label for="ujian-durasi" class="form-label required">Durasi (Menit)</label>
                                 <input
+                                    id="ujian-durasi"
                                     v-model.number="form.durasi_menit"
                                     type="number"
                                     min="1"
@@ -338,7 +338,7 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
                                     v-if="!hasActiveAttempts"
                                     type="button"
                                     size="sm"
-                                    color="light"
+                                    color="outline-secondary"
                                     icon="bi-check-all"
                                     @click="selectAllFiltered"
                                 >
@@ -348,7 +348,7 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
                                     v-if="!hasActiveAttempts && form.soal.length > 0"
                                     type="button"
                                     size="sm"
-                                    color="light"
+                                    color="outline-secondary"
                                     icon="bi-x"
                                     @click="clearAllSelected"
                                 >
@@ -408,6 +408,7 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
                                             <span class="small fw-semibold text-primary">Bobot Poin:</span>
                                             <input
                                                 type="number"
+                                                aria-label="Bobot poin"
                                                 step="0.01"
                                                 min="0.01"
                                                 max="100"
