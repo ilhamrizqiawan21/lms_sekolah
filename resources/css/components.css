@@ -271,7 +271,6 @@ textarea.form-control { min-height: calc(var(--control-height) * 2); }
 .u-w-10pct { width: 10%; }
 .u-w-12pct { width: 12%; }
 .u-w-130px { width: 130px; }
-.u-w-13pct { width: 13%; }
 .u-w-14pct { width: 14%; }
 .u-w-15pct { width: 15%; }
 .u-w-16pct { width: 16%; }
@@ -281,18 +280,14 @@ textarea.form-control { min-height: calc(var(--control-height) * 2); }
 .u-w-22pct { width: 22%; }
 .u-w-25pct { width: 25%; }
 .u-w-28pct { width: 28%; }
-.u-w-30pct { width: 30%; }
 .u-w-40px { width: 40px; }
 .u-w-42pct { width: 42%; }
 .u-w-42px { width: 42px; }
 .u-w-44pct { width: 44%; }
-.u-w-44px { width: 44px; }
 .u-w-45pct { width: 45%; }
 .u-w-4pct { width: 4%; }
 .u-w-5pct { width: 5%; }
-.u-w-70px { width: 70px; }
 .u-w-80px { width: 80px; }
 .u-w-8pct { width: 8%; }
-.u-w-9pct { width: 9%; }
 .u-ws-pre-line { white-space: pre-line; }
 .u-ws-pre-wrap { white-space: pre-wrap; }

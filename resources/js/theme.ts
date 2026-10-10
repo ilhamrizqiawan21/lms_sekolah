@@ -63,7 +63,7 @@ function syncThemeControls(mode: ColorMode): void {
     });
 }
 
-export function applyColorMode(mode: ColorMode, persist = true): void {
+function applyColorMode(mode: ColorMode, persist = true): void {
     const colorMode = COLOR_MODES.includes(mode) ? mode : preferredColorMode();
 
     document.documentElement.setAttribute('data-bs-theme', colorMode);

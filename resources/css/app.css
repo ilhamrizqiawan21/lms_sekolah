@@ -579,10 +579,6 @@ textarea {
         padding: clamp(1rem, 4vw, 1.5rem);
     }
 
-    .dashboard-hero .dashboard-hero-orbit {
-        display: none;
-    }
-
     .page-header {
         margin-bottom: 1rem;
     }
