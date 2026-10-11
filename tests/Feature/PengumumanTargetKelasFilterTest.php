@@ -134,6 +134,46 @@ class PengumumanTargetKelasFilterTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_admin_and_guru_can_target_all_classes_and_show_on_login(): void
+    {
+        Role::create(['nama_role' => 'admin']);
+        Role::create(['nama_role' => 'guru']);
+
+        $admin = $this->createUser('admin-semua-kelas', 'Admin Semua Kelas', 'admin');
+        $guru = $this->createUser('guru-semua-kelas', 'Guru Semua Kelas', 'guru');
+        $kelasA = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'A']);
+        $kelasB = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'B']);
+        $kelasLain = Kelas::create(['tingkat' => 'VIII', 'nama_kelas' => 'A']);
+        $tahunAjaran = TahunAjaran::create(['tahun' => '2026/2027', 'is_active' => true]);
+        $mapel = MataPelajaran::create(['kode' => 'ALL', 'nama_mapel' => 'Semua Kelas', 'urutan' => 1]);
+        foreach ([$kelasA, $kelasB] as $kelas) {
+            KelasMapel::create(['kelas_id' => $kelas->id, 'mapel_id' => $mapel->id, 'guru_id' => $guru->id, 'tahun_ajaran_id' => $tahunAjaran->id, 'semester' => '1', 'pertemuan_per_minggu' => 2]);
+        }
+
+        $this->actingAs($admin)->post(route('admin.pengumuman.store'), [
+            'judul' => 'Admin Semua Kelas', 'isi' => 'isi', 'target' => 'kelas_mapel',
+            'target_kelas_ids' => [$kelasA->id, $kelasB->id, $kelasLain->id], 'is_public_login' => '1',
+        ])->assertRedirect(route('admin.pengumuman.index'));
+
+        $this->actingAs($guru)->post(route('guru.pengumuman.store'), [
+            'judul' => 'Guru Semua Kelas', 'isi' => 'isi', 'target' => 'kelas_mapel',
+            'target_kelas_ids' => [$kelasA->id, $kelasB->id], 'is_public_login' => '1',
+        ])->assertRedirect(route('guru.pengumuman.index'));
+
+        $this->actingAs($guru)->post(route('guru.pengumuman.store'), [
+            'judul' => 'Guru Kelas Asing', 'isi' => 'isi', 'target' => 'kelas_mapel',
+            'target_kelas_ids' => [$kelasA->id, $kelasLain->id],
+        ])->assertForbidden();
+
+        $this->assertSame([$kelasA->id, $kelasB->id, $kelasLain->id], Pengumuman::where('judul', 'Admin Semua Kelas')->firstOrFail()->targetKelasIds());
+        $this->assertSame([$kelasA->id, $kelasB->id], Pengumuman::where('judul', 'Guru Semua Kelas')->firstOrFail()->targetKelasIds());
+        $this->assertDatabaseMissing('pengumuman', ['judul' => 'Guru Kelas Asing']);
+
+        auth()->logout();
+        $this->get(route('login'))->assertOk()->assertInertia(fn ($page) => $page
+            ->has('publicAnnouncements', 2));
+    }
+
     private function createUser(string $username, string $namaLengkap, string $roleName): User
     {
         $role = Role::where('nama_role', $roleName)->firstOrFail();

@@ -13,7 +13,7 @@ withDefaults(defineProps<Props>(), { monthEvents: () => [], timelineEvents: () =
 <template>
     <Head :title="pageTitle" />
     <AppShell title="Kalender">
-        <PageHeader :title="pageTitle" icon="bi-calendar3" subtitle="Pantau agenda sekolah tanpa mengubah data kalender." />
+        <PageHeader :title="pageTitle" subtitle="Pantau agenda sekolah tanpa mengubah data kalender." />
         <CalendarWorkspace :calendar="calendar" :month-events="monthEvents" :read-only="true" fixed-scope="school" />
         <AcademicTimeline :events="timelineEvents" class="mt-4" />
     </AppShell>

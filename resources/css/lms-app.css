@@ -997,7 +997,7 @@ body {
 .modern-sidebar .sidebar-user-avatar {
     border: 1px solid var(--modern-border);
     background: var(--surface-muted);
-    color: var(--primary-600);
+    color: var(--text-brand);
 }
 
 .modern-sidebar .sidebar-logo-title,
@@ -1056,13 +1056,13 @@ body {
 .modern-sidebar .nav-link.active {
     border-color: color-mix(in srgb, var(--primary-500) 16%, var(--modern-border));
     background: color-mix(in srgb, var(--primary-500) 9%, white);
-    color: var(--primary-700);
+    color: var(--text-brand);
     transform: none;
 }
 
 .modern-sidebar .nav-link:hover i,
 .modern-sidebar .nav-link.active i {
-    color: var(--primary-600);
+    color: var(--text-brand);
     transform: none;
 }
 
@@ -1184,7 +1184,7 @@ body {
 .dashboard-eyebrow {
     display: inline-flex;
     margin-bottom: 0.6rem;
-    color: var(--primary-700);
+    color: var(--text-brand);
     font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0.08em;
@@ -1222,7 +1222,7 @@ body {
     border: 1px solid color-mix(in srgb, var(--primary-500) 18%, white);
     border-radius: 32px;
     background: color-mix(in srgb, var(--primary-500) 10%, white);
-    color: var(--primary-700);
+    color: var(--text-brand);
     font-size: 3rem;
 }
 
@@ -1350,7 +1350,7 @@ body {
 }
 
 .workspace-panel-title i {
-    color: var(--primary-600);
+    color: var(--text-brand);
 }
 
 .workspace-panel-body {
@@ -1384,8 +1384,8 @@ body {
 
 .workspace-tab:hover,
 .workspace-tab.is-active {
-    background: color-mix(in srgb, var(--primary-500) 10%, white);
-    color: var(--primary-700);
+    background: color-mix(in srgb, var(--primary-500) 10%, var(--surface-card));
+    color: var(--text-brand);
 }
 
 .workspace-summary-list {
@@ -1680,7 +1680,7 @@ body {
 
     .mobile-bottom-link.active {
         background: color-mix(in srgb, var(--primary-500) 10%, white);
-        color: var(--primary-700);
+        color: var(--text-brand);
     }
 }
 

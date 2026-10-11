@@ -18,7 +18,6 @@ withDefaults(defineProps<Props>(), { messages: () => [], emptyMessage: 'Belum ad
         <PageHeader
             :title="room.title"
             :subtitle="room.subtitle"
-            icon="bi-chat-dots-fill"
         >
             <template #actions>
                 <Button :href="backUrl" color="outline-secondary" icon="bi-arrow-left">Kembali</Button>

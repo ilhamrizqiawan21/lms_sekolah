@@ -52,7 +52,7 @@ function togglePassword() {
 }
 
 const flash = computed(() => page.props.flash ?? {});
-const title = computed(() => `Login - ${props.branding.school_short_name} ${props.branding.school_name}`);
+const title = computed(() => 'Login');
 
 const forgotPasswordUrl = computed(() => {
     const rawContact = String(props.branding.support_contact ?? '').replace(/[^\d+]/g, '');
@@ -128,18 +128,31 @@ function submit() {
                 </div>
             </header>
 
-            <!-- Papan Informasi (kartu kaca tipis di dalam panel kiri) -->
+            <div class="brand-lower">
+            <!-- Papan Informasi / Pengumuman Resmi Sekolah -->
             <section
-                v-if="publicAnnouncements.length"
                 class="brand-board"
-                aria-label="Papan Informasi"
+                :class="{ 'has-announcements': publicAnnouncements.length > 0 }"
+                aria-label="Papan Informasi Sekolah"
             >
                 <div class="board-header">
-                    <span class="board-eyebrow">PENGUMUMAN</span>
-                    <span class="board-count-pill">{{ publicAnnouncements.length }} baru</span>
+                    <div class="board-header-left">
+                        <i
+                            :class="publicAnnouncements.length ? 'bi bi-megaphone-fill text-amber' : 'bi bi-info-circle-fill'"
+                            class="board-icon"
+                            aria-hidden="true"
+                        ></i>
+                        <span class="board-eyebrow">
+                            {{ publicAnnouncements.length ? 'PENGUMUMAN SEKOLAH' : 'PAPAN INFORMASI' }}
+                        </span>
+                    </div>
+                    <span class="board-count-pill">
+                        {{ publicAnnouncements.length ? `${publicAnnouncements.length} pengumuman` : 'Info Portal' }}
+                    </span>
                 </div>
 
-                <div class="board-list">
+                <!-- Jika ada pengumuman publik yang disematkan -->
+                <div v-if="publicAnnouncements.length" class="board-list">
                     <article
                         v-for="announcement in publicAnnouncements"
                         :key="announcement.id"
@@ -148,8 +161,13 @@ function submit() {
                         <div class="board-item-header">
                             <h2 class="board-item-title">{{ announcement.judul }}</h2>
                             <span v-if="formatDate(announcement.created_at)" class="board-item-time">
+                                <i class="bi bi-clock me-1" aria-hidden="true"></i>
                                 {{ formatDate(announcement.created_at) }}
                             </span>
+                        </div>
+                        <div v-if="announcement.creator_name" class="board-item-author">
+                            <i class="bi bi-person-fill me-1" aria-hidden="true"></i>
+                            {{ announcement.creator_name }}
                         </div>
                         <p class="board-item-desc">{{ announcement.isi }}</p>
                         <a
@@ -159,13 +177,43 @@ function submit() {
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            <i class="bi bi-paperclip" aria-hidden="true"></i>
+                            <i class="bi bi-file-earmark-arrow-down" aria-hidden="true"></i>
                             <span class="attachment-name">{{ announcement.attachment.name }}</span>
                             <small v-if="formatFileSize(announcement.attachment.size)" class="attachment-size">
                                 ({{ formatFileSize(announcement.attachment.size) }})
                             </small>
                         </a>
                     </article>
+                </div>
+
+                <!-- Jika belum ada pengumuman publik (mengisi panel dengan panduan yang bermanfaat) -->
+                <div v-else class="board-empty-state">
+                    <p class="board-empty-intro">
+                        Selamat datang di portal pembelajaran digital {{ branding.school_name }}. Papan ini memuat informasi dan pengumuman resmi yang ditujukan bagi seluruh civitas sekolah.
+                    </p>
+                    <div class="board-quick-guide">
+                        <div class="guide-item">
+                            <i class="bi bi-mortarboard-fill guide-icon" aria-hidden="true"></i>
+                            <div class="guide-content">
+                                <strong class="guide-title">Akses Pembelajaran Terpadu</strong>
+                                <span class="guide-text">Masuk menggunakan kredensial resmi sekolah untuk mengakses materi, tugas, dan ujian daring.</span>
+                            </div>
+                        </div>
+                        <div class="guide-item">
+                            <i class="bi bi-shield-check guide-icon" aria-hidden="true"></i>
+                            <div class="guide-content">
+                                <strong class="guide-title">Jaga Keamanan Akun</strong>
+                                <span class="guide-text">Jangan bagikan kata sandi kepada orang lain dan selalu keluar setelah menggunakan perangkat bersama.</span>
+                            </div>
+                        </div>
+                        <div class="guide-item">
+                            <i class="bi bi-question-circle-fill guide-icon" aria-hidden="true"></i>
+                            <div class="guide-content">
+                                <strong class="guide-title">Bantuan &amp; Kendala Akses</strong>
+                                <span class="guide-text">Jika lupa kata sandi atau akun bermasalah, silakan hubungi wali kelas atau admin sekolah.</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -180,6 +228,7 @@ function submit() {
                     <span class="brand-copyright-text">&copy; {{ year }} {{ branding.school_short_name }}</span>
                 </div>
             </footer>
+            </div>
         </aside>
 
         <!-- Panel Kanan: Form Akses LMS -->
@@ -375,7 +424,6 @@ function submit() {
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.14);
     border: 1px solid rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(8px);
 }
 
 .brand-logo-box img {
@@ -427,15 +475,17 @@ function submit() {
     line-height: 1.5;
 }
 
-/* Papan Informasi (kartu kaca tipis) */
+/* Papan Informasi / Pengumuman Resmi */
 .brand-board {
     border-radius: 14px;
-    padding: 18px 20px;
+    padding: clamp(16px, 2.5vw, 22px);
     background: var(--login-glass-bg);
     border: 1px solid var(--login-glass-border);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
 .board-header {
@@ -444,34 +494,54 @@ function submit() {
     justify-content: space-between;
     gap: 12px;
     margin-bottom: 14px;
-    padding-bottom: 8px;
+    padding-bottom: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.14);
 }
 
+.board-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.board-icon {
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.board-icon.text-amber {
+    color: #fbbf24;
+}
+
 .board-eyebrow {
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.92);
 }
 
 .board-count-pill {
     font-size: 0.7rem;
     font-weight: 600;
-    padding: 2px 8px;
+    padding: 2px 9px;
     border-radius: 9999px;
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     color: #ffffff;
+    white-space: nowrap;
 }
 
 .board-list {
     display: flex;
     flex-direction: column;
     gap: 14px;
-    max-height: 240px;
+    max-height: clamp(260px, 45vh, 480px);
     overflow-y: auto;
-    padding-right: 4px;
+    padding-right: 6px;
+    flex: 1;
+    min-height: 0;
 }
 
 .board-list::-webkit-scrollbar {
@@ -484,7 +554,7 @@ function submit() {
 }
 
 .board-item {
-    padding-bottom: 12px;
+    padding-bottom: 14px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -498,12 +568,12 @@ function submit() {
     align-items: baseline;
     justify-content: space-between;
     gap: 8px;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .board-item-title {
     margin: 0;
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     font-weight: 700;
     line-height: 1.35;
     color: #ffffff;
@@ -512,13 +582,23 @@ function submit() {
 .board-item-time {
     flex-shrink: 0;
     font-size: 0.72rem;
-    color: rgba(255, 255, 255, 0.72);
+    color: rgba(255, 255, 255, 0.75);
+    display: inline-flex;
+    align-items: center;
+}
+
+.board-item-author {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: 6px;
+    display: inline-flex;
+    align-items: center;
 }
 
 .board-item-desc {
     margin: 0;
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.86);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.88);
     line-height: 1.5;
     white-space: pre-line;
     word-break: break-word;
@@ -529,7 +609,7 @@ function submit() {
     align-items: center;
     gap: 6px;
     margin-top: 8px;
-    padding: 4px 10px;
+    padding: 5px 11px;
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.22);
@@ -537,12 +617,70 @@ function submit() {
     font-size: 0.74rem;
     font-weight: 600;
     text-decoration: none;
-    transition: background-color 0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .board-item-attachment:hover {
     background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.35);
     color: #ffffff;
+}
+
+/* Empty State / Panduan Informasi Sekolah */
+.board-empty-state {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+    justify-content: center;
+}
+
+.board-empty-intro {
+    margin: 0;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.84);
+    line-height: 1.5;
+}
+
+.board-quick-guide {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.guide-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.guide-icon {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.85);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.guide-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.guide-title {
+    font-size: 0.79rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.guide-text {
+    font-size: 0.73rem;
+    color: rgba(255, 255, 255, 0.74);
+    line-height: 1.35;
 }
 
 /* Footer Panel Kiri */
@@ -895,6 +1033,8 @@ function submit() {
     background: var(--login-chip-bg);
     color: var(--login-chip-text);
     border: 1px solid var(--login-border);
+    cursor: default;
+    user-select: none;
 }
 
 .role-guide-help {
@@ -904,331 +1044,58 @@ function submit() {
     line-height: 1.45;
 }
 
-/* Khusus login hanya tema light: tidak ada override tema gelap */
-
-/* =========================================
-   AURORA (eksperimen experimental/ui-modern)
-   Latar mesh-gradien, panel merek gradien penuh, kartu form kaca.
-   ========================================= */
-.login-page {
-    --login-bg: #f3f5fb;
-    --login-input-bg: #f5f7fc;
-    --login-input-border: rgba(15, 23, 42, 0.1);
-    --login-glass-bg: rgba(255, 255, 255, 0.14);
-    --login-glass-border: rgba(255, 255, 255, 0.28);
-    --login-chip-bg: color-mix(in srgb, var(--login-primary) 9%, #ffffff);
-    --login-chip-text: var(--login-primary-dark);
-    grid-template-columns: minmax(420px, 47%) minmax(0, 1fr);
-    gap: 16px;
-    padding: 16px;
-    background:
-        radial-gradient(48rem 32rem at 100% -8%, color-mix(in srgb, var(--login-primary) 22%, transparent), transparent 70%),
-        radial-gradient(40rem 28rem at 60% 112%, rgba(99, 102, 241, 0.14), transparent 70%),
-        var(--login-bg);
+.brand-lower {
+    display: contents;
 }
 
-.login-brand-panel {
-    position: relative;
-    overflow: hidden;
-    isolation: isolate;
-    border-radius: 2rem;
-    background:
-        radial-gradient(30rem 20rem at 90% -12%, rgba(255, 255, 255, 0.3), transparent 62%),
-        radial-gradient(26rem 18rem at -12% 112%, rgba(255, 255, 255, 0.14), transparent 62%),
-        linear-gradient(150deg, var(--login-primary), color-mix(in srgb, var(--login-primary) 48%, #312e81));
-    box-shadow: 0 40px 80px -32px color-mix(in srgb, var(--login-primary) 85%, transparent);
-}
-
-.login-brand-panel::before,
-.login-brand-panel::after {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    pointer-events: none;
-}
-
-.login-brand-panel::before { width: 26rem; height: 26rem; right: -9rem; top: 28%; }
-.login-brand-panel::after { width: 16rem; height: 16rem; right: -2rem; top: 40%; }
-
-.brand-logo-box {
-    width: 3.4rem;
-    height: 3.4rem;
-    border: 0;
-    border-radius: 1.1rem;
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 14px 28px -12px rgba(0, 0, 0, 0.4);
-}
-
-.brand-school-name { font-size: 1.1rem; letter-spacing: -0.02em; }
-
-.brand-headline {
-    font-size: clamp(2rem, 3.6vw, 3rem);
-    font-weight: 800;
-    line-height: 1.12;
-    letter-spacing: -0.04em;
-}
-
-.brand-motto { font-size: 0.98rem; }
-
-.brand-board {
-    border-radius: 1.5rem;
-    background: var(--login-glass-bg);
-    border: 1px solid var(--login-glass-border);
-    box-shadow: 0 24px 50px -28px rgba(0, 0, 0, 0.5);
-}
-
-.board-count-pill { background: rgba(255, 255, 255, 0.24); }
-
-.login-form-panel { background: transparent; padding: 24px; }
-
-.login-form-wrapper {
-    max-width: 30rem;
-    padding: clamp(28px, 4vw, 44px);
-    border-radius: 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.78);
-    -webkit-backdrop-filter: blur(24px) saturate(170%);
-    backdrop-filter: blur(24px) saturate(170%);
-    box-shadow: 0 40px 80px -36px rgba(16, 24, 40, 0.3), 0 1px 2px rgba(16, 24, 40, 0.04);
-}
-
-.login-eyebrow {
-    padding: 0.3rem 0.75rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--login-primary) 11%, transparent);
-    letter-spacing: 0.12em;
-}
-
-.login-title { font-size: clamp(1.6rem, 2.8vw, 2rem); font-weight: 800; letter-spacing: -0.035em; }
-
-.input-shell {
-    height: 3.1rem;
-    min-height: 3.1rem;
-    border-radius: 1rem;
-    border-color: transparent;
-    box-shadow: inset 0 0 0 1px var(--login-input-border);
-}
-
-.input-shell:focus-within {
-    background: #ffffff;
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--login-primary) 18%, transparent), inset 0 0 0 1px var(--login-primary);
-}
-
-.btn-login {
-    height: 3.2rem;
-    min-height: 3.2rem;
-    border: 0;
-    border-radius: 1rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    background: linear-gradient(135deg, var(--login-primary), var(--login-primary-dark));
-    box-shadow: 0 16px 30px -12px color-mix(in srgb, var(--login-primary) 80%, transparent);
-    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
-}
-
-.btn-login:hover:not(:disabled) {
-    border: 0;
-    background: linear-gradient(135deg, var(--login-primary), var(--login-primary-dark));
-    filter: brightness(1.08);
-    transform: translateY(-1px);
-    box-shadow: 0 20px 36px -12px color-mix(in srgb, var(--login-primary) 85%, transparent);
-}
-
-.role-chip {
-    border: 0;
-    border-radius: 999px;
-    background: var(--login-chip-bg);
-    color: var(--login-chip-text);
-    font-weight: 650;
-}
-
-
-
-/* =========================================
-   RESPONSIVE MOBILE (< 900 px)
-   Urutan: Header hijau -> Form -> Papan Info -> Footer
-   ========================================= */
-@media (max-width: 899.98px) {
+/* Responsive Layout */
+@media (max-width: 960px) {
     .login-page {
-        display: flex;
-        flex-direction: column;
-        padding: 16px 14px 28px;
-        min-height: 100vh;
-        gap: 14px;
+        grid-template-columns: 1fr;
+        min-height: auto;
     }
 
+    /* Mobile: identitas -> form login -> papan informasi */
     .login-brand-panel {
         display: contents;
     }
 
-    /* 1. Header Hijau */
     .brand-header {
         order: 1;
         background-color: var(--login-brand-bg);
-        padding: 24px 20px 22px;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
         color: #ffffff;
-        box-shadow: 0 8px 24px -6px rgba(15, 23, 42, 0.12);
-        max-width: 480px;
-        width: 100%;
-        margin: 0 auto;
+        padding: 32px 24px 28px;
+    }
+
+    .login-form-panel {
+        order: 2;
+    }
+
+    .brand-lower {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        order: 3;
+        background-color: var(--login-brand-bg);
+        color: #ffffff;
+        padding: 32px 24px 28px;
     }
 
     .brand-top-row {
-        margin-bottom: 16px;
-    }
-
-    .brand-logo-box {
-        width: 44px;
-        height: 44px;
-        border-radius: 10px;
-    }
-
-    .brand-logo-box img {
-        width: 32px;
-        height: 32px;
-    }
-
-    .brand-school-name {
-        font-size: 0.95rem;
+        margin-bottom: 20px;
     }
 
     .brand-headline {
-        font-size: 1.35rem;
-        margin-bottom: 6px;
+        font-size: 1.45rem;
     }
 
-    .brand-motto {
-        font-size: 0.82rem;
+    .board-list {
+        max-height: 280px;
     }
-
-    /* 2. Form Login */
-    .login-form-panel {
-        order: 2;
-        background: var(--login-surface);
-        border: 1px solid var(--login-border);
-        border-radius: 16px;
-        padding: 24px 20px;
-        box-shadow: 0 8px 24px -6px rgba(15, 23, 42, 0.08);
-        max-width: 480px;
-        width: 100%;
-        margin: 0 auto;
-        min-height: auto;
-    }
-
-    .login-form-wrapper {
-        max-width: 100%;
-    }
-
-    /* 3. Papan Informasi */
-    .brand-board {
-        order: 3;
-        background: var(--login-surface);
-        border: 1px solid var(--login-border);
-        border-radius: 16px;
-        padding: 18px 20px;
-        color: var(--login-text);
-        box-shadow: 0 8px 24px -6px rgba(15, 23, 42, 0.06);
-        max-width: 480px;
-        width: 100%;
-        margin: 0 auto;
-    }
-
-    .board-header {
-        border-bottom-color: var(--login-border);
-    }
-
-    .board-eyebrow {
-        color: var(--login-primary);
-    }
-
-    .board-count-pill {
-        background: color-mix(in srgb, var(--login-primary) 12%, transparent);
-        color: var(--login-primary-dark);
-    }
-
-    .board-item {
-        border-bottom-color: var(--login-border);
-    }
-
-    .board-item-title {
-        color: var(--login-text);
-    }
-
-    .board-item-time {
-        color: var(--login-text-muted);
-    }
-
-    .board-item-desc {
-        color: var(--login-text-muted);
-    }
-
-    .board-item-attachment {
-        background: var(--login-chip-bg);
-        border-color: var(--login-border);
-        color: var(--login-primary);
-    }
-
-    .board-item-attachment:hover {
-        background: color-mix(in srgb, var(--login-primary) 8%, transparent);
-        color: var(--login-primary-dark);
-    }
-
-    /* 4. Footer */
-    .brand-footer {
-        order: 4;
-        padding: 8px 12px;
-        color: var(--login-text-muted);
-        text-align: center;
-        align-items: center;
-        max-width: 480px;
-        width: 100%;
-        margin: 0 auto;
-    }
-
-    .brand-footer-row {
-        justify-content: center;
-    }
-}
-
-/* Aurora, mobile */
-@media (max-width: 899.98px) {
-    .login-page { padding: 14px; }
-
-    /* panel memakai display: contents, jadi lingkaran dekoratif akan menjuntai keluar viewport */
-    .login-brand-panel::before,
-    .login-brand-panel::after { display: none; }
-
-    .brand-header {
-        border: 0;
-        border-radius: 1.75rem;
-        background:
-            radial-gradient(22rem 14rem at 95% -20%, rgba(255, 255, 255, 0.3), transparent 62%),
-            linear-gradient(150deg, var(--login-primary), color-mix(in srgb, var(--login-primary) 48%, #312e81));
-        box-shadow: 0 28px 56px -26px color-mix(in srgb, var(--login-primary) 85%, transparent);
-    }
-
-    .brand-headline { font-size: 1.55rem; }
 
     .login-form-panel {
-        padding: 0;
-        border: 0;
-        border-radius: 0;
-        background: transparent;
-        box-shadow: none;
+        padding: 36px 20px 48px;
     }
-
-    .login-form-wrapper {
-        max-width: 100%;
-        padding: 24px 20px;
-        border-radius: 1.75rem;
-    }
-
-    .brand-board { border-radius: 1.5rem; background: rgba(255, 255, 255, 0.78); }
-    .board-count-pill { background: color-mix(in srgb, var(--login-primary) 12%, transparent); }
 }
 
 /* Reduced motion */

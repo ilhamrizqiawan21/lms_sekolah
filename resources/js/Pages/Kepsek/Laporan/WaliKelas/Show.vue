@@ -53,7 +53,7 @@ function statusLabel(status: string | null) {
     <Head title="Detail Wali Kelas" />
 
     <AppShell title="Detail Wali Kelas">
-        <PageHeader title="Detail Wali Kelas" icon="bi-person-badge-fill">
+        <PageHeader title="Detail Wali Kelas">
             <template #actions>
                 <Button :href="backUrl" color="outline-secondary" icon="bi-arrow-left">Kembali</Button>
             </template>
@@ -61,7 +61,7 @@ function statusLabel(status: string | null) {
 
         <div class="row gy-4">
             <div class="col-12">
-                <Card :title="waliKelas.title" icon="bi-info-circle">
+                <Card :title="waliKelas.title">
                     <form class="row g-3 align-items-end" @submit.prevent="applyFilters">
                         <div class="col-md-4">
                             <SelectInput
@@ -80,8 +80,8 @@ function statusLabel(status: string | null) {
             </div>
 
             <div class="col-12">
-                <Card title="Rekap Absensi Bulanan" icon="bi-clipboard-data" body-class="p-0">
-                    <TableWrapper v-if="siswaRows.length">
+                <Card title="Rekap Absensi Bulanan" body-class="p-0">
+                    <TableWrapper v-if="siswaRows.length" :min-width="700">
                         <table class="table table-bordered table-hover mb-0 wali-report-table">
                             <thead>
                                 <tr>
@@ -98,8 +98,8 @@ function statusLabel(status: string | null) {
                             </thead>
                             <tbody>
                                 <tr v-for="siswa in siswaRows" :key="siswa.id">
-                                    <td>{{ siswa.nis }}</td>
-                                    <td><strong>{{ siswa.nama }}</strong></td>
+                                    <td class="tabular-nums" data-label="NIS">{{ siswa.nis }}</td>
+                                    <td data-label="Nama" class="stack-title"><strong>{{ siswa.nama }}</strong></td>
                                     <td
                                         v-for="status in siswa.statuses"
                                         :key="`${siswa.id}-${status.date}`"
@@ -108,10 +108,10 @@ function statusLabel(status: string | null) {
                                     >
                                         {{ status.label }}
                                     </td>
-                                    <td class="text-center text-success fw-bold">{{ siswa.counts.hadir }}</td>
-                                    <td class="text-center text-warning">{{ siswa.counts.sakit }}</td>
-                                    <td class="text-center text-info">{{ siswa.counts.izin }}</td>
-                                    <td class="text-center text-danger fw-bold">{{ siswa.counts.alpha }}</td>
+                                    <td class="text-center text-success fw-bold tabular-nums" data-label="Hadir">{{ siswa.counts.hadir }}</td>
+                                    <td class="text-center text-warning tabular-nums" data-label="Sakit">{{ siswa.counts.sakit }}</td>
+                                    <td class="text-center text-info tabular-nums" data-label="Izin">{{ siswa.counts.izin }}</td>
+                                    <td class="text-center text-danger fw-bold tabular-nums" data-label="Alpa">{{ siswa.counts.alpha }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -122,8 +122,8 @@ function statusLabel(status: string | null) {
             </div>
 
             <div class="col-lg-6">
-                <Card title="Pertemuan Terbaru" icon="bi-calendar-event" body-class="p-0">
-                    <TableWrapper v-if="pertemuan.length">
+                <Card title="Pertemuan Terbaru" body-class="p-0">
+                    <TableWrapper v-if="pertemuan.length" :min-width="360">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -134,9 +134,9 @@ function statusLabel(status: string | null) {
                             </thead>
                             <tbody>
                                 <tr v-for="item in pertemuan" :key="item.id">
-                                    <td>{{ item.tanggal }}</td>
-                                    <td>{{ item.topik }}</td>
-                                    <td>{{ item.hasil }}</td>
+                                    <td class="tabular-nums" data-label="Tanggal">{{ item.tanggal }}</td>
+                                    <td data-label="Topik" class="stack-title"><strong>{{ item.topik }}</strong></td>
+                                    <td data-label="Hasil">{{ item.hasil || '-' }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -146,8 +146,8 @@ function statusLabel(status: string | null) {
             </div>
 
             <div class="col-lg-6">
-                <Card title="Penanganan Siswa" icon="bi-heart-pulse" body-class="p-0">
-                    <TableWrapper v-if="penanganan.length">
+                <Card title="Penanganan Siswa" body-class="p-0">
+                    <TableWrapper v-if="penanganan.length" :min-width="400">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -158,15 +158,15 @@ function statusLabel(status: string | null) {
                             </thead>
                             <tbody>
                                 <tr v-for="item in penanganan" :key="item.id">
-                                    <td>
-                                        {{ item.siswa }}
-                                        <div class="small text-body-secondary">{{ item.nis }}</div>
+                                    <td data-label="Siswa" class="stack-title">
+                                        <strong>{{ item.siswa }}</strong>
+                                        <div class="small text-body-secondary tabular-nums">{{ item.nis }}</div>
                                     </td>
-                                    <td>
+                                    <td data-label="Kondisi">
                                         {{ item.kondisi }}
                                         <div class="small text-body-secondary">{{ item.tindak_lanjut }}</div>
                                     </td>
-                                    <td><Badge :color="penangananBadge(item.status)">{{ statusLabel(item.status) }}</Badge></td>
+                                    <td data-label="Status"><Badge :color="penangananBadge(item.status)">{{ statusLabel(item.status) }}</Badge></td>
                                 </tr>
                             </tbody>
                         </table>

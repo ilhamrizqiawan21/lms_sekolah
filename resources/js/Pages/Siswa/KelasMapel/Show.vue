@@ -3,7 +3,8 @@ import type { PropType } from 'vue';
 import type { MetricItem, QueueItem } from '../../../types/ui';
 import { Head, Link } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { AgendaPanel, DashboardHero, MetricStrip, QuickActionBar } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { AgendaPanel, MetricStrip, QuickActionBar } from '../../../Components/UI';
 
 const props = defineProps({
     course: { type: Object as PropType<{ title: string; kelas: string; semester: string; tahun_ajaran: string; back_url: string }>, required: true },
@@ -16,7 +17,7 @@ const props = defineProps({
 
 const quickActions = [
     { label: 'Buka Materi', href: props.tabs.find((tab) => tab.label === 'Materi')?.href, icon: 'bi-file-earmark-text', color: 'primary' },
-    { label: 'Chat Kelas', href: props.tabs.find((tab) => tab.label === 'Chat')?.href, icon: 'bi-chat-dots', color: 'light' },
+    { label: 'Chat Kelas', href: props.tabs.find((tab) => tab.label === 'Chat')?.href, icon: 'bi-chat-dots', color: 'outline-secondary' },
 ];
 </script>
 
@@ -24,9 +25,15 @@ const quickActions = [
     <Head :title="`${course.title} - ${course.kelas}`" />
 
     <AppShell :title="course.title">
-        <DashboardHero eyebrow="Ruang Belajar" :title="course.title" :subtitle="`${course.kelas} - Semester ${course.semester} - ${course.tahun_ajaran}`" icon="bi-mortarboard" tone="student">
-            <template #actions><QuickActionBar :actions="quickActions" /></template>
-        </DashboardHero>
+        <PageHeader
+            eyebrow="Kelas & Mapel"
+            :title="course.title"
+            :subtitle="`${course.kelas} · Semester ${course.semester} · ${course.tahun_ajaran}`"
+        >
+            <template #actions>
+                <QuickActionBar :actions="quickActions" />
+            </template>
+        </PageHeader>
 
         <nav class="workspace-tabs" aria-label="Navigasi mata pelajaran">
             <Link v-for="tab in tabs" :key="tab.label" :href="tab.href" class="workspace-tab" :class="{ 'is-active': tab.label === 'Ringkasan' }">

@@ -26,7 +26,6 @@ function progressColor(value: number) {
     <AppShell title="Rekap Absensi">
         <PageHeader
             title="Rekap Absensi Per Kelas"
-            icon="bi-file-earmark-bar-graph-fill"
         />
 
         <div v-if="rekap.length" class="content-summary">
@@ -35,10 +34,10 @@ function progressColor(value: number) {
                 <div class="content-summary-text">Ringkasan persentase kehadiran disajikan sebagai kartu yang dapat dibandingkan antar kelas.</div>
             </div>
             <div class="content-summary-actions">
-                <a :href="exportUrls.excel" class="btn btn-sm btn-outline-success">
+                <a :href="exportUrls.excel" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
                 </a>
-                <a :href="exportUrls.pdf" class="btn btn-sm btn-outline-danger">
+                <a :href="exportUrls.pdf" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i> PDF
                 </a>
             </div>
@@ -52,7 +51,7 @@ function progressColor(value: number) {
             >
                 <Card>
                     <template #actions>
-                        <Badge color="secondary">{{ item.jumlah_siswa }} siswa</Badge>
+                        <Badge color="secondary" class="tabular-nums">{{ item.jumlah_siswa }} siswa</Badge>
                     </template>
 
                     <template #default>
@@ -60,15 +59,15 @@ function progressColor(value: number) {
 
                         <div class="d-flex justify-content-between mb-2">
                             <span><i class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></i> Total Hadir</span>
-                            <strong>{{ item.total_hadir }}</strong>
+                            <strong class="tabular-nums">{{ item.total_hadir }}</strong>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span><i class="bi bi-bar-chart-fill text-primary me-1" aria-hidden="true"></i> Total Absensi</span>
-                            <strong>{{ item.total_absensi }}</strong>
+                            <strong class="tabular-nums">{{ item.total_absensi }}</strong>
                         </div>
-                        <div class="progress rekap-progress">
+                        <div class="progress rekap-progress" role="progressbar" :aria-valuenow="item.persen" aria-valuemin="0" aria-valuemax="100" :aria-label="`Kehadiran ${item.kelas}`">
                             <div
-                                class="progress-bar"
+                                class="progress-bar tabular-nums"
                                 :class="progressColor(item.persen)"
                                 :style="{ width: `${item.persen}%` }"
                             >

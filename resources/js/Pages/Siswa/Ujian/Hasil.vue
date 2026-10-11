@@ -2,7 +2,8 @@
 import type { PropType } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card } from '../../../Components/UI';
 
 interface AttemptSummary {
     id: number;
@@ -40,23 +41,21 @@ const props = defineProps({
     <Head :title="`Hasil Ujian: ${ujian.judul}`" />
 
     <AppShell title="Hasil Ujian CBT">
-        <DashboardHero
-            eyebrow="Evaluasi & Nilai"
+        <PageHeader
+            eyebrow="Hasil Ujian"
             :title="ujian.judul"
-            :subtitle="`Mata Pelajaran: ${ujian.mata_pelajaran} &bull; Kategori Nilai: ${ujian.kategori_nilai}`"
-            icon="bi-award-fill"
-            tone="student"
+            :subtitle="`${ujian.mata_pelajaran} · ${ujian.kategori_nilai}`"
         >
             <template #actions>
-                <Button :href="daftarUjianUrl" color="light" icon="bi-arrow-left">
+                <Button :href="daftarUjianUrl" color="outline-secondary" icon="bi-arrow-left">
                     Kembali ke Daftar Ujian
                 </Button>
             </template>
-        </DashboardHero>
+        </PageHeader>
 
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <Card title="Hasil Pengerjaan Ujian" icon="bi-trophy-fill">
+                <Card title="Hasil Pengerjaan Ujian">
                     <!-- Status Banner -->
                     <div class="text-center py-4 border-bottom mb-4">
                         <div class="mb-2">
@@ -70,7 +69,7 @@ const props = defineProps({
                         </div>
 
                         <span class="text-body-secondary small">Nilai Akhir Ujian (Skala 100)</span>
-                        <h1 class="display-3 fw-bold text-primary mb-1">{{ attempt.skor_100 }}</h1>
+                        <div class="display-3 fw-bold text-primary mb-1 tabular-nums">{{ attempt.skor_100 }}</div>
                         <p class="text-body-secondary small mb-0">
                             Total Poin Diperoleh: {{ attempt.skor_total }} dari {{ attempt.skor_maksimal }} Poin
                         </p>
@@ -82,21 +81,21 @@ const props = defineProps({
                             <div class="p-3 border rounded bg-success-subtle">
                                 <i class="bi bi-check-circle-fill text-success fs-4 d-block mb-1" />
                                 <span class="small text-body-secondary">Jawaban Benar</span>
-                                <h4 class="fw-bold text-success mb-0">{{ attempt.benar_count }}</h4>
+                                <h4 class="fw-bold text-success mb-0 tabular-nums">{{ attempt.benar_count }}</h4>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-3 border rounded bg-danger-subtle">
                                 <i class="bi bi-x-circle-fill text-danger fs-4 d-block mb-1" />
                                 <span class="small text-body-secondary">Jawaban Salah</span>
-                                <h4 class="fw-bold text-danger mb-0">{{ attempt.salah_count }}</h4>
+                                <h4 class="fw-bold text-danger mb-0 tabular-nums">{{ attempt.salah_count }}</h4>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-3 border rounded bg-light-subtle">
                                 <i class="bi bi-dash-circle text-body-secondary fs-4 d-block mb-1" />
                                 <span class="small text-body-secondary">Tidak Dijawab</span>
-                                <h4 class="fw-bold text-body-secondary mb-0">{{ attempt.tidak_dijawab_count }}</h4>
+                                <h4 class="fw-bold text-body-secondary mb-0 tabular-nums">{{ attempt.tidak_dijawab_count }}</h4>
                             </div>
                         </div>
                     </div>

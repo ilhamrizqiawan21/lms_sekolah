@@ -4,7 +4,7 @@ import type { PropType } from 'vue';
 import type { Scores, Score } from '../../../types/assessment';
 interface GradeRow extends Scores { id: number; rata_akhir: Score; siswa: { user: { nama_lengkap: string } | null; nis: string; kelas: { nama_kelas: string } | null } | null; kelas_mapel?: { mata_pelajaran: { nama_mapel: string } | null } | null; kelasMapel?: { mataPelajaran: { nama_mapel: string } | null } | null }
 import { computed, ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
@@ -46,6 +46,8 @@ const semesterOptions = [{ value: '1', label: 'Semester 1' }, { value: '2', labe
 </script>
 
 <template>
+    <Head title="Rekap Nilai" />
+
     <AppShell title="Rekap Nilai">
         <PageHeader title="Rekap Nilai Siswa" subtitle="Rekap nilai dari kelas dan mata pelajaran yang Anda ampu." icon="bi-file-earmark-bar-graph-fill" />
 

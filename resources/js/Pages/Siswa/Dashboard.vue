@@ -29,10 +29,10 @@ const metrics = computed(() => [
 ]);
 const quickActions = computed(() => [
     { label: 'Tugas Saya', href: props.links.tugas || '/siswa/tugas', icon: 'bi-journal-check', color: 'primary' },
-    { label: 'Jadwal', href: props.links.jadwal_pelajaran || '/siswa/jadwal-pelajaran', icon: 'bi-calendar-week', color: 'light' },
-    { label: 'Daring', href: props.links.kelas_daring || '/siswa/kelas-daring', icon: 'bi-camera-video', color: 'light' },
-    { label: 'Materi', href: props.links.materi || '/siswa/materi', icon: 'bi-file-earmark-text', color: 'light' },
-    { label: 'Nilai', href: '/siswa/nilai', icon: 'bi-bar-chart', color: 'light' },
+    { label: 'Jadwal', href: props.links.jadwal_pelajaran || '/siswa/jadwal-pelajaran', icon: 'bi-calendar-week', color: 'outline-secondary' },
+    { label: 'Daring', href: props.links.kelas_daring || '/siswa/kelas-daring', icon: 'bi-camera-video', color: 'outline-secondary' },
+    { label: 'Materi', href: props.links.materi || '/siswa/materi', icon: 'bi-file-earmark-text', color: 'outline-secondary' },
+    { label: 'Nilai', href: '/siswa/nilai', icon: 'bi-bar-chart', color: 'outline-secondary' },
 ]);
 const taskItems = computed(() => props.tugasTerbaru.map((item) => ({ id: item.id, title: item.judul, meta: item.mata_pelajaran, detail: `Deadline ${item.batas_waktu}`, href: item.show_url || props.links.tugas || '/siswa/tugas', badge: item.selesai ? 'Selesai' : 'Belum', badgeColor: item.selesai ? 'success' : 'warning text-dark', icon: item.selesai ? 'bi-check-circle' : 'bi-journal-text', accent: item.selesai ? 'var(--accent-green)' : 'var(--accent-amber)' })));
 const onlineClassItems = computed(() => props.kelasDaring.map((item) => ({ id: item.id, title: item.judul, meta: item.mata_pelajaran, detail: `${item.tanggal} · Pelajaran ke-${item.pelajaran_ke}`, href: item.workspace_url, badge: 'Daring', badgeColor: 'primary', icon: 'bi-camera-video', accent: 'var(--accent-blue)' })));

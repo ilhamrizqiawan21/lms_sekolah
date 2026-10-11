@@ -10,6 +10,7 @@ interface SubmissionItem {
     nilai_url: string;
     status?: string;
     penalty_terlambat?: number | string | null;
+    siswa?: string;
 }
 interface SaveResponse extends SubmissionItem { saved_at?: string; message?: string; errors?: Record<string, string[]> }
 interface Props { item: SubmissionItem; compact?: boolean; block?: boolean }
@@ -242,6 +243,7 @@ async function saveNow(): Promise<void> {
                 type="text"
                 inputmode="decimal"
                 name="nilai"
+                :aria-label="item.siswa ? `Nilai ${item.siswa}` : 'Nilai tugas'"
                 class="form-control form-control-sm js-assignment-score-input"
                 autocomplete="off"
                 pattern="[0-9]{1,3}([,.][0-9]{1,2})?"

@@ -126,7 +126,7 @@ function statusLabel(status: string) {
 
             <div class="col-lg-8">
                 <Card title="Daftar Penanganan" icon="bi-list-ul" body-class="p-0">
-                    <TableWrapper v-if="penanganan.data.length">
+                    <TableWrapper stack v-if="penanganan.data.length">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr><th scope="col">Siswa</th><th scope="col">Kondisi</th><th scope="col">Tindak Lanjut</th><th scope="col">Status</th><th scope="col">Aksi</th></tr>
@@ -134,20 +134,20 @@ function statusLabel(status: string) {
                             <tbody>
                                 <template v-for="item in penanganan.data" :key="item.id">
                                     <tr>
-                                        <td>
+                                        <td class="stack-title">
                                             <strong>{{ item.siswa }}</strong>
                                             <div class="small text-body-secondary">{{ item.nis }}</div>
                                         </td>
-                                        <td>
+                                        <td data-label="Kondisi">
                                             {{ item.kondisi }}
                                             <div class="small text-body-secondary">{{ item.deskripsi }}</div>
                                         </td>
-                                        <td>
+                                        <td data-label="Tindak Lanjut">
                                             {{ item.tindak_lanjut }}
                                             <div class="small text-body-secondary">{{ item.hasil }}</div>
                                         </td>
-                                        <td><Badge :color="statusColor(item.status)">{{ statusLabel(item.status) }}</Badge></td>
-                                        <td>
+                                        <td data-label="Status"><Badge :color="statusColor(item.status)">{{ statusLabel(item.status) }}</Badge></td>
+                                        <td class="stack-actions">
                                             <div class="d-inline-flex gap-1">
                                                 <IconButton icon="bi-pencil" :label="`Edit ${item.kondisi}`" color="outline-primary" @click="startEdit(item)" />
                                                 <IconButton icon="bi-trash" :label="`Hapus ${item.kondisi}`" color="danger" @click="destroy(item)" />

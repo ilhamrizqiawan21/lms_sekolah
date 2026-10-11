@@ -10,6 +10,11 @@ defineProps({
     pengumuman: { type: Object as PropType<StudentAnnouncement>, required: true },
     backUrl: { type: String, required: true },
 });
+function formatDate(value?: string | null) {
+    if (!value) return '–';
+    const date = new Date(value);
+    return !Number.isNaN(date.getTime()) ? date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : value;
+}
 </script>
 
 <template>
@@ -18,22 +23,22 @@ defineProps({
     <AppShell title="Detail Pengumuman">
         <PageHeader
             title="Detail Pengumuman"
-            icon="bi-megaphone-fill"
-        />
-
-        <Card icon="bi-info-circle">
+            :subtitle="pengumuman.judul"
+        >
             <template #actions>
                 <Button :href="backUrl" color="outline-secondary" icon="bi-arrow-left">
                     Kembali
                 </Button>
             </template>
+        </PageHeader>
 
+        <Card>
             <article>
                 <h2 class="announcement-title">{{ pengumuman.judul }}</h2>
                 <div class="announcement-meta">
-                    <Badge color="info text-dark">{{ pengumuman.target_label }}</Badge>
+                    <Badge color="secondary">{{ pengumuman.target_label }}</Badge>
                     <span>{{ pengumuman.creator }}</span>
-                    <span>{{ pengumuman.created_at }}</span>
+                    <span>{{ formatDate(pengumuman.created_at) }}</span>
                 </div>
                 <div class="announcement-content">
                     {{ pengumuman.isi }}

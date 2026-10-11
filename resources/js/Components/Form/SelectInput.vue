@@ -37,6 +37,7 @@ const normalizedOptions = computed<SelectOption[]>(() => Array.isArray(props.opt
             :class="{ 'is-invalid': error }"
             :aria-describedby="describedBy"
             :aria-invalid="error ? 'true' : undefined"
+            :aria-label="label ? undefined : (placeholder || name)"
             v-bind="$attrs"
             @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
         >

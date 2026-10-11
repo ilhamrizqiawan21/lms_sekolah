@@ -29,26 +29,26 @@
             color-scheme: light;
             --primary: {{ $primary }};
             --primary-dark: {{ $primaryDark }};
-            --bg: #f3f5fb;
-            --surface: rgba(255, 255, 255, 0.78);
-            --surface-solid: #ffffff;
-            --text: #172033;
-            --muted: #5b6b82;
-            --border: rgba(255, 255, 255, 0.85);
-            --ghost: #eef1f8;
-            --shadow: 0 40px 80px -36px rgba(16, 24, 40, 0.3), 0 1px 2px rgba(16, 24, 40, 0.04);
+            --bg: #f8f8f5;
+            --surface: #ffffff;
+            --text: #1a1e24;
+            --muted: #5e6878;
+            --border: #e2e5eb;
+            --ghost: #f1f3f7;
+            --ghost-hover: #e5e8ef;
+            --shadow: 0 4px 16px -4px rgba(20, 22, 26, 0.08);
         }
 
         :root[data-theme="dark"] {
             color-scheme: dark;
-            --bg: #060a13;
-            --surface: rgba(14, 21, 36, 0.7);
-            --surface-solid: #0e1524;
-            --text: #f1f5fb;
-            --muted: #9fb0c5;
-            --border: rgba(255, 255, 255, 0.09);
-            --ghost: rgba(255, 255, 255, 0.07);
-            --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.85);
+            --bg: #101317;
+            --surface: #181c22;
+            --text: #eaedf2;
+            --muted: #959fae;
+            --border: #282e38;
+            --ghost: #202630;
+            --ghost-hover: #29303c;
+            --shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.4);
         }
 
         * {
@@ -61,76 +61,58 @@
             display: grid;
             place-items: center;
             padding: 24px;
-            background:
-                radial-gradient(46rem 30rem at -5% -10%, color-mix(in srgb, var(--primary) 24%, transparent), transparent 70%),
-                radial-gradient(40rem 28rem at 105% 5%, rgba(99, 102, 241, 0.16), transparent 70%),
-                radial-gradient(36rem 24rem at 60% 115%, rgba(14, 165, 233, 0.12), transparent 70%),
-                var(--bg);
-            background-attachment: fixed;
+            background-color: var(--bg);
             color: var(--text);
-            font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            letter-spacing: -0.005em;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            letter-spacing: normal;
         }
 
         .notice {
-            width: min(100%, 520px);
-            padding: 44px 32px 36px;
+            width: min(100%, 480px);
+            padding: 40px 32px 36px;
             border: 1px solid var(--border);
-            border-radius: 2rem;
-            background: var(--surface);
-            -webkit-backdrop-filter: blur(24px) saturate(170%);
-            backdrop-filter: blur(24px) saturate(170%);
+            border-radius: 12px;
+            background-color: var(--surface);
             box-shadow: var(--shadow);
             text-align: center;
         }
 
         .notice-code {
-            margin: 0 0 6px;
-            font-size: clamp(3.4rem, 14vw, 5rem);
+            margin: 0 0 8px;
+            font-size: clamp(3rem, 10vw, 4rem);
             font-weight: 800;
             line-height: 1;
-            letter-spacing: -0.06em;
-            background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 45%, #312e81));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            letter-spacing: -0.02em;
+            color: var(--primary);
+            font-variant-numeric: tabular-nums;
         }
 
         .notice-icon {
-            width: 72px;
-            height: 72px;
+            width: 56px;
+            height: 56px;
             display: inline-grid;
             place-items: center;
-            margin: 10px 0 20px;
-            border-radius: 1.4rem;
-            background: color-mix(in srgb, var(--primary) 13%, transparent);
+            margin: 8px 0 16px;
+            border-radius: 10px;
+            background: color-mix(in srgb, var(--primary) 12%, transparent);
             color: var(--primary);
-        }
-
-        :root[data-theme="dark"] .notice-code {
-            background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 55%, white), color-mix(in srgb, var(--primary) 70%, #a5b4fc));
-            -webkit-background-clip: text;
-            background-clip: text;
-        }
-
-        :root[data-theme="dark"] .notice-icon {
-            color: color-mix(in srgb, var(--primary) 60%, white);
         }
 
         h1 {
             margin: 0 0 10px;
-            font-size: 1.6rem;
-            line-height: 1.3;
-            font-weight: 800;
-            letter-spacing: -0.03em;
+            font-size: 1.35rem;
+            line-height: 1.35;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--text);
         }
 
         p {
             margin: 0 auto;
             max-width: 38ch;
             color: var(--muted);
-            font-size: 0.98rem;
-            line-height: 1.7;
+            font-size: 0.925rem;
+            line-height: 1.6;
         }
 
         .actions {
@@ -144,37 +126,42 @@
         a,
         button {
             appearance: none;
-            border: 0;
-            border-radius: 1rem;
-            padding: 12px 20px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 10px 18px;
             font: inherit;
-            font-weight: 700;
+            font-size: 0.9rem;
+            font-weight: 600;
             text-decoration: none;
             cursor: pointer;
-            transition: transform 0.18s ease, filter 0.18s ease;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
         }
 
         a {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background-color: var(--primary);
+            border-color: var(--primary);
             color: #ffffff;
-            box-shadow: 0 16px 30px -12px color-mix(in srgb, var(--primary) 80%, transparent);
         }
 
-        a:hover,
+        a:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        button {
+            background-color: var(--ghost);
+            border-color: var(--border);
+            color: var(--text);
+        }
+
         button:hover {
-            transform: translateY(-1px);
-            filter: brightness(1.06);
+            background-color: var(--ghost-hover);
         }
 
         a:focus-visible,
         button:focus-visible {
-            outline: 3px solid color-mix(in srgb, var(--primary) 45%, transparent);
+            outline: 2px solid var(--primary);
             outline-offset: 2px;
-        }
-
-        button {
-            background: var(--ghost);
-            color: var(--text);
         }
 
         @media (prefers-reduced-motion: reduce) {

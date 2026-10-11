@@ -2,7 +2,8 @@
 import type { PropType } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, QuickActionBar, TableWrapper } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
 
 interface AttemptData {
     id: number;
@@ -54,22 +55,20 @@ async function mulaiUjian(item: UjianItem) {
     <Head title="Ujian CBT Saya" />
 
     <AppShell title="Ujian CBT Saya">
-        <DashboardHero
+        <PageHeader
             eyebrow="Evaluasi & CBT"
-            title="Ujian CBT Siswa"
+            title="Ujian CBT Saya"
             subtitle="Daftar ujian daring terjadwal. Pastikan koneksi internet stabil sebelum menekan tombol Mulai."
-            icon="bi-pencil-square"
-            tone="student"
         >
             <template #actions>
-                <QuickActionBar :actions="[{ label: 'Tugas Saya', href: '/siswa/tugas', icon: 'bi-journal-check', color: 'light' }]" />
+                <Button href="/siswa/tugas" color="outline-secondary" icon="bi-journal-check">Tugas Saya</Button>
             </template>
-        </DashboardHero>
+        </PageHeader>
 
-        <Card title="Daftar Ujian CBT" icon="bi-laptop" body-class="p-0">
-            <TableWrapper v-if="ujianList.length">
+        <Card title="Daftar Ujian CBT" body-class="p-0">
+            <TableWrapper v-if="ujianList.length" stack :min-width="720">
                 <table class="table table-hover mb-0 app-table-proportional">
-                    <colgroup>
+                    <colgroup class="d-none d-md-table-column-group">
                         <col class="u-w-25pct">
                         <col class="u-w-18pct">
                         <col class="u-w-10pct">
@@ -84,38 +83,38 @@ async function mulaiUjian(item: UjianItem) {
                             <th scope="col">Durasi</th>
                             <th scope="col">Jadwal Pelaksanaan</th>
                             <th scope="col">Status Pengerjaan</th>
-                            <th scope="col">Aksi</th>
+                            <th scope="col" class="text-md-end">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="item in ujianList" :key="item.id">
-                            <td>
-                                <div class="fw-bold">{{ item.judul }}</div>
+                            <td data-label="Ujian & Guru">
+                                <div class="fw-bold stack-title">{{ item.judul }}</div>
                                 <div class="small text-body-secondary">{{ item.guru }} &bull; {{ item.total_soal }} Soal</div>
                             </td>
-                            <td>
+                            <td data-label="Mata Pelajaran">
                                 <div>{{ item.mata_pelajaran }}</div>
                                 <Badge color="primary">{{ item.kategori_nilai }}</Badge>
                             </td>
-                            <td>{{ item.durasi_menit }} Menit</td>
-                            <td>
+                            <td data-label="Durasi">{{ item.durasi_menit }} Menit</td>
+                            <td data-label="Jadwal">
                                 <div v-if="item.waktu_mulai || item.waktu_selesai" class="small">
                                     <div>Mulai: {{ item.waktu_mulai ?? 'Bebas' }}</div>
                                     <div class="text-body-secondary">Selesai: {{ item.waktu_selesai ?? 'Bebas' }}</div>
                                 </div>
                                 <Badge v-else color="secondary">Terbuka</Badge>
                             </td>
-                            <td>
+                            <td data-label="Status">
                                 <div v-if="item.attempt">
                                     <div v-if="item.attempt.status === 'selesai'">
                                         <Badge color="success">Selesai</Badge>
-                                        <div class="small fw-bold text-primary mt-1">
+                                        <div class="small fw-bold text-primary mt-1 tabular-nums">
                                             Nilai: {{ item.attempt.skor_100 ?? '-' }}
                                         </div>
                                     </div>
                                     <div v-else-if="item.attempt.status === 'waktu_habis'">
                                         <Badge color="danger">Waktu Habis</Badge>
-                                        <div class="small fw-bold text-primary mt-1">
+                                        <div class="small fw-bold text-primary mt-1 tabular-nums">
                                             Nilai: {{ item.attempt.skor_100 ?? '-' }}
                                         </div>
                                     </div>
@@ -128,7 +127,7 @@ async function mulaiUjian(item: UjianItem) {
                                     <Badge v-else color="secondary">Belum Dibuka / Selesai</Badge>
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="Aksi" class="stack-actions text-md-end">
                                 <div v-if="item.attempt">
                                     <Button
                                         v-if="item.attempt.status === 'sedang_mengerjakan'"
@@ -142,7 +141,7 @@ async function mulaiUjian(item: UjianItem) {
                                     <Button
                                         v-else
                                         :href="item.attempt.action_url"
-                                        color="info"
+                                        color="outline-secondary"
                                         icon="bi-eye"
                                         size="sm"
                                     >

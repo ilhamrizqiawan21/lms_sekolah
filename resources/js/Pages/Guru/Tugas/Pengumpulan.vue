@@ -4,7 +4,8 @@ import { Head } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, MetricStrip, Modal, QuickActionBar, TableWrapper } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card, EmptyState, MetricStrip, Modal, QuickActionBar, TableWrapper } from '../../../Components/UI';
 import SubmissionGradeForm from './Partials/SubmissionGradeForm.vue';
 import SubmissionRow from './Partials/SubmissionRow.vue';
 import type { AssignmentContext, AssignmentSubmission, AssignmentSummary, SubmissionStatus } from '../../../types';
@@ -109,22 +110,19 @@ const statusOptions = [
     <Head title="Pengumpulan Tugas" />
 
     <AppShell title="Pengumpulan Tugas">
-        <DashboardHero
+        <PageHeader
             eyebrow="Penilaian Tugas"
             :title="tugas.judul"
             :subtitle="`${kelasMapel.mata_pelajaran} - ${kelasMapel.kelas}. Deadline ${tugas.batas_waktu ?? '-'}.`"
-            icon="bi-journal-check"
-            tone="teacher"
         >
             <template #actions>
                 <QuickActionBar
                     :actions="[
-                        { label: 'Daftar tugas', href: kelasMapel.back_url, icon: 'bi-arrow-left', color: 'light' },
-                        { label: 'Ringkasan', href: kelasMapel.workspace_url, icon: 'bi-grid-1x2', color: 'light' },
+                        { label: 'Daftar tugas', href: kelasMapel.back_url, icon: 'bi-arrow-left', color: 'outline-secondary' },
                     ]"
                 />
             </template>
-        </DashboardHero>
+        </PageHeader>
 
         <MetricStrip :items="metrics" />
 
@@ -136,12 +134,14 @@ const statusOptions = [
                         <TextInput v-model="search" name="search_siswa" type="search" placeholder="Cari siswa" aria-label="Cari siswa" wrapper-class="" class="form-control-sm" />
                     </div>
                     <SelectInput v-model="statusFilter" name="status_filter" :options="statusOptions" aria-label="Filter status pengumpulan" wrapper-class="" class="form-select-sm" />
-                    <a :href="kelasMapel.export_excel_url" class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Excel
-                    </a>
-                    <a :href="kelasMapel.export_pdf_url" class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>PDF
-                    </a>
+                    <div class="assignment-export-buttons">
+                        <a :href="kelasMapel.export_excel_url" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Excel
+                        </a>
+                        <a :href="kelasMapel.export_pdf_url" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>PDF
+                        </a>
+                    </div>
                 </div>
             </template>
 
@@ -281,7 +281,7 @@ const statusOptions = [
     font-size: 0.8rem;
 }
 
-.assignment-search .form-control {
+.assignment-search :deep(.form-control) {
     padding-left: 30px;
 }
 
@@ -295,6 +295,16 @@ const statusOptions = [
     .assignment-search,
     .assignment-review-actions .form-select {
         width: 100%;
+    }
+
+    .assignment-export-buttons {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .assignment-export-buttons .btn {
+        flex: 1 1 0;
     }
 }
 </style>

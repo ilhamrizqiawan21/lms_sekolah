@@ -4,7 +4,8 @@ import type { PropType } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, IconButton, MetricStrip, TableWrapper } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card, EmptyState, IconButton, MetricStrip, TableWrapper } from '../../../Components/UI';
 
 interface UjianItem {
     id: number;
@@ -86,19 +87,17 @@ async function destroyUjian(item: UjianItem) {
     <Head title="Ujian (CBT)" />
 
     <AppShell title="Ujian (CBT)">
-        <DashboardHero
-            eyebrow="CBT & Penilaian Online"
-            title="Ujian CBT Guru"
+        <PageHeader
+            eyebrow="Ujian CBT"
+            title="Ujian CBT"
             subtitle="Susun dan pantau ujian online pilihan ganda dengan batas waktu, acak soal/opsi, dan autograding."
-            icon="bi-pencil-square"
-            tone="teacher"
         >
             <template #actions>
-                <Button href="/guru/soal-bank" color="light" icon="bi-collection">
+                <Button href="/guru/soal-bank" color="outline-secondary" icon="bi-collection">
                     Kelola Bank Soal
                 </Button>
             </template>
-        </DashboardHero>
+        </PageHeader>
 
         <MetricStrip :metrics="metricsData" class="mb-4" />
 
@@ -130,7 +129,7 @@ async function destroyUjian(item: UjianItem) {
 
         <!-- Semua Ujian Terbaru -->
         <Card title="Daftar Ujian Terbaru" icon="bi-list-task" body-class="p-0">
-            <TableWrapper v-if="ujian.length">
+            <TableWrapper stack v-if="ujian.length">
                 <table class="table table-hover mb-0 app-table-proportional">
                     <colgroup>
                         <col class="u-w-25pct">
@@ -154,26 +153,26 @@ async function destroyUjian(item: UjianItem) {
                     </thead>
                     <tbody>
                         <tr v-for="item in ujian" :key="item.id">
-                            <td>
+                            <td class="stack-title">
                                 <div class="fw-bold">{{ item.judul }}</div>
                                 <div class="small text-body-secondary">{{ item.total_soal }} Butir Soal</div>
                             </td>
-                            <td>
+                            <td data-label="Kelas & Mapel">
                                 <div>{{ item.mata_pelajaran }}</div>
                                 <div class="small text-body-secondary">{{ item.kelas }}</div>
                             </td>
-                            <td>
+                            <td data-label="Kategori">
                                 <Badge color="info">{{ item.kategori_nilai }}</Badge>
                             </td>
-                            <td>{{ item.durasi_menit }} Menit</td>
-                            <td>
+                            <td data-label="Durasi">{{ item.durasi_menit }} Menit</td>
+                            <td data-label="Jadwal Buka">
                                 <div v-if="item.waktu_mulai || item.waktu_selesai" class="small">
                                     <div>{{ item.waktu_mulai ?? 'Sekarang' }}</div>
                                     <div class="text-body-secondary">s/d {{ item.waktu_selesai ?? 'Seterusnya' }}</div>
                                 </div>
                                 <Badge v-else color="secondary">Tanpa Batas Jadwal</Badge>
                             </td>
-                            <td>
+                            <td data-label="Progres Siswa">
                                 <div class="small fw-semibold mb-1">
                                     {{ item.selesai_attempts }} / {{ item.total_siswa }} Siswa
                                 </div>
@@ -181,11 +180,12 @@ async function destroyUjian(item: UjianItem) {
                                     <div
                                         class="progress-bar bg-success"
                                         role="progressbar"
+                                        aria-label="Siswa yang sudah mengerjakan"
                                         :style="{ width: `${item.progress_percent}%` }"
                                     />
                                 </div>
                             </td>
-                            <td>
+                            <td class="stack-actions">
                                 <div class="d-flex gap-1">
                                     <Button
                                         v-if="item.hasil_url"

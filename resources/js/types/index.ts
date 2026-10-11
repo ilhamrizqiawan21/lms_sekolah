@@ -4,7 +4,7 @@ export type { AppPageProps, FlashShare } from './inertia';
 export type { Capabilities, SidebarItem, SidebarMenuByRole, SidebarMenuEntry, SidebarSection } from './navigation';
 export type { NotificationItem, NotificationsShare } from './notifications';
 export type { LaravelPaginator, PaginationLink } from './pagination';
-export type { SchoolBranding, ThemeColors, ThemeShare } from './school';
+export type { AcademicPeriod, SchoolBranding, ThemeColors, ThemeShare } from './school';
 export type {
     CalendarCell,
     CalendarEvent,

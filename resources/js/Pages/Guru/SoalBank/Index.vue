@@ -4,7 +4,8 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { SelectInput, TextareaInput, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, DashboardHero, EmptyState, IconButton, Modal, TableWrapper } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Badge, Button, Card, EmptyState, IconButton, Modal, TableWrapper } from '../../../Components/UI';
 
 interface OpsiItem {
     id?: number;
@@ -195,19 +196,17 @@ const kesulitanBadgeColor = (kesulitan: string) => {
     <Head title="Bank Soal" />
 
     <AppShell title="Bank Soal">
-        <DashboardHero
-            eyebrow="CBT & Ujian"
-            title="Bank Soal Guru"
+        <PageHeader
+            eyebrow="Ujian CBT"
+            title="Bank Soal"
             subtitle="Kelola bank soal pilihan ganda yang dapat digunakan ulang saat membuat ujian CBT."
-            icon="bi-collection-fill"
-            tone="teacher"
         >
             <template #actions>
                 <Button color="primary" icon="bi-plus-lg" @click="openCreateModal">
                     Tambah Soal
                 </Button>
             </template>
-        </DashboardHero>
+        </PageHeader>
 
         <!-- Filter Card -->
         <Card title="Filter Bank Soal" icon="bi-funnel-fill" class="mb-4">
@@ -228,7 +227,7 @@ const kesulitanBadgeColor = (kesulitan: string) => {
                     <Button color="primary" class="w-100" @click="applyFilter">
                         Filter
                     </Button>
-                    <Button color="light" @click="resetFilter">
+                    <Button color="outline-secondary" @click="resetFilter">
                         Reset
                     </Button>
                 </div>
@@ -241,7 +240,7 @@ const kesulitanBadgeColor = (kesulitan: string) => {
                 <span class="text-body-secondary small">Total {{ soalList.length }} butir soal tersedia di bank soal Anda.</span>
             </div>
 
-            <TableWrapper v-if="soalList.length">
+            <TableWrapper stack v-if="soalList.length">
                 <table class="table table-hover mb-0 app-table-proportional">
                     <colgroup>
                         <col class="u-w-4pct">
@@ -265,8 +264,8 @@ const kesulitanBadgeColor = (kesulitan: string) => {
                     </thead>
                     <tbody>
                         <tr v-for="(soal, index) in soalList" :key="soal.id">
-                            <td>{{ index + 1 }}</td>
-                            <td>
+                            <td class="stack-hide">{{ index + 1 }}</td>
+                            <td class="stack-title">
                                 <div class="fw-semibold text-break mb-1">{{ soal.pertanyaan }}</div>
                                 <div class="small text-body-secondary ps-2 border-start">
                                     <div
@@ -281,26 +280,26 @@ const kesulitanBadgeColor = (kesulitan: string) => {
                                     </div>
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="Mata Pelajaran">
                                 <span v-if="soal.mapel">{{ soal.mapel.nama_mapel }}</span>
                                 <span v-else class="text-body-secondary fst-italic">Semua Mapel</span>
                             </td>
-                            <td>
+                            <td data-label="Topik">
                                 <Badge v-if="soal.topik" color="secondary">{{ soal.topik }}</Badge>
                                 <span v-else class="text-body-secondary">-</span>
                             </td>
-                            <td>
+                            <td data-label="Kesulitan">
                                 <Badge :color="kesulitanBadgeColor(soal.kesulitan)">
                                     {{ soal.kesulitan }}
                                 </Badge>
                             </td>
-                            <td>
+                            <td data-label="Kategori">
                                 <Badge v-if="soal.kategori_nilai" color="info">
                                     {{ soal.kategori_nilai }}
                                 </Badge>
                                 <span v-else class="text-body-secondary">-</span>
                             </td>
-                            <td>
+                            <td class="stack-actions">
                                 <div class="d-flex gap-1">
                                     <IconButton
                                         icon="bi-pencil-square"
@@ -437,7 +436,7 @@ const kesulitanBadgeColor = (kesulitan: string) => {
             </form>
 
             <template #footer>
-                <Button type="button" color="light" @click="closeModal">Batal</Button>
+                <Button type="button" color="outline-secondary" @click="closeModal">Batal</Button>
                 <Button type="submit" form="soalBankForm" color="primary" :disabled="form.processing">
                     {{ editingSoal ? 'Simpan Perubahan' : 'Tambahkan Soal' }}
                 </Button>

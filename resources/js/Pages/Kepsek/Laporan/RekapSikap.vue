@@ -91,11 +91,10 @@ function exportUrl(format: 'excel' | 'pdf') {
     <AppShell title="Rekap Sikap">
         <PageHeader
             title="Rekap Sikap Spiritual dan Sosial"
-            icon="bi-heart-fill"
             :subtitle="taAktif ? `TA ${taAktif.tahun} - Semester ${semester}` : `Semester ${semester}`"
         />
 
-        <Card title="Filter" icon="bi-funnel" class="mb-3">
+        <Card title="Filter" class="mb-3">
             <form class="row g-2 app-table-filter" @submit.prevent="applyFilters">
                 <div class="col-md-3">
                     <SearchableSelect
@@ -117,20 +116,20 @@ function exportUrl(format: 'excel' | 'pdf') {
         </Card>
 
         <div v-if="hasSummary" class="d-flex flex-wrap gap-2 mb-3">
-            <a :href="exportUrl('excel')" class="btn btn-sm btn-outline-success">
+            <a :href="exportUrl('excel')" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
             </a>
-            <a :href="exportUrl('pdf')" class="btn btn-sm btn-outline-danger">
+            <a :href="exportUrl('pdf')" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i> PDF
             </a>
         </div>
 
-        <Card title="Sikap Sosial (KI-2)" icon="bi-people-fill" body-class="p-0" class="mb-3">
+        <Card title="Sikap Sosial (KI-2)" body-class="p-0" class="mb-3">
             <template #actions>
-                <Badge color="secondary">{{ sikapSosial.length }} siswa</Badge>
+                <Badge color="secondary" class="tabular-nums">{{ sikapSosial.length }} siswa</Badge>
             </template>
 
-            <TableWrapper v-if="sikapSosial.length">
+            <TableWrapper v-if="sikapSosial.length" :min-width="600">
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -142,11 +141,11 @@ function exportUrl(format: 'excel' | 'pdf') {
                     </thead>
                     <tbody>
                         <tr v-for="item in sikapSosial" :key="`sosial-${item.nomor}-${item.nama_siswa}`">
-                            <td class="text-center">{{ item.nomor }}</td>
-                            <td>{{ item.nama_siswa }}</td>
-                            <td class="d-none d-md-table-cell">{{ item.kelas }}</td>
-                            <td v-for="aspect in sosialAspects" :key="aspect.key" class="text-center">
-                                <Badge :color="scoreBadge(item[aspect.key])">{{ item[aspect.key] }}</Badge>
+                            <td class="text-center tabular-nums" data-label="#">{{ item.nomor }}</td>
+                            <td data-label="Nama Siswa" class="stack-title"><strong>{{ item.nama_siswa }}</strong></td>
+                            <td data-label="Kelas" class="d-none d-md-table-cell">{{ item.kelas }}</td>
+                            <td v-for="aspect in sosialAspects" :key="aspect.key" :data-label="aspect.label" class="text-center">
+                                <Badge :color="scoreBadge(item[aspect.key])" class="tabular-nums">{{ item[aspect.key] }}</Badge>
                             </td>
                         </tr>
                     </tbody>
@@ -156,12 +155,12 @@ function exportUrl(format: 'excel' | 'pdf') {
             <EmptyState v-else title="Belum ada data sikap sosial." icon="bi-people" />
         </Card>
 
-        <Card title="Sikap Spiritual (KI-1)" icon="bi-star-fill" body-class="p-0" class="mb-3">
+        <Card title="Sikap Spiritual (KI-1)" body-class="p-0" class="mb-3">
             <template #actions>
-                <Badge color="secondary">{{ sikapSpiritual.length }} siswa</Badge>
+                <Badge color="secondary" class="tabular-nums">{{ sikapSpiritual.length }} siswa</Badge>
             </template>
 
-            <TableWrapper v-if="sikapSpiritual.length">
+            <TableWrapper v-if="sikapSpiritual.length" :min-width="660">
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -173,11 +172,11 @@ function exportUrl(format: 'excel' | 'pdf') {
                     </thead>
                     <tbody>
                         <tr v-for="item in sikapSpiritual" :key="`spiritual-${item.nomor}-${item.nama_siswa}`">
-                            <td class="text-center">{{ item.nomor }}</td>
-                            <td>{{ item.nama_siswa }}</td>
-                            <td class="d-none d-md-table-cell">{{ item.kelas }}</td>
-                            <td v-for="aspect in spiritualAspects" :key="aspect.key" class="text-center">
-                                <Badge :color="scoreBadge(item[aspect.key])">{{ item[aspect.key] }}</Badge>
+                            <td class="text-center tabular-nums" data-label="#">{{ item.nomor }}</td>
+                            <td data-label="Nama Siswa" class="stack-title"><strong>{{ item.nama_siswa }}</strong></td>
+                            <td data-label="Kelas" class="d-none d-md-table-cell">{{ item.kelas }}</td>
+                            <td v-for="aspect in spiritualAspects" :key="aspect.key" :data-label="aspect.label" class="text-center">
+                                <Badge :color="scoreBadge(item[aspect.key])" class="tabular-nums">{{ item[aspect.key] }}</Badge>
                             </td>
                         </tr>
                     </tbody>
@@ -187,13 +186,13 @@ function exportUrl(format: 'excel' | 'pdf') {
             <EmptyState v-else title="Belum ada data sikap spiritual." icon="bi-star" />
         </Card>
 
-        <Card v-if="hasSummary" title="Ringkasan" icon="bi-info-circle">
+        <Card v-if="hasSummary" title="Ringkasan">
             <div class="row">
                 <div v-if="sikapSosial.length" class="col-md-6 mb-3 mb-md-0">
                     <strong>Sikap Sosial - Rata-rata Semua Siswa:</strong>
                     <div class="summary-grid mt-2">
                         <div v-for="item in sosialSummary" :key="item.key" class="summary-item">
-                            <div class="summary-value">{{ item.value }}</div>
+                            <div class="summary-value tabular-nums">{{ item.value }}</div>
                             <small class="text-body-secondary">{{ item.label }}</small>
                         </div>
                     </div>
@@ -202,7 +201,7 @@ function exportUrl(format: 'excel' | 'pdf') {
                     <strong>Sikap Spiritual - Rata-rata Semua Siswa:</strong>
                     <div class="summary-grid mt-2">
                         <div v-for="item in spiritualSummary" :key="item.key" class="summary-item">
-                            <div class="summary-value">{{ item.value }}</div>
+                            <div class="summary-value tabular-nums">{{ item.value }}</div>
                             <small class="text-body-secondary">{{ item.label }}</small>
                         </div>
                     </div>

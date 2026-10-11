@@ -4,8 +4,10 @@ import type { PropType } from 'vue';
 import type { Announcement } from '../../../types/announcements';
 import type { AppPageProps } from '../../../types/inertia';
 import { computed, ref } from 'vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShell from '../../../Layouts/AppShell.vue';
+import { formatDate, targetLabel } from '../../../utils/announcements';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { FileInput, SelectInput, TextareaInput, TextInput } from '../../../Components/Form';
 
 const page = usePage<AppPageProps>();
@@ -33,8 +35,14 @@ const form = useForm({
 const isAdmin = computed(() => page.props.auth?.user?.role === 'admin');
 const targetOptions = computed(() => [
     ...(isAdmin.value ? [{ value: 'semua', label: 'Semua' }, { value: 'guru', label: 'Guru' }, { value: 'siswa', label: 'Siswa' }] : []),
+    { value: 'semua_kelas', label: 'Semua kelas' },
     { value: 'kelas_mapel', label: 'Kelas tertentu' },
 ]);
+
+const allKelasIds = () => props.targetKelasOptions.map((k) => k.id);
+form.transform((data) => data.target === 'semua_kelas'
+    ? { ...data, target: 'kelas_mapel', target_kelas_ids: allKelasIds() }
+    : data);
 const canPublish = computed(() => ['admin', 'guru'].includes(page.props.auth?.user?.role ?? ''));
 
 function resetForm() {
@@ -56,6 +64,9 @@ function openEdit(item: Announcement) {
     form.isi = item.isi ?? '';
     form.target = item.target ?? 'semua';
     form.target_kelas_ids = Array.isArray(item.target_kelas_ids) ? [...item.target_kelas_ids] : [];
+    if (form.target === 'kelas_mapel' && allKelasIds().length > 0 && allKelasIds().every((id) => form.target_kelas_ids.includes(id))) {
+        form.target = 'semua_kelas';
+    }
     form.is_public_login = Boolean(item.is_public_login);
     form.public_file = null;
     form.remove_public_file = false;
@@ -113,16 +124,16 @@ async function remove(item: Announcement) {
 </script>
 
 <template>
+    <Head title="Pengumuman" />
+
     <AppShell title="Pengumuman">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-            <div>
-                <h1 class="h3 mb-1">Pengumuman</h1>
-                <p class="text-body-secondary mb-0">Kelola informasi resmi sekolah dan distribusi kepada pengguna.</p>
-            </div>
-            <Button color="primary" size="" v-if="canPublish" type="button" @click="showForm ? (showForm = false) : openCreate()">
-                <i class="bi bi-plus-lg me-1"></i>{{ showForm ? 'Tutup Form' : 'Buat Pengumuman' }}
-            </Button>
-        </div>
+        <PageHeader title="Pengumuman" subtitle="Informasi resmi sekolah dan distribusinya kepada pengguna.">
+            <template v-if="canPublish" #actions>
+                <Button color="primary" size="" type="button" :icon="showForm ? 'bi-x-lg' : 'bi-plus-lg'" @click="showForm ? (showForm = false) : openCreate()">
+                    {{ showForm ? 'Tutup Form' : 'Buat Pengumuman' }}
+                </Button>
+            </template>
+        </PageHeader>
 
         <Card v-if="showForm" class="mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -208,11 +219,11 @@ async function remove(item: Announcement) {
                     <div class="d-flex justify-content-between gap-3">
                         <div>
                             <h5 class="mb-1">{{ item.judul }}</h5>
-                            <div class="small text-body-secondary">{{ item.creator?.nama_lengkap || '-' }} · {{ new Date(item.created_at).toLocaleDateString('id-ID') }}</div>
+                            <div class="small text-body-secondary">{{ item.creator?.nama_lengkap || '-' }} · {{ formatDate(item.created_at) }}</div>
                         </div>
                         <div class="d-flex flex-wrap gap-2 justify-content-end">
                             <Badge v-if="item.is_public_login" color="success" class="align-self-start">Login publik</Badge>
-                            <Badge color="secondary" class="align-self-start">{{ item.target }}</Badge>
+                            <Badge color="secondary" class="align-self-start">{{ targetLabel(item.target) }}</Badge>
                         </div>
                     </div>
                     <p class="mt-3 mb-3 text-secondary u-ws-pre-line">{{ item.isi }}</p>

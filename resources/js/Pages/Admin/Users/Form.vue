@@ -5,7 +5,8 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { SelectInput, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Button, Card, DashboardHero } from '../../../Components/UI';
+import PageHeader from '../../../Components/AppShell/PageHeader.vue';
+import { Button, Card } from '../../../Components/UI';
 
 const props = defineProps({
     user: { type: Object as PropType<{ username: string; nama_lengkap: string; email: string | null; role_id: number; nip_nis: string | null; jenis_kelamin: string | null; is_active: boolean; update_url: string } | null>, default: null },
@@ -50,12 +51,10 @@ function submit() {
     <Head :title="pageTitle" />
 
     <AppShell :title="pageTitle">
-        <DashboardHero
+        <PageHeader
             eyebrow="Administrasi Sekolah"
             :title="pageTitle"
             :subtitle="isEdit ? 'Perbarui identitas dan akses akun.' : 'Buat akun guru, staf, atau administrator sekolah.'"
-            :icon="isEdit ? 'bi-person-gear' : 'bi-person-plus-fill'"
-            tone="admin"
         />
 
         <form @submit.prevent="submit">

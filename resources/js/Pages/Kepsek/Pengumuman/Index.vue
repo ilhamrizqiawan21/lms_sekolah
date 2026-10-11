@@ -18,7 +18,6 @@ const props = defineProps({
     <AppShell title="Pengumuman">
         <PageHeader
             title="Pengumuman"
-            icon="bi-megaphone"
             subtitle="Pantau informasi resmi sekolah tanpa mengubah atau mengelola pengumuman."
         />
 

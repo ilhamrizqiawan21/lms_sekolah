@@ -22,11 +22,11 @@ function formatFileSize(bytes: number | null) {
 <template>
     <Head title="Detail Pengumuman" />
     <AppShell title="Detail Pengumuman">
-        <PageHeader title="Detail Pengumuman" icon="bi-megaphone" />
+        <PageHeader title="Detail Pengumuman" />
         <div class="mb-3"><Link :href="backUrl" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Kembali ke Pengumuman</Link></div>
         <Card body-class="p-4">
                 <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
-                    <div><h1 class="h3 mb-1">{{ pengumuman.judul }}</h1><div class="text-body-secondary small">{{ pengumuman.creator?.nama_lengkap || '-' }} · {{ new Date(pengumuman.created_at).toLocaleString('id-ID') }}</div></div>
+                    <div><h2 class="h3 mb-1">{{ pengumuman.judul }}</h2><div class="text-body-secondary small">{{ pengumuman.creator?.nama_lengkap || '-' }} · {{ new Date(pengumuman.created_at).toLocaleString('id-ID') }}</div></div>
                     <Badge color="success">{{ pengumuman.target }}</Badge>
                 </div>
                 <hr>

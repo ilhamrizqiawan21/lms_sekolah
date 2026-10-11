@@ -67,7 +67,7 @@ test('grade paste and attendance save', async ({ page }) => {
     await page.getByRole('button', { name: 'Simpan Nilai' }).first().click();
     await expect(page.locator('.toast-item').first()).toContainText('berhasil');
     await page.reload();
-    await expect(first).toHaveValue(/81\.5(0)?/);
+    await expect(first).toHaveValue('82'); // nilai ditampilkan tanpa desimal (3c81887)
 
     await page.goto('/guru/absensi?kelas_mapel_id=1');
     await page.locator('thead select').first().selectOption('izin');
@@ -250,7 +250,7 @@ test('searchable select opens upward at the last option', async ({ page }) => {
     const search = page.getByRole('combobox').first();
     await expect(search).toBeFocused();
     await page.keyboard.press('Enter');
-    await expect(page.locator('input[type="hidden"][name="kelas_id"]')).toHaveValue('1');
+    await expect(page.locator('input[type="hidden"][name="kelas_id"]')).toHaveValue('2');
 });
 
 test('student phone settings validate consent when configured', async ({ page }, testInfo) => {

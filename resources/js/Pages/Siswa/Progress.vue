@@ -127,7 +127,6 @@ onBeforeUnmount(() => {
     <AppShell title="Progress Saya">
         <PageHeader
             title="Progress Belajar"
-            icon="bi-graph-up-arrow"
             :subtitle="subtitle"
         />
 
@@ -135,7 +134,7 @@ onBeforeUnmount(() => {
             <div class="stat-card">
                 <div class="stat-icon"><i class="bi bi-star-fill" aria-hidden="true"></i></div>
                 <div>
-                    <div class="stat-number">{{ stats.rata_nilai_label }}</div>
+                    <div class="stat-number tabular-nums">{{ stats.rata_nilai_label }}</div>
                     <div class="stat-label">Rata-rata Nilai</div>
                     <small class="text-body-secondary">
                         {{ stats.mapel_dinilai }} dari {{ stats.total_mapel }} mapel sudah memiliki nilai
@@ -146,9 +145,9 @@ onBeforeUnmount(() => {
             <div class="stat-card">
                 <div class="stat-icon"><i class="bi bi-calendar-check-fill" aria-hidden="true"></i></div>
                 <div class="w-100">
-                    <div class="stat-number">{{ stats.persen_hadir }}%</div>
+                    <div class="stat-number tabular-nums">{{ stats.persen_hadir }}%</div>
                     <div class="stat-label">Kehadiran {{ stats.bulan_label }}</div>
-                    <div class="progress mt-2" role="progressbar" :aria-valuenow="stats.persen_hadir" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress mt-2" role="progressbar" :aria-valuenow="stats.persen_hadir" aria-valuemin="0" aria-valuemax="100" aria-label="Persentase kehadiran">
                         <div class="progress-bar bg-primary" :style="{ width: `${stats.persen_hadir}%` }"></div>
                     </div>
                     <small class="text-body-secondary">H {{ stats.hadir }} · S {{ stats.sakit }} · I {{ stats.izin }} · A {{ stats.alpha }}</small>
@@ -158,9 +157,9 @@ onBeforeUnmount(() => {
             <div class="stat-card">
                 <div class="stat-icon"><i class="bi bi-clipboard-check-fill" aria-hidden="true"></i></div>
                 <div class="w-100">
-                    <div class="stat-number">{{ stats.persen_pengumpulan }}%</div>
+                    <div class="stat-number tabular-nums">{{ stats.persen_pengumpulan }}%</div>
                     <div class="stat-label">Pengumpulan Tugas</div>
-                    <div class="progress mt-2" role="progressbar" :aria-valuenow="stats.persen_pengumpulan" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress mt-2" role="progressbar" :aria-valuenow="stats.persen_pengumpulan" aria-valuemin="0" aria-valuemax="100" aria-label="Persentase pengumpulan tugas">
                         <div class="progress-bar bg-primary" :style="{ width: `${stats.persen_pengumpulan}%` }"></div>
                     </div>
                     <small class="text-body-secondary">
@@ -174,7 +173,7 @@ onBeforeUnmount(() => {
 
         <div class="row g-4 mb-4">
             <div class="col-lg-5">
-                <Card title="Fokus Belajar" icon="bi-bullseye">
+                <Card title="Fokus Belajar">
                     <div v-if="focusItems.length" class="focus-list">
                         <article
                             v-for="(item, index) in focusItems"
@@ -205,7 +204,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="col-lg-7">
-                <Card title="Perkembangan Komponen Nilai" icon="bi-activity">
+                <Card title="Perkembangan Komponen Nilai">
                     <div v-if="hasTrend" class="trend-panel">
                         <div class="trend-summary">
                             <span>Rata-rata lintas mata pelajaran pada komponen yang sudah dinilai.</span>
@@ -235,7 +234,7 @@ onBeforeUnmount(() => {
             </div>
         </div>
 
-        <Card title="Performa Mata Pelajaran" icon="bi-journal-check">
+        <Card title="Performa Mata Pelajaran">
             <div v-if="subjectScores.length" class="subject-list">
                 <article v-for="item in subjectScores" :key="item.kelas_mapel_id" class="subject-item">
                     <div class="subject-heading">
@@ -247,12 +246,12 @@ onBeforeUnmount(() => {
                             </div>
                         </div>
                         <div class="subject-score">
-                            <strong>{{ item.rata_label }}</strong>
+                            <strong class="tabular-nums">{{ item.rata_label }}</strong>
                             <Badge :color="item.status_tone">{{ item.status_label }}</Badge>
                         </div>
                     </div>
 
-                    <div v-if="item.rata !== null" class="progress subject-progress" role="progressbar" :aria-valuenow="item.rata" aria-valuemin="0" aria-valuemax="100">
+                    <div v-if="item.rata !== null" class="progress subject-progress" role="progressbar" :aria-valuenow="item.rata" aria-valuemin="0" aria-valuemax="100" :aria-label="`Capaian nilai ${item.nama_mapel}`">
                         <div
                             class="progress-bar"
                             :class="item.status_tone === 'success' ? 'bg-primary' : 'subject-progress-warning'"

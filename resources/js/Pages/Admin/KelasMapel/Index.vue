@@ -5,20 +5,15 @@ interface Homeroom { id: number; kelas: string; guru: string; tahun_ajaran: stri
 interface Teaching extends Homeroom { mapel: string; mapel_kode: string; semester: string; pertemuan_per_minggu: number }
 interface Schedule { id: number; guru: string; hari: string; pelajaran_ke: number; kelas_mapel: string; delete_url: string }
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { SearchableSelect, SelectInput, TextInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
 import {
-    ActionQueue,
     Badge,
     Button,
-    CourseCard,
     EmptyState,
     IconButton,
-    MetricStrip,
     Pagination,
-    QuickActionBar,
     TableWrapper,
 } from '../../../Components/UI';
 
@@ -51,30 +46,6 @@ const semesterOptions = [
     { value: '1', label: 'Semester 1 (Ganjil)' },
     { value: '2', label: 'Semester 2 (Genap)' },
 ];
-
-const metrics = computed(() => [
-    { label: 'Pengajaran', value: props.kelasMapel.total ?? props.kelasMapel.data?.length ?? 0, icon: 'bi-diagram-3-fill', tone: 'primary' },
-    { label: 'Wali Kelas', value: props.waliKelas.total ?? props.waliKelas.data?.length ?? 0, icon: 'bi-person-badge-fill', tone: 'success' },
-    { label: 'Guru Aktif', value: props.guruOptions.length, icon: 'bi-person-workspace', tone: 'info' },
-    { label: 'Tahun Ajaran', value: props.tahunAjaranOptions.length, icon: 'bi-calendar-event', tone: 'warning' },
-]);
-
-const quickActions = [
-    { label: 'Data Kelas', href: '/admin/kelas', icon: 'bi-building', color: 'light' },
-    { label: 'Mata Pelajaran', href: '/admin/mata-pelajaran', icon: 'bi-book', color: 'light' },
-    { label: 'Guru & Staf', href: '/admin/users', icon: 'bi-people', color: 'light' },
-];
-
-const latestAssignments = computed(() => props.kelasMapel.data?.slice(0, 5).map((item) => ({
-    id: item.id,
-    title: item.mapel,
-    meta: `${item.kelas} - ${item.guru}`,
-    detail: `Semester ${item.semester} - ${item.tahun_ajaran}`,
-    badge: `${item.pertemuan_per_minggu}x`,
-    badgeColor: 'primary',
-    icon: 'bi-book',
-    accent: 'var(--accent-blue)',
-})) ?? []);
 
 function submitTeaching() {
     if (teachingForm.processing) {
@@ -152,47 +123,10 @@ async function destroySchedule(item: Schedule) {
 
     <AppShell title="Penugasan Guru">
         <PageHeader
+            eyebrow="Master Data"
             title="Penugasan Guru"
             subtitle="Atur guru pengampu mata pelajaran, beban pertemuan, dan wali kelas."
-            icon="bi-diagram-3-fill"
-        >
-            <template #actions>
-                <QuickActionBar :actions="quickActions" />
-            </template>
-        </PageHeader>
-
-        <MetricStrip :items="metrics" />
-
-        <div class="dashboard-grid assignment-overview-grid">
-            <CourseCard
-                title="Pengajaran Mapel"
-                :subtitle="`${kelasMapel.total ?? kelasMapel.data?.length ?? 0} kombinasi kelas, mapel, guru`"
-                meta="Akademik"
-                icon="bi-diagram-3-fill"
-                accent="var(--accent-blue)"
-                :stats="[
-                    { value: kelasOptions.length, label: 'kelas' },
-                    { value: mapelOptions.length, label: 'mapel' },
-                ]"
-            />
-            <CourseCard
-                title="Wali Kelas"
-                :subtitle="`${waliKelas.total ?? waliKelas.data?.length ?? 0} wali kelas terdaftar`"
-                meta="Pembinaan"
-                icon="bi-person-badge-fill"
-                accent="var(--accent-green)"
-                :stats="[
-                    { value: guruOptions.length, label: 'guru aktif' },
-                    { value: tahunAjaranOptions.length, label: 'tahun ajaran' },
-                ]"
-            />
-            <ActionQueue
-                title="Pengajaran Terbaru"
-                icon="bi-clock-history"
-                :items="latestAssignments"
-                empty-title="Belum ada pengajaran"
-            />
-        </div>
+        />
 
         <div class="dashboard-grid assignment-grid">
             <section class="workspace-panel">
@@ -340,7 +274,7 @@ async function destroySchedule(item: Schedule) {
                 </span>
                 <Badge color="primary">{{ kelasMapel.total ?? kelasMapel.data?.length ?? 0 }} penugasan</Badge>
             </header>
-                    <TableWrapper v-if="kelasMapel.data?.length">
+                    <TableWrapper stack v-if="kelasMapel.data?.length">
                         <table class="table table-hover app-table mb-0">
                             <thead>
                                 <tr>
@@ -355,16 +289,16 @@ async function destroySchedule(item: Schedule) {
                             </thead>
                             <tbody>
                                 <tr v-for="item in kelasMapel.data" :key="item.id">
-                                    <td><strong>{{ item.kelas }}</strong></td>
-                                    <td>
+                                    <td data-label="Kelas"><strong>{{ item.kelas }}</strong></td>
+                                    <td class="stack-title">
                                         <Badge color="secondary">{{ item.mapel_kode }}</Badge>
                                         <span class="ms-2">{{ item.mapel }}</span>
                                     </td>
-                                    <td>{{ item.guru }}</td>
-                                    <td>{{ item.pertemuan_per_minggu }}x/minggu</td>
-                                    <td><Badge color="info">Semester {{ item.semester }}</Badge></td>
-                                    <td>{{ item.tahun_ajaran }}</td>
-                                    <td class="table-action-column">
+                                    <td data-label="Guru">{{ item.guru }}</td>
+                                    <td data-label="Pertemuan">{{ item.pertemuan_per_minggu }}x/minggu</td>
+                                    <td data-label="Semester"><Badge color="info">Semester {{ item.semester }}</Badge></td>
+                                    <td data-label="Tahun">{{ item.tahun_ajaran }}</td>
+                                    <td class="table-action-column stack-actions">
                                         <div class="d-flex justify-content-end gap-1">
                                             <IconButton
                                                 icon="bi-trash"
@@ -393,7 +327,7 @@ async function destroySchedule(item: Schedule) {
                 </span>
                 <Badge color="success">{{ waliKelas.total ?? waliKelas.data?.length ?? 0 }} wali kelas</Badge>
             </header>
-                    <TableWrapper v-if="waliKelas.data?.length">
+                    <TableWrapper stack v-if="waliKelas.data?.length">
                         <table class="table table-hover app-table mb-0">
                             <thead>
                                 <tr>
@@ -405,10 +339,10 @@ async function destroySchedule(item: Schedule) {
                             </thead>
                             <tbody>
                                 <tr v-for="item in waliKelas.data" :key="item.id">
-                                    <td><strong>{{ item.kelas }}</strong></td>
-                                    <td>{{ item.guru }}</td>
-                                    <td>{{ item.tahun_ajaran }}</td>
-                                    <td class="table-action-column">
+                                    <td data-label="Kelas"><strong>{{ item.kelas }}</strong></td>
+                                    <td class="stack-title">{{ item.guru }}</td>
+                                    <td data-label="Tahun Ajaran">{{ item.tahun_ajaran }}</td>
+                                    <td class="table-action-column stack-actions">
                                         <div class="d-flex justify-content-end gap-1">
                                             <IconButton
                                                 icon="bi-trash"
@@ -437,7 +371,7 @@ async function destroySchedule(item: Schedule) {
                 </span>
                 <Badge color="primary">{{ jadwalMengajar.length }} slot</Badge>
             </header>
-            <TableWrapper v-if="jadwalMengajar.length">
+            <TableWrapper stack v-if="jadwalMengajar.length">
                 <table class="table table-hover app-table mb-0">
                     <thead>
                         <tr>
@@ -450,11 +384,11 @@ async function destroySchedule(item: Schedule) {
                     </thead>
                     <tbody>
                         <tr v-for="item in jadwalMengajar" :key="item.id">
-                            <td><strong>{{ item.guru }}</strong></td>
-                            <td><Badge color="primary">{{ item.hari }}</Badge></td>
-                            <td>Pelajaran ke-{{ item.pelajaran_ke }}</td>
-                            <td>{{ item.kelas_mapel }}</td>
-                            <td class="table-action-column">
+                            <td class="stack-title"><strong>{{ item.guru }}</strong></td>
+                            <td data-label="Hari"><Badge color="primary">{{ item.hari }}</Badge></td>
+                            <td data-label="Jam">Pelajaran ke-{{ item.pelajaran_ke }}</td>
+                            <td data-label="Kelas/Mapel">{{ item.kelas_mapel }}</td>
+                            <td class="table-action-column stack-actions">
                                 <IconButton
                                     icon="bi-trash"
                                     :label="`Hapus jadwal ${item.guru}`"
@@ -472,16 +406,11 @@ async function destroySchedule(item: Schedule) {
 </template>
 
 <style scoped>
-.assignment-overview-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .assignment-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 @media (max-width: 900px) {
-    .assignment-overview-grid,
     .assignment-grid {
         grid-template-columns: 1fr;
     }

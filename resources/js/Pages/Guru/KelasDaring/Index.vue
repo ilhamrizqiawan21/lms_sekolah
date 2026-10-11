@@ -108,7 +108,7 @@ async function destroySession(session: OnlineSession) {
 
             <div class="col-lg-7">
                 <Card title="Histori Kelas Daring" icon="bi-camera-video" body-class="p-0">
-                    <TableWrapper v-if="sessions.length">
+                    <TableWrapper stack v-if="sessions.length">
                         <table class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
@@ -120,23 +120,24 @@ async function destroySession(session: OnlineSession) {
                             </thead>
                             <tbody>
                                 <tr v-for="session in sessions" :key="session.id">
-                                    <td>
+                                    <td class="stack-title">
                                         <strong>{{ session.judul }}</strong>
                                         <div class="text-body-secondary small">{{ session.kelas_mapel }}</div>
                                         <a :href="session.meeting_url" target="_blank" rel="noopener noreferrer" class="small">Buka link</a>
                                     </td>
-                                    <td>{{ session.tanggal }}<div class="text-body-secondary small">Pelajaran ke-{{ session.pelajaran_ke }}</div></td>
-                                    <td>
+                                    <td data-label="Jadwal">{{ session.tanggal }}<div class="text-body-secondary small">Pelajaran ke-{{ session.pelajaran_ke }}</div></td>
+                                    <td data-label="Status">
                                         <Badge :color="statusColor(session.status)">{{ session.status }}</Badge>
                                         <SelectInput
                                             :model-value="session.status"
                                             name="status_inline"
+                                            :aria-label="`Status sesi ${session.judul}`"
                                             wrapper-class="mt-2 mb-0"
                                             :options="statusOptions"
                                             @update:model-value="updateStatus(session, $event)"
                                         />
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end stack-actions">
                                         <Button type="button" color="outline-danger" icon="bi-trash" @click="destroySession(session)">Hapus</Button>
                                     </td>
                                 </tr>

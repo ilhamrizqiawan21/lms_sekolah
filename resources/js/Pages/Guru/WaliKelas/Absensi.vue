@@ -76,11 +76,7 @@ function submit() {
     <Head title="Absensi Wali Kelas" />
 
     <AppShell title="Absensi Wali Kelas">
-        <PageHeader title="Absensi Wali Kelas" icon="bi-clipboard-check-fill">
-            <template #actions>
-                <Badge color="primary">{{ waliKelas.kelas }}</Badge>
-            </template>
-        </PageHeader>
+        <PageHeader eyebrow="Wali Kelas" :title="`Absensi Harian · ${waliKelas.kelas}`" subtitle="Catat kehadiran harian siswa di kelas perwalian Anda." />
 
         <div class="row gy-4">
             <div class="col-12">
@@ -113,13 +109,11 @@ function submit() {
                             <Badge color="danger">A=Alpha</Badge>
                         </div>
 
-                        <TableWrapper>
+                        <TableWrapper :scroll-hint="false">
                             <table class="table table-bordered table-hover mb-0 wali-attendance-table">
                                 <thead>
                                     <tr>
-                                        <th scope="col" class="text-center u-w-44px">No</th>
-                                        <th scope="col" class="u-minw-90px">NIS</th>
-                                        <th scope="col" class="u-minw-180px">Nama</th>
+                                        <th scope="col" class="grid-sticky-col u-minw-180px">Siswa</th>
                                         <th scope="col"
                                             v-for="tanggal in tanggalList"
                                             :key="tanggal.key"
@@ -130,10 +124,11 @@ function submit() {
                                         </th>
                                     </tr>
                                     <tr>
-                                        <td colspan="3"></td>
+                                        <th scope="row" class="grid-sticky-col identity-cell"><span class="identity-meta">Isi satu kolom</span></th>
                                         <td v-for="tanggal in tanggalList" :key="`fill-${tanggal.key}`" class="text-center p-1">
                                             <select
                                                 class="form-select form-select-sm wali-attendance-select"
+                                                :aria-label="`Isi semua siswa, ${tanggal.day} ${tanggal.label}`"
                                                 @change="fillColumn(tanggal.key, $event)"
                                             >
                                                 <option value="">-</option>
@@ -147,12 +142,14 @@ function submit() {
                                 </thead>
                                 <tbody>
                                     <tr v-for="student in students" :key="student.id">
-                                        <td class="text-center text-body-secondary align-middle">{{ student.no }}</td>
-                                        <td class="align-middle">{{ student.nis }}</td>
-                                        <td class="align-middle"><strong>{{ student.nama }}</strong></td>
+                                        <th scope="row" class="grid-sticky-col identity-cell">
+                                            <span class="identity-name">{{ student.nama }}</span>
+                                            <span class="identity-meta">{{ student.no }}. NIS {{ student.nis }}</span>
+                                        </th>
                                         <td v-for="tanggal in tanggalList" :key="`${student.id}-${tanggal.key}`" class="p-1 text-center align-middle">
                                             <select
                                                 v-model="form.absensi[String(student.id)][tanggal.key]"
+                                                :aria-label="`${student.nama}, ${tanggal.day} ${tanggal.label}`"
                                                 class="form-select form-select-sm wali-attendance-select"
                                                 :class="statusClass(form.absensi[String(student.id)][tanggal.key])"
                                             >
@@ -165,7 +162,7 @@ function submit() {
                                         </td>
                                     </tr>
                                     <tr v-if="!students.length">
-                                        <td :colspan="3 + tanggalList.length">
+                                        <td :colspan="1 + tanggalList.length">
                                             <EmptyState title="Tidak ada siswa aktif di kelas ini." icon="bi-people" />
                                         </td>
                                     </tr>
@@ -173,16 +170,18 @@ function submit() {
                             </table>
                         </TableWrapper>
 
-                        <template #footer>
-                            <div class="d-flex flex-column flex-sm-row justify-content-between gap-2">
-                                <a :href="waliKelas.back_url" class="btn btn-outline-secondary btn-sm">
-                                    <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Kembali
-                                </a>
-                                <Button type="submit" color="success" icon="bi-save" :disabled="form.processing">
-                                    {{ form.processing ? 'Menyimpan...' : 'Simpan Absensi' }}
-                                </Button>
-                            </div>
-                        </template>
+                        <div class="sticky-savebar">
+                            <a :href="waliKelas.back_url" class="btn btn-outline-secondary" aria-label="Kembali">
+                                <i class="bi bi-arrow-left" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">Kembali</span>
+                            </a>
+                            <span class="sticky-savebar-status" role="status" aria-live="polite">
+                                <template v-if="form.isDirty"><i class="bi bi-circle-fill dirty-dot" aria-hidden="true"></i>Belum disimpan<span class="d-none d-sm-inline">: ada perubahan absensi</span></template>
+                                <template v-else-if="form.recentlySuccessful"><i class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></i>Tersimpan</template>
+                            </span>
+                            <Button type="submit" color="primary" icon="bi-save" :loading="form.processing">
+                                {{ form.processing ? 'Menyimpan...' : 'Simpan Absensi' }}
+                            </Button>
+                        </div>
                     </Card>
                 </form>
             </div>

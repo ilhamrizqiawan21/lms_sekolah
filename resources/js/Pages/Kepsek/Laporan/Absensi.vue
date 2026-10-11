@@ -84,10 +84,9 @@ function exportUrl(format: 'excel' | 'pdf') {
     <AppShell title="Laporan Absensi">
         <PageHeader
             title="Laporan Absensi"
-            icon="bi-clipboard-data-fill"
         />
 
-        <Card title="Filter" icon="bi-funnel" class="mb-3">
+        <Card title="Filter" class="mb-3">
             <form class="row g-2 app-table-filter" @submit.prevent="applyFilters">
                 <div class="col-md-3">
                     <SearchableSelect
@@ -147,13 +146,13 @@ function exportUrl(format: 'excel' | 'pdf') {
                 <div class="content-summary-text">Menampilkan {{ absensi.data.length }} baris data berdasarkan filter aktif saat ini.</div>
             </div>
             <div class="content-summary-actions">
-                <Button :href="exportUrl('excel')" color="outline-success" icon="bi-file-earmark-excel" size="sm">Excel</Button>
-                <Button :href="exportUrl('pdf')" color="outline-danger" icon="bi-file-earmark-pdf" size="sm">PDF</Button>
+                <Button :href="exportUrl('excel')" color="outline-secondary" icon="bi-file-earmark-excel" size="sm">Excel</Button>
+                <Button :href="exportUrl('pdf')" color="outline-secondary" icon="bi-file-earmark-pdf" size="sm">PDF</Button>
             </div>
         </div>
 
         <Card body-class="p-0">
-            <TableWrapper v-if="absensi.data.length">
+            <TableWrapper v-if="absensi.data.length" :min-width="640">
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -168,13 +167,13 @@ function exportUrl(format: 'excel' | 'pdf') {
                     </thead>
                     <tbody>
                         <tr v-for="item in absensi.data" :key="item.id">
-                            <td class="text-center">{{ item.nomor }}</td>
-                            <td>{{ item.nama_siswa }}</td>
-                            <td>{{ item.kelas }}</td>
-                            <td>{{ item.mapel }}</td>
-                            <td>{{ item.tanggal }}</td>
-                            <td><Badge :color="statusBadge(item.status)">{{ statusLabel(item.status) }}</Badge></td>
-                            <td>{{ item.keterangan }}</td>
+                            <td class="text-center tabular-nums" data-label="#">{{ item.nomor }}</td>
+                            <td data-label="Nama Siswa" class="stack-title"><strong>{{ item.nama_siswa }}</strong></td>
+                            <td data-label="Kelas">{{ item.kelas }}</td>
+                            <td data-label="Mapel">{{ item.mapel }}</td>
+                            <td data-label="Tanggal" class="tabular-nums">{{ item.tanggal }}</td>
+                            <td data-label="Status"><Badge :color="statusBadge(item.status)">{{ statusLabel(item.status) }}</Badge></td>
+                            <td data-label="Keterangan">{{ item.keterangan || '-' }}</td>
                         </tr>
                     </tbody>
                 </table>

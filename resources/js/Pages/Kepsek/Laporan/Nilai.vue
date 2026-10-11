@@ -72,11 +72,10 @@ function exportUrl(format: 'excel' | 'pdf') {
     <AppShell title="Laporan Nilai">
         <PageHeader
             title="Laporan Nilai"
-            icon="bi-bar-chart-fill"
             :subtitle="taAktif ? `Tahun ajaran ${taAktif.tahun}` : 'Tahun ajaran aktif belum tersedia'"
         />
 
-        <Card title="Laporan Nilai Akhir" icon="bi-bar-chart-fill">
+        <Card title="Laporan Nilai Akhir">
             <form class="row g-3 app-table-filter mb-3" @submit.prevent="applyFilters">
                 <div class="col-md-3">
                     <SearchableSelect
@@ -121,12 +120,12 @@ function exportUrl(format: 'excel' | 'pdf') {
                     <div class="content-summary-text">Menampilkan {{ nilai.data.length }} entri hasil pencarian dengan data akhir yang dapat diekspor.</div>
                 </div>
                 <div class="content-summary-actions">
-                    <Button :href="exportUrl('excel')" color="outline-success" icon="bi-file-earmark-excel" size="sm">Excel</Button>
-                    <Button :href="exportUrl('pdf')" color="outline-danger" icon="bi-file-earmark-pdf" size="sm">PDF</Button>
+                    <Button :href="exportUrl('excel')" color="outline-secondary" icon="bi-file-earmark-excel" size="sm">Excel</Button>
+                    <Button :href="exportUrl('pdf')" color="outline-secondary" icon="bi-file-earmark-pdf" size="sm">PDF</Button>
                 </div>
             </div>
 
-            <TableWrapper v-if="nilai.data.length">
+            <TableWrapper v-if="nilai.data.length" :min-width="860">
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -146,18 +145,18 @@ function exportUrl(format: 'excel' | 'pdf') {
                     </thead>
                     <tbody>
                         <tr v-for="item in nilai.data" :key="item.id">
-                            <td>{{ item.siswa }}</td>
-                            <td>{{ item.kelas }}</td>
-                            <td>{{ item.mapel }}</td>
-                            <td>{{ valueOrDash(item.sum1) }}</td>
-                            <td>{{ valueOrDash(item.sum2) }}</td>
-                            <td>{{ valueOrDash(item.sum3) }}</td>
-                            <td>{{ valueOrDash(item.sum4) }}</td>
-                            <td>{{ valueOrDash(item.nilai_harian) }}</td>
-                            <td>{{ valueOrDash(item.sts) }}</td>
-                            <td>{{ valueOrDash(item.sas) }}</td>
-                            <td>{{ valueOrDash(item.sat) }}</td>
-                            <td><strong>{{ valueOrDash(item.rata_akhir) }}</strong></td>
+                            <td data-label="Siswa" class="stack-title"><strong>{{ item.siswa }}</strong></td>
+                            <td data-label="Kelas">{{ item.kelas }}</td>
+                            <td data-label="Mapel">{{ item.mapel }}</td>
+                            <td data-label="Sum 1" class="tabular-nums">{{ valueOrDash(item.sum1) }}</td>
+                            <td data-label="Sum 2" class="tabular-nums">{{ valueOrDash(item.sum2) }}</td>
+                            <td data-label="Sum 3" class="tabular-nums">{{ valueOrDash(item.sum3) }}</td>
+                            <td data-label="Sum 4" class="tabular-nums">{{ valueOrDash(item.sum4) }}</td>
+                            <td data-label="Nilai Harian" class="tabular-nums">{{ valueOrDash(item.nilai_harian) }}</td>
+                            <td data-label="STS" class="tabular-nums">{{ valueOrDash(item.sts) }}</td>
+                            <td data-label="SAS" class="tabular-nums">{{ valueOrDash(item.sas) }}</td>
+                            <td data-label="SAT" class="tabular-nums">{{ valueOrDash(item.sat) }}</td>
+                            <td data-label="Rata Akhir" class="tabular-nums"><strong>{{ valueOrDash(item.rata_akhir) }}</strong></td>
                         </tr>
                     </tbody>
                 </table>

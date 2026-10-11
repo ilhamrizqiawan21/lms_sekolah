@@ -46,6 +46,7 @@ const describedBy = computed(() => [helpId.value, errorId.value].filter(Boolean)
             :class="{ 'is-invalid': error }"
             :aria-describedby="describedBy"
             :aria-invalid="error ? 'true' : undefined"
+            :aria-label="label ? undefined : (placeholder || name)"
             v-bind="$attrs"
             @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
         >

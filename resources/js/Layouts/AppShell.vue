@@ -11,7 +11,7 @@ import { sidebarMenu } from '../Components/AppShell/sidebarMenu';
 import type { AppPageProps } from '../types';
 
 interface Props { title?: string; }
-const props = withDefaults(defineProps<Props>(), { title: '' });
+withDefaults(defineProps<Props>(), { title: '' });
 
 const page = usePage<AppPageProps>();
 const sidebarOpen = ref(false);
@@ -21,7 +21,7 @@ const school = computed(() => page.props.school);
 const user = computed(() => page.props.auth?.user ?? null);
 const notifications = computed(() => page.props.notifications);
 const capabilities = computed(() => page.props.capabilities);
-const pageTitle = computed(() => props.title || document.title.replace(' - LMS Sekolah', '') || 'Dashboard');
+const academic = computed(() => page.props.academic ?? null);
 const shellClass = computed(() => `app-shell app-shell-${user.value?.role ?? 'guest'}`);
 const sidebarOverlayVisible = computed(() => isMobileViewport.value && sidebarOpen.value);
 const commandItems = computed(() => sidebarMenu(user.value?.role, capabilities.value));
@@ -69,7 +69,7 @@ function closeSidebar() {
         <Topbar
             :school="school"
             :user="user"
-            :page-title="pageTitle"
+            :academic="academic"
             :notifications="notifications"
             :sidebar-open="sidebarOpen"
             @toggle-sidebar="sidebarOpen = !sidebarOpen"
@@ -81,6 +81,7 @@ function closeSidebar() {
             :school="school"
             :user="user"
             :capabilities="capabilities"
+            @open-menu="sidebarOpen = !sidebarOpen"
         />
 
         <main id="mainContent" class="main-content" tabindex="-1">

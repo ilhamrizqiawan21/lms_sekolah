@@ -54,7 +54,7 @@ async function unblock(item: BlockedIp) {
                 <Badge color="danger">{{ ips.total ?? 0 }} IP</Badge>
             </header>
 
-            <TableWrapper v-if="ips.data?.length">
+            <TableWrapper stack v-if="ips.data?.length">
                 <table class="table table-hover app-table mb-0">
                     <thead>
                         <tr>
@@ -67,14 +67,14 @@ async function unblock(item: BlockedIp) {
                     </thead>
                     <tbody>
                         <tr v-for="item in ips.data" :key="item.id">
-                            <td><code class="blocked-ip-code">{{ item.ip_address }}</code></td>
-                            <td>
+                            <td class="stack-title"><code class="blocked-ip-code">{{ item.ip_address }}</code></td>
+                            <td data-label="Diblokir Sampai">
                                 <Badge v-if="item.is_expired" color="secondary">Kedaluwarsa</Badge>
                                 <Badge v-else color="danger">{{ item.blocked_until || '-' }}</Badge>
                             </td>
-                            <td>{{ item.reason || '-' }}</td>
-                            <td class="text-body-secondary">{{ item.created_at || '-' }}</td>
-                            <td class="table-action-column">
+                            <td data-label="Alasan">{{ item.reason || '-' }}</td>
+                            <td data-label="Waktu Blokir" class="text-body-secondary">{{ item.created_at || '-' }}</td>
+                            <td class="table-action-column stack-actions">
                                 <Button type="button" color="outline-success" icon="bi-unlock-fill" @click="unblock(item)">
                                     Unblock
                                 </Button>

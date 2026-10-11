@@ -5,7 +5,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { computed, watch } from 'vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import AppShell from '../../../Layouts/AppShell.vue';
-import { Badge, Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
+import { Button, Card, EmptyState, TableWrapper } from '../../../Components/UI';
 
 const props = defineProps({
     kelasMapel: { type: Object as PropType<{ id: number; kelas: string; mata_pelajaran: string; back_url: string; store_url: string; export_excel_url: string; export_pdf_url: string }>, required: true },
@@ -91,20 +91,17 @@ function submit() {
     <Head :title="title" />
 
     <AppShell title="Input Sikap">
-        <PageHeader title="Input Nilai Sikap" icon="bi-emoji-smile-fill">
+        <PageHeader
+            eyebrow="Penilaian Sikap"
+            :title="`${kelasMapel.mata_pelajaran} · ${kelasMapel.kelas}`"
+            subtitle="Isi nilai sikap spiritual dan sosial dengan skala 1–5."
+        >
             <template #actions>
-                <Badge color="primary">{{ kelasMapel.mata_pelajaran }}</Badge>
-                <Badge color="secondary">{{ kelasMapel.kelas }}</Badge>
-                <Badge color="info">
-                    <template v-if="tahunAjaran">TA {{ tahunAjaran.tahun }}</template>
-                    <template v-else>-</template>
-                    &middot; Semester {{ semester }}
-                </Badge>
-                <a :href="kelasMapel.export_excel_url" class="btn btn-sm btn-outline-success">
-                    <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
+                <a :href="kelasMapel.export_excel_url" class="btn btn-outline-secondary">
+                    <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Excel
                 </a>
-                <a :href="kelasMapel.export_pdf_url" class="btn btn-sm btn-outline-danger">
-                    <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i> PDF
+                <a :href="kelasMapel.export_pdf_url" class="btn btn-outline-secondary">
+                    <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>PDF
                 </a>
             </template>
         </PageHeader>
@@ -117,10 +114,9 @@ function submit() {
                     <span class="text-body-secondary text-xs">Skala 1-5</span>
                 </template>
 
-                <TableWrapper>
+                <TableWrapper :scroll-hint="false">
                     <table class="table table-bordered table-hover attitude-table mb-0">
                         <colgroup>
-                            <col class="attitude-col-no">
                             <col class="attitude-col-student">
                             <col
                                 v-for="field in spiritualFields"
@@ -129,10 +125,9 @@ function submit() {
                             >
                             <col class="attitude-col-total">
                         </colgroup>
-                        <thead class="table-light">
+                        <thead>
                             <tr>
-                                <th scope="col" class="text-center">#</th>
-                                <th scope="col">Nama Siswa</th>
+                                <th scope="col" class="grid-sticky-col">Siswa</th>
                                 <th scope="col"
                                     v-for="field in spiritualFields"
                                     :key="field.key"
@@ -145,11 +140,14 @@ function submit() {
                         </thead>
                         <tbody>
                             <tr v-for="student in students" :key="`spiritual-${student.id}`">
-                                <td class="text-center text-body-secondary">{{ student.no }}</td>
-                                <td>{{ student.nama }}</td>
+                                <th scope="row" class="grid-sticky-col identity-cell">
+                                    <span class="identity-name">{{ student.nama }}</span>
+                                    <span class="identity-meta">{{ student.no }}.</span>
+                                </th>
                                 <td v-for="field in spiritualFields" :key="`${student.id}-${field.key}`">
                                     <select
                                         v-model="form.spiritual[String(student.id)][field.key]"
+                                            :aria-label="`${field.label}, ${student.nama}`"
                                         class="form-select form-select-sm attitude-select"
                                     >
                                         <option value="">-</option>
@@ -168,7 +166,7 @@ function submit() {
                                 </td>
                             </tr>
                             <tr v-if="!students.length">
-                                <td colspan="9">
+                                <td colspan="7">
                                     <EmptyState title="Tidak ada siswa." icon="bi-people" />
                                 </td>
                             </tr>
@@ -182,10 +180,9 @@ function submit() {
                     <span class="text-body-secondary text-xs">Skala 1-5</span>
                 </template>
 
-                <TableWrapper>
+                <TableWrapper :scroll-hint="false">
                     <table class="table table-bordered table-hover attitude-table mb-0">
                         <colgroup>
-                            <col class="attitude-col-no">
                             <col class="attitude-col-student">
                             <col
                                 v-for="field in sosialFields"
@@ -194,10 +191,9 @@ function submit() {
                             >
                             <col class="attitude-col-total">
                         </colgroup>
-                        <thead class="table-light">
+                        <thead>
                             <tr>
-                                <th scope="col" class="text-center">#</th>
-                                <th scope="col">Nama Siswa</th>
+                                <th scope="col" class="grid-sticky-col">Siswa</th>
                                 <th scope="col"
                                     v-for="field in sosialFields"
                                     :key="field.key"
@@ -210,11 +206,14 @@ function submit() {
                         </thead>
                         <tbody>
                             <tr v-for="student in students" :key="`sosial-${student.id}`">
-                                <td class="text-center text-body-secondary">{{ student.no }}</td>
-                                <td>{{ student.nama }}</td>
+                                <th scope="row" class="grid-sticky-col identity-cell">
+                                    <span class="identity-name">{{ student.nama }}</span>
+                                    <span class="identity-meta">{{ student.no }}.</span>
+                                </th>
                                 <td v-for="field in sosialFields" :key="`${student.id}-${field.key}`">
                                     <select
                                         v-model="form.sosial[String(student.id)][field.key]"
+                                            :aria-label="`${field.label}, ${student.nama}`"
                                         class="form-select form-select-sm attitude-select"
                                     >
                                         <option value="">-</option>
@@ -233,7 +232,7 @@ function submit() {
                                 </td>
                             </tr>
                             <tr v-if="!students.length">
-                                <td colspan="8">
+                                <td colspan="7">
                                     <EmptyState title="Tidak ada siswa." icon="bi-people" />
                                 </td>
                             </tr>
@@ -242,16 +241,18 @@ function submit() {
                 </TableWrapper>
             </Card>
 
-            <div class="d-flex justify-content-between align-items-center mb-4 gap-2 flex-wrap">
-                <a :href="kelasMapel.back_url" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Kembali
+            <div class="sticky-savebar sticky-savebar-standalone">
+                <a :href="kelasMapel.back_url" class="btn btn-outline-secondary" aria-label="Kembali">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">Kembali</span>
                 </a>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="text-body-secondary text-xs">{{ students.length }} siswa</span>
-                    <Button type="submit" color="success" size="" icon="bi-save" :disabled="form.processing">
-                        {{ form.processing ? 'Menyimpan...' : 'Simpan Semua' }}
-                    </Button>
-                </div>
+                <span class="sticky-savebar-status" role="status" aria-live="polite">
+                    <template v-if="form.isDirty"><i class="bi bi-circle-fill dirty-dot" aria-hidden="true"></i>Belum disimpan<span class="d-none d-sm-inline">: ada perubahan nilai</span></template>
+                    <template v-else-if="form.recentlySuccessful"><i class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></i>Tersimpan</template>
+                    <template v-else>{{ students.length }} siswa</template>
+                </span>
+                <Button type="submit" color="primary" icon="bi-save" :loading="form.processing">
+                    {{ form.processing ? 'Menyimpan...' : 'Simpan Semua' }}
+                </Button>
             </div>
         </form>
     </AppShell>
@@ -259,7 +260,7 @@ function submit() {
 
 <style scoped>
 .attitude-table {
-    min-width: 950px;
+    min-width: 760px;
     table-layout: fixed;
     font-size: 0.82rem;
 }
@@ -269,7 +270,10 @@ function submit() {
 }
 
 .attitude-col-student {
-    width: 320px;
+    width: 240px;
+}
+@media (max-width: 575.98px) {
+    .attitude-col-student { width: 150px; }
 }
 
 .attitude-col-score {

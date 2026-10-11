@@ -11,3 +11,17 @@ export function sidebarMenu(role: UserRole | null | undefined, capabilities: Cap
 }
 function section(label: string): SidebarMenuEntry { return { type: 'section', label }; }
 function item(label: string, href: string, icon: string, activePrefixes: string[], inertia = false): SidebarMenuEntry { return { type: 'item', label, href, icon, activePrefixes, inertia }; }
+
+export interface MobileNavItem { label: string; href: string; icon: string; activePrefixes: string[]; }
+
+/** Bottom navigation on phones: the four destinations each role uses most, with short labels. */
+export function mobileNav(role: UserRole | null | undefined): MobileNavItem[] {
+    const navs: Partial<Record<UserRole, MobileNavItem[]>> = {
+        admin: [nav('Beranda','/admin/dashboard','bi-speedometer2'), nav('Siswa','/admin/kelas-siswa','bi-mortarboard-fill'), nav('Guru','/admin/users','bi-people-fill'), nav('Info','/admin/pengumuman','bi-megaphone-fill')],
+        guru: [nav('Beranda','/guru/dashboard','bi-speedometer2'), nav('Absensi','/guru/absensi','bi-clipboard-check-fill'), nav('Nilai','/guru/nilai','bi-bar-chart-fill'), nav('Tugas','/guru/tugas','bi-journal-check')],
+        siswa: [nav('Beranda','/siswa/dashboard','bi-speedometer2'), nav('Tugas','/siswa/tugas','bi-journal-check'), nav('Ujian','/siswa/ujian','bi-pencil-square'), nav('Nilai','/siswa/nilai','bi-bar-chart-fill')],
+        kepala_sekolah: [nav('Beranda','/kepsek/dashboard','bi-speedometer2'), nav('Statistik','/kepsek/statistik','bi-graph-up-arrow'), nav('Nilai','/kepsek/laporan/nilai','bi-bar-chart-fill'), nav('Absensi','/kepsek/laporan/absensi','bi-clipboard-data-fill')],
+    };
+    return role ? navs[role] ?? [] : [];
+}
+function nav(label: string, href: string, icon: string): MobileNavItem { return { label, href, icon, activePrefixes: [href] }; }
