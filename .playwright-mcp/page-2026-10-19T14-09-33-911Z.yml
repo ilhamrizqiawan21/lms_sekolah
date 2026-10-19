@@ -1,0 +1,301 @@
+- generic [ref=f3e3]:
+  - link "Lewati ke konten utama" [ref=f3e4] [cursor=pointer]:
+    - /url: "#mainContent"
+  - banner [ref=f3e5]:
+    - text: 
+    - generic [ref=f3e6]:
+      - generic [ref=f3e7]: Tahun Ajaran 2026/2027
+      - generic [ref=f3e8]: Semester Ganjil
+    - button "Buka akses cepat" [ref=f3e9] [cursor=pointer]:
+      - generic [aria-hidden] [ref=f3e10]: 
+      - generic [ref=f3e11]: Cari menu...
+      - generic [ref=f3e12]: /
+    - generic [ref=f3e13]:
+      - button "Notifikasi" [ref=f3e15] [cursor=pointer]:
+        - generic [aria-hidden]: 
+      - button "Aktifkan mode gelap" [ref=f3e16] [cursor=pointer]:
+        - generic [aria-hidden]: 
+      - generic [ref=f3e17]:
+        - button "Menu akun" [ref=f3e18] [cursor=pointer]:
+          - generic [aria-hidden]: 
+          - generic [ref=f3e19]: Guru Demo Satu
+        - text:   
+  - complementary [ref=f3e20]:
+    - generic [ref=f3e21]:
+      - img "Logo Nama Sekolah" [ref=f3e23]
+      - generic [ref=f3e24]:
+        - generic [ref=f3e25]: Nama Sekolah
+        - generic [ref=f3e26]: LMS Sekolah
+    - navigation "Navigasi utama" [ref=f3e27]:
+      - list [ref=f3e28]:
+        - listitem [ref=f3e29]:
+          - generic [ref=f3e30]: Mengajar
+        - listitem [ref=f3e31]:
+          - link "Dashboard" [ref=f3e32] [cursor=pointer]:
+            - /url: /guru/dashboard
+            - generic [aria-hidden] [ref=f3e33]: 
+        - listitem [ref=f3e35]:
+          - link "Jadwal Mengajar" [ref=f3e36] [cursor=pointer]:
+            - /url: /guru/jadwal-mengajar
+            - generic [aria-hidden] [ref=f3e37]: 
+        - listitem [ref=f3e39]:
+          - link "Absensi" [ref=f3e40] [cursor=pointer]:
+            - /url: /guru/absensi
+            - generic [aria-hidden] [ref=f3e41]: 
+        - listitem [ref=f3e43]:
+          - link "Materi" [ref=f3e44] [cursor=pointer]:
+            - /url: /guru/materi
+            - generic [aria-hidden] [ref=f3e45]: 
+        - listitem [ref=f3e47]:
+          - link "Tugas" [ref=f3e48] [cursor=pointer]:
+            - /url: /guru/tugas
+            - generic [aria-hidden] [ref=f3e49]: 
+        - listitem [ref=f3e51]:
+          - link "Ujian (CBT)" [ref=f3e52] [cursor=pointer]:
+            - /url: /guru/ujian
+            - generic [aria-hidden] [ref=f3e53]: 
+        - listitem [ref=f3e55]:
+          - link "Bank Soal" [ref=f3e56] [cursor=pointer]:
+            - /url: /guru/soal-bank
+            - generic [aria-hidden] [ref=f3e57]: 
+        - listitem [ref=f3e59]:
+          - link "Nilai" [ref=f3e60] [cursor=pointer]:
+            - /url: /guru/nilai
+            - generic [aria-hidden] [ref=f3e61]: 
+        - listitem [ref=f3e63]:
+          - link "Sikap" [ref=f3e64] [cursor=pointer]:
+            - /url: /guru/sikap
+            - generic [aria-hidden] [ref=f3e65]: 
+        - listitem [ref=f3e67]:
+          - generic [ref=f3e68]: Wali Kelas
+        - listitem [ref=f3e69]:
+          - link "Wali Kelas" [ref=f3e70] [cursor=pointer]:
+            - /url: /guru/wali-kelas
+            - generic [aria-hidden] [ref=f3e71]: 
+        - listitem [ref=f3e73]:
+          - generic [ref=f3e74]: Komunikasi
+        - listitem [ref=f3e75]:
+          - link "Kelas Daring" [ref=f3e76] [cursor=pointer]:
+            - /url: /guru/kelas-daring
+            - generic [aria-hidden] [ref=f3e77]: 
+        - listitem [ref=f3e79]:
+          - link "Kalender" [ref=f3e80] [cursor=pointer]:
+            - /url: /guru/kalender
+            - generic [aria-hidden] [ref=f3e81]: 
+        - listitem [ref=f3e83]:
+          - link "Pengumuman" [ref=f3e84] [cursor=pointer]:
+            - /url: /guru/pengumuman
+            - generic [aria-hidden] [ref=f3e85]: 
+        - listitem [ref=f3e87]:
+          - link "Chat Kelas" [ref=f3e88] [cursor=pointer]:
+            - /url: /guru/chat
+            - generic [aria-hidden] [ref=f3e89]: 
+        - listitem [ref=f3e91]:
+          - generic [ref=f3e92]: Rekap
+        - listitem [ref=f3e93]:
+          - link "Rekap Absensi" [ref=f3e94] [cursor=pointer]:
+            - /url: /guru/rekap-absensi
+            - generic [aria-hidden] [ref=f3e95]: 
+        - listitem [ref=f3e97]:
+          - link "Rekap Nilai" [ref=f3e98] [cursor=pointer]:
+            - /url: /guru/rekap-nilai
+            - generic [aria-hidden] [ref=f3e99]: 
+        - listitem [ref=f3e101]:
+          - link "Rekap Sikap" [ref=f3e102] [cursor=pointer]:
+            - /url: /guru/rekap-sikap
+            - generic [aria-hidden] [ref=f3e103]: 
+        - listitem [ref=f3e105]:
+          - generic [ref=f3e106]: Akun
+        - listitem [ref=f3e107]:
+          - link "Pengaturan" [ref=f3e108] [cursor=pointer]:
+            - /url: /guru/pengaturan
+            - generic [aria-hidden] [ref=f3e109]: 
+  - text:     
+  - main [ref=f3e111]:
+    - generic [ref=f3e112]:
+      - generic [ref=f3e114]:
+        - heading "Materi Pembelajaran" [level=1] [ref=f3e115]:
+          - generic [aria-hidden]: 
+          - text: Materi Pembelajaran
+        - paragraph [ref=f3e116]: Upload materi dan pilih kelas tujuan sesuai penugasan.
+      - generic [ref=f3e117]:
+        - generic [ref=f3e119]:
+          - generic [ref=f3e121]:
+            - generic [aria-hidden]: 
+            - generic [ref=f3e122]: Upload Materi
+          - generic [ref=f3e124]:
+            - generic [ref=f3e125]:
+              - generic [ref=f3e126]: Judul *
+              - textbox "Judul *" [ref=f3e127]:
+                - /placeholder: ""
+            - generic [ref=f3e128]:
+              - generic [ref=f3e129]: Deskripsi
+              - textbox "Deskripsi" [ref=f3e130]:
+                - /placeholder: ""
+            - generic [ref=f3e131]:
+              - generic [ref=f3e132]: Kelas Tujuan *
+              - generic [ref=f3e133]:
+                - generic [ref=f3e134] [cursor=pointer]:
+                  - checkbox "7 7A - Bahasa Indonesia (Sem. 1)" [ref=f3e135]
+                  - generic [ref=f3e136]: 7 7A - Bahasa Indonesia (Sem. 1)
+                - generic [ref=f3e137] [cursor=pointer]:
+                  - checkbox "7 7B - Bahasa Indonesia (Sem. 1)" [ref=f3e138]
+                  - generic [ref=f3e139]: 7 7B - Bahasa Indonesia (Sem. 1)
+                - generic [ref=f3e140] [cursor=pointer]:
+                  - checkbox "8 8A - Bahasa Indonesia (Sem. 1)" [ref=f3e141]
+                  - generic [ref=f3e142]: 8 8A - Bahasa Indonesia (Sem. 1)
+                - generic [ref=f3e143] [cursor=pointer]:
+                  - checkbox "8 8B - Bahasa Indonesia (Sem. 1)" [ref=f3e144]
+                  - generic [ref=f3e145]: 8 8B - Bahasa Indonesia (Sem. 1)
+                - generic [ref=f3e146] [cursor=pointer]:
+                  - checkbox "9 9A - Bahasa Indonesia (Sem. 1)" [ref=f3e147]
+                  - generic [ref=f3e148]: 9 9A - Bahasa Indonesia (Sem. 1)
+                - generic [ref=f3e149] [cursor=pointer]:
+                  - checkbox "9 9B - Bahasa Indonesia (Sem. 1)" [ref=f3e150]
+                  - generic [ref=f3e151]: 9 9B - Bahasa Indonesia (Sem. 1)
+            - generic [ref=f3e152]:
+              - generic [ref=f3e153]: File Materi *
+              - generic [ref=f3e154]: JPG, JPEG, PDF | Maks. 5MB
+              - button "File Materi *" [ref=f3e155] [cursor=pointer]
+              - generic [ref=f3e156]: JPG, JPEG, PDF | Maks. 5MB
+            - button "Upload Materi" [ref=f3e157] [cursor=pointer]:
+              - generic [aria-hidden]: 
+              - text: Upload Materi
+        - generic [ref=f3e159]:
+          - generic [ref=f3e161]:
+            - generic [aria-hidden]: 
+            - generic [ref=f3e162]: Daftar Materi
+          - generic "Tabel dapat digeser secara horizontal pada layar kecil" [ref=f3e164]:
+            - table [ref=f3e165]:
+              - rowgroup [ref=f3e166]:
+                - row [ref=f3e167]:
+                  - columnheader "Judul" [ref=f3e168]
+                  - columnheader "Kelas" [ref=f3e169]
+                  - columnheader "Mapel" [ref=f3e170]
+                  - columnheader "Tanggal" [ref=f3e171]
+                  - columnheader "Aksi" [ref=f3e172]
+              - rowgroup [ref=f3e173]:
+                - row [ref=f3e174]:
+                  - cell "Pengantar Bahasa Indonesia Materi pembuka untuk Bahasa Indonesia di kelas demo." [ref=f3e175]:
+                    - strong [ref=f3e176]: Pengantar Bahasa Indonesia
+                    - generic [ref=f3e177]: Materi pembuka untuk Bahasa Indonesia di kelas demo.
+                  - cell "9 9B" [ref=f3e178]
+                  - cell "Bahasa Indonesia" [ref=f3e179]
+                  - cell "19 Oct 2026" [ref=f3e180]
+                  - cell [ref=f3e181]:
+                    - button "Hapus Pengantar Bahasa Indonesia" [ref=f3e183] [cursor=pointer]:
+                      - generic [aria-hidden]: 
+                - row [ref=f3e184]:
+                  - cell "Latihan Lanjutan Bahasa Indonesia Materi lanjutan untuk memperlihatkan alur belajar bertahap." [ref=f3e185]:
+                    - strong [ref=f3e186]: Latihan Lanjutan Bahasa Indonesia
+                    - generic [ref=f3e187]: Materi lanjutan untuk memperlihatkan alur belajar bertahap.
+                  - cell "9 9B" [ref=f3e188]
+                  - cell "Bahasa Indonesia" [ref=f3e189]
+                  - cell "19 Oct 2026" [ref=f3e190]
+                  - cell [ref=f3e191]:
+                    - button "Hapus Latihan Lanjutan Bahasa Indonesia" [ref=f3e193] [cursor=pointer]:
+                      - generic [aria-hidden]: 
+                - row [ref=f3e194]:
+                  - cell "Pengantar Bahasa Indonesia Materi pembuka untuk Bahasa Indonesia di kelas demo." [ref=f3e195]:
+                    - strong [ref=f3e196]: Pengantar Bahasa Indonesia
+                    - generic [ref=f3e197]: Materi pembuka untuk Bahasa Indonesia di kelas demo.
+                  - cell "9 9A" [ref=f3e198]
+                  - cell "Bahasa Indonesia" [ref=f3e199]
+                  - cell "19 Oct 2026" [ref=f3e200]
+                  - cell [ref=f3e201]:
+                    - button "Hapus Pengantar Bahasa Indonesia" [ref=f3e203] [cursor=pointer]:
+                      - generic [aria-hidden]: 
+                - row [ref=f3e204]:
+                  - cell "Latihan Lanjutan Bahasa Indonesia Materi lanjutan untuk memperlihatkan alur belajar bertahap." [ref=f3e205]:
+                    - strong [ref=f3e206]: Latihan Lanjutan Bahasa Indonesia
+                    - generic [ref=f3e207]: Materi lanjutan untuk memperlihatkan alur belajar bertahap.
+                  - cell "9 9A" [ref=f3e208]
+                  - cell "Bahasa Indonesia" [ref=f3e209]
+                  - cell "19 Oct 2026" [ref=f3e210]
+                  - cell [ref=f3e211]:
+                    - button "Hapus Latihan Lanjutan Bahasa Indonesia" [ref=f3e213] [cursor=pointer]:
+                      - generic [aria-hidden]: 
+                - row [ref=f3e214]:
+                  - cell "Pengantar Bahasa Indonesia Materi pembuka untuk Bahasa Indonesia di kelas demo." [ref=f3e215]:
+                    - strong [ref=f3e216]: Pengantar Bahasa Indonesia
+                    - generic [ref=f3e217]: Materi pembuka untuk Bahasa Indonesia di kelas demo.
+                  - cell "8 8B" [ref=f3e218]
+                  - cell "Bahasa Indonesia" [ref=f3e219]
+                  - cell "19 Oct 2026" [ref=f3e220]
+                  - cell [ref=f3e221]:
+                    - button "Hapus Pengantar Bahasa Indonesia" [ref=f3e223] [cursor=pointer]:
+                      - generic [aria-hidden]: 
+                - row [ref=f3e224]:
+                  - cell "Latihan Lanjutan Bahasa Indonesia Materi lanjutan untuk memperlihatkan alur belajar bertahap." [ref=f3e225]:
+                    - strong [ref=f3e226]: Latihan Lanjutan Bahasa Indonesia
+                    - generic [ref=f3e227]: Materi lanjutan untuk memperlihatkan alur belajar bertahap.
+                  - cell "8 8B" [ref=f3e228]
+                  - cell "Bahasa Indonesia" [ref=f3e229]
+                  - cell "19 Oct 2026" [ref=f3e230]
+                  - cell [ref=f3e231]:
+                    - button "Hapus Latihan Lanjutan Bahasa Indonesia" [ref=f3e233] [cursor=pointer]:
+                      - generic [aria-hidden]: 
+                - row [ref=f3e234]:
+                  - cell "Pengantar Bahasa Indonesia Materi pembuka untuk Bahasa Indonesia di kelas demo." [ref=f3e235]:
+                    - strong [ref=f3e236]: Pengantar Bahasa Indonesia
+                    - generic [ref=f3e237]: Materi pembuka untuk Bahasa Indonesia di kelas demo.
+                  - cell "8 8A" [ref=f3e238]
+                  - cell "Bahasa Indonesia" [ref=f3e239]
+                  - cell "19 Oct 2026" [ref=f3e240]
+                  - cell [ref=f3e241]:
+                    - button "Hapus Pengantar Bahasa Indonesia" [ref=f3e243] [cursor=pointer]:
+                      - generic [aria-hidden]: 
+                - row [ref=f3e244]:
+                  - cell "Latihan Lanjutan Bahasa Indonesia Materi lanjutan untuk memperlihatkan alur belajar bertahap." [ref=f3e245]:
+                    - strong [ref=f3e246]: Latihan Lanjutan Bahasa Indonesia
+                    - generic [ref=f3e247]: Materi lanjutan untuk memperlihatkan alur belajar bertahap.
+                  - cell "8 8A" [ref=f3e248]
+                  - cell "Bahasa Indonesia" [ref=f3e249]
+                  - cell "19 Oct 2026" [ref=f3e250]
+                  - cell [ref=f3e251]:
+                    - button "Hapus Latihan Lanjutan Bahasa Indonesia" [ref=f3e253] [cursor=pointer]:
+                      - generic [aria-hidden]: 
+                - row [ref=f3e254]:
+                  - cell "Pengantar Bahasa Indonesia Materi pembuka untuk Bahasa Indonesia di kelas demo." [ref=f3e255]:
+                    - strong [ref=f3e256]: Pengantar Bahasa Indonesia
+                    - generic [ref=f3e257]: Materi pembuka untuk Bahasa Indonesia di kelas demo.
+                  - cell "7 7B" [ref=f3e258]
+                  - cell "Bahasa Indonesia" [ref=f3e259]
+                  - cell "19 Oct 2026" [ref=f3e260]
+                  - cell [ref=f3e261]:
+                    - button "Hapus Pengantar Bahasa Indonesia" [ref=f3e263] [cursor=pointer]:
+                      - generic [aria-hidden]: 
+                - row [ref=f3e264]:
+                  - cell "Latihan Lanjutan Bahasa Indonesia Materi lanjutan untuk memperlihatkan alur belajar bertahap." [ref=f3e265]:
+                    - strong [ref=f3e266]: Latihan Lanjutan Bahasa Indonesia
+                    - generic [ref=f3e267]: Materi lanjutan untuk memperlihatkan alur belajar bertahap.
+                  - cell "7 7B" [ref=f3e268]
+                  - cell "Bahasa Indonesia" [ref=f3e269]
+                  - cell "19 Oct 2026" [ref=f3e270]
+                  - cell [ref=f3e271]:
+                    - button "Hapus Latihan Lanjutan Bahasa Indonesia" [ref=f3e273] [cursor=pointer]:
+                      - generic [aria-hidden]: 
+                - row [ref=f3e274]:
+                  - cell "Pengantar Bahasa Indonesia Materi pembuka untuk Bahasa Indonesia di kelas demo." [ref=f3e275]:
+                    - strong [ref=f3e276]: Pengantar Bahasa Indonesia
+                    - generic [ref=f3e277]: Materi pembuka untuk Bahasa Indonesia di kelas demo.
+                  - cell "7 7A" [ref=f3e278]
+                  - cell "Bahasa Indonesia" [ref=f3e279]
+                  - cell "19 Oct 2026" [ref=f3e280]
+                  - cell [ref=f3e281]:
+                    - button "Hapus Pengantar Bahasa Indonesia" [ref=f3e283] [cursor=pointer]:
+                      - generic [aria-hidden]: 
+                - row [ref=f3e284]:
+                  - cell "Latihan Lanjutan Bahasa Indonesia Materi lanjutan untuk memperlihatkan alur belajar bertahap." [ref=f3e285]:
+                    - strong [ref=f3e286]: Latihan Lanjutan Bahasa Indonesia
+                    - generic [ref=f3e287]: Materi lanjutan untuk memperlihatkan alur belajar bertahap.
+                  - cell "7 7A" [ref=f3e288]
+                  - cell "Bahasa Indonesia" [ref=f3e289]
+                  - cell "19 Oct 2026" [ref=f3e290]
+                  - cell [ref=f3e291]:
+                    - button "Hapus Latihan Lanjutan Bahasa Indonesia" [ref=f3e293] [cursor=pointer]:
+                      - generic [aria-hidden]: 
+    - generic [ref=f3e294]:
+      - generic [ref=f3e295]: © 2026 Nama Sekolah
+      - generic [aria-hidden] [ref=f3e296]: •
+      - generic [ref=f3e297]: LMS Sekolah

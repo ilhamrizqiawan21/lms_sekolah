@@ -14,6 +14,15 @@ const form = useForm<{ message: string }>({
     message: '',
 });
 
+function isNearBottom(): boolean {
+    if (!chatArea.value) {
+        return true;
+    }
+
+    const { scrollHeight, scrollTop, clientHeight } = chatArea.value;
+    return scrollHeight - scrollTop - clientHeight < 120;
+}
+
 function scrollToLatest(): void {
     if (!chatArea.value) {
         return;
@@ -57,10 +66,12 @@ function handleVisibilityChange(): void {
     if (document.hidden) {
         stopPolling();
     } else {
-        // Saat tab aktif kembali, langsung refresh pesan dan jalankan polling
-        router.reload({
-            only: ['messages'],
-        });
+        // Saat tab aktif kembali, langsung refresh pesan dan jalankan polling jika tidak sedang submit
+        if (!form.processing) {
+            router.reload({
+                only: ['messages'],
+            });
+        }
         startPolling();
     }
 }
@@ -78,7 +89,14 @@ onUnmounted(() => {
 
 watch(
     () => props.messages.length,
-    () => nextTick(scrollToLatest),
+    () => {
+        const shouldScroll = isNearBottom();
+        nextTick(() => {
+            if (shouldScroll) {
+                scrollToLatest();
+            }
+        });
+    },
 );
 </script>
 

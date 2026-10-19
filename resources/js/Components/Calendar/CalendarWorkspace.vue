@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { Link, router, useForm } from '@inertiajs/vue3';
 import { SelectInput, TextareaInput, TextInput } from '../Form';
 import { Badge, Button, Card, EmptyState, Modal } from '../UI';
 import type { CalendarEvent, CalendarEventForm, CalendarPayload, SelectOption } from '../../types';
@@ -128,6 +128,17 @@ function eventClass(event: CalendarEvent): Record<string, boolean> {
     };
 }
 
+function scopeLabel(scope?: string): string {
+    if (scope === 'school') {
+        return 'Sekolah';
+    }
+    if (scope === 'user') {
+        return 'Pribadi';
+    }
+
+    return scope ?? '';
+}
+
 function openEvent(event: CalendarEvent): void {
     selectedEvent.value = event;
 }
@@ -139,13 +150,13 @@ function openEvent(event: CalendarEvent): void {
             <Card :title="calendar.title" icon="bi-calendar3" body-class="p-0">
                 <template #actions>
                     <div class="calendar-actions">
-                        <a :href="calendar.prev_url" class="btn btn-sm btn-outline-secondary">
+                        <Link :href="calendar.prev_url" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-chevron-left" aria-hidden="true"></i> {{ calendar.prev_label }}
-                        </a>
-                        <a :href="calendar.today_url" class="btn btn-sm btn-outline-primary">Hari Ini</a>
-                        <a :href="calendar.next_url" class="btn btn-sm btn-outline-secondary">
+                        </Link>
+                        <Link :href="calendar.today_url" class="btn btn-sm btn-outline-primary">Hari Ini</Link>
+                        <Link :href="calendar.next_url" class="btn btn-sm btn-outline-secondary">
                             {{ calendar.next_label }} <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                        </a>
+                        </Link>
                     </div>
                 </template>
 
@@ -236,9 +247,9 @@ function openEvent(event: CalendarEvent): void {
                             <span v-if="event.created_by" class="text-body-secondary text-xs">Dibuat oleh {{ event.created_by }}</span>
                         </button>
                         <div class="calendar-list-meta">
-                            <Badge v-if="event.scope" :color="event.scope === 'school' ? 'info text-dark' : 'secondary'">{{ event.scope }}</Badge>
+                            <Badge v-if="event.scope" :color="event.scope === 'school' ? 'info' : 'secondary'">{{ scopeLabel(event.scope) }}</Badge>
                             <Button
-                                v-if="event.toggle_done_url && !event.is_done"
+                                v-if="event.can_manage && event.toggle_done_url && !event.is_done"
                                 type="button"
                                 color="outline-success"
                                 size="sm"

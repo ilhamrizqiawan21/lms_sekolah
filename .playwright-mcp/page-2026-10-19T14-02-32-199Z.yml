@@ -1,0 +1,76 @@
+- main [ref=e3]:
+  - complementary "Identitas Sekolah" [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img "Logo Nama Sekolah" [ref=e8]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Nama Sekolah
+          - generic [ref=e11]: Alamat sekolah belum diatur
+      - generic [ref=e12]:
+        - heading "Ruang belajar yang tenang dan tertata." [level=1] [ref=e13]
+        - paragraph [ref=e14]: Learning Management System
+    - generic [ref=e15]:
+      - region "Papan Informasi Sekolah" [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - generic [aria-hidden] [ref=e19]: 
+            - generic [ref=e20]: PAPAN INFORMASI
+          - generic [ref=e21]: Info Portal
+        - generic [ref=e22]:
+          - paragraph [ref=e23]: Selamat datang di portal pembelajaran digital Nama Sekolah. Papan ini memuat informasi dan pengumuman resmi yang ditujukan bagi seluruh civitas sekolah.
+          - generic [ref=e24]:
+            - generic [ref=e25]:
+              - generic [aria-hidden] [ref=e26]: 
+              - generic [ref=e27]:
+                - strong [ref=e28]: Akses Pembelajaran Terpadu
+                - generic [ref=e29]: Masuk menggunakan kredensial resmi sekolah untuk mengakses materi, tugas, dan ujian daring.
+            - generic [ref=e30]:
+              - generic [aria-hidden] [ref=e31]: 
+              - generic [ref=e32]:
+                - strong [ref=e33]: Jaga Keamanan Akun
+                - generic [ref=e34]: Jangan bagikan kata sandi kepada orang lain dan selalu keluar setelah menggunakan perangkat bersama.
+            - generic [ref=e35]:
+              - generic [aria-hidden] [ref=e36]: 
+              - generic [ref=e37]:
+                - strong [ref=e38]: Bantuan & Kendala Akses
+                - generic [ref=e39]: Jika lupa kata sandi atau akun bermasalah, silakan hubungi wali kelas atau admin sekolah.
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - generic [aria-hidden] [ref=e43]: 
+          - text: Senin, 19 Oktober 2026
+        - generic [aria-hidden] [ref=e44]: •
+        - generic [ref=e45]: © 2026 LMS
+  - region "Form login" [ref=e46]:
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - generic [ref=e49]: Akses LMS
+        - heading "Selamat datang kembali" [level=2] [ref=e50]
+        - paragraph [ref=e51]: Masuk menggunakan akun sekolah Anda.
+      - generic [ref=e52]:
+        - generic [ref=e53]:
+          - generic [ref=e54]: Username
+          - generic [ref=e55]:
+            - generic [aria-hidden] [ref=e56]: 
+            - textbox "Username" [active] [ref=e57]:
+              - /placeholder: Masukkan username
+        - generic [ref=e58]:
+          - generic [ref=e59]: Password
+          - generic [ref=e60]:
+            - generic [aria-hidden] [ref=e61]: 
+            - textbox "Password" [ref=e62]:
+              - /placeholder: Masukkan password
+            - button "Tampilkan password" [ref=e63] [cursor=pointer]:
+              - generic [aria-hidden] [ref=e64]: 
+        - generic [ref=e66]:
+          - checkbox "Ingat saya" [ref=e67] [cursor=pointer]
+          - generic [ref=e68] [cursor=pointer]: Ingat saya
+        - button "Masuk ke LMS" [ref=e69] [cursor=pointer]:
+          - generic [aria-hidden] [ref=e71]: 
+        - generic [ref=e72]:
+          - generic [ref=e73]: "Akses civitas sekolah:"
+          - generic [ref=e74]:
+            - generic [ref=e75]: Siswa
+            - generic [ref=e76]: Guru
+            - generic [ref=e77]: Admin
+            - generic [ref=e78]: Kepala Sekolah
+          - paragraph [ref=e79]: Gunakan akun resmi sekolah. Jika mengalami kendala akses atau lupa kredensial, hubungi admin sekolah melalui kontak bantuan resmi.

@@ -1,0 +1,327 @@
+- generic [ref=f1e3]:
+  - link "Lewati ke konten utama" [ref=f1e4] [cursor=pointer]:
+    - /url: "#mainContent"
+  - banner [ref=f1e5]:
+    - text: 
+    - generic [ref=f1e6]:
+      - generic [ref=f1e7]: Tahun Ajaran 2026/2027
+      - generic [ref=f1e8]: Semester Ganjil
+    - button "Buka akses cepat" [ref=f1e9] [cursor=pointer]:
+      - generic [aria-hidden] [ref=f1e10]: 
+      - generic [ref=f1e11]: Cari menu...
+      - generic [ref=f1e12]: /
+    - generic [ref=f1e13]:
+      - button "Notifikasi" [ref=f1e15] [cursor=pointer]:
+        - generic [aria-hidden]: 
+      - button "Aktifkan mode gelap" [ref=f1e16] [cursor=pointer]:
+        - generic [aria-hidden]: 
+      - generic [ref=f1e17]:
+        - button "Menu akun" [ref=f1e18] [cursor=pointer]:
+          - generic [aria-hidden]: 
+          - generic [ref=f1e19]: Guru Demo Satu
+        - text:   
+  - complementary [ref=f1e20]:
+    - generic [ref=f1e21]:
+      - img "Logo Nama Sekolah" [ref=f1e23]
+      - generic [ref=f1e24]:
+        - generic [ref=f1e25]: Nama Sekolah
+        - generic [ref=f1e26]: LMS Sekolah
+    - navigation "Navigasi utama" [ref=f1e27]:
+      - list [ref=f1e28]:
+        - listitem [ref=f1e29]:
+          - generic [ref=f1e30]: Mengajar
+        - listitem [ref=f1e31]:
+          - link "Dashboard" [ref=f1e32] [cursor=pointer]:
+            - /url: /guru/dashboard
+            - generic [aria-hidden] [ref=f1e33]: 
+        - listitem [ref=f1e35]:
+          - link "Jadwal Mengajar" [ref=f1e36] [cursor=pointer]:
+            - /url: /guru/jadwal-mengajar
+            - generic [aria-hidden] [ref=f1e37]: 
+        - listitem [ref=f1e39]:
+          - link "Absensi" [ref=f1e40] [cursor=pointer]:
+            - /url: /guru/absensi
+            - generic [aria-hidden] [ref=f1e41]: 
+        - listitem [ref=f1e43]:
+          - link "Materi" [ref=f1e44] [cursor=pointer]:
+            - /url: /guru/materi
+            - generic [aria-hidden] [ref=f1e45]: 
+        - listitem [ref=f1e47]:
+          - link "Tugas" [ref=f1e48] [cursor=pointer]:
+            - /url: /guru/tugas
+            - generic [aria-hidden] [ref=f1e49]: 
+        - listitem [ref=f1e51]:
+          - link "Ujian (CBT)" [ref=f1e52] [cursor=pointer]:
+            - /url: /guru/ujian
+            - generic [aria-hidden] [ref=f1e53]: 
+        - listitem [ref=f1e55]:
+          - link "Bank Soal" [ref=f1e56] [cursor=pointer]:
+            - /url: /guru/soal-bank
+            - generic [aria-hidden] [ref=f1e57]: 
+        - listitem [ref=f1e59]:
+          - link "Nilai" [ref=f1e60] [cursor=pointer]:
+            - /url: /guru/nilai
+            - generic [aria-hidden] [ref=f1e61]: 
+        - listitem [ref=f1e63]:
+          - link "Sikap" [ref=f1e64] [cursor=pointer]:
+            - /url: /guru/sikap
+            - generic [aria-hidden] [ref=f1e65]: 
+        - listitem [ref=f1e67]:
+          - generic [ref=f1e68]: Wali Kelas
+        - listitem [ref=f1e69]:
+          - link "Wali Kelas" [ref=f1e70] [cursor=pointer]:
+            - /url: /guru/wali-kelas
+            - generic [aria-hidden] [ref=f1e71]: 
+        - listitem [ref=f1e73]:
+          - generic [ref=f1e74]: Komunikasi
+        - listitem [ref=f1e75]:
+          - link "Kelas Daring" [ref=f1e76] [cursor=pointer]:
+            - /url: /guru/kelas-daring
+            - generic [aria-hidden] [ref=f1e77]: 
+        - listitem [ref=f1e79]:
+          - link "Kalender" [ref=f1e80] [cursor=pointer]:
+            - /url: /guru/kalender
+            - generic [aria-hidden] [ref=f1e81]: 
+        - listitem [ref=f1e83]:
+          - link "Pengumuman" [ref=f1e84] [cursor=pointer]:
+            - /url: /guru/pengumuman
+            - generic [aria-hidden] [ref=f1e85]: 
+        - listitem [ref=f1e87]:
+          - link "Chat Kelas" [ref=f1e88] [cursor=pointer]:
+            - /url: /guru/chat
+            - generic [aria-hidden] [ref=f1e89]: 
+        - listitem [ref=f1e91]:
+          - generic [ref=f1e92]: Rekap
+        - listitem [ref=f1e93]:
+          - link "Rekap Absensi" [ref=f1e94] [cursor=pointer]:
+            - /url: /guru/rekap-absensi
+            - generic [aria-hidden] [ref=f1e95]: 
+        - listitem [ref=f1e97]:
+          - link "Rekap Nilai" [ref=f1e98] [cursor=pointer]:
+            - /url: /guru/rekap-nilai
+            - generic [aria-hidden] [ref=f1e99]: 
+        - listitem [ref=f1e101]:
+          - link "Rekap Sikap" [ref=f1e102] [cursor=pointer]:
+            - /url: /guru/rekap-sikap
+            - generic [aria-hidden] [ref=f1e103]: 
+        - listitem [ref=f1e105]:
+          - generic [ref=f1e106]: Akun
+        - listitem [ref=f1e107]:
+          - link "Pengaturan" [ref=f1e108] [cursor=pointer]:
+            - /url: /guru/pengaturan
+            - generic [aria-hidden] [ref=f1e109]: 
+  - text:     
+  - main [ref=f1e111]:
+    - generic [ref=f1e112]:
+      - generic [ref=f1e113]:
+        - generic [ref=f1e114]:
+          - generic [ref=f1e115]: Ruang Guru
+          - heading "Selamat datang, Guru Demo Satu" [level=1] [ref=f1e116]
+          - paragraph [ref=f1e117]: Kelola pembelajaran, penilaian, dan tindak lanjut kelas hari ini.
+        - generic [ref=f1e119]:
+          - link "Buat Materi" [ref=f1e120] [cursor=pointer]:
+            - /url: /guru/materi
+            - generic [aria-hidden]: 
+            - text: Buat Materi
+          - link "Buat Tugas" [ref=f1e121] [cursor=pointer]:
+            - /url: /guru/tugas
+            - generic [aria-hidden]: 
+            - text: Buat Tugas
+          - link "Absensi" [ref=f1e122] [cursor=pointer]:
+            - /url: /guru/absensi
+            - generic [aria-hidden]: 
+            - text: Absensi
+          - link "Chat" [ref=f1e123] [cursor=pointer]:
+            - /url: /guru/chat
+            - generic [aria-hidden]: 
+            - text: Chat
+      - generic [ref=f1e124]:
+        - link "6 Kelas dan mapel" [ref=f1e125] [cursor=pointer]:
+          - /url: /guru/materi
+          - generic [aria-hidden] [ref=f1e127]: 
+          - generic [ref=f1e128]:
+            - strong [ref=f1e129]: "6"
+            - generic [ref=f1e130]: Kelas dan mapel
+        - generic [ref=f1e131]:
+          - generic [aria-hidden] [ref=f1e133]: 
+          - generic [ref=f1e134]:
+            - strong [ref=f1e135]: "36"
+            - generic [ref=f1e136]: Siswa diajar
+        - link "0 Perlu dinilai" [ref=f1e137] [cursor=pointer]:
+          - /url: /guru/tugas
+          - generic [aria-hidden] [ref=f1e139]: 
+          - generic [ref=f1e140]:
+            - strong [ref=f1e141]: "0"
+            - generic [ref=f1e142]: Perlu dinilai
+        - generic [ref=f1e143]:
+          - generic [aria-hidden] [ref=f1e145]: 
+          - generic [ref=f1e146]:
+            - strong [ref=f1e147]: "5"
+            - generic [ref=f1e148]: Kehadiran rendah
+      - generic [ref=f1e149]:
+        - generic [ref=f1e150]:
+          - generic [ref=f1e152]:
+            - generic [aria-hidden] [ref=f1e153]: 
+            - text: Perlu Dinilai
+          - status [ref=f1e154]:
+            - generic [ref=f1e155]:
+              - generic [aria-hidden]: 
+            - generic [ref=f1e156]: Tidak ada antrean nilai
+            - generic [ref=f1e157]: Semua pengumpulan yang masuk sudah dinilai.
+        - generic [ref=f1e158]:
+          - generic [ref=f1e160]:
+            - generic [aria-hidden] [ref=f1e161]: 
+            - text: Belum Mengumpulkan
+          - status [ref=f1e162]:
+            - generic [ref=f1e163]:
+              - generic [aria-hidden]: 
+            - generic [ref=f1e164]: Tidak ada tunggakan tugas
+            - generic [ref=f1e165]: Semua tugas lewat deadline sudah lengkap dikumpulkan.
+        - generic [ref=f1e166]:
+          - generic [ref=f1e168]:
+            - generic [aria-hidden] [ref=f1e169]: 
+            - text: Siswa Perlu Perhatian
+          - generic [ref=f1e170]:
+            - link "Siswa Demo 32 7B - NIS 202632 10 catatan absensi · 2 alpha 70%" [ref=f1e171] [cursor=pointer]:
+              - /url: http://127.0.0.1:8000/guru/absensi?siswa_id=32
+              - generic [aria-hidden] [ref=f1e173]: 
+              - generic [ref=f1e174]:
+                - strong [ref=f1e175]: Siswa Demo 32
+                - generic [ref=f1e176]: 7B - NIS 202632
+                - generic [ref=f1e177]: 10 catatan absensi · 2 alpha
+              - generic [ref=f1e178]: 70%
+            - link "Siswa Demo 20 7B - NIS 202620 10 catatan absensi · 2 alpha 70%" [ref=f1e179] [cursor=pointer]:
+              - /url: http://127.0.0.1:8000/guru/absensi?siswa_id=20
+              - generic [aria-hidden] [ref=f1e181]: 
+              - generic [ref=f1e182]:
+                - strong [ref=f1e183]: Siswa Demo 20
+                - generic [ref=f1e184]: 7B - NIS 202620
+                - generic [ref=f1e185]: 10 catatan absensi · 2 alpha
+              - generic [ref=f1e186]: 70%
+            - link "Siswa Demo 15 8A - NIS 202615 10 catatan absensi · 2 alpha 70%" [ref=f1e187] [cursor=pointer]:
+              - /url: http://127.0.0.1:8000/guru/absensi?siswa_id=15
+              - generic [aria-hidden] [ref=f1e189]: 
+              - generic [ref=f1e190]:
+                - strong [ref=f1e191]: Siswa Demo 15
+                - generic [ref=f1e192]: 8A - NIS 202615
+                - generic [ref=f1e193]: 10 catatan absensi · 2 alpha
+              - generic [ref=f1e194]: 70%
+            - link "Siswa Demo 03 8A - NIS 202603 10 catatan absensi · 2 alpha 70%" [ref=f1e195] [cursor=pointer]:
+              - /url: http://127.0.0.1:8000/guru/absensi?siswa_id=3
+              - generic [aria-hidden] [ref=f1e197]: 
+              - generic [ref=f1e198]:
+                - strong [ref=f1e199]: Siswa Demo 03
+                - generic [ref=f1e200]: 8A - NIS 202603
+                - generic [ref=f1e201]: 10 catatan absensi · 2 alpha
+              - generic [ref=f1e202]: 70%
+            - link "Siswa Demo 19 7A - NIS 202619 10 catatan absensi · 0 alpha 70%" [ref=f1e203] [cursor=pointer]:
+              - /url: http://127.0.0.1:8000/guru/absensi?siswa_id=19
+              - generic [aria-hidden] [ref=f1e205]: 
+              - generic [ref=f1e206]:
+                - strong [ref=f1e207]: Siswa Demo 19
+                - generic [ref=f1e208]: 7A - NIS 202619
+                - generic [ref=f1e209]: 10 catatan absensi · 0 alpha
+              - generic [ref=f1e210]: 70%
+      - generic [ref=f1e211]:
+        - generic [ref=f1e212]:
+          - generic [ref=f1e213]:
+            - generic [aria-hidden] [ref=f1e214]: 
+            - text: Kelas dan Mapel Diampu
+          - link "Kelola Materi" [ref=f1e215] [cursor=pointer]:
+            - /url: /guru/materi
+        - generic [ref=f1e216]:
+          - link "Semester Ganjil Bahasa Indonesia 7A 2 materi 2 tugas" [ref=f1e217] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/guru/kelas-mapel/1
+            - generic [aria-hidden] [ref=f1e219]: 
+            - generic [ref=f1e220]:
+              - generic [ref=f1e221]: Semester Ganjil
+              - strong [ref=f1e222]: Bahasa Indonesia
+              - generic [ref=f1e223]: 7A
+              - generic [ref=f1e224]:
+                - generic [ref=f1e225]: 2 materi
+                - generic [ref=f1e226]: 2 tugas
+          - link "Semester Ganjil Bahasa Indonesia 7B 2 materi 2 tugas" [ref=f1e227] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/guru/kelas-mapel/2
+            - generic [aria-hidden] [ref=f1e229]: 
+            - generic [ref=f1e230]:
+              - generic [ref=f1e231]: Semester Ganjil
+              - strong [ref=f1e232]: Bahasa Indonesia
+              - generic [ref=f1e233]: 7B
+              - generic [ref=f1e234]:
+                - generic [ref=f1e235]: 2 materi
+                - generic [ref=f1e236]: 2 tugas
+          - link "Semester Ganjil Bahasa Indonesia 8A 2 materi 2 tugas" [ref=f1e237] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/guru/kelas-mapel/3
+            - generic [aria-hidden] [ref=f1e239]: 
+            - generic [ref=f1e240]:
+              - generic [ref=f1e241]: Semester Ganjil
+              - strong [ref=f1e242]: Bahasa Indonesia
+              - generic [ref=f1e243]: 8A
+              - generic [ref=f1e244]:
+                - generic [ref=f1e245]: 2 materi
+                - generic [ref=f1e246]: 2 tugas
+          - link "Semester Ganjil Bahasa Indonesia 8B 2 materi 2 tugas" [ref=f1e247] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/guru/kelas-mapel/4
+            - generic [aria-hidden] [ref=f1e249]: 
+            - generic [ref=f1e250]:
+              - generic [ref=f1e251]: Semester Ganjil
+              - strong [ref=f1e252]: Bahasa Indonesia
+              - generic [ref=f1e253]: 8B
+              - generic [ref=f1e254]:
+                - generic [ref=f1e255]: 2 materi
+                - generic [ref=f1e256]: 2 tugas
+          - link "Semester Ganjil Bahasa Indonesia 9A 2 materi 2 tugas" [ref=f1e257] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/guru/kelas-mapel/5
+            - generic [aria-hidden] [ref=f1e259]: 
+            - generic [ref=f1e260]:
+              - generic [ref=f1e261]: Semester Ganjil
+              - strong [ref=f1e262]: Bahasa Indonesia
+              - generic [ref=f1e263]: 9A
+              - generic [ref=f1e264]:
+                - generic [ref=f1e265]: 2 materi
+                - generic [ref=f1e266]: 2 tugas
+          - link "Semester Ganjil Bahasa Indonesia 9B 2 materi 2 tugas" [ref=f1e267] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/guru/kelas-mapel/6
+            - generic [aria-hidden] [ref=f1e269]: 
+            - generic [ref=f1e270]:
+              - generic [ref=f1e271]: Semester Ganjil
+              - strong [ref=f1e272]: Bahasa Indonesia
+              - generic [ref=f1e273]: 9B
+              - generic [ref=f1e274]:
+                - generic [ref=f1e275]: 2 materi
+                - generic [ref=f1e276]: 2 tugas
+      - region [ref=f1e277]:
+        - generic [ref=f1e278]:
+          - heading "Tren kelas" [level=2] [ref=f1e280]
+          - paragraph [ref=f1e281]: Data tahun pelajaran sampai bulan berjalan.
+        - generic [ref=f1e282]:
+          - generic [ref=f1e283]:
+            - generic [ref=f1e285]:
+              - generic [aria-hidden]: 
+              - generic [ref=f1e286]: Tren Kehadiran (Jul 2026 - Jun 2027)
+            - generic [ref=f1e288]:
+              - generic [ref=f1e289]:
+                - generic [ref=f1e290]:
+                  - generic [ref=f1e291]: Bulan berjalan
+                  - strong [ref=f1e292]: 80.2%
+                - generic [ref=f1e293]:
+                  - generic [ref=f1e294]: Rata-rata
+                  - strong [ref=f1e295]: 80%
+              - img "Grafik tren persentase kehadiran siswa" [ref=f1e297]
+          - generic [ref=f1e298]:
+            - generic [ref=f1e300]:
+              - generic [aria-hidden]: 
+              - generic [ref=f1e301]: Tren Pengumpulan Tugas (Jul 2026 - Jun 2027)
+            - generic [ref=f1e303]:
+              - generic [ref=f1e304]:
+                - generic [ref=f1e305]:
+                  - generic [ref=f1e306]: Bulan berjalan
+                  - strong [ref=f1e307]: 0%
+                - generic [ref=f1e308]:
+                  - generic [ref=f1e309]: Rata-rata
+                  - strong [ref=f1e310]: 0%
+              - img "Grafik tren persentase pengumpulan tugas siswa" [ref=f1e312]
+    - generic [ref=f1e313]:
+      - generic [ref=f1e314]: © 2026 Nama Sekolah
+      - generic [aria-hidden] [ref=f1e315]: •
+      - generic [ref=f1e316]: LMS Sekolah

@@ -9,10 +9,22 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), { color: 'primary', icon: '', label: '' });
 
-// Satu gaya badge: varian lembut dari token status. Warna lain (mis. `dark`) diteruskan apa adanya.
-const SOFT: Record<string, string> = { primary: 'primary', success: 'success', warning: 'warning', danger: 'danger', info: 'info', secondary: 'muted', light: 'muted' };
+const SOFT: Record<string, string> = {
+    primary: 'primary',
+    success: 'success',
+    warning: 'warning',
+    danger: 'danger',
+    info: 'info',
+    secondary: 'muted',
+    light: 'muted',
+    muted: 'muted',
+    admin: 'primary',
+    guru: 'info',
+    siswa: 'success',
+    kepala_sekolah: 'warning',
+};
 const colorClass = computed(() => {
-    const name = props.color.split(' ')[0];
+    const name = (props.color || 'primary').split(' ')[0];
     return SOFT[name] ? `bg-soft-${SOFT[name]}` : `bg-${name}`;
 });
 </script>

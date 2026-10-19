@@ -24,7 +24,7 @@ const props = defineProps({
     attempt: {
         type: Object as PropType<{
             id: number;
-            status: 'in_progress' | 'submitted' | 'expired';
+            status: 'sedang_mengerjakan' | 'selesai' | 'waktu_habis' | 'in_progress' | 'submitted' | 'expired';
             sisa_detik: number;
             waktu_mulai: string | null;
             waktu_selesai: string | null;
@@ -55,8 +55,11 @@ const props = defineProps({
 const currentIndex = ref(0);
 const sisaDetik = ref(props.attempt.sisa_detik);
 const isSubmitting = ref(false);
+const isSaving = ref(false);
+const saveError = ref<string | null>(null);
 const showConfirmModal = ref(false);
 const tabSwitches = ref(props.attempt.tab_switches_count);
+let pendingSavePromise: Promise<void> | null = null;
 
 // Keep local state for responsive UI
 const localAnswers = ref<{ [attemptJawabanId: number]: { opsiId: number | null; ragu: boolean } }>({});
@@ -100,6 +103,23 @@ const formattedTime = computed(() => {
 
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 
+function csrfHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+    };
+    const metaToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+    if (metaToken) {
+        headers['X-CSRF-TOKEN'] = metaToken;
+    }
+    const xsrfMatch = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+    if (xsrfMatch) {
+        headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfMatch[1]);
+    }
+    return headers;
+}
+
 onMounted(() => {
     timerInterval = setInterval(() => {
         if (sisaDetik.value > 0) {
@@ -122,14 +142,13 @@ onBeforeUnmount(() => {
 function handleVisibilityChange() {
     if (document.visibilityState === 'hidden') {
         tabSwitches.value += 1;
-        router.post(
-            props.logTabSwitchUrl,
-            {},
-            {
-                preserveScroll: true,
-                preserveState: true,
-            }
-        );
+        void fetch(props.logTabSwitchUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: csrfHeaders(),
+            body: JSON.stringify({}),
+            keepalive: true,
+        }).catch(() => {});
     }
 }
 
@@ -139,7 +158,7 @@ function selectOpsi(opsiId: number) {
     const ajId = currentSoal.value.attempt_jawaban_id;
     localAnswers.value[ajId].opsiId = opsiId;
 
-    saveCurrentAnswer();
+    void saveCurrentAnswer();
 }
 
 function toggleRagu() {
@@ -148,27 +167,43 @@ function toggleRagu() {
     const ajId = currentSoal.value.attempt_jawaban_id;
     localAnswers.value[ajId].ragu = !localAnswers.value[ajId].ragu;
 
-    saveCurrentAnswer();
+    void saveCurrentAnswer();
 }
 
-function saveCurrentAnswer() {
-    if (!currentSoal.value) return;
+function saveCurrentAnswer(): Promise<void> {
+    if (!currentSoal.value) return Promise.resolve();
 
     const ajId = currentSoal.value.attempt_jawaban_id;
     const item = localAnswers.value[ajId];
 
-    router.post(
-        props.simpanJawabanUrl,
-        {
+    isSaving.value = true;
+    saveError.value = null;
+
+    const task = fetch(props.simpanJawabanUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: csrfHeaders(),
+        body: JSON.stringify({
             attempt_jawaban_id: ajId,
             jawaban_opsi_id: item.opsiId,
             ragu_ragu: item.ragu,
-        },
-        {
-            preserveScroll: true,
-            preserveState: true,
-        }
-    );
+        }),
+    })
+        .then(async (response) => {
+            if (!response.ok) {
+                const payload = await response.json().catch(() => null);
+                saveError.value = payload?.message ?? 'Gagal menyimpan jawaban ke server. Periksa koneksi internet Anda.';
+            }
+        })
+        .catch(() => {
+            saveError.value = 'Gagal menyimpan jawaban ke server. Periksa koneksi internet Anda.';
+        })
+        .finally(() => {
+            isSaving.value = false;
+        });
+
+    pendingSavePromise = task;
+    return task;
 }
 
 function nextSoal() {
@@ -195,9 +230,13 @@ function closeConfirmModal() {
     showConfirmModal.value = false;
 }
 
-function submitUjian() {
+async function submitUjian() {
     if (isSubmitting.value) return;
     isSubmitting.value = true;
+
+    if (pendingSavePromise) {
+        await pendingSavePromise;
+    }
 
     router.post(
         props.submitUrl,
@@ -211,9 +250,14 @@ function submitUjian() {
     );
 }
 
-function autoSubmitOnTimeUp() {
+async function autoSubmitOnTimeUp() {
     if (isSubmitting.value) return;
     isSubmitting.value = true;
+
+    if (pendingSavePromise) {
+        await pendingSavePromise;
+    }
+
     router.post(props.submitUrl);
 }
 </script>
@@ -235,6 +279,9 @@ function autoSubmitOnTimeUp() {
 
                     <!-- Countdown Timer -->
                     <div class="d-flex align-items-center gap-2">
+                        <span v-if="isSaving" class="small text-body-secondary">
+                            <i class="bi bi-cloud-arrow-up me-1" aria-hidden="true" />Menyimpan...
+                        </span>
                         <div
                             class="px-3 py-1 rounded border fw-bold d-flex align-items-center gap-2"
                             :class="sisaDetik < 300 ? 'bg-danger text-white border-danger' : 'bg-body text-body'"
@@ -258,6 +305,11 @@ function autoSubmitOnTimeUp() {
             </div>
         </div>
 
+        <div v-if="saveError" class="alert alert-danger py-2 small mb-3" role="alert">
+            <i class="bi bi-exclamation-octagon-fill me-1" aria-hidden="true" />
+            {{ saveError }}
+        </div>
+
         <div class="row g-4">
             <!-- Left: Soal & Opsi Content -->
             <div class="col-lg-8">
@@ -273,6 +325,7 @@ function autoSubmitOnTimeUp() {
                                 type="button"
                                 class="btn btn-sm"
                                 :class="localAnswers[currentSoal.attempt_jawaban_id]?.ragu ? 'btn-warning text-dark fw-bold' : 'btn-outline-warning'"
+                                :aria-pressed="Boolean(localAnswers[currentSoal.attempt_jawaban_id]?.ragu)"
                                 @click="toggleRagu"
                             >
                                 <i class="bi bi-flag-fill me-1" />
@@ -288,10 +341,17 @@ function autoSubmitOnTimeUp() {
                         </div>
 
                         <!-- Opsi Jawaban -->
-                        <div class="d-flex flex-column gap-3 mb-4">
+                        <div
+                            class="d-flex flex-column gap-3 mb-4"
+                            role="radiogroup"
+                            :aria-label="`Pilihan jawaban soal nomor ${currentIndex + 1}`"
+                        >
                             <div
                                 v-for="(opsi, oIdx) in currentSoal.opsi"
                                 :key="opsi.id"
+                                role="radio"
+                                tabindex="0"
+                                :aria-checked="localAnswers[currentSoal.attempt_jawaban_id]?.opsiId === opsi.id"
                                 class="p-3 border rounded-3 cursor-pointer transition-all d-flex align-items-start gap-3"
                                 :class="{
                                     'border-primary bg-primary-subtle text-primary fw-semibold': localAnswers[currentSoal.attempt_jawaban_id]?.opsiId === opsi.id,
@@ -299,11 +359,12 @@ function autoSubmitOnTimeUp() {
                                 }"
                                 style="cursor: pointer;"
                                 @click="selectOpsi(opsi.id)"
+                                @keydown.enter.prevent="selectOpsi(opsi.id)"
+                                @keydown.space.prevent="selectOpsi(opsi.id)"
                             >
                                 <div
                                     class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold border u-sq-32px"
                                     :class="localAnswers[currentSoal.attempt_jawaban_id]?.opsiId === opsi.id ? 'bg-primary text-white border-primary' : 'bg-light text-dark'"
-                                   
                                 >
                                     {{ String.fromCharCode(65 + oIdx) }}
                                 </div>

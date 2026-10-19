@@ -392,8 +392,8 @@ const kesulitanBadgeColor = (kesulitan: string) => {
                                     <div
                                         v-for="(opsi, idx) in form.opsi"
                                         :key="idx"
-                                        class="p-2 border rounded bg-white"
-                                        :class="opsi.is_benar ? 'border-success bg-success-subtle' : ''"
+                                        class="p-2 border rounded"
+                                        :class="opsi.is_benar ? 'border-success bg-success-subtle' : 'bg-body'"
                                     >
                                         <div class="d-flex align-items-center gap-2 mb-1">
                                             <div class="form-check mb-0">

@@ -40,7 +40,7 @@ body {
 .page-link:focus-visible,
 .dropdown-item:focus-visible,
 .nav-link:focus-visible {
-    box-shadow:var(--focus-ring) !important;
+    box-shadow:var(--focus-ring);
 }
 
 /* !important di blok utilitas ini disengaja: utilitas Bootstrap (.bg-*, .text-*, .border-*) sendiri !important,

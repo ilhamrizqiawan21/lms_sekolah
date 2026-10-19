@@ -181,14 +181,14 @@ async function destroy(user: AdminUser): Promise<void> {
                             </td>
                             <td class="table-action-column stack-actions">
                                 <div class="d-inline-flex align-items-center gap-1">
-                                    <a
+                                    <Link
                                         :href="`/admin/users/${user.id}/edit`"
                                         class="btn btn-sm btn-warning btn-icon"
                                         :title="`Edit ${user.nama_lengkap}`"
                                         :aria-label="`Edit ${user.nama_lengkap}`"
                                     >
                                         <i class="bi bi-pencil" aria-hidden="true"></i>
-                                    </a>
+                                    </Link>
                                     <IconButton
                                         :icon="user.is_active ? 'bi-pause-fill' : 'bi-play-fill'"
                                         :label="`${user.is_active ? 'Nonaktifkan' : 'Aktifkan'} ${user.nama_lengkap}`"

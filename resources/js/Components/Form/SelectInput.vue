@@ -2,13 +2,12 @@
 defineSlots<{ default?: () => unknown }>();
 import { computed } from 'vue';
 import InputError from './InputError.vue';
-import type { ValidationMessage } from '../../types/forms';
+import type { SelectOption, ValidationMessage } from '../../types';
 
 defineOptions({
     inheritAttrs: false,
 });
 
-interface SelectOption { value: string | number; label: string; }
 interface Props { modelValue?: string | number | boolean; name: string; label?: string; options?: SelectOption[] | Record<string, string>; placeholder?: string; help?: string; error?: ValidationMessage; wrapperClass?: string; required?: boolean; }
 const props = withDefaults(defineProps<Props>(), { modelValue: '', label: '', options: () => [], placeholder: '', help: '', error: '', wrapperClass: 'mb-3', required: false });
 
@@ -44,7 +43,7 @@ const normalizedOptions = computed<SelectOption[]>(() => Array.isArray(props.opt
             <option v-if="placeholder" value="">{{ placeholder }}</option>
             <option
                 v-for="option in normalizedOptions"
-                :key="option.value"
+                :key="String(option.value)"
                 :value="option.value"
             >
                 {{ option.label }}

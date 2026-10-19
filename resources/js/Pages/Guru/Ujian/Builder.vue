@@ -375,7 +375,7 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
                                 v-for="soal in filteredBank"
                                 :key="soal.id"
                                 class="p-3 border rounded transition-all"
-                                :class="isSelected(soal.id) ? 'border-primary bg-primary-subtle' : 'bg-white'"
+                                :class="isSelected(soal.id) ? 'border-primary bg-primary-subtle' : 'bg-body'"
                             >
                                 <div class="d-flex align-items-start gap-3">
                                     <div class="form-check mt-1">
@@ -392,7 +392,7 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
                                     <div class="flex-grow-1">
                                         <div class="d-flex flex-wrap gap-1 mb-1">
                                             <Badge v-if="soal.topik" color="secondary">{{ soal.topik }}</Badge>
-                                            <Badge :color="soal.kesulitan === 'mudah' ? 'success' : soal.kesulitan === 'sulit' ? 'danger' : 'warning text-dark'">
+                                            <Badge :color="soal.kesulitan === 'mudah' ? 'success' : soal.kesulitan === 'sulit' ? 'danger' : 'warning'">
                                                 {{ soal.kesulitan }}
                                             </Badge>
                                             <Badge v-if="soal.kategori_nilai" color="info">{{ soal.kategori_nilai }}</Badge>
