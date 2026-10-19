@@ -1,0 +1,218 @@
+- generic [ref=e3]:
+  - link "Lewati ke konten utama" [ref=e4] [cursor=pointer]:
+    - /url: "#mainContent"
+  - banner [ref=e5]:
+    - button "Buka menu" [ref=e6] [cursor=pointer]:
+      - generic [aria-hidden] [ref=e7]: 
+    - generic [ref=e8]:
+      - img "Logo Nama Sekolah" [ref=e10]
+      - generic [ref=e11]: Nama Sekolah
+    - button "Buka akses cepat" [ref=e13] [cursor=pointer]:
+      - generic [aria-hidden] [ref=e14]: 
+    - generic [ref=e15]:
+      - button "Notifikasi" [ref=e17] [cursor=pointer]:
+        - generic [aria-hidden]: 
+      - button "Aktifkan mode gelap" [ref=e18] [cursor=pointer]:
+        - generic [aria-hidden]: 
+      - generic [ref=e19]:
+        - button "Menu akun" [ref=e20] [cursor=pointer]:
+          - generic [aria-hidden]: 
+        - text:   
+  - complementary [ref=e21]:
+    - generic [ref=e22]:
+      - img "Logo Nama Sekolah" [ref=e24]
+      - generic [ref=e25]:
+        - generic [ref=e26]: Nama Sekolah
+        - generic [ref=e27]: LMS Sekolah
+    - navigation "Navigasi utama" [ref=e28]:
+      - list [ref=e29]:
+        - listitem [ref=e30]:
+          - generic [ref=e31]: Mengajar
+        - listitem [ref=e32]:
+          - link "Dashboard" [ref=e33] [cursor=pointer]:
+            - /url: /guru/dashboard
+            - generic [aria-hidden] [ref=e34]: 
+        - listitem [ref=e36]:
+          - link "Jadwal Mengajar" [ref=e37] [cursor=pointer]:
+            - /url: /guru/jadwal-mengajar
+            - generic [aria-hidden] [ref=e38]: 
+        - listitem [ref=e40]:
+          - link "Absensi" [ref=e41] [cursor=pointer]:
+            - /url: /guru/absensi
+            - generic [aria-hidden] [ref=e42]: 
+        - listitem [ref=e44]:
+          - link "Materi" [ref=e45] [cursor=pointer]:
+            - /url: /guru/materi
+            - generic [aria-hidden] [ref=e46]: 
+        - listitem [ref=e48]:
+          - link "Tugas" [ref=e49] [cursor=pointer]:
+            - /url: /guru/tugas
+            - generic [aria-hidden] [ref=e50]: 
+        - listitem [ref=e52]:
+          - link "Ujian (CBT)" [ref=e53] [cursor=pointer]:
+            - /url: /guru/ujian
+            - generic [aria-hidden] [ref=e54]: 
+        - listitem [ref=e56]:
+          - link "Bank Soal" [ref=e57] [cursor=pointer]:
+            - /url: /guru/soal-bank
+            - generic [aria-hidden] [ref=e58]: 
+        - listitem [ref=e60]:
+          - link "Nilai" [ref=e61] [cursor=pointer]:
+            - /url: /guru/nilai
+            - generic [aria-hidden] [ref=e62]: 
+        - listitem [ref=e64]:
+          - link "Sikap" [ref=e65] [cursor=pointer]:
+            - /url: /guru/sikap
+            - generic [aria-hidden] [ref=e66]: 
+        - listitem [ref=e68]:
+          - generic [ref=e69]: Wali Kelas
+        - listitem [ref=e70]:
+          - link "Wali Kelas" [ref=e71] [cursor=pointer]:
+            - /url: /guru/wali-kelas
+            - generic [aria-hidden] [ref=e72]: 
+        - listitem [ref=e74]:
+          - generic [ref=e75]: Komunikasi
+        - listitem [ref=e76]:
+          - link "Kelas Daring" [ref=e77] [cursor=pointer]:
+            - /url: /guru/kelas-daring
+            - generic [aria-hidden] [ref=e78]: 
+        - listitem [ref=e80]:
+          - link "Kalender" [ref=e81] [cursor=pointer]:
+            - /url: /guru/kalender
+            - generic [aria-hidden] [ref=e82]: 
+        - listitem [ref=e84]:
+          - link "Pengumuman" [ref=e85] [cursor=pointer]:
+            - /url: /guru/pengumuman
+            - generic [aria-hidden] [ref=e86]: 
+        - listitem [ref=e88]:
+          - link "Chat Kelas" [ref=e89] [cursor=pointer]:
+            - /url: /guru/chat
+            - generic [aria-hidden] [ref=e90]: 
+        - listitem [ref=e92]:
+          - generic [ref=e93]: Rekap
+        - listitem [ref=e94]:
+          - link "Rekap Absensi" [ref=e95] [cursor=pointer]:
+            - /url: /guru/rekap-absensi
+            - generic [aria-hidden] [ref=e96]: 
+        - listitem [ref=e98]:
+          - link "Rekap Nilai" [ref=e99] [cursor=pointer]:
+            - /url: /guru/rekap-nilai
+            - generic [aria-hidden] [ref=e100]: 
+        - listitem [ref=e102]:
+          - link "Rekap Sikap" [ref=e103] [cursor=pointer]:
+            - /url: /guru/rekap-sikap
+            - generic [aria-hidden] [ref=e104]: 
+        - listitem [ref=e106]:
+          - generic [ref=e107]: Akun
+        - listitem [ref=e108]:
+          - link "Pengaturan" [ref=e109] [cursor=pointer]:
+            - /url: /guru/pengaturan
+            - generic [aria-hidden] [ref=e110]: 
+  - navigation "Navigasi cepat" [ref=e112]:
+    - link "Beranda" [ref=e113] [cursor=pointer]:
+      - /url: /guru/dashboard
+      - generic [aria-hidden] [ref=e114]: 
+    - link "Absensi" [ref=e116] [cursor=pointer]:
+      - /url: /guru/absensi
+      - generic [aria-hidden] [ref=e117]: 
+    - link "Nilai" [ref=e119] [cursor=pointer]:
+      - /url: /guru/nilai
+      - generic [aria-hidden] [ref=e120]: 
+    - link "Tugas" [ref=e122] [cursor=pointer]:
+      - /url: /guru/tugas
+      - generic [aria-hidden] [ref=e123]: 
+    - button "Menu" [ref=e125] [cursor=pointer]:
+      - generic [aria-hidden] [ref=e126]: 
+  - main [ref=e128]:
+    - generic [ref=e129]:
+      - generic [ref=e130]:
+        - generic [ref=e131]:
+          - generic [ref=e132]: Ujian CBT
+          - heading "Buat Ujian CBT Baru" [level=1] [ref=e133]
+          - paragraph [ref=e134]: Bahasa Indonesia - 7 7A. Pilih butir soal dari bank soal dan atur bobot poin serta durasi.
+        - link "Kembali ke Daftar" [ref=e136] [cursor=pointer]:
+          - /url: /guru/ujian/1/list
+          - generic [aria-hidden]: 
+          - text: Kembali ke Daftar
+      - generic [ref=e138]:
+        - generic [ref=e140]:
+          - generic [ref=e142]:
+            - generic [aria-hidden]: 
+            - generic [ref=e143]: Pengaturan Ujian
+          - generic [ref=e144]:
+            - generic [ref=e146]:
+              - generic [ref=e147]: Judul Ujian *
+              - textbox "Judul Ujian *" [ref=e148]:
+                - /placeholder: "Misal: Penilaian Harian Bab 1, STS Ganjil..."
+            - generic [ref=e150]:
+              - generic [ref=e151]: Petunjuk / Deskripsi (Opsional)
+              - textbox "Petunjuk / Deskripsi (Opsional)" [ref=e152]:
+                - /placeholder: Petunjuk pengerjaan bagi siswa...
+            - generic [ref=e153]:
+              - generic [ref=e154]:
+                - generic [ref=e155]: Durasi (Menit)
+                - spinbutton "Durasi (Menit)" [ref=e156]: "60"
+              - generic [ref=e158]:
+                - generic [ref=e159]: Kategori Nilai *
+                - combobox "Kategori Nilai *" [ref=e160]:
+                  - option "Nilai Harian (NH)" [selected]
+                  - option "STS"
+                  - option "SAS"
+                  - option "SAT"
+            - generic [ref=e161]:
+              - generic [ref=e163]:
+                - generic [ref=e164]: Waktu Mulai Buka
+                - textbox "Waktu Mulai Buka" [ref=e165]:
+                  - /placeholder: ""
+                - generic [ref=e166]: Kosongkan jika langsung buka.
+              - generic [ref=e168]:
+                - generic [ref=e169]: Waktu Selesai Tutup
+                - textbox "Waktu Selesai Tutup" [ref=e170]:
+                  - /placeholder: ""
+                - generic [ref=e171]: Kosongkan jika tanpa batas.
+            - generic [ref=e172]:
+              - generic [ref=e173]: Pengacakan
+              - generic [ref=e174]:
+                - checkbox "Acak urutan soal untuk tiap siswa" [checked] [ref=e175] [cursor=pointer]
+                - generic [ref=e176] [cursor=pointer]: Acak urutan soal untuk tiap siswa
+              - generic [ref=e177]:
+                - checkbox "Acak urutan opsi jawaban (A, B, C, D)" [checked] [ref=e178] [cursor=pointer]
+                - generic [ref=e179] [cursor=pointer]: Acak urutan opsi jawaban (A, B, C, D)
+            - generic [ref=e180]:
+              - generic [ref=e181]:
+                - generic [ref=e182]:
+                  - text: "Terpilih:"
+                  - strong [ref=e183]: 0 soal
+                - generic [ref=e184]:
+                  - text: "Total Bobot:"
+                  - strong [ref=e185]: 0 poin
+              - button "Terbitkan Ujian" [disabled]:
+                - generic [aria-hidden]: 
+                - text: Terbitkan Ujian
+        - generic [ref=e187]:
+          - generic [ref=e189]:
+            - generic [aria-hidden]: 
+            - generic [ref=e190]: Pilih Soal dari Bank Soal
+          - generic [ref=e191]:
+            - generic [ref=e192]:
+              - textbox "Cari teks soal" [ref=e195]:
+                - /placeholder: Cari teks soal...
+              - combobox "Filter topik" [ref=e198]:
+                - option "Semua Topik" [selected]
+              - combobox "Filter kesulitan" [ref=e201]:
+                - option "Semua Kesulitan" [selected]
+                - option "Mudah"
+                - option "Sedang"
+                - option "Sulit"
+            - button "Pilih Semua Tampil" [ref=e204] [cursor=pointer]:
+              - generic [aria-hidden]: 
+              - text: Pilih Semua Tampil
+            - status [ref=e205]:
+              - generic [ref=e206]:
+                - generic [aria-hidden]: 
+              - generic [ref=e207]: Tidak ada soal ditemukan
+              - generic [ref=e208]: Tidak ada soal di bank soal yang sesuai filter. Buat soal baru di Bank Soal terlebih dahulu.
+    - generic [ref=e209]:
+      - generic [ref=e210]: © 2026 Nama Sekolah
+      - generic [aria-hidden] [ref=e211]: •
+      - generic [ref=e212]: LMS Sekolah

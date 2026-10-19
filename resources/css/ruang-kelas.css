@@ -96,6 +96,10 @@
     --shadow-float: 0 16px 40px -10px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
+/* Bootstrap memberi .sticky-top z-index 1020, di atas topbar (400), sidebar (460), dan overlay (200).
+   Kartu sticky (Builder Ujian, Kerjakan Ujian) jadi menembus sidebar yang terbuka. Cukup di atas konten biasa. */
+.sticky-top { z-index: 10; }
+
 /* ── Dasar ── */
 body {
     background: var(--surface-body);
@@ -616,6 +620,9 @@ thead .grid-sticky-col { z-index: 3; background: var(--surface-subtle); text-ali
 }
 .form-label { font-size: 0.85rem; font-weight: 600; letter-spacing: normal; color: var(--text-strong); }
 .form-text { color: var(--text-muted); }
+/* app.css membatasi input ke max-width: 100%. Di dalam .form-check yang menyusut (flex item), isi lebarnya 0,
+   jadi checkbox/radio yang float tinggal border 2 px dan tidak bisa diklik (Builder Ujian, Bank Soal). */
+.form-check-input { max-width: none; flex-shrink: 0; }
 .form-check-input:checked { background-color: var(--primary-600); border-color: var(--primary-600); }
 .form-check-input:focus { border-color: var(--primary-500); box-shadow: var(--focus-ring); }
 /* Tombol "Choose File" bawaan browser: samakan dengan tombol sekunder */
