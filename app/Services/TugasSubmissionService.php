@@ -94,6 +94,15 @@ class TugasSubmissionService
                 throw new \RuntimeException('Tugas ini sudah dikumpulkan dan tidak dapat diubah.');
             }
 
+            $oldFilePaths = [];
+            if ($lockedPengumpulan && count($uploadedFilesToProcess = $filesToStore) > 0) {
+                $oldFilePaths = $lockedPengumpulan->files()->pluck('file_path')->all();
+                if ($lockedPengumpulan->file_upload) {
+                    $oldFilePaths[] = $lockedPengumpulan->file_upload;
+                }
+                $lockedPengumpulan->files()->delete();
+            }
+
             $pengumpulan = PengumpulanTugas::updateOrCreate(
                 ['tugas_id' => $tugas->id, 'siswa_id' => $siswa->id],
                 ['status' => $statusPengumpulan, 'file_upload' => null, 'teks_jawaban' => $validated['teks_jawaban'] ?? null, 'tanggal_kumpul' => now(), 'graded_at' => null]
@@ -111,6 +120,10 @@ class TugasSubmissionService
             }
 
             DB::commit();
+
+            foreach (array_unique(array_filter($oldFilePaths)) as $oldPath) {
+                Storage::disk('local')->delete($oldPath);
+            }
         } catch (\Throwable $e) {
             if (DB::transactionLevel() > 0) {
                 DB::rollBack();

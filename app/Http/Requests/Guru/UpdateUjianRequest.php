@@ -26,7 +26,7 @@ class UpdateUjianRequest extends FormRequest
             'acak_soal' => ['required', 'boolean'],
             'acak_opsi' => ['required', 'boolean'],
             'soal' => ['nullable', 'array'],
-            'soal.*.soal_bank_id' => ['required_with:soal', 'integer', 'exists:soal_bank,id'],
+            'soal.*.soal_bank_id' => ['required_with:soal', 'integer', 'distinct', 'exists:soal_bank,id'],
             'soal.*.poin' => ['required_with:soal', 'numeric', 'min:0.01', 'max:1000'],
         ];
     }

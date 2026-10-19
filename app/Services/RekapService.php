@@ -45,13 +45,15 @@ class RekapService
             $absensiData = Absensi::whereIn('siswa_id', $siswaList->pluck('id'))->whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $kelasId)->where('tahun_ajaran_id', $taAktif->id)->where('semester', $semester))->whereBetween('tanggal', ["{$bulan}-01", date('Y-m-t', strtotime("{$bulan}-01"))])->get()->groupBy('siswa_id');
             foreach ($siswaList as $s) {
                 $row = ['nis' => $s->nis, 'nama' => $s->user->nama_lengkap ?? '-', 'absensi' => [], 'hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0];
+                $recordsByDate = $absensiData->get($s->id, collect())->keyBy(fn (Absensi $a) => $a->tanggal?->format('Y-m-d'));
                 foreach ($tanggalList as $tgl) {
-                    $st = $absensiData->get($s->id, collect())->firstWhere('tanggal', $tgl)?->status;
+                    $st = $recordsByDate->get($tgl)?->status;
                     $row['absensi'][$tgl] = $st;
                     if ($st && isset($row[$st])) {
                         $row[$st]++;
                     }
-                } $rekap[] = $row;
+                }
+                $rekap[] = $row;
             }
         }
 

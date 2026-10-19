@@ -146,7 +146,7 @@ class SensitiveEndpointGuard
     {
         $value = (string) $value;
 
-        return preg_match('/^[=+\-@]/', $value) === 1 ? "'{$value}" : $value;
+        return preg_match('/^[\s]*[=+\-@]/', $value) === 1 ? "'{$value}" : $value;
     }
 
     private function authorizeAdmin(Request $request, Closure $next): ?Response

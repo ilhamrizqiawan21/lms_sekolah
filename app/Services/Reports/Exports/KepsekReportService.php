@@ -8,6 +8,7 @@ use App\Models\Pengaturan;
 use App\Models\PengumpulanTugas;
 use App\Models\SikapSosial;
 use App\Models\SikapSpiritual;
+use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Models\Tugas;
 use App\Services\Reports\LaporanKepsekService;
@@ -113,7 +114,7 @@ final class KepsekReportService
             $query->whereHas('kelasMapel', fn ($q) => $q->where('mapel_id', $request->mapel_id));
         }
 
-        $rows = $query->orderBy('rata_akhir', 'desc')->get()->values()->map(fn (NilaiAkhir $item, int $index) => [
+        $rows = $query->orderByRaw(NilaiAkhir::rataAkhirExpression().' desc')->get()->values()->map(fn (NilaiAkhir $item, int $index) => [
             $index + 1,
             $item->siswa?->user?->nama_lengkap ?? '-',
             $item->siswa?->kelas?->nama_kelas ?? $item->kelasMapel?->kelas?->nama_kelas ?? '-',
@@ -155,9 +156,18 @@ final class KepsekReportService
             $query->where('judul', 'like', '%'.$request->search.'%');
         }
 
-        $rows = $query->orderBy('batas_waktu', 'desc')->get()->values()->map(function (Tugas $item, int $index) {
-            $total = $item->pengumpulan->count();
+        $items = $query->orderBy('batas_waktu', 'desc')->get()->values();
+        $kelasIds = $items->map(fn (Tugas $t) => $t->kelasMapel?->kelas_id)->filter()->unique()->values();
+        $siswaCounts = Siswa::whereIn('kelas_id', $kelasIds)
+            ->where('status', 'aktif')
+            ->selectRaw('kelas_id, count(*) as total')
+            ->groupBy('kelas_id')
+            ->pluck('total', 'kelas_id');
+
+        $rows = $items->map(function (Tugas $item, int $index) use ($siswaCounts) {
+            $kelasId = $item->kelasMapel?->kelas_id;
             $sudah = $item->pengumpulan->whereIn('status', PengumpulanTugas::STATUS_SUBMITTED)->count();
+            $total = max((int) ($siswaCounts->get($kelasId) ?? 0), $sudah);
 
             return [
                 $index + 1,
@@ -168,7 +178,7 @@ final class KepsekReportService
                 $item->batas_waktu?->format('d/m/Y') ?? '-',
                 $total,
                 $sudah,
-                $total - $sudah,
+                max(0, $total - $sudah),
                 $total > 0 ? round(($sudah / $total) * 100).'%' : '-',
                 $item->pengumpulan->whereNotNull('nilai')->avg('nilai') ? round($item->pengumpulan->whereNotNull('nilai')->avg('nilai'), 1) : '-',
             ];

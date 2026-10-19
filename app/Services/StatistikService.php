@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Absensi;
 use App\Models\Kelas;
+use App\Models\KelasMapel;
 use App\Models\MataPelajaran;
 use App\Models\Materi;
 use App\Models\NilaiAkhir;
@@ -54,12 +55,19 @@ class StatistikService
     public function dashboardSiswa(int $siswaId): array
     {
         $siswa = Siswa::findOrFail($siswaId);
+        $activeKelasMapelIds = KelasMapel::where('kelas_id', $siswa->kelas_id)->aktif()->pluck('id');
+        $totalTugas = Tugas::whereIn('kelas_mapel_id', $activeKelasMapelIds)->count();
+        $tugasKumpul = PengumpulanTugas::where('siswa_id', $siswaId)
+            ->whereIn('status', PengumpulanTugas::STATUS_SUBMITTED)
+            ->whereHas('tugas', fn ($q) => $q->whereIn('kelas_mapel_id', $activeKelasMapelIds))
+            ->count();
 
         return [
-            'total_absensi' => Absensi::where('siswa_id', $siswaId)->count(),
-            'total_tugas' => PengumpulanTugas::where('siswa_id', $siswaId)->count(),
-            'tugas_belum' => PengumpulanTugas::where('siswa_id', $siswaId)->where('status', 'belum')->count(),
+            'total_absensi' => Absensi::where('siswa_id', $siswaId)->whereIn('kelas_mapel_id', $activeKelasMapelIds)->count(),
+            'total_tugas' => $totalTugas,
+            'tugas_belum' => max(0, $totalTugas - $tugasKumpul),
             'rata_rata_nilai' => NilaiAkhir::where('siswa_id', $siswaId)
+                ->whereIn('kelas_mapel_id', $activeKelasMapelIds)
                 ->selectRaw('AVG('.NilaiAkhir::rataAkhirExpression().') as rata_rata')
                 ->value('rata_rata'),
         ];
@@ -73,14 +81,16 @@ class StatistikService
         $totalSiswa = Siswa::where('status', 'aktif')->count();
         $totalGuru = $this->countUsersByRole('guru');
         $totalKelas = Kelas::count();
+        $activeKelasMapelIds = KelasMapel::aktif()->pluck('id');
 
-        // Rata-rata nilai seluruh siswa
-        $rataNilai = NilaiAkhir::selectRaw('AVG('.NilaiAkhir::rataAkhirExpression().') as rata_rata')
+        // Rata-rata nilai seluruh siswa pada periode aktif
+        $rataNilai = NilaiAkhir::whereIn('kelas_mapel_id', $activeKelasMapelIds)
+            ->selectRaw('AVG('.NilaiAkhir::rataAkhirExpression().') as rata_rata')
             ->value('rata_rata');
 
-        // Persentase kehadiran
-        $totalAbsensi = Absensi::count();
-        $totalHadir = Absensi::where('status', 'hadir')->count();
+        // Persentase kehadiran pada periode aktif
+        $totalAbsensi = Absensi::whereIn('kelas_mapel_id', $activeKelasMapelIds)->count();
+        $totalHadir = Absensi::whereIn('kelas_mapel_id', $activeKelasMapelIds)->where('status', 'hadir')->count();
         $persenHadir = $totalAbsensi > 0 ? round(($totalHadir / $totalAbsensi) * 100, 2) : 0;
 
         return [

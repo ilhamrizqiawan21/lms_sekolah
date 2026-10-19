@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Kepsek;
 
 use App\Http\Controllers\Controller;
 use App\Models\Absensi;
+use App\Models\KelasMapel;
 use App\Models\LogLogin;
 use App\Models\NilaiAkhir;
 use App\Models\Pengumuman;
@@ -32,6 +33,8 @@ class DashboardController extends Controller
             ? "strftime('%Y-%m', tanggal)"
             : "DATE_FORMAT(tanggal, '%Y-%m')";
 
+        $activeKelasMapelIds = KelasMapel::aktif()->pluck('id');
+
         // Grafik absensi bulanan agar tren lebih mudah dianalisis.
         $absensiBulanan = Absensi::select(
             DB::raw("$monthExpression as bulan"),
@@ -40,6 +43,7 @@ class DashboardController extends Controller
             DB::raw("SUM(CASE WHEN status = 'izin' THEN 1 ELSE 0 END) as izin"),
             DB::raw("SUM(CASE WHEN status = 'alpha' THEN 1 ELSE 0 END) as alpha")
         )
+            ->whereIn('kelas_mapel_id', $activeKelasMapelIds)
             ->where('tanggal', '>=', now()->subMonths(6)->startOfMonth())
             ->groupBy('bulan')
             ->orderBy('bulan')
@@ -50,6 +54,7 @@ class DashboardController extends Controller
             'mata_pelajaran.nama_mapel',
             DB::raw('AVG('.NilaiAkhir::rataAkhirExpression().') as rata_rata')
         )
+            ->whereIn('nilai_akhir.kelas_mapel_id', $activeKelasMapelIds)
             ->join('kelas_mapel', 'nilai_akhir.kelas_mapel_id', '=', 'kelas_mapel.id')
             ->join('mata_pelajaran', 'kelas_mapel.mapel_id', '=', 'mata_pelajaran.id')
             ->groupBy('mata_pelajaran.nama_mapel')

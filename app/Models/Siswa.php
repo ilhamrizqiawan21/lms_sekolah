@@ -11,8 +11,6 @@ class Siswa extends Model
 {
     protected $table = 'siswa';
 
-    public $timestamps = false;
-
     protected $fillable = [
         'user_id',
         'nis',
@@ -69,5 +67,20 @@ class Siswa extends Model
     public function sikapSpiritual(): HasMany
     {
         return $this->hasMany(SikapSpiritual::class, 'siswa_id');
+    }
+
+    public function ujianAttempts(): HasMany
+    {
+        return $this->hasMany(UjianAttempt::class, 'siswa_id');
+    }
+
+    public function absensiWaliKelas(): HasMany
+    {
+        return $this->hasMany(AbsensiWaliKelas::class, 'siswa_id');
+    }
+
+    public function penangananSiswa(): HasMany
+    {
+        return $this->hasMany(PenangananSiswa::class, 'siswa_id');
     }
 }

@@ -129,14 +129,16 @@ class SikapController extends Controller
             return back()->withInput()->with('error', 'Pilihan kelas tidak valid.');
         }
 
-        foreach ($kelasMapel as $item) {
-            $this->saveSikapForKelasMapel(
-                $item,
-                $request->semester,
-                $request->input('sosial.'.$item->id, []),
-                $request->input('spiritual.'.$item->id, [])
-            );
-        }
+        DB::transaction(function () use ($kelasMapel, $request) {
+            foreach ($kelasMapel as $item) {
+                $this->saveSikapForKelasMapel(
+                    $item,
+                    $request->semester,
+                    $request->input('sosial.'.$item->id, []),
+                    $request->input('spiritual.'.$item->id, [])
+                );
+            }
+        });
 
         return redirect()->route('guru.sikap.index')
             ->with('success', 'Nilai sikap berhasil disimpan untuk kelas yang dipilih.');

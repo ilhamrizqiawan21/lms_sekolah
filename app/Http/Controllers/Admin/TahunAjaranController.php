@@ -72,8 +72,12 @@ class TahunAjaranController extends Controller
             return back()->with('error', 'Tahun ajaran aktif tidak dapat dihapus.');
         }
 
-        if ($tahunAjaran->kelasMapel()->exists()) {
-            return back()->with('error', 'Tahun ajaran tidak dapat dihapus karena sudah dipakai pada penugasan guru.');
+        if ($tahunAjaran->kelasMapel()->exists()
+            || $tahunAjaran->waliKelas()->exists()
+            || $tahunAjaran->nilaiAkhir()->exists()
+            || $tahunAjaran->sikapSosial()->exists()
+            || $tahunAjaran->sikapSpiritual()->exists()) {
+            return back()->with('error', 'Tahun ajaran tidak dapat dihapus karena sudah memiliki data penugasan guru, wali kelas, atau nilai.');
         }
 
         $tahunAjaran->delete();

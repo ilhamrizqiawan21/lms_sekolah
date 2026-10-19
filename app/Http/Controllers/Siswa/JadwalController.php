@@ -149,7 +149,7 @@ class JadwalController extends Controller
 
         $kelasMapel = $kelasDaring->kelasMapel;
 
-        if (! $kelasMapel || (int) $siswa->kelas_id !== (int) $kelasMapel->kelas_id) {
+        if (! $kelasMapel || (int) $siswa->kelas_id !== (int) $kelasMapel->kelas_id || ! $kelasMapel->isAktif()) {
             abort(403, 'Anda tidak terdaftar di kelas daring ini.');
         }
 
@@ -162,6 +162,15 @@ class JadwalController extends Controller
             return back()->with('error', 'Presensi daring hanya dapat dilakukan pada tanggal pelaksanaan sesi.');
         }
 
+        $existingAbsensi = Absensi::where('siswa_id', $siswa->id)
+            ->where('kelas_mapel_id', $kelasMapel->id)
+            ->whereDate('tanggal', $sessionDate)
+            ->first();
+
+        if ($existingAbsensi && ! $existingAbsensi->is_daring && $existingAbsensi->status !== 'hadir') {
+            return back()->with('error', 'Status kehadiran Anda pada sesi ini telah dicatat oleh guru.');
+        }
+
         // Simpan / update status kehadiran daring
         Absensi::updateOrCreate(
             [
@@ -170,7 +179,7 @@ class JadwalController extends Controller
                 'tanggal' => $sessionDate,
             ],
             [
-                'status' => 'h',
+                'status' => 'hadir',
                 'is_daring' => true,
                 'kelas_daring_id' => $kelasDaring->id,
                 'keterangan' => 'Hadir via Pembelajaran Daring',

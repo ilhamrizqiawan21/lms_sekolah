@@ -53,7 +53,7 @@ class KelasController extends Controller
         $validated = $request->validate([
             'tingkat' => 'required|in:VII,VIII,IX',
             'nama_kelas' => [
-                'required', 'string', 'max:20', 'regex:/^[A-Z0-9][A-Z0-9 .-]*$/',
+                'required', 'string', 'max:10', 'regex:/^[A-Z0-9][A-Z0-9 .-]*$/',
                 Rule::unique('kelas', 'nama_kelas')->where(fn ($query) => $query->where('tingkat', $request->input('tingkat'))),
             ],
         ]);
@@ -74,7 +74,7 @@ class KelasController extends Controller
         $validated = $request->validate([
             'tingkat' => 'required|in:VII,VIII,IX',
             'nama_kelas' => [
-                'required', 'string', 'max:20', 'regex:/^[A-Z0-9][A-Z0-9 .-]*$/',
+                'required', 'string', 'max:10', 'regex:/^[A-Z0-9][A-Z0-9 .-]*$/',
                 Rule::unique('kelas', 'nama_kelas')
                     ->ignore($kelas->id)
                     ->where(fn ($query) => $query->where('tingkat', $request->input('tingkat'))),

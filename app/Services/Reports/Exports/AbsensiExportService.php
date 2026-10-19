@@ -27,13 +27,13 @@ final class AbsensiExportService
         $this->excel->tableHeader($writer, array_merge(['No', 'NIS', 'Nama'], $dates->map(fn ($date) => date('d', strtotime($date)))->toArray(), ['H', 'S', 'I', 'A']));
 
         foreach ($siswa as $i => $student) {
-            $records = $data->get($student->id, collect());
+            $records = $data->get($student->id, collect())->keyBy(fn (Absensi $a) => $a->tanggal?->format('Y-m-d'));
             $row = [];
             $counts = ['hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0];
             foreach ($dates as $date) {
-                $status = $records->firstWhere('tanggal', $date)?->status;
+                $status = $records->get($date)?->status;
                 $row[] = match ($status) {
-                    'hadir' => 'H','sakit' => 'S','izin' => 'I','alpha' => 'A', default => ''
+                    'hadir' => 'H', 'sakit' => 'S', 'izin' => 'I', 'alpha' => 'A', default => ''
                 };
                 if (isset($counts[$status])) {
                     $counts[$status]++;

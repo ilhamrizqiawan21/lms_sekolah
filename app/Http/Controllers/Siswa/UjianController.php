@@ -40,15 +40,22 @@ class UjianController extends Controller
             ->aktif()
             ->pluck('id');
 
-        $ujianList = Ujian::query()
-            ->with(['kelasMapel.mataPelajaran', 'kelasMapel.guru', 'ujianSoal'])
+        $ujianRows = Ujian::query()
+            ->with(['kelasMapel.mataPelajaran', 'kelasMapel.guru'])
+            ->withCount('ujianSoal as total_soal')
             ->whereIn('kelas_mapel_id', $activeKelasMapelIds)
             ->latest('id')
+            ->get();
+
+        $attemptsByUjian = UjianAttempt::query()
+            ->where('siswa_id', $siswa->id)
+            ->whereIn('ujian_id', $ujianRows->pluck('id'))
             ->get()
-            ->map(function ($u) use ($siswa) {
-                $attempt = UjianAttempt::where('ujian_id', $u->id)
-                    ->where('siswa_id', $siswa->id)
-                    ->first();
+            ->keyBy('ujian_id');
+
+        $ujianList = $ujianRows
+            ->map(function ($u) use ($attemptsByUjian) {
+                $attempt = $attemptsByUjian->get($u->id);
 
                 $isBuka = $u->isBuka();
 
@@ -89,7 +96,7 @@ class UjianController extends Controller
                     'kategori_nilai' => $u->kategori_nilai,
                     'waktu_mulai' => $u->waktu_mulai?->format('d/m/Y H:i'),
                     'waktu_selesai' => $u->waktu_selesai?->format('d/m/Y H:i'),
-                    'total_soal' => $u->ujianSoal->count(),
+                    'total_soal' => (int) $u->total_soal,
                     'is_buka' => $isBuka,
                     'status_label' => $statusLabel,
                     'can_start' => $canStart,
@@ -327,13 +334,18 @@ class UjianController extends Controller
         $siswa = $user->siswa;
         $this->ensureAttemptBelongsToSiswa($attempt, $siswa);
 
-        if ($attempt->status === UjianAttempt::STATUS_SEDANG_MENGERJAKAN) {
+        if (
+            $attempt->status === UjianAttempt::STATUS_SEDANG_MENGERJAKAN
+            && (! $attempt->batas_waktu || Carbon::now()->lte($attempt->batas_waktu))
+        ) {
             $log = $attempt->tab_switch_log ?? [];
-            $log[] = Carbon::now()->toIso8601String();
+            if (count($log) < 500) {
+                $log[] = Carbon::now()->toIso8601String();
+            }
 
             $attempt->update([
                 'tab_switch_log' => $log,
-                'tab_switch_count' => count($log),
+                'tab_switch_count' => ((int) $attempt->tab_switch_count) + 1,
             ]);
         }
 
@@ -401,4 +413,3 @@ class UjianController extends Controller
         abort_unless($siswa && (int) $attempt->siswa_id === (int) $siswa->id, 403, 'Attempt ini bukan milik Anda.');
     }
 }
-

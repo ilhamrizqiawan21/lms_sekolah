@@ -25,15 +25,11 @@ class TugasController extends Controller
     private const UPLOAD_EXTENSIONS = TugasSubmissionService::UPLOAD_EXTENSIONS;
 
     /**
-     * Aturan validasi satu file tugas.
-     * Sengaja TANPA validasi MIME/konten (mimetypes/mimes) karena tebakan
-     * MIME server tidak konsisten antar perangkat dan sering menolak file
-     * .jpg/.pdf yang sah walau ukurannya di bawah batas. Cukup validasi
-     * ekstensi + ukuran, konsisten dengan validasi di sisi frontend.
+     * Aturan validasi satu file tugas (konten MIME + ekstensi + batas ukuran).
      */
     public static function uploadFileRules(): string
     {
-        return 'nullable|file|extensions:'.self::UPLOAD_EXTENSIONS.'|max:'.self::UPLOAD_MAX_KB;
+        return 'nullable|file|mimes:'.self::UPLOAD_EXTENSIONS.'|extensions:'.self::UPLOAD_EXTENSIONS.'|max:'.self::UPLOAD_MAX_KB;
     }
 
     public function index()

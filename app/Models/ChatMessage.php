@@ -9,9 +9,9 @@ class ChatMessage extends Model
 {
     protected $table = 'chat_messages';
 
-    public $timestamps = false;
-
     const CREATED_AT = 'created_at';
+
+    const UPDATED_AT = null;
 
     protected $fillable = [
         'user_id',
@@ -22,6 +22,7 @@ class ChatMessage extends Model
 
     protected $casts = [
         'is_read' => 'boolean',
+        'created_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

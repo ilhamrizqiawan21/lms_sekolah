@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\NilaiAkhir;
 use App\Models\Siswa;
 use App\Models\Ujian;
 use App\Models\UjianAttempt;
@@ -10,6 +9,8 @@ use App\Models\UjianAttemptJawaban;
 use App\Models\UjianSoal;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Random\Engine\Mt19937;
+use Random\Randomizer;
 
 class CbtScoringService
 {
@@ -121,61 +122,7 @@ class CbtScoringService
             return;
         }
 
-        $siswaId = $attempt->siswa_id;
-
-        // Ambil semua attempt yang terkunci (selesai atau waktu_habis) untuk kategori nilai yang sama di kelas_mapel ini
-        $lockedAttempts = UjianAttempt::query()
-            ->where('siswa_id', $siswaId)
-            ->whereIn('status', UjianAttempt::STATUS_TERKUNCI)
-            ->whereHas('ujian', function ($q) use ($kelasMapel, $ujian) {
-                $q->where('kelas_mapel_id', $kelasMapel->id)
-                    ->where('kategori_nilai', $ujian->kategori_nilai);
-            })
-            ->get();
-
-        $scores = $lockedAttempts->map(function (UjianAttempt $att) {
-            if ($att->skor_maksimal > 0) {
-                return round(($att->skor_total / $att->skor_maksimal) * 100, 2);
-            }
-
-            return 0.0;
-        });
-
-        $avgScore = $scores->isNotEmpty() ? round((float) $scores->avg(), 2) : 0.0;
-
-        $existing = NilaiAkhir::where([
-            'siswa_id' => $siswaId,
-            'kelas_mapel_id' => $kelasMapel->id,
-            'tahun_ajaran_id' => $kelasMapel->tahun_ajaran_id,
-            'semester' => $kelasMapel->semester,
-        ])->first();
-
-        $payload = [
-            'siswa_id' => $siswaId,
-            'kelas_mapel_id' => $kelasMapel->id,
-            'tahun_ajaran_id' => $kelasMapel->tahun_ajaran_id,
-            'semester' => $kelasMapel->semester,
-            'sum1' => $existing?->sum1,
-            'sum2' => $existing?->sum2,
-            'sum3' => $existing?->sum3,
-            'sum4' => $existing?->sum4,
-            'nilai_harian' => $existing?->nilai_harian,
-            'sts' => $existing?->sts,
-            'sas' => $existing?->sas,
-            'sat' => $existing?->sat,
-        ];
-
-        if ($ujian->kategori_nilai === 'NH') {
-            $payload['nilai_harian'] = $avgScore;
-        } elseif ($ujian->kategori_nilai === 'STS') {
-            $payload['sts'] = $avgScore;
-        } elseif ($ujian->kategori_nilai === 'SAS') {
-            $payload['sas'] = $avgScore;
-        } elseif ($ujian->kategori_nilai === 'SAT') {
-            $payload['sat'] = $avgScore;
-        }
-
-        $this->nilaiService->simpanNilai($payload);
+        $this->nilaiService->sinkronNilaiKomponen($kelasMapel, (int) $attempt->siswa_id, (string) $ujian->kategori_nilai);
     }
 
     /**
@@ -185,6 +132,15 @@ class CbtScoringService
     public function startAttempt(Ujian $ujian, Siswa $siswa): UjianAttempt
     {
         return DB::transaction(function () use ($ujian, $siswa) {
+            $existing = UjianAttempt::where('ujian_id', $ujian->id)
+                ->where('siswa_id', $siswa->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing) {
+                return $existing;
+            }
+
             $now = Carbon::now();
             $durasi = (int) $ujian->durasi_menit;
             $batasWaktu = (clone $now)->addMinutes($durasi);
@@ -249,14 +205,14 @@ class CbtScoringService
     }
 
     /**
-     * Fisher-Yates shuffle dengan seed, agar urutan soal/opsi konsisten
-     * setiap kali dimuat ulang untuk attempt yang sama.
+     * Fisher-Yates shuffle dengan seed menggunakan engine PRNG lokal agar
+     * urutan soal/opsi konsisten tanpa mengotori state mt_srand global.
      */
     private function deterministicShuffle(array $ids, int $seed): array
     {
-        mt_srand($seed);
+        $randomizer = new Randomizer(new Mt19937($seed));
         for ($i = count($ids) - 1; $i > 0; $i--) {
-            $j = mt_rand(0, $i);
+            $j = $randomizer->getInt(0, $i);
             [$ids[$i], $ids[$j]] = [$ids[$j], $ids[$i]];
         }
 

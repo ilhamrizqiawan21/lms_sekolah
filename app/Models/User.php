@@ -18,10 +18,6 @@ class User extends Authenticatable
 
     protected $table = 'users';
 
-    // Tabel users asli tidak punya kolom timestamps created_at/updated_at
-    // Tapi ada kolom created_at (datetime type)
-    public $timestamps = false;
-
     const CREATED_AT = 'created_at';
 
     const UPDATED_AT = null;
@@ -147,5 +143,15 @@ class User extends Authenticatable
     public function calendarEvents(): HasMany
     {
         return $this->hasMany(CalendarEvent::class, 'user_id');
+    }
+
+    public function soalBank(): HasMany
+    {
+        return $this->hasMany(SoalBank::class, 'guru_id');
+    }
+
+    public function pengumuman(): HasMany
+    {
+        return $this->hasMany(Pengumuman::class, 'created_by');
     }
 }

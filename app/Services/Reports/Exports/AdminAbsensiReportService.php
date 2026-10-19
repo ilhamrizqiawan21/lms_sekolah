@@ -53,11 +53,11 @@ final class AdminAbsensiReportService
             ->get()->groupBy('siswa_id');
 
         $rows = $siswaList->values()->map(function (Siswa $siswa, int $index) use ($tanggalList, $absensiData) {
-            $sa = $absensiData->get($siswa->id, collect());
+            $sa = $absensiData->get($siswa->id, collect())->keyBy(fn (Absensi $a) => $a->tanggal?->format('Y-m-d'));
             $row = [$index + 1, $siswa->nis, $siswa->user?->nama_lengkap ?? '-'];
             $counts = ['hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0];
             foreach ($tanggalList as $tgl) {
-                $status = $sa->firstWhere('tanggal', $tgl)?->status;
+                $status = $sa->get($tgl)?->status;
                 $row[] = ['hadir' => 'H', 'sakit' => 'S', 'izin' => 'I', 'alpha' => 'A'][$status] ?? '-';
                 if ($status && isset($counts[$status])) {
                     $counts[$status]++;

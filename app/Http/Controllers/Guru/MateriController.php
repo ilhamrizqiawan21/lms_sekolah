@@ -134,7 +134,7 @@ class MateriController extends Controller
             Materi::create([
                 'kelas_mapel_id' => $kelasMapel->id,
                 'judul' => $validated['judul'],
-                'deskripsi' => $validated['deskripsi'],
+                'deskripsi' => $validated['deskripsi'] ?? null,
                 'file_path' => $path,
             ]);
 
@@ -168,7 +168,9 @@ class MateriController extends Controller
             return back()->with('error', 'File materi tidak ditemukan.');
         }
 
-        return response()->download($disk->path($materi->file_path), $materi->judul.'_'.basename($materi->file_path));
+        $safeTitle = trim(str_replace(['/', '\\'], '-', (string) $materi->judul)) ?: 'materi';
+
+        return response()->download($disk->path($materi->file_path), $safeTitle.'_'.basename($materi->file_path));
     }
 
     // Menghapus materi yang sudah diupload oleh guru untuk kelas dan mata pelajaran tertentu

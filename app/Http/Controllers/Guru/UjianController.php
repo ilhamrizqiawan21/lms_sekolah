@@ -206,6 +206,10 @@ class UjianController extends Controller
             ->get();
 
         $attempts = UjianAttempt::with('siswa.user')
+            ->withCount([
+                'jawaban as total_benar' => fn ($q) => $q->where('is_benar', true),
+                'jawaban as total_salah' => fn ($q) => $q->where('is_benar', false),
+            ])
             ->where('ujian_id', $ujian->id)
             ->get()
             ->keyBy('siswa_id');
@@ -222,7 +226,7 @@ class UjianController extends Controller
                     'id' => $siswa->id,
                     'nama_lengkap' => $siswa->user?->nama_lengkap ?? $siswa->nis,
                     'nis' => $siswa->nis,
-                    'nisn' => $siswa->nisn,
+                    'nisn' => $siswa->getAttribute('nisn'),
                 ];
 
                 continue;
@@ -240,8 +244,8 @@ class UjianController extends Controller
                 $skorList[] = $nilai;
             }
 
-            $totalBenar = $attempt->jawaban()->where('is_benar', true)->count();
-            $totalSalah = $attempt->jawaban()->where('is_benar', false)->count();
+            $totalBenar = (int) $attempt->total_benar;
+            $totalSalah = (int) $attempt->total_salah;
 
             $durasi = '-';
             if ($attempt->waktu_mulai && $attempt->waktu_submit) {
@@ -254,7 +258,7 @@ class UjianController extends Controller
                     'id' => $siswa->id,
                     'nama_lengkap' => $siswa->user?->nama_lengkap ?? $siswa->nis,
                     'nis' => $siswa->nis,
-                    'nisn' => $siswa->nisn,
+                    'nisn' => $siswa->getAttribute('nisn'),
                 ],
                 'status' => $statusMap[$attempt->status] ?? 'in_progress',
                 'waktu_mulai' => $attempt->waktu_mulai?->format('d/m/Y H:i'),
@@ -374,7 +378,7 @@ class UjianController extends Controller
 
     private function renderBuilder(KelasMapel $kelasMapel, ?Ujian $ujian): Response
     {
-        $soalBank = SoalBank::with('opsi')
+        $soalBank = SoalBank::with(['opsi', 'mapel'])
             ->where('guru_id', Auth::id())
             ->orderByDesc('id')
             ->get();

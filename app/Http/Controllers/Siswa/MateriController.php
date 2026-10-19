@@ -86,7 +86,9 @@ class MateriController extends Controller
             return back()->with('error', 'File materi tidak ditemukan.');
         }
 
-        return response()->download($disk->path($materi->file_path), $materi->judul.'_'.basename($materi->file_path));
+        $safeTitle = trim(str_replace(['/', '\\'], '-', (string) $materi->judul)) ?: 'materi';
+
+        return response()->download($disk->path($materi->file_path), $safeTitle.'_'.basename($materi->file_path));
     }
 
     private function ensureMateriBelongsToKelasMapel(Materi $materi, KelasMapel $kelasMapel): void

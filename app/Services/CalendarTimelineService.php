@@ -124,13 +124,15 @@ class CalendarTimelineService
             ->whereBetween('batas_waktu', [$start, $end]);
 
         if ($user->isGuru()) {
-            $query->whereHas('kelasMapel', fn ($q) => $q->where('guru_id', $user->id));
+            $query->whereHas('kelasMapel', fn ($q) => $q->where('guru_id', $user->id)->aktif());
         } elseif ($user->isSiswa()) {
             $kelasId = $user->siswa?->kelas_id;
             if (! $kelasId) {
                 return collect();
             }
-            $query->whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $kelasId));
+            $query->whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $kelasId)->aktif());
+        } else {
+            $query->whereHas('kelasMapel', fn ($q) => $q->aktif());
         }
 
         $tasks = $query->orderBy('batas_waktu')->get();
@@ -279,8 +281,10 @@ class CalendarTimelineService
                     });
             });
         } elseif ($user->isKepalaSekolah()) {
-            $query->whereIn('target', ['semua', 'guru'])
-                ->orWhere('created_by', $user->id);
+            $query->where(function ($q) use ($user) {
+                $q->whereIn('target', ['semua', 'guru'])
+                    ->orWhere('created_by', $user->id);
+            });
         }
 
         return $query->get()->map(fn (Pengumuman $item) => [

@@ -84,7 +84,10 @@ class SiswaLifecycleService
             || $siswa->pengumpulanTugas()->exists()
             || $siswa->nilaiAkhir()->exists()
             || $siswa->sikapSosial()->exists()
-            || $siswa->sikapSpiritual()->exists();
+            || $siswa->sikapSpiritual()->exists()
+            || $siswa->ujianAttempts()->exists()
+            || $siswa->absensiWaliKelas()->exists()
+            || $siswa->penangananSiswa()->exists();
     }
 
     /**
