@@ -855,3 +855,23 @@ thead .grid-sticky-col { z-index: 3; background: var(--surface-subtle); text-ali
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+/* ── Ujian CBT: penutup wajib layar penuh (di atas shell, di bawah modal 99998) ── */
+.exam-guard-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: var(--surface-body);
+}
+.exam-guard-panel {
+    max-width: 28rem;
+    padding: 1.75rem;
+    text-align: center;
+    border: 1px solid var(--card-border);
+    border-radius: var(--card-radius);
+    background: var(--surface-card);
+}

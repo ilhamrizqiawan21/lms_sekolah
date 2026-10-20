@@ -25,6 +25,37 @@ interface JawabanItem {
     opsi: OpsiItem[];
 }
 
+interface AttemptEvent {
+    jenis: string;
+    waktu: string | null;
+    durasi_detik: number | null;
+}
+
+// Kata netral: sinyal browser bisa keliru (notifikasi, panggilan masuk, koneksi), jadi bukan vonis.
+const eventLabel: Record<string, string> = {
+    tab_hidden: 'Berpindah tab',
+    window_blur: 'Keluar dari jendela ujian',
+    kembali: 'Kembali ke halaman ujian',
+    salin: 'Mencoba menyalin teks soal',
+    klik_kanan: 'Klik kanan pada soal',
+    heartbeat_gap: 'Tidak ada sinyal dari halaman ujian',
+    fullscreen_exit: 'Keluar dari layar penuh',
+};
+
+function eventText(event: AttemptEvent): string {
+    const label = eventLabel[event.jenis] ?? event.jenis;
+    if (event.jenis === 'heartbeat_gap' && event.durasi_detik) {
+        return `${label} selama ${formatDurasi(event.durasi_detik)}`;
+    }
+    return label;
+}
+
+function formatDurasi(detik: number): string {
+    const menit = Math.floor(detik / 60);
+    const sisa = detik % 60;
+    return menit > 0 ? `${menit} mnt ${sisa} dtk` : `${sisa} dtk`;
+}
+
 defineProps({
     kelasMapel: {
         type: Object as PropType<{ id: number; kelas: string; mata_pelajaran: string }>,
@@ -45,7 +76,13 @@ defineProps({
             waktu_mulai: string | null;
             waktu_submit: string | null;
             tab_switch_count: number;
+            alasan_selesai: string | null;
+            pelanggaran: number;
+            maks_pelanggaran: number | null;
+            toleransi_detik: number;
+            /** Hanya attempt lama (sebelum tabel event). */
             tab_switch_log: string[];
+            events: AttemptEvent[];
         }>,
         required: true,
     },
@@ -81,6 +118,9 @@ defineProps({
                                 <Badge :color="attempt.status === 'selesai' ? 'success' : attempt.status === 'waktu_habis' ? 'danger' : 'primary'">
                                     {{ attempt.status.replace('_', ' ').toUpperCase() }}
                                 </Badge>
+                                <div v-if="attempt.alasan_selesai === 'pelanggaran'" class="small text-danger mt-1">
+                                    Dikumpulkan otomatis: pelanggaran mencapai batas ({{ attempt.maks_pelanggaran }}).
+                                </div>
                             </div>
                         </div>
                         <div class="col-sm-4">
@@ -106,11 +146,24 @@ defineProps({
                             {{ attempt.tab_switch_count }}x Pindah Tab Terdeteksi
                         </Badge>
                     </div>
+                    <div v-if="attempt.pelanggaran > 0 || attempt.maks_pelanggaran" class="small mb-2">
+                        Pelanggaran terhitung: <strong>{{ attempt.pelanggaran }}</strong><template v-if="attempt.maks_pelanggaran"> dari batas {{ attempt.maks_pelanggaran }}</template>
+                        <span class="text-body-secondary">(keluar lebih dari {{ attempt.toleransi_detik }} detik, atau keluar layar penuh)</span>
+                    </div>
 
-                    <div v-if="attempt.tab_switch_log && attempt.tab_switch_log.length > 0" class="small text-body-secondary" style="max-height: 120px; overflow-y: auto;">
+                    <div v-if="attempt.events.length > 0" class="small text-body-secondary" style="max-height: 160px; overflow-y: auto;">
+                        <ul class="list-unstyled mb-0">
+                            <li v-for="(event, idx) in attempt.events" :key="idx" class="border-bottom py-1">
+                                <i class="bi bi-clock me-1 text-secondary" aria-hidden="true" />
+                                <span class="tabular-nums">{{ event.waktu }}</span>
+                                &middot; {{ eventText(event) }}
+                            </li>
+                        </ul>
+                    </div>
+                    <div v-else-if="attempt.tab_switch_log && attempt.tab_switch_log.length > 0" class="small text-body-secondary" style="max-height: 120px; overflow-y: auto;">
                         <ul class="list-unstyled mb-0">
                             <li v-for="(logTime, idx) in attempt.tab_switch_log" :key="idx" class="border-bottom py-1">
-                                <i class="bi bi-clock me-1 text-secondary" />
+                                <i class="bi bi-clock me-1 text-secondary" aria-hidden="true" />
                                 {{ new Date(logTime).toLocaleString('id-ID') }}
                             </li>
                         </ul>

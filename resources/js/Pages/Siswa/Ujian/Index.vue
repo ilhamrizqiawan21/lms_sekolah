@@ -26,6 +26,9 @@ interface UjianItem {
     waktu_selesai: string | null;
     is_buka: boolean;
     total_soal: number;
+    anticheat_aktif?: boolean;
+    maks_pelanggaran?: number | null;
+    wajib_fullscreen?: boolean;
     mata_pelajaran: string;
     guru: string;
     status_label?: string;
@@ -55,8 +58,23 @@ function statusBadgeColor(item: UjianItem): string {
     return item.is_buka ? 'warning' : 'secondary';
 }
 
+/** Aturan pengawasan ditampilkan sebelum ujian dimulai agar siswa tahu apa yang dipantau. */
+function aturanPengawasan(item: UjianItem): string {
+    if (!item.anticheat_aktif) {
+        return '';
+    }
+    const aturan = ['Selama ujian, berpindah tab atau jendela dicatat dan dapat dilihat guru.'];
+    if (item.wajib_fullscreen) {
+        aturan.push('Ujian wajib dikerjakan dalam layar penuh.');
+    }
+    if (item.maks_pelanggaran) {
+        aturan.push(`Jika terjadi ${item.maks_pelanggaran} pelanggaran, jawaban Anda dikumpulkan otomatis.`);
+    }
+    return ` ${aturan.join(' ')}`;
+}
+
 async function mulaiUjian(item: UjianItem) {
-    const confirmed = await window.confirmDialog?.(`Mulai mengerjakan ujian "${item.judul}"? Waktu pengerjaan (${item.durasi_menit} menit) akan langsung berjalan.`, {
+    const confirmed = await window.confirmDialog?.(`Mulai mengerjakan ujian "${item.judul}"? Waktu pengerjaan (${item.durasi_menit} menit) akan langsung berjalan.${aturanPengawasan(item)}`, {
         title: 'Mulai Ujian CBT',
         confirmText: 'Mulai Sekarang',
         danger: false,

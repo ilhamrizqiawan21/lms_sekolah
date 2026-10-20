@@ -1,0 +1,353 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\SoalBank;
+use App\Models\SoalBankOpsi;
+use App\Models\Ujian;
+use App\Models\UjianAttempt;
+use App\Models\UjianAttemptEvent;
+use App\Services\CbtAntiCheatService;
+use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Feature\Concerns\MembuatUjianCbt;
+use Tests\TestCase;
+
+/**
+ * Kebijakan anti-cheat CBT: hitung pelanggaran dari event, peringatan, kumpul otomatis,
+ * dan pengaturan per ujian oleh guru.
+ */
+class CbtAntiCheatPolicyTest extends TestCase
+{
+    use MembuatUjianCbt;
+    use RefreshDatabase;
+
+    private const MULAI = '2026-10-19 10:00:00';
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+
+        parent::tearDown();
+    }
+
+    private function event(string $jenis, string $waktu): UjianAttemptEvent
+    {
+        return new UjianAttemptEvent(['jenis' => $jenis, 'terjadi_pada' => Carbon::parse($waktu)]);
+    }
+
+    /** Satu episode keluar lalu kembali: siswa berada di luar selama $detik. */
+    private function episode(User $user, UjianAttempt $attempt, int $detik, string $keluar = 'window_blur'): void
+    {
+        $this->kirimEvent($user, $attempt, $keluar)->assertOk();
+        Carbon::setTestNow(Carbon::now()->addSeconds($detik));
+        $this->kirimEvent($user, $attempt, 'kembali')->assertOk();
+    }
+
+    /** @return iterable<string, array{0: list<array{0: string, 1: string}>, 1: string, 2: bool, 3: int}> */
+    public static function skenarioHitung(): iterable
+    {
+        $t = '2026-10-19 10:00:';
+
+        yield 'kembali tepat di batas toleransi tidak dihitung' => [[['window_blur', $t.'00'], ['kembali', $t.'05']], $t.'30', false, 0];
+        yield 'kembali melewati toleransi dihitung' => [[['window_blur', $t.'00'], ['kembali', $t.'06']], $t.'30', false, 1];
+        yield 'episode terbuka belum melewati toleransi' => [[['tab_hidden', $t.'00']], $t.'05', false, 0];
+        yield 'episode terbuka melewati toleransi dihitung' => [[['tab_hidden', $t.'00']], $t.'06', false, 1];
+        yield 'keluar ganda pada satu episode dihitung sekali' => [[['window_blur', $t.'00'], ['tab_hidden', $t.'01'], ['kembali', $t.'40']], $t.'59', false, 1];
+        yield 'dua episode panjang dihitung dua' => [[['window_blur', $t.'00'], ['kembali', $t.'10'], ['tab_hidden', $t.'20'], ['kembali', $t.'40']], $t.'59', false, 2];
+        yield 'kembali tanpa keluar diabaikan' => [[['kembali', $t.'10']], $t.'59', false, 0];
+        yield 'fullscreen_exit dihitung bila wajib' => [[['fullscreen_exit', $t.'10'], ['fullscreen_exit', $t.'20']], $t.'59', true, 2];
+        yield 'fullscreen_exit diabaikan bila tidak wajib' => [[['fullscreen_exit', $t.'10']], $t.'59', false, 0];
+        yield 'bukti non-pelanggaran tidak dihitung' => [[['heartbeat_gap', $t.'10'], ['salin', $t.'20'], ['klik_kanan', $t.'30']], $t.'59', true, 0];
+    }
+
+    /** @dataProvider skenarioHitung */
+    public function test_hitung_pelanggaran_dari_event(array $baris, string $sekarang, bool $wajibFullscreen, int $diharapkan): void
+    {
+        $events = array_map(fn (array $b) => $this->event($b[0], $b[1]), $baris);
+
+        $hasil = app(CbtAntiCheatService::class)->hitungDariEvents($events, Carbon::parse($sekarang), $wajibFullscreen);
+
+        $this->assertSame($diharapkan, $hasil);
+    }
+
+    public function test_respons_event_memuat_status_kebijakan_tanpa_kumpul_otomatis_bila_tidak_ada_batas(): void
+    {
+        Carbon::setTestNow(self::MULAI);
+        $this->siapkanUjian();
+        [$user, $attempt] = $this->mulaiAttempt();
+
+        $this->kirimEvent($user, $attempt, 'window_blur')
+            ->assertOk()
+            ->assertJson(['status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN, 'pelanggaran' => 0, 'maks_pelanggaran' => null]);
+
+        Carbon::setTestNow(Carbon::parse(self::MULAI)->addSeconds(30));
+        $this->kirimEvent($user, $attempt, 'kembali')
+            ->assertOk()
+            ->assertJson(['status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN, 'pelanggaran' => 1, 'maks_pelanggaran' => null]);
+
+        // Tanpa batas, berapa pun pelanggarannya attempt tidak pernah dikumpulkan paksa.
+        for ($i = 0; $i < 5; $i++) {
+            $this->episode($user, $attempt, 30);
+        }
+
+        $attempt->refresh();
+        $this->assertSame(UjianAttempt::STATUS_SEDANG_MENGERJAKAN, $attempt->status);
+        $this->assertNull($attempt->alasan_selesai);
+    }
+
+    public function test_attempt_dikumpulkan_otomatis_saat_pelanggaran_mencapai_batas_dan_jawaban_tetap_dinilai(): void
+    {
+        Carbon::setTestNow(self::MULAI);
+        $this->siapkanUjian(['maks_pelanggaran' => 2]);
+        [$user, $attempt] = $this->mulaiAttempt();
+
+        $jawaban = $attempt->jawaban()->firstOrFail();
+        $this->actingAs($user)->postJson(route('siswa.ujian.jawab', $attempt->id), [
+            'attempt_jawaban_id' => $jawaban->id,
+            'jawaban_opsi_id' => $this->opsiBenar->id,
+        ])->assertOk();
+
+        $this->episode($user, $attempt, 30);
+        $this->assertSame(UjianAttempt::STATUS_SEDANG_MENGERJAKAN, $attempt->refresh()->status);
+
+        $this->kirimEvent($user, $attempt, 'tab_hidden')->assertOk();
+        Carbon::setTestNow(Carbon::now()->addSeconds(30));
+        $this->kirimEvent($user, $attempt, 'kembali')
+            ->assertOk()
+            ->assertJson(['status' => UjianAttempt::STATUS_SELESAI, 'pelanggaran' => 2, 'maks_pelanggaran' => 2]);
+
+        $attempt->refresh();
+        $this->assertSame(UjianAttempt::STATUS_SELESAI, $attempt->status);
+        $this->assertSame(UjianAttempt::ALASAN_PELANGGARAN, $attempt->alasan_selesai);
+        $this->assertNotNull($attempt->waktu_submit);
+        $this->assertEqualsWithDelta(10.0, $attempt->skor_total, 0.001);
+
+        // Setelah terkunci, event berikutnya tidak menulis apa pun.
+        $jumlah = $attempt->events()->count();
+        $this->kirimEvent($user, $attempt, 'window_blur')->assertOk()->assertJson(['status' => UjianAttempt::STATUS_SELESAI]);
+        $this->assertSame($jumlah, $attempt->events()->count());
+    }
+
+    public function test_heartbeat_menghitung_episode_keluar_yang_belum_ditutup_dan_mengumpulkan_di_batas(): void
+    {
+        Carbon::setTestNow(self::MULAI);
+        $this->siapkanUjian(['maks_pelanggaran' => 1]);
+        [$user, $attempt] = $this->mulaiAttempt();
+
+        $this->kirimEvent($user, $attempt, 'tab_hidden')->assertOk();
+
+        // Masih dalam toleransi: belum pelanggaran.
+        Carbon::setTestNow(Carbon::parse(self::MULAI)->addSeconds(4));
+        $this->kirimHeartbeat($user, $attempt)->assertOk()->assertJson(['status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN, 'pelanggaran' => 0]);
+
+        // Siswa masih di luar setelah toleransi (tab latar tetap mengirim heartbeat ±1x/menit).
+        Carbon::setTestNow(Carbon::parse(self::MULAI)->addSeconds(20));
+        $this->kirimHeartbeat($user, $attempt)
+            ->assertOk()
+            ->assertJson(['status' => UjianAttempt::STATUS_SELESAI, 'pelanggaran' => 1, 'sisa_detik' => 0]);
+
+        $this->assertSame(UjianAttempt::ALASAN_PELANGGARAN, $attempt->refresh()->alasan_selesai);
+    }
+
+    public function test_membuka_halaman_ujian_mengevaluasi_episode_yang_terjadi_saat_halaman_tertutup(): void
+    {
+        Carbon::setTestNow(self::MULAI);
+        $this->siapkanUjian(['maks_pelanggaran' => 1]);
+        [$user, $attempt] = $this->mulaiAttempt();
+
+        $this->kirimEvent($user, $attempt, 'window_blur')->assertOk();
+
+        Carbon::setTestNow(Carbon::parse(self::MULAI)->addMinutes(3));
+        $this->actingAs($user)->get(route('siswa.ujian.kerjakan', $attempt->id))
+            ->assertRedirect(route('siswa.ujian.hasil', $attempt->id));
+
+        $this->assertSame(UjianAttempt::ALASAN_PELANGGARAN, $attempt->refresh()->alasan_selesai);
+    }
+
+    public function test_fullscreen_exit_dihitung_hanya_bila_ujian_mewajibkan_layar_penuh(): void
+    {
+        Carbon::setTestNow(self::MULAI);
+        $this->siapkanUjian(['maks_pelanggaran' => 1, 'wajib_fullscreen' => true]);
+        [$user, $attempt] = $this->mulaiAttempt();
+
+        $this->kirimEvent($user, $attempt, 'fullscreen_exit')
+            ->assertOk()
+            ->assertJson(['status' => UjianAttempt::STATUS_SELESAI, 'pelanggaran' => 1]);
+
+        Ujian::whereKey($this->ujian->id)->update(['wajib_fullscreen' => false]);
+        [$user2, $attempt2] = $this->mulaiAttempt('Siswa Dua');
+        $this->kirimEvent($user2, $attempt2, 'fullscreen_exit')
+            ->assertOk()
+            ->assertJson(['status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN, 'pelanggaran' => 0]);
+    }
+
+    public function test_ujian_tanpa_pengawasan_tidak_mencatat_dan_tidak_mengumpulkan(): void
+    {
+        Carbon::setTestNow(self::MULAI);
+        $this->siapkanUjian(['anticheat_aktif' => false, 'maks_pelanggaran' => 1]);
+        [$user, $attempt] = $this->mulaiAttempt();
+
+        $this->kirimEvent($user, $attempt, 'window_blur')
+            ->assertOk()
+            ->assertJson(['status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN, 'pelanggaran' => 0, 'maks_pelanggaran' => null]);
+        Carbon::setTestNow(Carbon::parse(self::MULAI)->addMinute());
+        $this->kirimEvent($user, $attempt, 'kembali')->assertOk();
+        $this->kirimHeartbeat($user, $attempt)->assertOk()->assertJson(['status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN, 'pelanggaran' => 0]);
+
+        $this->assertSame(0, $attempt->events()->count());
+        $this->assertSame(0, $attempt->refresh()->tab_switch_count);
+        $this->assertSame(UjianAttempt::STATUS_SEDANG_MENGERJAKAN, $attempt->status);
+    }
+
+    public function test_payload_halaman_ujian_daftar_dan_hasil_memuat_kebijakan(): void
+    {
+        Carbon::setTestNow(self::MULAI);
+        $this->siapkanUjian(['maks_pelanggaran' => 3, 'wajib_fullscreen' => true]);
+        [$user, $attempt] = $this->mulaiAttempt();
+
+        $this->actingAs($user)->get(route('siswa.ujian.index'))
+            ->assertInertia(fn ($page) => $page
+                ->component('Siswa/Ujian/Index')
+                ->where('ujianList.0.anticheat_aktif', true)
+                ->where('ujianList.0.maks_pelanggaran', 3)
+                ->where('ujianList.0.wajib_fullscreen', true)
+            );
+
+        $this->actingAs($user)->get(route('siswa.ujian.kerjakan', $attempt->id))
+            ->assertInertia(fn ($page) => $page
+                ->component('Siswa/Ujian/Kerjakan')
+                ->where('antiCheat.aktif', true)
+                ->where('antiCheat.maks_pelanggaran', 3)
+                ->where('antiCheat.wajib_fullscreen', true)
+                ->where('antiCheat.pelanggaran', 0)
+            );
+
+        $this->actingAs($user)->post(route('siswa.ujian.submit', $attempt->id));
+        $this->actingAs($user)->get(route('siswa.ujian.hasil', $attempt->id))
+            ->assertInertia(fn ($page) => $page->where('attempt.alasan_selesai', null));
+    }
+
+    public function test_guru_melihat_pelanggaran_dan_alasan_selesai_pada_detail_attempt(): void
+    {
+        Carbon::setTestNow(self::MULAI);
+        $this->siapkanUjian(['maks_pelanggaran' => 1]);
+        [$user, $attempt] = $this->mulaiAttempt();
+        $this->episode($user, $attempt, 30);
+
+        $url = route('guru.ujian.attempt.show', [$this->kelasMapel->id, $this->ujian->id, $attempt->id]);
+
+        $this->actingAs($this->guru)->get($url)
+            ->assertInertia(fn ($page) => $page
+                ->where('attempt.alasan_selesai', UjianAttempt::ALASAN_PELANGGARAN)
+                ->where('attempt.pelanggaran', 1)
+                ->where('attempt.maks_pelanggaran', 1)
+                ->where('attempt.toleransi_detik', UjianAttemptEvent::TOLERANSI_KELUAR_DETIK)
+            );
+    }
+
+    /** @return array<string, mixed> */
+    private function payloadBuilder(array $tambahan = []): array
+    {
+        $soal = SoalBank::create(['guru_id' => $this->guru->id, 'pertanyaan' => 'Soal Builder', 'kesulitan' => 'mudah']);
+        SoalBankOpsi::create(['soal_bank_id' => $soal->id, 'teks_opsi' => 'A', 'is_benar' => true]);
+        SoalBankOpsi::create(['soal_bank_id' => $soal->id, 'teks_opsi' => 'B', 'is_benar' => false]);
+
+        return $tambahan + [
+            'judul' => 'Ujian Kebijakan',
+            'durasi_menit' => 30,
+            'kategori_nilai' => 'NH',
+            'acak_soal' => true,
+            'acak_opsi' => true,
+            'soal' => [['soal_bank_id' => $soal->id, 'poin' => 10]],
+        ];
+    }
+
+    public function test_guru_menyimpan_kebijakan_dan_defaultnya_aman(): void
+    {
+        $this->siapkanUjian();
+
+        $this->actingAs($this->guru)->post(route('guru.ujian.store', $this->kelasMapel->id), $this->payloadBuilder())
+            ->assertRedirect(route('guru.ujian.list', $this->kelasMapel->id));
+        $default = Ujian::where('judul', 'Ujian Kebijakan')->firstOrFail();
+        $this->assertTrue($default->anticheat_aktif);
+        $this->assertNull($default->maks_pelanggaran);
+        $this->assertFalse($default->wajib_fullscreen);
+
+        $this->actingAs($this->guru)->post(route('guru.ujian.store', $this->kelasMapel->id), $this->payloadBuilder([
+            'judul' => 'Ujian Ketat',
+            'anticheat_aktif' => true,
+            'maks_pelanggaran' => 3,
+            'wajib_fullscreen' => true,
+        ]))->assertRedirect();
+        $ketat = Ujian::where('judul', 'Ujian Ketat')->firstOrFail();
+        $this->assertSame(3, $ketat->maks_pelanggaran);
+        $this->assertTrue($ketat->wajib_fullscreen);
+    }
+
+    public function test_pengawasan_nonaktif_menghapus_batas_dan_layar_penuh(): void
+    {
+        $this->siapkanUjian();
+
+        $this->actingAs($this->guru)->post(route('guru.ujian.store', $this->kelasMapel->id), $this->payloadBuilder([
+            'anticheat_aktif' => false,
+            'maks_pelanggaran' => 3,
+            'wajib_fullscreen' => true,
+        ]))->assertRedirect();
+
+        $ujian = Ujian::where('judul', 'Ujian Kebijakan')->firstOrFail();
+        $this->assertFalse($ujian->anticheat_aktif);
+        $this->assertNull($ujian->maks_pelanggaran);
+        $this->assertFalse($ujian->wajib_fullscreen);
+    }
+
+    /** @dataProvider batasTidakValid */
+    public function test_batas_pelanggaran_tidak_valid_ditolak(mixed $nilai): void
+    {
+        $this->siapkanUjian();
+
+        $this->actingAs($this->guru)->post(route('guru.ujian.store', $this->kelasMapel->id), $this->payloadBuilder(['maks_pelanggaran' => $nilai]))
+            ->assertSessionHasErrors('maks_pelanggaran');
+
+        $this->assertDatabaseMissing('ujian', ['judul' => 'Ujian Kebijakan']);
+    }
+
+    /** @return iterable<string, array{0: mixed}> */
+    public static function batasTidakValid(): iterable
+    {
+        yield 'nol' => [0];
+        yield 'terlalu besar' => [21];
+        yield 'bukan angka' => ['banyak'];
+        yield 'negatif' => [-1];
+    }
+
+    public function test_kebijakan_dikunci_setelah_ada_siswa_yang_mulai(): void
+    {
+        $this->siapkanUjian(['maks_pelanggaran' => 2]);
+
+        // Belum ada attempt: kebijakan bisa diubah.
+        $this->actingAs($this->guru)->put(route('guru.ujian.update', [$this->kelasMapel->id, $this->ujian->id]), $this->payloadBuilder([
+            'maks_pelanggaran' => 4,
+            'wajib_fullscreen' => true,
+        ]))->assertRedirect();
+        $this->ujian->refresh();
+        $this->assertSame(4, $this->ujian->maks_pelanggaran);
+        $this->assertTrue($this->ujian->wajib_fullscreen);
+
+        $this->mulaiAttempt();
+
+        // Sudah ada siswa yang mulai: kebijakan tetap, bagian lain tetap bisa diperbarui.
+        $this->actingAs($this->guru)->put(route('guru.ujian.update', [$this->kelasMapel->id, $this->ujian->id]), $this->payloadBuilder([
+            'judul' => 'Judul Baru',
+            'anticheat_aktif' => false,
+            'maks_pelanggaran' => 1,
+            'wajib_fullscreen' => false,
+        ]))->assertRedirect();
+
+        $this->ujian->refresh();
+        $this->assertSame('Judul Baru', $this->ujian->judul);
+        $this->assertTrue($this->ujian->anticheat_aktif);
+        $this->assertSame(4, $this->ujian->maks_pelanggaran);
+        $this->assertTrue($this->ujian->wajib_fullscreen);
+    }
+}

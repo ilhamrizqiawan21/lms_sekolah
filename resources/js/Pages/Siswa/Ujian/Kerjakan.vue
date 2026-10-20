@@ -4,6 +4,8 @@ import { Head, router } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import AppShell from '../../../Layouts/AppShell.vue';
 import { Button, Modal } from '../../../Components/UI';
+import { useExamGuard } from '../../../composables/useExamGuard';
+import { csrfHeaders } from '../../../utils/csrf';
 
 interface OpsiItem {
     id: number;
@@ -49,7 +51,17 @@ const props = defineProps({
     },
     submitUrl: { type: String, required: true },
     simpanJawabanUrl: { type: String, required: true },
-    logTabSwitchUrl: { type: String, required: true },
+    antiCheat: {
+        type: Object as PropType<{
+            aktif: boolean;
+            maks_pelanggaran: number | null;
+            wajib_fullscreen: boolean;
+            pelanggaran: number;
+        }>,
+        required: true,
+    },
+    eventUrl: { type: String, required: true },
+    heartbeatUrl: { type: String, required: true },
 });
 
 const currentIndex = ref(0);
@@ -58,7 +70,39 @@ const isSubmitting = ref(false);
 const isSaving = ref(false);
 const saveError = ref<string | null>(null);
 const showConfirmModal = ref(false);
-const tabSwitches = ref(props.attempt.tab_switches_count);
+// Anti-cheat: klien melaporkan, server yang memutuskan pelanggaran dan kumpul otomatis (lihat CbtAntiCheatService).
+const {
+    report: laporkanEvent,
+    maksPelanggaran,
+    peringatan,
+    tutupPeringatan,
+    perluLayarPenuh,
+    layarPenuhError,
+    masukLayarPenuh,
+} = useExamGuard({
+    enabled: props.antiCheat.aktif,
+    wajibFullscreen: props.antiCheat.wajib_fullscreen,
+    eventUrl: props.eventUrl,
+    heartbeatUrl: props.heartbeatUrl,
+    initialPelanggaran: props.antiCheat.pelanggaran,
+    maksPelanggaran: props.antiCheat.maks_pelanggaran,
+    // Server sudah menutup attempt (mis. melewati batas pelanggaran); arahkan ke Hasil kecuali sedang submit manual.
+    onAttemptEnded: () => {
+        if (!isSubmitting.value) router.reload();
+    },
+});
+
+function onSalin(event: Event) {
+    if (!props.antiCheat.aktif) return;
+    event.preventDefault();
+    laporkanEvent('salin');
+}
+
+function onKlikKanan(event: Event) {
+    if (!props.antiCheat.aktif) return;
+    event.preventDefault();
+    laporkanEvent('klik_kanan');
+}
 let pendingSavePromise: Promise<void> | null = null;
 
 // Keep local state for responsive UI
@@ -103,23 +147,6 @@ const formattedTime = computed(() => {
 
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 
-function csrfHeaders(): Record<string, string> {
-    const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-    };
-    const metaToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
-    if (metaToken) {
-        headers['X-CSRF-TOKEN'] = metaToken;
-    }
-    const xsrfMatch = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
-    if (xsrfMatch) {
-        headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfMatch[1]);
-    }
-    return headers;
-}
-
 onMounted(() => {
     timerInterval = setInterval(() => {
         if (sisaDetik.value > 0) {
@@ -129,28 +156,11 @@ onMounted(() => {
             autoSubmitOnTimeUp();
         }
     }, 1000);
-
-    // Tab switch listener
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 });
 
 onBeforeUnmount(() => {
     if (timerInterval) clearInterval(timerInterval);
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
 });
-
-function handleVisibilityChange() {
-    if (document.visibilityState === 'hidden') {
-        tabSwitches.value += 1;
-        void fetch(props.logTabSwitchUrl, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: csrfHeaders(),
-            body: JSON.stringify({}),
-            keepalive: true,
-        }).catch(() => {});
-    }
-}
 
 function selectOpsi(opsiId: number) {
     if (!currentSoal.value || isSubmitting.value) return;
@@ -310,6 +320,14 @@ async function autoSubmitOnTimeUp() {
             {{ saveError }}
         </div>
 
+        <div v-if="peringatan" class="alert alert-warning d-flex justify-content-between align-items-start gap-2 py-2 small mb-3" role="alert">
+            <span><i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true" />{{ peringatan }}</span>
+            <button type="button" class="btn-close" aria-label="Tutup peringatan" @click="tutupPeringatan" />
+        </div>
+        <div v-if="layarPenuhError" class="alert alert-info py-2 small mb-3" role="status">
+            {{ layarPenuhError }}
+        </div>
+
         <div class="row g-4">
             <!-- Left: Soal & Opsi Content -->
             <div class="col-lg-8">
@@ -334,7 +352,12 @@ async function autoSubmitOnTimeUp() {
                         </div>
                     </div>
 
-                    <div class="card-body p-4">
+                    <!-- Penghalang kasual (mudah dilewati lewat DevTools); setiap upaya tetap dicatat server. -->
+                    <div
+                        class="card-body p-4"
+                        @copy="onSalin"
+                        @contextmenu="onKlikKanan"
+                    >
                         <!-- Pertanyaan -->
                         <div class="fs-5 mb-4 text-strong lh-base u-ws-pre-wrap">
                             {{ currentSoal.pertanyaan }}
@@ -497,5 +520,19 @@ async function autoSubmitOnTimeUp() {
                 </Button>
             </template>
         </Modal>
+        <!-- Wajib layar penuh: menutupi soal sampai siswa masuk (atau kembali ke) layar penuh. -->
+        <div v-if="perluLayarPenuh" class="exam-guard-overlay" role="dialog" aria-modal="true" aria-labelledby="exam-guard-title">
+            <div class="exam-guard-panel">
+                <i class="bi bi-fullscreen fs-2 text-primary" aria-hidden="true" />
+                <h2 id="exam-guard-title" class="h5 fw-bold mt-2">Ujian ini wajib dikerjakan dalam layar penuh</h2>
+                <p class="text-body-secondary mb-3">
+                    Keluar dari layar penuh dicatat sebagai pelanggaran<template v-if="maksPelanggaran"> (batas {{ maksPelanggaran }} kali, setelah itu jawaban dikumpulkan otomatis)</template>.
+                    Waktu ujian tetap berjalan.
+                </p>
+                <button type="button" class="btn btn-primary" @click="masukLayarPenuh">
+                    <i class="bi bi-arrows-fullscreen me-1" aria-hidden="true" />Masuk layar penuh
+                </button>
+            </div>
+        </div>
     </AppShell>
 </template>

@@ -14,6 +14,7 @@ interface AttemptSummary {
     waktu_mulai: string | null;
     waktu_submit: string | null;
     total_soal: number;
+    alasan_selesai?: string | null;
     benar_count: number;
     salah_count: number;
     tidak_dijawab_count: number;
@@ -55,6 +56,12 @@ const props = defineProps({
 
         <div class="row justify-content-center">
             <div class="col-lg-8">
+                <div v-if="attempt.alasan_selesai === 'pelanggaran'" class="alert alert-warning small" role="status">
+                    <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true" />
+                    Jawaban Anda dikumpulkan otomatis karena pelanggaran selama ujian melewati batas yang ditetapkan guru.
+                    Hubungi guru jika Anda merasa ini keliru.
+                </div>
+
                 <Card title="Hasil Pengerjaan Ujian">
                     <!-- Status Banner -->
                     <div class="text-center py-4 border-bottom mb-4">

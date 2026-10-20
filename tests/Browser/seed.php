@@ -12,8 +12,12 @@ use App\Models\PengumpulanTugas;
 use App\Models\Pengumuman;
 use App\Models\Role;
 use App\Models\Siswa;
+use App\Models\SoalBank;
+use App\Models\SoalBankOpsi;
 use App\Models\TahunAjaran;
 use App\Models\Tugas;
+use App\Models\Ujian;
+use App\Models\UjianSoal;
 use App\Models\User;
 use App\Models\WaliKelas;
 use Illuminate\Contracts\Console\Kernel;
@@ -107,6 +111,18 @@ $task = Tugas::create([
     'deskripsi' => 'Latihan matematika', 'batas_waktu' => now()->addWeek(), 'kategori_nilai' => 'NH',
 ]);
 PengumpulanTugas::create(['tugas_id' => $task->id, 'siswa_id' => $student->id, 'status' => 'belum']);
+$question = SoalBank::create([
+    'guru_id' => $users['guru']->id, 'mapel_id' => $subject->id,
+    'pertanyaan' => 'Berapa hasil 3 + 4 pada ujian uji?', 'kesulitan' => 'mudah',
+]);
+foreach ([['6', false], ['7', true]] as $index => [$optionText, $isCorrect]) {
+    SoalBankOpsi::create(['soal_bank_id' => $question->id, 'teks_opsi' => $optionText, 'is_benar' => $isCorrect, 'urutan' => $index + 1]);
+}
+$exam = Ujian::create([
+    'kelas_mapel_id' => $course->id, 'judul' => 'Ujian Uji Anti-Cheat',
+    'durasi_menit' => 30, 'kategori_nilai' => 'NH',
+]);
+UjianSoal::create(['ujian_id' => $exam->id, 'soal_bank_id' => $question->id, 'poin' => 10, 'urutan' => 1]);
 Pengumuman::create([
     'judul' => 'Pengumuman Uji', 'isi' => 'Informasi sekolah untuk pengujian.',
     'target' => 'semua', 'created_by' => $users['admin']->id, 'is_public_login' => true,
