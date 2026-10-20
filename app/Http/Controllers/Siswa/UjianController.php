@@ -485,6 +485,7 @@ class UjianController extends Controller
                 'kelas' => $ujian->kelasMapel?->kelas?->displayName() ?? '-',
                 'mata_pelajaran' => $ujian->kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
             ],
+            'daftarUjianUrl' => route('siswa.ujian.index'),
         ]);
     }
 

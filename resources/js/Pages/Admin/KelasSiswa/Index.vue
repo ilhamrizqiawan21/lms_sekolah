@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from 'vue';
 import type { PaginationLink } from '../../../types/pagination';
-interface Student { id: number; nis: string; nama_lengkap: string; kelas_id: number | null; jenis_kelamin: string | null; tinggal_kelas: boolean; kelas: string; status: string; password_is_default: boolean; password_status: string; is_active: boolean }
+interface Student { id: number; nis: string; username: string | null; nama_lengkap: string; kelas_id: number | null; jenis_kelamin: string | null; tinggal_kelas: boolean; kelas: string; status: string; password_is_default: boolean; password_status: string; is_active: boolean }
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, reactive, ref, watch } from 'vue';
 import { FileInput, SelectInput, TextInput } from '../../../Components/Form';
@@ -321,12 +321,13 @@ function passwordStatusColor(isDefault: boolean) {
             <TableWrapper v-if="siswa.data?.length" stack>
                 <table class="table table-hover mb-0">
                     <thead>
-                        <tr><th scope="col">NIS</th><th scope="col">Nama</th><th scope="col">JK</th><th scope="col">Kelas</th><th scope="col">Status Siswa</th><th scope="col">Status Password</th><th scope="col" class="table-action-column">Aksi</th></tr>
+                        <tr><th scope="col">NIS</th><th scope="col">Username</th><th scope="col">Nama</th><th scope="col">JK</th><th scope="col">Kelas</th><th scope="col">Status Siswa</th><th scope="col">Status Password</th><th scope="col" class="table-action-column">Aksi</th></tr>
                     </thead>
                     <tbody>
                         <template v-for="item in siswa.data" :key="item.id">
                             <tr>
                                 <td data-label="NIS">{{ item.nis }}</td>
+                                <td data-label="Username"><code>{{ item.username ?? '-' }}</code></td>
                                 <td class="stack-title"><strong>{{ item.nama_lengkap ?? '-' }}</strong></td>
                                 <td data-label="JK">{{ item.jenis_kelamin ?? '-' }}</td>
                                 <td data-label="Kelas">{{ item.kelas || '-' }}</td>
@@ -347,7 +348,7 @@ function passwordStatusColor(isDefault: boolean) {
                                 </td>
                             </tr>
                             <tr v-if="editing?.id === item.id">
-                                <td colspan="7">
+                                <td colspan="8">
                                     <form class="row g-3 align-items-end" @submit.prevent="submitEdit(item)">
                                         <div class="col-md-3">
                                             <TextInput v-model="editForm.nis" name="edit_nis" label="NIS" required wrapper-class="mb-0" :error="editForm.errors.nis" />
