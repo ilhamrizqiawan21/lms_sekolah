@@ -31,6 +31,9 @@ jobs:
           coverage: none
           tools: composer:v2
 
+      - name: Require PHP2Shell fixed PHP release
+        run: php scripts/check-php-security.php
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
