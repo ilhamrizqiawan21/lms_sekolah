@@ -1,17 +1,41 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import type { AppPageProps } from '../../types';
+
 defineSlots<{ actions?: () => unknown }>();
-defineProps({
-    eyebrow: { type: String, default: '' },
-    title: { type: String, required: true },
-    subtitle: { type: String, default: '' },
-    icon: { type: String, default: '' },
+interface BreadcrumbItem { label: string; href?: string; }
+const props = withDefaults(defineProps<{
+    eyebrow?: string;
+    title: string;
+    subtitle?: string;
+    icon?: string;
+    breadcrumbs?: BreadcrumbItem[];
+}>(), { eyebrow: '', subtitle: '', icon: '', breadcrumbs: () => [] });
+
+const page = usePage<AppPageProps>();
+const homeHref = computed(() => {
+    const role = page.props.auth?.user?.role;
+    return role === 'kepala_sekolah' ? '/kepsek/dashboard' : role ? `/${role}/dashboard` : '/';
 });
+const trail = computed(() => props.breadcrumbs.length
+    ? props.breadcrumbs
+    : props.eyebrow && props.eyebrow !== props.title ? [{ label: props.eyebrow }] : []);
 </script>
 
 <template>
     <div class="page-header app-page-header">
         <div class="app-page-heading">
-            <span v-if="eyebrow" class="app-page-eyebrow">{{ eyebrow }}</span>
+            <nav class="app-breadcrumb" aria-label="Breadcrumb">
+                <ol>
+                    <li><Link :href="homeHref">Beranda</Link></li>
+                    <li v-for="(crumb, index) in trail" :key="`${crumb.label}-${index}`">
+                        <Link v-if="crumb.href" :href="crumb.href">{{ crumb.label }}</Link>
+                        <span v-else>{{ crumb.label }}</span>
+                    </li>
+                    <li aria-current="page">{{ title }}</li>
+                </ol>
+            </nav>
             <h1 class="app-page-title">
                 <i v-if="icon" class="bi" :class="icon" aria-hidden="true"></i>
                 {{ title }}

@@ -16,6 +16,7 @@ interface SubmissionChartPoint { bulan: string; bulan_label?: string; total: num
 
 const page = usePage<AppPageProps>();
 const user = page.props.auth?.user;
+const todayLabel = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
 interface Props { statistik?: GuruStats; kelasMapel?: Course[]; tugasBelumDikumpulkan?: MissingTask[]; siswaJarangMasuk?: AttendanceConcern[]; tugasPerluDinilai?: GradingTask[]; kehadiranChart?: AttendanceChartPoint[]; pengumpulanTugasChart?: SubmissionChartPoint[]; }
 const props = withDefaults(defineProps<Props>(), { statistik: () => ({}), kelasMapel: () => [], tugasBelumDikumpulkan: () => [], siswaJarangMasuk: () => [], tugasPerluDinilai: () => [], kehadiranChart: () => [], pengumpulanTugasChart: () => [] });
 
@@ -249,16 +250,29 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({
     <Head title="Dashboard Guru" />
     <AppShell title="Dashboard Guru">
         <DashboardHero
-            eyebrow="Ruang Guru"
+            :eyebrow="todayLabel"
             :title="`Selamat datang, ${user?.nama_lengkap ?? 'Guru'}`"
-            subtitle="Kelola pembelajaran, penilaian, dan tindak lanjut kelas hari ini."
+            subtitle="Mulai dari pekerjaan yang perlu diselesaikan hari ini."
             icon="bi-person-workspace"
             tone="teacher"
         >
             <template #actions><QuickActionBar :actions="quickActions" /></template>
         </DashboardHero>
 
-        <MetricStrip :items="metrics" />
+        <section class="agenda-priority" aria-labelledby="guru-priority-title">
+            <div class="agenda-priority-heading">
+                <div>
+                    <span class="agenda-kicker">Agenda mengajar</span>
+                    <h2 id="guru-priority-title">Perlu diselesaikan</h2>
+                </div>
+                <span class="agenda-priority-note">{{ totalPerluDinilai }} pengumpulan menunggu nilai</span>
+            </div>
+            <div class="agenda-priority-links">
+                <Link href="/guru/absensi" class="agenda-priority-link"><i class="bi bi-clipboard-check" aria-hidden="true"></i><span>Isi absensi</span><i class="bi bi-arrow-up-right" aria-hidden="true"></i></Link>
+                <Link href="/guru/tugas" class="agenda-priority-link"><i class="bi bi-pencil-square" aria-hidden="true"></i><span>{{ totalPerluDinilai ? `Nilai ${totalPerluDinilai} pengumpulan` : 'Kelola tugas kelas' }}</span><i class="bi bi-arrow-up-right" aria-hidden="true"></i></Link>
+                <Link href="/guru/jadwal-mengajar" class="agenda-priority-link"><i class="bi bi-calendar-week" aria-hidden="true"></i><span>Lihat jadwal mengajar</span><i class="bi bi-arrow-up-right" aria-hidden="true"></i></Link>
+            </div>
+        </section>
 
         <div class="dashboard-grid dashboard-grid-teacher teacher-dashboard-queues">
             <ActionQueue
@@ -283,6 +297,8 @@ const attendanceItems = computed(() => props.siswaJarangMasuk.map((item) => ({
                 empty-message="Belum ada siswa dengan kehadiran di bawah 75% dalam 60 hari terakhir."
             />
         </div>
+
+        <MetricStrip :items="metrics" />
 
         <section class="workspace-panel teacher-courses-panel">
             <header class="workspace-panel-header">

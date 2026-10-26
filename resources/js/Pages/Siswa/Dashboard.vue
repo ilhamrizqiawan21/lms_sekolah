@@ -13,6 +13,7 @@ interface StudentLinks { tugas?: string; materi?: string; jadwal_pelajaran?: str
 
 interface Props { stats: StudentStats; courses?: StudentCourse[]; tugasTerbaru?: StudentTask[]; notifikasi?: StudentNotification[]; pengumuman?: StudentAnnouncement[]; kelasDaring?: OnlineClass[]; links?: StudentLinks; }
 const props = withDefaults(defineProps<Props>(), { courses: () => [], tugasTerbaru: () => [], notifikasi: () => [], pengumuman: () => [], kelasDaring: () => [], links: () => ({}) });
+const todayLabel = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
 
 const iconMap = {
     tugas_baru: { icon: 'bi-journal-plus', color: 'var(--accent-blue)' }, nilai_baru: { icon: 'bi-bar-chart-fill', color: 'var(--accent-green)' },
@@ -34,7 +35,6 @@ const quickActions = computed(() => [
     { label: 'Materi', href: props.links.materi || '/siswa/materi', icon: 'bi-file-earmark-text', color: 'outline-secondary' },
     { label: 'Nilai', href: '/siswa/nilai', icon: 'bi-bar-chart', color: 'outline-secondary' },
 ]);
-const taskItems = computed(() => props.tugasTerbaru.map((item) => ({ id: item.id, title: item.judul, meta: item.mata_pelajaran, detail: `Deadline ${item.batas_waktu}`, href: item.show_url || props.links.tugas || '/siswa/tugas', badge: item.selesai ? 'Selesai' : 'Belum', badgeColor: item.selesai ? 'success' : 'warning text-dark', icon: item.selesai ? 'bi-check-circle' : 'bi-journal-text', accent: item.selesai ? 'var(--accent-green)' : 'var(--accent-amber)' })));
 const onlineClassItems = computed(() => props.kelasDaring.map((item) => ({ id: item.id, title: item.judul, meta: item.mata_pelajaran, detail: `${item.tanggal} · Pelajaran ke-${item.pelajaran_ke}`, href: item.workspace_url, badge: 'Daring', badgeColor: 'primary', icon: 'bi-camera-video', accent: 'var(--accent-blue)' })));
 const notificationItems = computed(() => props.notifikasi.map((item) => ({ id: item.id, title: item.judul, meta: item.created_at, detail: item.pesan, href: props.links.notifikasi, badge: item.is_read ? '' : 'Baru', badgeColor: 'danger', icon: iconFor(item.tipe).icon, accent: iconFor(item.tipe).color })));
 const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: item.id, title: item.judul, meta: item.created_at, href: item.show_url, icon: 'bi-megaphone-fill', accent: 'var(--accent-blue)' })));
@@ -43,13 +43,24 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: i
 <template>
     <Head title="Dashboard Siswa" />
     <AppShell title="Dashboard Siswa">
-        <DashboardHero eyebrow="Hari Ini" title="Siap lanjut belajar?" :subtitle="`${stats.tugas_belum ?? 0} tugas belum dikerjakan dan ${stats.total_materi ?? 0} materi tersedia untuk dipelajari.`" icon="bi-mortarboard" tone="student">
+        <DashboardHero :eyebrow="todayLabel" title="Belajar hari ini" :subtitle="`${stats.tugas_belum ?? 0} tugas menunggu dikerjakan. Mulai dari yang paling dekat tenggatnya.`" icon="bi-mortarboard" tone="student">
             <template #actions><QuickActionBar :actions="quickActions" /></template>
         </DashboardHero>
-        <MetricStrip :items="metrics" />
+
+        <section class="agenda-priority agenda-priority-student" aria-labelledby="siswa-priority-title">
+            <div class="agenda-priority-heading">
+                <div><span class="agenda-kicker">Langkah berikutnya</span><h2 id="siswa-priority-title">Yang perlu kamu kerjakan</h2></div>
+                <Link :href="links.tugas || '/siswa/tugas'" class="agenda-priority-note">Lihat semua tugas</Link>
+            </div>
+            <div v-if="tugasTerbaru.length" class="agenda-priority-links">
+                <Link v-for="task in tugasTerbaru.slice(0, 3)" :key="task.id" :href="task.show_url || links.tugas || '/siswa/tugas'" class="agenda-priority-link">
+                    <i class="bi bi-journal-check" aria-hidden="true"></i><span>{{ task.judul }} <small>{{ task.mata_pelajaran }} · {{ task.batas_waktu }}</small></span><i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                </Link>
+            </div>
+            <p v-else class="agenda-priority-empty">Belum ada tugas terdekat. Kamu bisa lanjut membaca materi kelas.</p>
+        </section>
 
         <div class="dashboard-grid dashboard-grid-student student-priority-grid">
-            <ActionQueue title="Tugas Terdekat" icon="bi-journal-check" :items="taskItems" empty-title="Belum ada tugas" />
             <ActionQueue title="Kelas Daring" icon="bi-camera-video-fill" :items="onlineClassItems" empty-title="Belum ada kelas daring">
                 <template #actions><Link :href="links.kelas_daring || '/siswa/kelas-daring'" class="app-card-action-link">Lihat Semua</Link></template>
             </ActionQueue>
@@ -57,6 +68,8 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: i
                 <template v-if="notifikasi.length" #actions><Link :href="links.notifikasi" class="app-card-action-link">Lihat Semua</Link></template>
             </ActionQueue>
         </div>
+
+        <MetricStrip :items="metrics" />
 
         <section class="workspace-panel student-courses-panel">
             <header class="workspace-panel-header">

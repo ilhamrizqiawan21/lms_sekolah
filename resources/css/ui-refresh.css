@@ -27,7 +27,7 @@ html[data-bs-theme="dark"] {
 }
 
 /* A darker navigation rail gives the work area a stronger frame. */
-.app-shell .modern-sidebar {
+.app-shell.app-shell .modern-sidebar {
     overflow: hidden;
     border-right: 1px solid rgba(255, 255, 255, 0.08);
     background:
@@ -368,4 +368,90 @@ html[data-bs-theme="dark"] {
     .app-shell .action-queue-item,
     .app-shell .course-card,
     .app-shell .btn { transition: none; }
+}
+
+/* Shared typography and controls across all Inertia roles. */
+.app-shell {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+}
+.app-shell .app-page-title { letter-spacing: -0.025em; line-height: 1.2; }
+.app-shell .app-page-subtitle { max-width: 68ch; font-size: 0.9rem; }
+.app-shell .app-breadcrumb { margin-bottom: 0.55rem; }
+.app-shell .app-breadcrumb ol {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.app-shell .app-breadcrumb li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.app-shell .app-breadcrumb li + li::before { content: '/'; color: var(--border-strong); }
+.app-shell .app-breadcrumb a { color: var(--text-muted); text-decoration: none; }
+.app-shell .app-breadcrumb a:hover,
+.app-shell .app-breadcrumb a:focus-visible { color: var(--text-brand); text-decoration: underline; }
+.app-shell .app-breadcrumb [aria-current="page"] { color: var(--text-brand); }
+
+.app-shell .btn { gap: 0.45rem; font-size: 0.875rem; line-height: 1.25; white-space: normal; }
+.app-shell .btn > .bi,
+.app-shell .app-button-icon { flex: 0 0 auto; font-size: 1em; line-height: 1; vertical-align: middle; }
+.app-shell .btn:focus-visible { outline: 2px solid var(--app-primary); outline-offset: 2px; box-shadow: none; }
+.app-shell .btn:disabled,
+.app-shell .btn.disabled { cursor: not-allowed; transform: none; }
+.app-shell .btn-outline-secondary { background: var(--surface-card); border-color: var(--border-strong); color: var(--text-body); box-shadow: none; }
+.app-shell .btn-outline-secondary:hover { background: var(--surface-hover); color: var(--text-strong); }
+.app-shell .btn-icon {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+}
+.app-shell .btn-icon > .bi { margin: 0; }
+
+.app-shell .app-table-wrapper { border-radius: 14px; }
+.app-shell .table { font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.app-shell .table th {
+    padding: 0.72rem 0.85rem;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.35;
+    text-transform: none;
+}
+.app-shell .table td { padding: 0.75rem 0.85rem; line-height: 1.4; }
+.app-shell .table tbody tr:hover > * { background: var(--surface-subtle); }
+.app-shell .table .btn-sm { min-height: 34px; }
+.app-shell .app-table-scroll-hint {
+    padding: 0.65rem 0.85rem;
+    border-bottom: 1px solid var(--border-soft);
+    background: var(--surface-subtle);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+.app-shell .app-table-wrapper:focus-visible { outline: 2px solid var(--app-primary); outline-offset: 2px; }
+
+.app-shell .app-card-title > .bi,
+.app-shell .workspace-panel-title > .bi { font-size: 1em; line-height: 1; }
+.app-shell .empty-state { max-width: 40rem; margin-inline: auto; }
+.app-shell .empty-state-title { font-size: 0.98rem; font-weight: 700; }
+.app-shell .empty-state-message { max-width: 48ch; margin-inline: auto; line-height: 1.55; }
+
+@media (max-width: 767.98px) {
+    .app-shell .app-breadcrumb { margin-bottom: 0.45rem; }
+    .app-shell .table .btn-sm { min-height: 40px; }
+    .app-shell .btn-icon { width: 40px; min-width: 40px; height: 40px; }
 }
