@@ -53,6 +53,14 @@ function togglePassword() {
 
 const flash = computed(() => page.props.flash ?? {});
 const title = computed(() => 'Login');
+const schoolName = computed(() => {
+    const value = props.branding.school_name.trim();
+    return value && value.toLocaleLowerCase('id-ID') !== 'nama sekolah' ? value : 'Portal Sekolah';
+});
+const schoolAddress = computed(() => {
+    const value = props.branding.school_address.trim();
+    return value && value.toLocaleLowerCase('id-ID') !== 'alamat sekolah belum diatur' ? value : '';
+});
 
 const forgotPasswordUrl = computed(() => {
     const rawContact = String(props.branding.support_contact ?? '').replace(/[^\d+]/g, '');
@@ -106,16 +114,16 @@ function submit() {
                     <div class="brand-logo-box">
                         <img
                             :src="branding.logo_url"
-                            :alt="`Logo ${branding.school_name}`"
+                            :alt="`Logo ${schoolName}`"
                             width="40"
                             height="40"
                             decoding="async"
                         >
                     </div>
                     <div class="brand-heading-titles">
-                        <span class="brand-school-name">{{ branding.school_name }}</span>
-                        <span v-if="branding.school_address" class="brand-school-sub">
-                            {{ branding.school_address }}
+                        <span class="brand-school-name">{{ schoolName }}</span>
+                        <span v-if="schoolAddress" class="brand-school-sub">
+                            {{ schoolAddress }}
                         </span>
                     </div>
                 </div>
@@ -189,7 +197,7 @@ function submit() {
                 <!-- Jika belum ada pengumuman publik (mengisi panel dengan panduan yang bermanfaat) -->
                 <div v-else class="board-empty-state">
                     <p class="board-empty-intro">
-                        Selamat datang di portal pembelajaran digital {{ branding.school_name }}. Papan ini memuat informasi dan pengumuman resmi yang ditujukan bagi seluruh civitas sekolah.
+                        Selamat datang di portal pembelajaran digital {{ schoolName }}. Papan ini memuat informasi dan pengumuman resmi yang ditujukan bagi seluruh civitas sekolah.
                     </p>
                     <div class="board-quick-guide">
                         <div class="guide-item">
@@ -1108,5 +1116,158 @@ function submit() {
         transition: none !important;
         animation: none !important;
     }
+}
+
+
+/* Visual refresh: a clear school identity panel paired with a focused sign-in card. */
+.login-page {
+    --login-bg: #f1f5fb;
+    --login-surface: #ffffff;
+    --login-border: #e5eaf1;
+    --login-text: #14243a;
+    --login-text-muted: #65758b;
+    --login-primary: var(--app-primary, #2563eb);
+    --login-primary-dark: var(--app-primary-dark, #173b63);
+    --login-input-border: #d7e0eb;
+    --login-brand-bg: #102944;
+    --login-glass-bg: rgba(255, 255, 255, 0.075);
+    --login-glass-border: rgba(255, 255, 255, 0.16);
+
+    grid-template-columns: minmax(0, 1.08fr) minmax(460px, 0.92fr);
+    background:
+        radial-gradient(ellipse at 82% 8%, rgba(31, 111, 235, 0.08), transparent 32rem),
+        var(--login-bg);
+}
+
+.login-brand-panel {
+    isolation: isolate;
+    overflow: hidden;
+    padding: clamp(36px, 5vw, 72px) clamp(32px, 6vw, 88px);
+    background:
+        radial-gradient(circle at 88% 18%, rgba(50, 178, 204, 0.28), transparent 17rem),
+        radial-gradient(circle at 8% 92%, rgba(29, 78, 216, 0.34), transparent 22rem),
+        linear-gradient(145deg, #102944 0%, #123b53 56%, #123454 100%);
+}
+
+.login-brand-panel::after {
+    position: absolute;
+    z-index: -1;
+    top: 14%;
+    right: -210px;
+    width: 470px;
+    height: 470px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 50%;
+    box-shadow: 0 0 0 36px rgba(255, 255, 255, 0.035), 0 0 0 86px rgba(255, 255, 255, 0.025);
+    content: '';
+    pointer-events: none;
+}
+
+.brand-header,
+.brand-lower,
+.brand-footer {
+    position: relative;
+    z-index: 1;
+}
+
+.brand-top-row { gap: 16px; margin-bottom: clamp(36px, 7vh, 76px); }
+.brand-logo-box { width: 60px; height: 60px; border-radius: 18px; background: rgba(255, 255, 255, 0.12); }
+.brand-logo-box img { width: 44px; height: 44px; }
+.brand-school-name { font-size: 1.1rem; letter-spacing: -0.01em; }
+.brand-school-sub { margin-top: 3px; }
+.brand-headline {
+    max-width: 620px;
+    font-size: clamp(2.2rem, 4.2vw, 3.65rem);
+    font-weight: 750;
+    letter-spacing: -0.055em;
+    line-height: 1.06;
+}
+.brand-motto { margin-top: 16px; font-size: 1rem; }
+.brand-board {
+    min-height: 270px;
+    padding: clamp(18px, 2.4vw, 28px);
+    border-radius: 22px;
+    background: rgba(8, 27, 46, 0.3);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+}
+.board-header { margin-bottom: 18px; padding-bottom: 14px; }
+.board-quick-guide { gap: 10px; }
+.guide-item { padding: 12px 14px; border-radius: 13px; background: rgba(255, 255, 255, 0.07); }
+.guide-title { font-size: 0.82rem; }
+.guide-text { font-size: 0.76rem; line-height: 1.45; }
+.brand-footer { font-size: 0.78rem; }
+
+.login-form-panel {
+    padding: clamp(28px, 5vw, 72px);
+    background: transparent;
+}
+
+.login-form-wrapper {
+    position: relative;
+    max-width: 500px;
+    padding: clamp(28px, 4vw, 48px);
+    border: 1px solid rgba(214, 224, 237, 0.85);
+    border-radius: 28px;
+    background: var(--login-surface);
+    box-shadow: 0 28px 80px -42px rgba(19, 43, 73, 0.35), 0 3px 12px rgba(19, 43, 73, 0.04);
+}
+
+.login-form-wrapper::before {
+    position: absolute;
+    top: 0;
+    right: 34px;
+    left: 34px;
+    height: 4px;
+    border-radius: 0 0 999px 999px;
+    background: linear-gradient(90deg, var(--login-primary), #2dd4bf);
+    content: '';
+}
+
+.form-header { margin-bottom: 30px; }
+.login-eyebrow { margin-bottom: 10px; font-size: 0.72rem; letter-spacing: 0.13em; }
+.login-title { font-size: clamp(1.8rem, 3vw, 2.25rem); font-weight: 750; letter-spacing: -0.045em; }
+.login-subtitle { font-size: 0.94rem; }
+.form-field-group { margin-bottom: 20px; }
+.form-label { margin-bottom: 8px; font-size: 0.83rem; font-weight: 700; }
+.input-shell { height: 52px; min-height: 52px; border-radius: 14px; background: #fbfcfe; }
+.input-shell:focus-within { background: #ffffff; }
+.btn-login {
+    height: 54px;
+    min-height: 54px;
+    border: 0;
+    border-radius: 14px;
+    background: linear-gradient(105deg, var(--login-primary), color-mix(in srgb, var(--login-primary) 68%, #16b8a6));
+    box-shadow: 0 10px 22px color-mix(in srgb, var(--login-primary) 24%, transparent);
+    font-weight: 700;
+}
+.btn-login:hover:not(:disabled) { box-shadow: 0 14px 26px color-mix(in srgb, var(--login-primary) 30%, transparent); }
+.login-role-guide { margin-top: 28px; padding-top: 22px; }
+.role-guide-eyebrow { font-weight: 700; letter-spacing: 0.06em; }
+.role-chips { gap: 7px; }
+.role-chip { padding: 5px 11px; border-radius: 999px; background: #f4f7fb; }
+.role-guide-help { margin-top: 5px; line-height: 1.55; }
+
+@media (max-width: 960px) {
+    .login-page { grid-template-columns: minmax(0, 1fr); }
+    .brand-header { padding: 32px 24px 30px; }
+    .brand-lower { padding: 0 24px 28px; }
+    .brand-top-row { margin-bottom: 32px; }
+    .brand-headline { max-width: 660px; font-size: clamp(2rem, 6vw, 3rem); }
+    .login-form-panel { padding: 28px 20px 42px; }
+    .login-form-wrapper { max-width: 560px; }
+}
+
+@media (max-width: 575.98px) {
+    .brand-header { padding: 26px 20px 24px; }
+    .brand-lower { padding: 0 20px 24px; }
+    .brand-top-row { margin-bottom: 28px; }
+    .brand-logo-box { width: 52px; height: 52px; border-radius: 16px; }
+    .brand-logo-box img { width: 38px; height: 38px; }
+    .brand-headline { font-size: 2.05rem; }
+    .brand-board { min-height: 0; padding: 17px; border-radius: 18px; }
+    .login-form-panel { padding: 22px 14px 32px; }
+    .login-form-wrapper { padding: 27px 21px; border-radius: 22px; }
+    .login-form-wrapper::before { right: 24px; left: 24px; }
 }
 </style>

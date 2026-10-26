@@ -1,0 +1,371 @@
+/*
+ * LMS visual refresh, October 2026.
+ * A single shared layer gives every Inertia role the same visual language;
+ * existing page markup, routes, and school-selected accent colors stay intact.
+ */
+
+:root {
+    --refresh-ink: #14263d;
+    --refresh-navy: #10263e;
+    --refresh-navy-soft: #183a55;
+    --refresh-teal: #5eead4;
+    --refresh-shadow-card: 0 10px 28px -18px rgba(19, 39, 64, 0.26), 0 2px 8px rgba(19, 39, 64, 0.035);
+    --refresh-shadow-hover: 0 20px 42px -24px rgba(19, 39, 64, 0.32), 0 5px 14px rgba(19, 39, 64, 0.06);
+}
+
+html[data-bs-theme="dark"] {
+    --refresh-ink: #f2f6fc;
+    --refresh-shadow-card: 0 8px 26px -16px rgba(0, 0, 0, 0.7);
+    --refresh-shadow-hover: 0 18px 38px -20px rgba(0, 0, 0, 0.8);
+}
+
+.app-shell {
+    --sidebar-width: 270px;
+    --topbar-height: 68px;
+    min-height: 100vh;
+    background: var(--surface-body);
+}
+
+/* A darker navigation rail gives the work area a stronger frame. */
+.app-shell .modern-sidebar {
+    overflow: hidden;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    background:
+        radial-gradient(circle at 90% 12%, rgba(45, 212, 191, 0.15), transparent 17rem),
+        linear-gradient(180deg, #10263e 0%, #122b43 54%, #10243a 100%);
+    color: #e8eef7;
+    box-shadow: 10px 0 32px -24px rgba(3, 18, 35, 0.75);
+}
+
+.app-shell .modern-sidebar .sidebar-header,
+.app-shell .modern-sidebar .sidebar-user,
+.app-shell .modern-sidebar .sidebar-footer {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.app-shell .modern-sidebar .sidebar-header { min-height: 76px; padding-inline: 1.15rem; }
+.app-shell .modern-sidebar .sidebar-logo-icon {
+    border-color: rgba(255, 255, 255, 0.16);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.1);
+}
+.app-shell .modern-sidebar .sidebar-logo-title,
+.app-shell .modern-sidebar .sidebar-user-name,
+.app-shell .modern-sidebar .sidebar-footer-title { color: #f7faff; }
+.app-shell .modern-sidebar .sidebar-logo-sub,
+.app-shell .modern-sidebar .sidebar-user-role,
+.app-shell .modern-sidebar .sidebar-footer-sub,
+.app-shell .modern-sidebar .nav-section { color: #9db0c6; }
+.app-shell .modern-sidebar .sidebar-nav { padding: 0.85rem 0.72rem 1rem; }
+.app-shell .modern-sidebar .nav-section { padding: 1.05rem 0.9rem 0.45rem; letter-spacing: 0.12em; }
+.app-shell .modern-sidebar .nav-link {
+    min-height: 42px;
+    margin-bottom: 0.22rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 12px;
+    color: #c7d3e2;
+    font-weight: 550;
+    transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+.app-shell .modern-sidebar .nav-link i { color: #9fb2c9; }
+.app-shell .modern-sidebar .nav-link:hover {
+    border-color: transparent;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    transform: translateX(2px);
+}
+.app-shell .modern-sidebar .nav-link:hover i { color: #a5f3e7; }
+.app-shell .modern-sidebar .nav-link.active {
+    position: relative;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: linear-gradient(105deg, color-mix(in srgb, var(--app-primary) 68%, #163451), color-mix(in srgb, var(--app-primary) 45%, #10263e));
+    color: #ffffff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 18px -12px rgba(0, 0, 0, 0.7);
+}
+.app-shell .modern-sidebar .nav-link.active::before {
+    position: absolute;
+    top: 9px;
+    bottom: 9px;
+    left: -0.73rem;
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+    background: #5eead4;
+    content: '';
+}
+.app-shell .modern-sidebar .nav-link.active i { color: #b6fff2; }
+
+/* Floating, calm top bar and a more generous page canvas. */
+.app-shell .modern-topbar {
+    border-bottom: 1px solid var(--border-soft);
+    background: color-mix(in srgb, var(--surface-card) 93%, transparent);
+    box-shadow: 0 5px 22px -18px rgba(20, 38, 61, 0.36);
+    backdrop-filter: blur(18px);
+}
+.app-shell .topbar-toggle-btn,
+.app-shell .topbar-icon-btn,
+.app-shell .topbar-account-btn,
+.app-shell .topbar-search {
+    min-height: 40px;
+    border-radius: 12px;
+}
+.app-shell .topbar-search {
+    border-color: var(--border-soft);
+    background: var(--surface-subtle);
+}
+.app-shell .topbar-search:hover { border-color: var(--border-strong); }
+.app-shell .topbar-search kbd { border-radius: 6px; }
+.app-shell .topbar-account-btn { padding-inline: 0.75rem; }
+.app-shell .main-content { min-height: calc(100vh - var(--topbar-height)); }
+.app-shell .page-content {
+    width: min(100%, 1510px);
+    max-width: 1510px;
+    padding: clamp(1.25rem, 2.5vw, 2.35rem) clamp(1rem, 2.8vw, 2.75rem);
+}
+
+.app-shell .page-header { margin-bottom: 1.5rem; }
+.app-shell .app-page-header { align-items: flex-end; gap: 1.25rem; }
+.app-shell .app-page-eyebrow {
+    display: inline-flex;
+    margin-bottom: 0.45rem;
+    color: var(--text-brand);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+.app-shell .app-page-title {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--text-strong);
+    font-size: clamp(1.55rem, 2.5vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.045em;
+}
+.app-shell .app-page-title > .bi {
+    display: inline-grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--primary-500) 15%, var(--border-soft));
+    border-radius: 13px;
+    background: var(--brand-soft-bg);
+    color: var(--brand-soft-text);
+    font-size: 1rem;
+    letter-spacing: 0;
+}
+.app-shell .app-page-subtitle { max-width: 760px; margin: 0.45rem 0 0; color: var(--text-muted); line-height: 1.6; }
+
+/* Dashboard greeting becomes the visual anchor without changing its content. */
+.app-shell .dashboard-hero {
+    position: relative;
+    min-height: 220px;
+    margin-bottom: 1.2rem;
+    padding: clamp(1.5rem, 3.4vw, 2.7rem);
+    overflow: hidden;
+    isolation: isolate;
+    border: 0;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 86% 24%, color-mix(in srgb, var(--app-primary) 54%, transparent), transparent 18rem),
+        linear-gradient(118deg, #102740 0%, #153d56 54%, #12354c 100%);
+    box-shadow: 0 24px 50px -34px rgba(8, 27, 46, 0.8);
+}
+.app-shell .dashboard-hero::before {
+    position: absolute;
+    z-index: -1;
+    top: -130px;
+    right: -52px;
+    width: 360px;
+    height: 360px;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 50%;
+    box-shadow: 0 0 0 34px rgba(255, 255, 255, 0.035), 0 0 0 78px rgba(255, 255, 255, 0.025);
+    content: '';
+    pointer-events: none;
+}
+.app-shell .dashboard-hero::after {
+    position: absolute;
+    z-index: -1;
+    right: 22%;
+    bottom: -145px;
+    width: 280px;
+    height: 190px;
+    border-radius: 50%;
+    background: rgba(94, 234, 212, 0.13);
+    content: '';
+    filter: blur(55px);
+    pointer-events: none;
+}
+.app-shell .dashboard-hero-copy { max-width: 790px; }
+.app-shell .dashboard-eyebrow { margin-bottom: 0.75rem; color: #a5f3e7; letter-spacing: 0.15em; }
+.app-shell .dashboard-hero h1 { color: #ffffff; font-size: clamp(1.9rem, 4vw, 3rem); letter-spacing: -0.05em; }
+.app-shell .dashboard-hero p { max-width: 650px; margin-top: 0.85rem; color: rgba(240, 248, 255, 0.78); font-size: 0.98rem; }
+.app-shell .dashboard-hero-actions { position: relative; z-index: 2; margin-top: 1.25rem; }
+.app-shell .dashboard-hero .quick-action { min-height: 42px; padding-inline: 0.95rem; border-radius: 999px; font-weight: 700; }
+.app-shell .dashboard-hero .quick-action.btn-primary,
+.app-shell .dashboard-hero .quick-action.btn-success {
+    border-color: #ffffff;
+    background: #ffffff;
+    color: #12344c;
+    box-shadow: 0 6px 18px rgba(4, 17, 31, 0.15);
+}
+.app-shell .dashboard-hero .quick-action.btn-light,
+.app-shell .dashboard-hero .quick-action.btn-outline-secondary {
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+.app-shell .dashboard-hero .quick-action.btn-light:hover,
+.app-shell .dashboard-hero .quick-action.btn-outline-secondary:hover { background: rgba(255, 255, 255, 0.18); color: #ffffff; }
+
+/* Metrics, work panels, and data tables share the same depth and rhythm. */
+.app-shell .metric-strip { gap: 1rem; margin-bottom: 1.2rem; }
+.app-shell .metric-tile {
+    position: relative;
+    min-height: 102px;
+    padding: 1.1rem 1.2rem;
+    overflow: hidden;
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    background: var(--surface-card);
+    box-shadow: var(--refresh-shadow-card);
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+.app-shell .metric-tile::before {
+    position: absolute;
+    top: 0;
+    right: 1.1rem;
+    left: 1.1rem;
+    height: 3px;
+    border-radius: 0 0 4px 4px;
+    background: var(--metric-accent, var(--app-primary));
+    content: '';
+}
+.app-shell .metric-primary { --metric-accent: var(--app-primary); }
+.app-shell .metric-success { --metric-accent: #16a34a; }
+.app-shell .metric-warning { --metric-accent: #d97706; }
+.app-shell .metric-info { --metric-accent: #0284c7; }
+.app-shell .metric-danger { --metric-accent: #dc2626; }
+.app-shell .metric-tile-link:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--metric-accent) 30%, var(--border-soft));
+    box-shadow: var(--refresh-shadow-hover);
+}
+.app-shell .metric-icon { width: 48px; height: 48px; flex-basis: 48px; border-radius: 15px; font-size: 1.12rem; }
+.app-shell .metric-copy strong { font-size: 1.65rem; font-weight: 800; letter-spacing: -0.04em; }
+.app-shell .metric-copy small { margin-top: 0.35rem; font-size: 0.78rem; font-weight: 600; }
+.app-shell .dashboard-grid { gap: 1.2rem; margin-bottom: 1.2rem; }
+.app-shell .card,
+.app-shell .workspace-panel,
+.app-shell .content-summary {
+    border: 1px solid var(--border-soft);
+    border-radius: 19px;
+    background: var(--surface-card);
+    box-shadow: var(--refresh-shadow-card);
+}
+.app-shell .card { overflow: hidden; margin-bottom: 1.2rem; }
+.app-shell .card:hover { box-shadow: var(--refresh-shadow-card); }
+.app-shell .card-header,
+.app-shell .workspace-panel-header {
+    min-height: 60px;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--border-soft);
+    background: color-mix(in srgb, var(--surface-card) 88%, var(--surface-muted));
+}
+.app-shell .workspace-panel-header { padding-inline: 1.2rem; }
+.app-shell .app-card-title,
+.app-shell .workspace-panel-title { color: var(--text-strong); font-size: 0.94rem; font-weight: 750; }
+.app-shell .app-card-title > .bi,
+.app-shell .workspace-panel-title > .bi { color: var(--text-brand); }
+.app-shell .card-body { padding: clamp(1rem, 2vw, 1.35rem); }
+.app-shell .workspace-panel-body { padding: 1.15rem; }
+.app-shell .action-queue-item { gap: 0.9rem; padding: 0.95rem 1.15rem; transition: background 150ms ease, padding 150ms ease; }
+.app-shell .action-queue-link:hover { padding-left: 1.35rem; background: var(--surface-subtle); }
+.app-shell .action-queue-icon { width: 42px; height: 42px; flex-basis: 42px; border-radius: 14px; }
+.app-shell .action-queue-copy strong { font-size: 0.9rem; }
+.app-shell .course-card { min-height: 162px; border-radius: 17px; box-shadow: var(--refresh-shadow-card); }
+.app-shell .course-card-link:hover { transform: translateY(-3px); box-shadow: var(--refresh-shadow-hover); }
+
+.app-shell .table {
+    --bs-table-color: var(--text-body);
+    --bs-table-bg: var(--surface-card);
+    --bs-table-border-color: var(--border-soft);
+    --bs-table-striped-bg: var(--surface-subtle);
+    --bs-table-hover-color: var(--text-strong);
+    --bs-table-hover-bg: var(--surface-hover);
+}
+.app-shell .table th {
+    padding: 0.78rem 0.85rem;
+    border-bottom-color: var(--border-soft);
+    background: var(--surface-muted);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+.app-shell .table td { padding: 0.78rem 0.85rem; border-color: var(--border-soft); }
+.app-shell .app-table-wrapper { border-color: var(--border-soft); border-radius: 14px; }
+
+.app-shell .btn {
+    min-height: 40px;
+    border-radius: 11px;
+    font-weight: 650;
+    transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.app-shell .btn-primary,
+.app-shell .btn-success { box-shadow: 0 5px 13px color-mix(in srgb, var(--app-primary) 18%, transparent); }
+.app-shell .btn-primary:hover,
+.app-shell .btn-success:hover { transform: translateY(-1px); box-shadow: 0 8px 18px color-mix(in srgb, var(--app-primary) 23%, transparent); }
+.app-shell .form-control,
+.app-shell .form-select { min-height: 42px; border-color: var(--border-strong); border-radius: 11px; background-color: var(--surface-input); }
+.app-shell textarea.form-control { min-height: 96px; }
+.app-shell .form-control:focus,
+.app-shell .form-select:focus { border-color: var(--primary-500); box-shadow: var(--focus-ring); }
+.app-shell .form-label { margin-bottom: 0.45rem; font-size: 0.8rem; font-weight: 700; }
+.app-shell .content-summary { padding: 1.1rem 1.2rem; }
+
+@media (max-width: 991.98px) {
+    .app-shell .modern-sidebar { box-shadow: 18px 0 48px -24px rgba(3, 18, 35, 0.8); }
+    .app-shell .dashboard-hero { min-height: 0; }
+    .app-shell .page-content { padding: 1.25rem 1rem 6rem; }
+    .app-shell .mobile-bottom-nav {
+        border: 1px solid var(--border-soft);
+        border-radius: 20px;
+        background: color-mix(in srgb, var(--surface-card) 94%, transparent);
+        box-shadow: 0 20px 50px -28px rgba(10, 27, 47, 0.5);
+        backdrop-filter: blur(18px);
+    }
+    .app-shell .mobile-bottom-link { min-height: 48px; border-radius: 14px; }
+    .app-shell .mobile-bottom-link.active { background: var(--brand-soft-bg); color: var(--brand-soft-text); }
+}
+
+@media (max-width: 767.98px) {
+    .app-shell .page-content { padding: 1rem 0.85rem 6rem; }
+    .app-shell .dashboard-hero { padding: 1.35rem; border-radius: 20px; }
+    .app-shell .dashboard-hero h1 { font-size: clamp(1.65rem, 7vw, 2.25rem); }
+    .app-shell .dashboard-hero-actions { width: 100%; }
+    .app-shell .quick-action-bar { gap: 0.45rem; }
+    .app-shell .quick-action { flex: 1 1 auto; }
+    .app-shell .metric-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; }
+    .app-shell .metric-tile { min-height: 88px; padding: 0.95rem; }
+    .app-shell .metric-icon { width: 40px; height: 40px; flex-basis: 40px; }
+    .app-shell .metric-copy strong { font-size: 1.4rem; }
+    .app-shell .card-header,
+    .app-shell .workspace-panel-header { padding: 0.9rem 1rem; }
+    .app-shell .card-body { padding: 1rem; }
+}
+
+@media (max-width: 399.98px) {
+    .app-shell .metric-strip { grid-template-columns: minmax(0, 1fr); }
+    .app-shell .metric-tile { min-height: 76px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-shell .modern-sidebar .nav-link,
+    .app-shell .metric-tile,
+    .app-shell .action-queue-item,
+    .app-shell .course-card,
+    .app-shell .btn { transition: none; }
+}
