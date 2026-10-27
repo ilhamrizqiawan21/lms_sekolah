@@ -234,7 +234,7 @@ class UjianController extends Controller
         ]);
     }
 
-    public function jawab(SimpanJawabanUjianRequest $request, UjianAttempt $attempt): JsonResponse
+    public function jawab(SimpanJawabanUjianRequest $request, UjianAttempt $attempt): JsonResponse|RedirectResponse
     {
         $user = Auth::user();
         $siswa = $user->siswa;
@@ -244,6 +244,10 @@ class UjianController extends Controller
         if (in_array($attempt->status, UjianAttempt::STATUS_TERKUNCI, true) || Carbon::now()->gt($attempt->batas_waktu)) {
             if ($attempt->status === UjianAttempt::STATUS_SEDANG_MENGERJAKAN) {
                 $this->scoringService->autoSubmitKarenaWaktuHabis($attempt);
+            }
+
+            if ($request->header('X-Inertia')) {
+                return redirect()->route('siswa.ujian.hasil', $attempt->id);
             }
 
             return response()->json([
@@ -286,15 +290,28 @@ class UjianController extends Controller
         });
 
         if ($jawaban === null) {
+            if ($request->header('X-Inertia')) {
+                return redirect()->route('siswa.ujian.hasil', $attempt->id);
+            }
+
             return response()->json([
                 'message' => 'Waktu pengerjaan ujian telah habis atau ujian telah selesai.',
             ], 422);
         }
 
         if ($jawaban === false) {
+            if ($request->header('X-Inertia')) {
+                return redirect()->route('siswa.ujian.kerjakan', $attempt->id)
+                    ->withErrors(['jawaban_opsi_id' => 'Pilihan jawaban tidak valid untuk soal ini.']);
+            }
+
             return response()->json([
                 'message' => 'Pilihan jawaban tidak valid untuk soal ini.',
             ], 422);
+        }
+
+        if ($request->header('X-Inertia')) {
+            return redirect()->route('siswa.ujian.kerjakan', $attempt->id);
         }
 
         return response()->json([
@@ -401,4 +418,3 @@ class UjianController extends Controller
         abort_unless($siswa && (int) $attempt->siswa_id === (int) $siswa->id, 403, 'Attempt ini bukan milik Anda.');
     }
 }
-
