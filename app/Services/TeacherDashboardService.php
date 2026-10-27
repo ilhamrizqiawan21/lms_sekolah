@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Absensi;
 use App\Models\KelasMapel;
+use App\Models\JadwalMengajar;
 use App\Models\PengumpulanTugas;
 use App\Models\Siswa;
 use App\Models\Tugas;
@@ -41,6 +42,7 @@ class TeacherDashboardService
                 'materi_count' => (int) $item->materi_count,
                 'tugas_count' => (int) $item->tugas_count,
             ])->values(),
+            'jadwalHariIni' => $this->jadwalHariIni($guruId, $kelasMapelIds),
             'tugasBelumDikumpulkan' => $this->tugasBelumDikumpulkan($kelasMapel, $kelasMapelIds, $kelasIds),
             'siswaJarangMasuk' => $this->siswaJarangMasuk($kelasMapelIds),
             'tugasPerluDinilai' => $this->tugasPerluDinilai($kelasMapelIds),
@@ -52,6 +54,27 @@ class TeacherDashboardService
                 $chartMonths
             ),
         ];
+    }
+
+    private function jadwalHariIni(int $guruId, Collection $kelasMapelIds): Collection
+    {
+        if ($kelasMapelIds->isEmpty()) {
+            return collect();
+        }
+
+        return JadwalMengajar::with(['kelas', 'kelasMapel.mataPelajaran'])
+            ->where('guru_id', $guruId)
+            ->whereIn('kelas_mapel_id', $kelasMapelIds)
+            ->where('hari', now()->dayOfWeekIso)
+            ->orderBy('pelajaran_ke')
+            ->get()
+            ->map(fn (JadwalMengajar $item) => [
+                'id' => $item->id,
+                'pelajaran_ke' => $item->pelajaran_ke,
+                'kelas' => $item->kelas?->nama_kelas ?? '-',
+                'mata_pelajaran' => $item->kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
+            ])
+            ->values();
     }
 
     private function tugasBelumDikumpulkan(Collection $kelasMapel, Collection $kelasMapelIds, Collection $kelasIds): Collection

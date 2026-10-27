@@ -275,7 +275,7 @@ body {
 }
 @media (min-width: 992px) { .main-content { margin-left:var(--sidebar-width); } }
 
-.page-content { padding:var(--space-8) var(--space-6); max-width:1300px; margin:0 auto; }
+.page-content { margin:0 auto; }
 
 .page-header { margin-bottom:1.5rem; }
 .app-page-header {
@@ -1155,10 +1155,6 @@ body {
     box-shadow: var(--modern-shadow-sm);
 }
 
-.card:hover {
-    box-shadow: var(--modern-shadow-sm);
-}
-
 .dashboard-hero {
     position: relative;
     display: flex;
@@ -1642,7 +1638,7 @@ body {
         left: 0.75rem;
         z-index: 500;
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 0.25rem;
         padding: 0.45rem;
         border: 1px solid var(--modern-border);

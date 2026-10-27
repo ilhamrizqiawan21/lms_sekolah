@@ -74,90 +74,81 @@ onBeforeUnmount(() => absensiChart?.destroy());
             eyebrow="Ringkasan Sekolah"
             title="Dashboard Kepala Sekolah"
             subtitle="Pantau absensi, nilai, dan aktivitas terbaru dari satu layar yang lebih ringkas."
-            tone="warning"
         />
 
         <MetricStrip :items="metrics" />
 
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <Card title="Statistik Absensi Bulanan">
-                    <canvas v-if="absensiBulanan.length" ref="absensiCanvas" height="200"></canvas>
-                    <EmptyState v-else title="Belum ada data absensi." icon="bi-clipboard-check" />
-                </Card>
-            </div>
+        <div class="dashboard-grid dashboard-grid-kepsek">
+            <Card title="Statistik Absensi Bulanan">
+                <canvas v-if="absensiBulanan.length" ref="absensiCanvas" height="200"></canvas>
+                <EmptyState v-else title="Belum ada data absensi." icon="bi-clipboard-check" />
+            </Card>
 
-            <div class="col-md-6 mb-4">
-                <Card title="Pengumuman Terbaru" body-class="p-0">
-                    <TableWrapper v-if="pengumuman.length">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Judul</th>
-                                    <th scope="col">Tanggal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="item in pengumuman" :key="item.id">
-                                    <td>{{ item.judul }}</td>
-                                    <td class="tabular-nums">{{ item.created_at }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </TableWrapper>
-                    <EmptyState v-else title="Belum ada pengumuman" icon="bi-megaphone" />
-                </Card>
-            </div>
+            <Card title="Pengumuman Terbaru" body-class="p-0">
+                <TableWrapper v-if="pengumuman.length" stack>
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">Judul</th>
+                                <th scope="col">Tanggal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="item in pengumuman" :key="item.id">
+                                <td data-label="Judul" class="stack-title"><strong>{{ item.judul }}</strong></td>
+                                <td data-label="Tanggal" class="tabular-nums">{{ item.created_at }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </TableWrapper>
+                <EmptyState v-else title="Belum ada pengumuman" icon="bi-megaphone" />
+            </Card>
         </div>
 
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <Card title="Rata-rata Nilai per Mata Pelajaran" body-class="p-0">
-                    <TableWrapper v-if="rataNilaiPerMapel.length">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Mata Pelajaran</th>
-                                    <th scope="col" class="text-center">Rata-rata</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="item in rataNilaiPerMapel" :key="item.nama_mapel">
-                                    <td>{{ item.nama_mapel }}</td>
-                                    <td class="text-center fw-bold tabular-nums">{{ item.rata_rata }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </TableWrapper>
-                    <EmptyState v-else title="Belum ada data nilai" icon="bi-bar-chart" />
-                </Card>
-            </div>
+        <div class="dashboard-grid dashboard-grid-kepsek">
+            <Card title="Rata-rata Nilai per Mata Pelajaran" body-class="p-0">
+                <TableWrapper v-if="rataNilaiPerMapel.length" stack>
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">Mata Pelajaran</th>
+                                <th scope="col" class="text-center">Rata-rata</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="item in rataNilaiPerMapel" :key="item.nama_mapel">
+                                <td data-label="Mata Pelajaran" class="stack-title"><strong>{{ item.nama_mapel }}</strong></td>
+                                <td data-label="Rata-rata" class="text-center fw-bold tabular-nums">{{ item.rata_rata }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </TableWrapper>
+                <EmptyState v-else title="Belum ada data nilai" icon="bi-bar-chart" />
+            </Card>
 
-            <div class="col-md-6 mb-4">
-                <Card title="Login Terbaru" body-class="p-0">
-                    <TableWrapper v-if="loginTerbaru.length" :min-width="480">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Nama</th>
-                                    <th scope="col">Role</th>
-                                    <th scope="col">Waktu</th>
-                                    <th scope="col">IP</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="log in loginTerbaru" :key="log.id">
-                                    <td><strong>{{ log.nama_lengkap }}</strong></td>
-                                    <td><Badge color="secondary">{{ roleLabel(log.role) }}</Badge></td>
-                                    <td class="text-body-secondary small tabular-nums">{{ log.login_time }}</td>
-                                    <td class="text-body-secondary small tabular-nums">{{ log.ip_address ?? '-' }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </TableWrapper>
-                    <EmptyState v-else title="Belum ada data login" icon="bi-clock-history" />
-                </Card>
-            </div>
+            <Card title="Login Terbaru" body-class="p-0">
+                <TableWrapper v-if="loginTerbaru.length" stack :min-width="480">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nama</th>
+                                <th scope="col">Role</th>
+                                <th scope="col">Waktu</th>
+                                <th scope="col">IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="log in loginTerbaru" :key="log.id">
+                                <td data-label="Nama" class="stack-title"><strong>{{ log.nama_lengkap }}</strong></td>
+                                <td data-label="Role"><Badge color="secondary">{{ roleLabel(log.role) }}</Badge></td>
+                                <td data-label="Waktu" class="text-body-secondary small tabular-nums">{{ log.login_time }}</td>
+                                <td data-label="IP" class="text-body-secondary small tabular-nums">{{ log.ip_address ?? '-' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </TableWrapper>
+                <EmptyState v-else title="Belum ada data login" icon="bi-clock-history" />
+            </Card>
         </div>
     </AppShell>
 </template>

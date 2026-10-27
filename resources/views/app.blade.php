@@ -7,9 +7,9 @@
         $inertiaLogoUrl = school_logo_url();
         $inertiaFaviconUrl = school_favicon_url();
         try {
-            $inertiaTheme = \App\Models\Pengaturan::getValue('warna_tema', 'hijau');
+            $inertiaTheme = \App\Models\Pengaturan::getValue('warna_tema', 'indigo');
         } catch (\Throwable) {
-            $inertiaTheme = 'hijau';
+            $inertiaTheme = 'indigo';
         }
         $inertiaThemeColors = [
             'hijau' => [
@@ -43,7 +43,7 @@
                 'navbar' => '#be123c',
             ],
         ];
-        $inertiaActiveTheme = $inertiaThemeColors[$inertiaTheme] ?? $inertiaThemeColors['hijau'];
+        $inertiaActiveTheme = $inertiaThemeColors[$inertiaTheme] ?? $inertiaThemeColors['indigo'];
     @endphp
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

@@ -194,3 +194,31 @@ Daftar ini memetakan setiap item sidebar (`resources/js/Components/AppShell/side
 - `npm audit fix` telah memperbarui `postcss` beserta dependency transitifnya; audit ulang menunjukkan `0 vulnerabilities`.
 - Gunakan Node.js LTS 20 atau 22 untuk development/deployment. Lingkungan lokal saat ini memakai Node 19 yang tidak termasuk rentang engine Vite dan plugin yang digunakan.
 - Jalankan `npm audit` secara berkala dan tinjau perubahan lockfile setiap pembaruan dependency.
+
+## Verifikasi Mockup UI 2026 (Selesai 2026-10-27)
+
+Penyelarasan visual 100% terhadap 9 referensi mockup di `docs/mockups/2026-ui/` telah diselesaikan:
+
+1. **Tokens & Shell Layout**:
+   - Canvas background cool gray `#f5f7fa` dengan card dan sidebar pure white `#ffffff`, border subtle `#e4e7ec`.
+   - Sidebar lebar tetap `252px`, logo header 37x37px rounded icon, section label huruf besar abu-abu, active nav link `#eef2ff` tint dengan teks indigo. User avatar & footer profile popover di bagian bawah.
+   - Topbar tinggi tetap `66px`, breadcrumbs kiri (`Ruang kerja > Beranda` / section > title), academic period indicator pill dengan chevron, icon buttons (search, notifications dengan orange dot), user avatar bulat 32px dengan nama dan chevron.
+   - Mobile responsive: hamburger button di kiri atas (x: 12), sidebar drawer slide-in dari kiri dengan `translateX(0)` dan backdrop overlay blur, ditutup via klik overlay atau tombol Escape.
+
+2. **9 Halaman Mockup**:
+   - [x] **Dashboard Guru** (`/guru/dashboard` vs `mockup-dashboard-guru.html`): Filter tabs antrean (Semua baru, Mendekati tenggat, Selesai ditinjau) dengan counter pill, kode inisial mapel (MTK, BIO, BIN), timeline slot penanda "Berikutnya", dan badge status "Segera".
+   - [x] **Tugas Guru** (`/guru/tugas` vs `mockup-tugas-guru.html`): Layout desktop CSS Grid 2 kolom (form buat tugas di kiri, daftar kelas yang diajar di kanan dengan search bar dan 2-column course cards).
+   - [x] **Materi Guru** (`/guru/materi` vs `mockup-materi-guru.html`): Form unggah materi berdampingan dengan daftar berkas materi.
+   - [x] **CRUD Kelas & Siswa** (`/admin/kelas-siswa` vs `mockup-crud-kelas-siswa.html`): Form tambah siswa baru langsung tampil, tombol Download Template di samping Import Excel, aksi edit hijau soft dan hapus merah soft.
+   - [x] **Penugasan Guru** (`/admin/kelas-mapel` vs `mockup-penugasan-guru.html`): Grid 2 kolom form "Tambah Pengajaran" dan "Tambah Wali Kelas", diikuti tabel "Daftar Pengajaran", "Daftar Wali Kelas", dan "Jadwal Mengajar Guru".
+   - [x] **Pengumuman** (`/admin/pengumuman` vs `mockup-pengumuman.html`): Kartu pengumuman dengan meta, badge publik hijau, link lampiran dokumen, dan aksi Edit/Hapus/Detail. Form create/edit dengan switch tampilkan di halaman login.
+   - [x] **Kalender** (`/admin/kalender`, `/guru/kalender` vs `mockup-kalender.html`): Grid bulanan dengan penanda hari ini (lingkaran solid), chip acara berkode warna (agenda sekolah, libur, deadline), form tambah event, dan daftar event bulanan grid 2 kolom di bawah kalender.
+   - [x] **Chat Kelas** (`/guru/chat` vs `mockup-chat-guru.html`): Shell chat 2 kolom (panel daftar ruang chat dengan inisial kelas, pencarian, unread badge; area percakapan dengan bubble chat bergradien/tint halus, timestamp, dan compose input).
+   - [x] **Pengaturan Akun** (`/admin/pengaturan-akun`, `/guru/pengaturan` vs `mockup-pengaturan-guru.html`): Grid 2 kolom kartu profil (avatar 72x72px, badge role & status, upload foto profil, tabel data akun) dan kartu ganti password dengan tombol simpan full-width.
+
+3. **Kualitas dan Gates**:
+   - `npm run typecheck` (`vue-tsc --noEmit`): Lulus tanpa error.
+   - `npm run build` (`vite build`): Lulus tanpa error (8.05s).
+   - `composer lint` (Pint): Lulus tanpa peringatan.
+   - PHPUnit Feature Tests: 23/23 tests passed (230 assertions).
+   - Dark mode (`[data-bs-theme="dark"]`): Kontras tinggi, warna surface `#0f172a` dan card `#151f33`, teks dan badge terbaca sempurna.

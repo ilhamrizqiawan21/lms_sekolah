@@ -149,7 +149,7 @@ function statusLabel(status: string) {
                                         <td data-label="Status"><Badge :color="statusColor(item.status)">{{ statusLabel(item.status) }}</Badge></td>
                                         <td class="stack-actions">
                                             <div class="d-inline-flex gap-1">
-                                                <IconButton icon="bi-pencil" :label="`Edit ${item.kondisi}`" color="outline-primary" @click="startEdit(item)" />
+                                                <IconButton icon="bi-pencil" :label="`Edit ${item.kondisi}`" color="outline-success" @click="startEdit(item)" />
                                                 <IconButton icon="bi-trash" :label="`Hapus ${item.kondisi}`" color="danger" @click="destroy(item)" />
                                             </div>
                                         </td>

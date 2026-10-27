@@ -1,17 +1,25 @@
 <script setup lang="ts">
 import type { PropType } from 'vue';
 import type { TeacherTask } from '../../../types/tasks';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { TextInput, TextareaInput } from '../../../Components/Form';
 import AppShell from '../../../Layouts/AppShell.vue';
 import PageHeader from '../../../Components/AppShell/PageHeader.vue';
 import { Button, Card, EmptyState, MetricStrip } from '../../../Components/UI';
+import type { AppPageProps } from '../../../types';
 
 const props = defineProps({
     kelasMapel: { type: Array as PropType<{ id: number; kelas: string; mata_pelajaran: string; semester: string; label: string; href: string }[]>, default: () => [] },
     tugas: { type: Array as PropType<TeacherTask[]>, default: () => [] },
     storeUrl: { type: String, required: true },
+});
+const page = usePage<AppPageProps>();
+const academicLabel = computed(() => {
+    const academic = page.props.academic;
+    if (!academic) return '';
+
+    return `Tahun Ajaran ${academic.tahun} · Semester ${academic.semester === '2' ? '2 · Genap' : '1 · Ganjil'}`;
 });
 
 const form = useForm({
@@ -56,14 +64,41 @@ const filteredCourseSummaries = computed(() => {
     ].filter(Boolean).join(' ').toLowerCase().includes(keyword));
 });
 
+type TaskFilter = 'all' | 'active' | 'grading' | 'overdue';
+
+const taskFilter = ref<TaskFilter>('all');
+const taskFilters: Array<{ value: TaskFilter; label: string }> = [
+    { value: 'all', label: 'Semua' },
+    { value: 'active', label: 'Belum lewat' },
+    { value: 'grading', label: 'Perlu dinilai' },
+    { value: 'overdue', label: 'Lewat deadline' },
+];
+
+const filteredTasks = computed(() => {
+    const matchingTasks = props.tugas.filter((task) => {
+        if (taskFilter.value === 'grading') {
+            return Number(task.perlu_dinilai) > 0;
+        }
+        if (taskFilter.value === 'overdue') {
+            return task.is_overdue;
+        }
+        if (taskFilter.value === 'active') {
+            return !task.is_overdue;
+        }
+
+        return true;
+    });
+
+    return matchingTasks.slice(0, 6);
+});
+
 const metrics = computed(() => {
     const submitted = props.tugas.reduce((total, item) => total + Number(item.sudah_mengumpulkan || 0), 0);
     const pendingGrades = props.tugas.reduce((total, item) => total + Number(item.perlu_dinilai || 0), 0);
     const overdue = props.tugas.filter((item) => item.is_overdue).length;
 
     return [
-        { label: 'Tugas aktif', value: props.tugas.length, icon: 'bi-journal-check', tone: 'primary' },
-        { label: 'Penugasan', value: props.kelasMapel.length, icon: 'bi-diagram-3', tone: 'info' },
+        { label: 'Total tugas', value: props.tugas.length, icon: 'bi-journal-check', tone: 'primary' },
         { label: 'Pengumpulan', value: submitted, icon: 'bi-inbox-fill', tone: 'success' },
         { label: 'Perlu dinilai', value: pendingGrades, icon: 'bi-pencil-square', tone: pendingGrades ? 'danger' : 'muted' },
         { label: 'Lewat deadline', value: overdue, icon: 'bi-exclamation-triangle', tone: overdue ? 'warning' : 'muted' },
@@ -102,17 +137,24 @@ function submit() {
             subtitle="Buat, bagikan, dan pantau tugas lintas kelas dari satu tempat."
         >
         </PageHeader>
+        <div v-if="academicLabel" class="app-page-period" aria-label="Periode akademik aktif">
+            <i class="bi bi-calendar3" aria-hidden="true"></i>
+            <span>{{ academicLabel }}</span>
+        </div>
 
-        <MetricStrip v-if="kelasMapel.length" :items="metrics" />
+        <MetricStrip v-if="kelasMapel.length" :items="metrics" variant="cards" />
 
-        <div v-if="kelasMapel.length" class="row">
-            <div class="col-md-5 mb-4">
-                <Card title="Buat Tugas Baru" icon="bi-plus-circle">
+        <div v-if="kelasMapel.length" class="tugas-layout">
+            <div class="tugas-col-form">
+                <Card title="Buat Tugas Baru" subtitle="Atur instruksi, tenggat, dan kelas penerima." icon="bi-plus-circle">
+                    <template #actions>
+                        <span class="badge rounded-pill text-bg-primary-subtle border border-primary-subtle text-primary fw-bold" style="font-size: 8px;">Guru</span>
+                    </template>
                     <form @submit.prevent="submit">
                         <div class="form-help-panel">
                             <i class="bi bi-lightbulb-fill" aria-hidden="true"></i>
                             <span>
-                                <span class="form-help-panel-title">Pilih satu atau beberapa kelas tujuan.</span>
+                                <span class="form-help-panel-title">Tentukan kelas tujuan terlebih dahulu.</span>
                                 Tugas akan dibuat untuk setiap kelas dan mata pelajaran yang dipilih.
                             </span>
                         </div>
@@ -153,21 +195,25 @@ function submit() {
                             </div>
                         </div>
 
-                        <Button type="submit" color="success" size="" icon="bi-save" class="w-100 assignment-submit" :disabled="form.processing">
+                        <Button type="submit" color="primary" size="" icon="bi-save" class="w-100 assignment-submit" :disabled="form.processing">
                             {{ form.processing ? 'Menyimpan...' : 'Simpan Tugas' }}
                         </Button>
                     </form>
                 </Card>
             </div>
 
-            <div class="col-md-7 mb-4">
-                <Card title="Pilih Kelas" icon="bi-grid-1x2">
+            <div class="tugas-col-courses">
+                <Card title="Kelas yang Diajar" subtitle="Pantau aktivitas tugas per kelas dan mata pelajaran." icon="bi-people-fill">
                     <template #actions>
-                        <div class="assignment-search">
-                            <i class="bi bi-search" aria-hidden="true"></i>
-                            <TextInput v-model="courseSearch" name="search_kelas_mapel" type="search" placeholder="Cari kelas/mapel" aria-label="Cari kelas atau mata pelajaran" wrapper-class="" class="form-control-sm" />
-                        </div>
+                        <span class="badge rounded-pill text-bg-success-subtle border border-success-subtle text-success fw-bold" style="font-size: 8px;">{{ kelasMapel.length }} penugasan</span>
                     </template>
+                    <div class="courses-toolbar d-flex align-items-center justify-content-between gap-2 mb-3">
+                        <div class="assignment-search flex-grow-1">
+                            <i class="bi bi-search" aria-hidden="true"></i>
+                            <TextInput v-model="courseSearch" name="search_kelas_mapel" type="search" placeholder="Cari kelas atau mata pelajaran" aria-label="Cari kelas atau mata pelajaran" wrapper-class="mb-0" class="form-control-sm" />
+                        </div>
+                        <span class="text-muted small fw-semibold text-nowrap">{{ filteredCourseSummaries.length }} kelas</span>
+                    </div>
 
                     <div v-if="filteredCourseSummaries.length" class="assignment-course-grid">
                         <a
@@ -184,10 +230,9 @@ function submit() {
                             <span class="assignment-course-stats">
                                 <span><strong>{{ item.total_tugas }}</strong> tugas</span>
                                 <span><strong>{{ item.total_pengumpulan }}</strong> kumpul</span>
-                                <span :class="{ danger: item.perlu_dinilai > 0 }"><strong>{{ item.perlu_dinilai }}</strong> dinilai</span>
+                                <span :class="{ danger: item.perlu_dinilai > 0 }"><strong>{{ item.perlu_dinilai }}</strong> perlu dinilai</span>
                                 <span :class="{ warning: item.lewat_deadline > 0 }"><strong>{{ item.lewat_deadline }}</strong> lewat</span>
                             </span>
-                            <span class="assignment-course-latest">{{ item.tugas_terbaru }}</span>
                         </a>
                     </div>
 
@@ -199,10 +244,77 @@ function submit() {
         <Card v-else>
             <EmptyState title="Anda belum memiliki penugasan mengajar semester ini" icon="bi-journal" />
         </Card>
+        <Card v-if="kelasMapel.length && tugas.length" title="Tugas terbaru" icon="bi-journal-check" body-class="p-0" class="task-overview">
+            <template #actions>
+                <div class="task-filters" role="group" aria-label="Filter tugas">
+                    <button
+                        v-for="filter in taskFilters"
+                        :key="filter.value"
+                        type="button"
+                        class="task-filter"
+                        :class="{ active: taskFilter === filter.value }"
+                        :aria-pressed="taskFilter === filter.value"
+                        @click="taskFilter = filter.value"
+                    >{{ filter.label }}</button>
+                </div>
+            </template>
+
+            <div v-if="filteredTasks.length" class="task-list">
+                <article v-for="task in filteredTasks" :key="task.id" class="task-row">
+                    <div class="task-main">
+                        <strong>{{ task.judul }}</strong>
+                        <div class="task-meta">
+                            <span>{{ task.mata_pelajaran || 'Mata pelajaran' }}</span>
+                            <span class="task-class">{{ task.kelas || 'Kelas' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="task-due" :class="{ overdue: task.is_overdue }">
+                        <span>{{ task.is_overdue ? 'Lewat deadline' : 'Deadline' }}</span>
+                        <strong>{{ task.batas_waktu || 'Belum ditentukan' }}</strong>
+                    </div>
+
+                    <div class="task-submission">
+                        <div class="task-submission-heading">
+                            <span>Pengumpulan</span>
+                            <strong>{{ task.sudah_mengumpulkan }} / {{ task.total_siswa ?? 0 }} siswa</strong>
+                        </div>
+                        <div
+                            class="task-progress"
+                            role="progressbar"
+                            :aria-label="'Pengumpulan ' + task.judul"
+                            :aria-valuenow="task.progress_percent"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                        >
+                            <span :class="{ complete: task.progress_percent >= 80 }" :style="{ width: task.progress_percent + '%' }" />
+                        </div>
+                        <span class="task-submission-note">{{ task.perlu_dinilai }} pengumpulan perlu dinilai</span>
+                    </div>
+
+                    <Link :href="task.pengumpulan_url" class="btn btn-sm btn-outline-primary task-action">
+                        Lihat pengumpulan
+                    </Link>
+                </article>
+            </div>
+            <EmptyState v-else title="Tidak ada tugas untuk filter ini" icon="bi-journal-x" />
+        </Card>
     </AppShell>
 </template>
 
 <style scoped>
+.tugas-layout {
+    display: grid;
+    grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1.22fr);
+    align-items: start;
+    gap: 17px;
+    margin-bottom: 20px;
+}
+@media (max-width: 950px) {
+    .tugas-layout {
+        grid-template-columns: 1fr;
+    }
+}
 .assignment-list {
     display: grid;
     gap: 8px;
@@ -279,7 +391,7 @@ function submit() {
 
 .assignment-course-card {
     display: grid;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
     padding: 12px;
     border: 1px solid var(--gray-200);
@@ -304,8 +416,7 @@ function submit() {
 }
 
 .assignment-course-main strong,
-.assignment-course-main span,
-.assignment-course-latest {
+.assignment-course-main span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -316,8 +427,7 @@ function submit() {
     font-size: 0.95rem;
 }
 
-.assignment-course-main span:not(.assignment-course-kicker),
-.assignment-course-latest {
+.assignment-course-main span:not(.assignment-course-kicker) {
     color: var(--text-muted);
     font-size: 0.78rem;
 }
@@ -331,16 +441,13 @@ function submit() {
 }
 
 .assignment-course-stats {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 12px;
 }
 
 .assignment-course-stats span {
     min-width: 0;
-    padding: 6px 8px;
-    border-radius: var(--radius-sm);
-    background: var(--gray-50);
     color: var(--text-muted);
     font-size: 0.72rem;
 }
@@ -357,6 +464,143 @@ function submit() {
     color: var(--status-warning-text);
 }
 
+.task-overview {
+    margin-top: 0.25rem;
+}
+
+.task-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.task-filter {
+    min-height: 30px;
+    padding: 0.25rem 0.65rem;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    background: var(--surface-card);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.task-filter.active {
+    border-color: var(--primary-300);
+    background: var(--primary-50);
+    color: var(--text-brand);
+}
+
+.task-list {
+    display: grid;
+}
+
+.task-row {
+    display: grid;
+    grid-template-columns: minmax(180px, 1.3fr) minmax(110px, 0.75fr) minmax(160px, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.task-row:last-child {
+    border-bottom: 0;
+}
+
+.task-main {
+    min-width: 0;
+}
+
+.task-main > strong {
+    display: block;
+    overflow: hidden;
+    color: var(--text-strong);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.task-class {
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    background: var(--primary-50);
+    color: var(--text-brand);
+}
+
+.task-due {
+    display: grid;
+    gap: 2px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.task-due strong {
+    color: var(--text-body);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.task-due.overdue,
+.task-due.overdue strong {
+    color: var(--status-danger-text);
+}
+
+.task-submission {
+    min-width: 0;
+}
+
+.task-submission-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.7rem;
+}
+
+.task-submission-heading strong {
+    font-size: 0.75rem;
+}
+
+.task-progress {
+    height: 6px;
+    margin-top: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--gray-100);
+}
+
+.task-progress span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--text-brand);
+}
+
+.task-progress span.complete {
+    background: var(--status-success-text);
+}
+
+.task-submission-note {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+}
+
+.task-action {
+    white-space: nowrap;
+}
+
 @media (max-width: 767.98px) {
     .assignment-search {
         width: 100%;
@@ -364,6 +608,52 @@ function submit() {
 
     .assignment-course-grid {
         max-height: 420px;
+    }
+
+    .task-filters {
+        width: 100%;
+    }
+
+    .task-filter {
+        flex: 1 1 auto;
+    }
+
+    .task-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px 12px;
+        padding: 12px;
+    }
+
+    .task-main,
+    .task-submission {
+        grid-column: 1 / -1;
+    }
+
+    .task-due {
+        grid-column: 1;
+    }
+
+    .task-action {
+        grid-column: 2;
+        grid-row: 2;
+        justify-self: end;
+    }
+}
+
+@media (max-width: 420px) {
+    .task-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .task-main,
+    .task-due,
+    .task-submission,
+    .task-action {
+        grid-column: 1;
+    }
+
+    .task-action {
+        justify-self: start;
     }
 }
 </style>

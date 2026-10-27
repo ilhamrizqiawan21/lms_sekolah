@@ -90,6 +90,7 @@ function exportUrl(format: 'excel' | 'pdf') {
 
     <AppShell title="Rekap Sikap">
         <PageHeader
+            eyebrow="Laporan"
             title="Rekap Sikap Spiritual dan Sosial"
             :subtitle="taAktif ? `TA ${taAktif.tahun} - Semester ${semester}` : `Semester ${semester}`"
         />
@@ -129,7 +130,7 @@ function exportUrl(format: 'excel' | 'pdf') {
                 <Badge color="secondary" class="tabular-nums">{{ sikapSosial.length }} siswa</Badge>
             </template>
 
-            <TableWrapper v-if="sikapSosial.length" :min-width="600">
+            <TableWrapper v-if="sikapSosial.length" stack :min-width="600">
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -160,7 +161,7 @@ function exportUrl(format: 'excel' | 'pdf') {
                 <Badge color="secondary" class="tabular-nums">{{ sikapSpiritual.length }} siswa</Badge>
             </template>
 
-            <TableWrapper v-if="sikapSpiritual.length" :min-width="660">
+            <TableWrapper v-if="sikapSpiritual.length" stack :min-width="660">
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>

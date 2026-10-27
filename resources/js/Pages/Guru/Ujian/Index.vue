@@ -99,7 +99,7 @@ async function destroyUjian(item: UjianItem) {
             </template>
         </PageHeader>
 
-        <MetricStrip :metrics="metricsData" class="mb-4" />
+        <MetricStrip :items="metricsData" class="mb-4" />
 
         <!-- Kelas Mapel Selector -->
         <Card title="Pilih Kelas & Mapel" icon="bi-grid-3x3-gap-fill" class="mb-4">
@@ -200,7 +200,7 @@ async function destroyUjian(item: UjianItem) {
                                         v-if="item.edit_url"
                                         :href="item.edit_url"
                                         icon="bi-pencil"
-                                        color="outline-secondary"
+                                        color="outline-success"
                                         label="Edit Ujian"
                                     />
                                     <IconButton

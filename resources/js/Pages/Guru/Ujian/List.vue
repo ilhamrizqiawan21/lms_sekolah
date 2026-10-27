@@ -165,7 +165,7 @@ async function destroyUjian(item: UjianItem) {
                                         v-if="item.edit_url"
                                         :href="item.edit_url"
                                         icon="bi-pencil"
-                                        color="outline-secondary"
+                                        color="outline-success"
                                         label="Edit Ujian"
                                     />
                                     <IconButton

@@ -303,7 +303,7 @@ const kesulitanBadgeColor = (kesulitan: string) => {
                                 <div class="d-flex gap-1">
                                     <IconButton
                                         icon="bi-pencil-square"
-                                        color="outline-primary"
+                                        color="outline-success"
                                         label="Edit Soal"
                                         @click="openEditModal(soal)"
                                     />

@@ -24,9 +24,9 @@ const trail = computed(() => props.breadcrumbs.length
 </script>
 
 <template>
-    <div class="page-header app-page-header">
+    <div class="page-heading app-page-header">
         <div class="app-page-heading">
-            <nav class="app-breadcrumb" aria-label="Breadcrumb">
+            <nav v-if="breadcrumbs.length" class="app-breadcrumb" aria-label="Breadcrumb">
                 <ol>
                     <li><Link :href="homeHref">Beranda</Link></li>
                     <li v-for="(crumb, index) in trail" :key="`${crumb.label}-${index}`">
@@ -36,6 +36,7 @@ const trail = computed(() => props.breadcrumbs.length
                     <li aria-current="page">{{ title }}</li>
                 </ol>
             </nav>
+            <div v-if="eyebrow" class="eyebrow app-page-eyebrow">{{ eyebrow }}</div>
             <h1 class="app-page-title">
                 <i v-if="icon" class="bi" :class="icon" aria-hidden="true"></i>
                 {{ title }}
@@ -47,3 +48,7 @@ const trail = computed(() => props.breadcrumbs.length
         </div>
     </div>
 </template>
+
+<style scoped>
+.page-heading { margin-bottom: var(--space-5); }
+</style>

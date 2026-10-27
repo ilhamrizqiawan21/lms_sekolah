@@ -183,7 +183,7 @@ async function destroy(user: AdminUser): Promise<void> {
                                 <div class="d-inline-flex align-items-center gap-1">
                                     <Link
                                         :href="`/admin/users/${user.id}/edit`"
-                                        class="btn btn-sm btn-warning btn-icon"
+                                        class="btn btn-sm btn-outline-success btn-icon"
                                         :title="`Edit ${user.nama_lengkap}`"
                                         :aria-label="`Edit ${user.nama_lengkap}`"
                                     >

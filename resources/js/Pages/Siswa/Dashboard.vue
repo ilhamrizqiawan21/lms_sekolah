@@ -60,6 +60,8 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: i
             <p v-else class="agenda-priority-empty">Belum ada tugas terdekat. Kamu bisa lanjut membaca materi kelas.</p>
         </section>
 
+        <MetricStrip :items="metrics" />
+
         <div class="dashboard-grid dashboard-grid-student student-priority-grid">
             <ActionQueue title="Kelas Daring" icon="bi-camera-video-fill" :items="onlineClassItems" empty-title="Belum ada kelas daring">
                 <template #actions><Link :href="links.kelas_daring || '/siswa/kelas-daring'" class="app-card-action-link">Lihat Semua</Link></template>
@@ -68,8 +70,6 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: i
                 <template v-if="notifikasi.length" #actions><Link :href="links.notifikasi" class="app-card-action-link">Lihat Semua</Link></template>
             </ActionQueue>
         </div>
-
-        <MetricStrip :items="metrics" />
 
         <section class="workspace-panel student-courses-panel">
             <header class="workspace-panel-header">

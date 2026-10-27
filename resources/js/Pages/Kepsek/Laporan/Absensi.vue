@@ -83,7 +83,9 @@ function exportUrl(format: 'excel' | 'pdf') {
 
     <AppShell title="Laporan Absensi">
         <PageHeader
+            eyebrow="Laporan"
             title="Laporan Absensi"
+            subtitle="Telusuri catatan kehadiran berdasarkan kelas, rentang tanggal, dan status."
         />
 
         <Card title="Filter" class="mb-3">
@@ -152,7 +154,7 @@ function exportUrl(format: 'excel' | 'pdf') {
         </div>
 
         <Card body-class="p-0">
-            <TableWrapper v-if="absensi.data.length" :min-width="640">
+            <TableWrapper v-if="absensi.data.length" stack :min-width="640">
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>

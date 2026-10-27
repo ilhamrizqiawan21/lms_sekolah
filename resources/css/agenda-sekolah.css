@@ -71,13 +71,7 @@
 .agenda-grade-intro p { margin: 0.35rem 0 0; color: var(--text-muted); font-size: 0.82rem; }
 .agenda-grade-term { white-space: nowrap; color: var(--text-muted); font-size: 0.82rem; }
 
-/* The original shell pins the sidebar open above 992px. Allow its existing toggle to close it. */
-@media (min-width: 992px) {
-    .app-shell .topbar-toggle-btn { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 40px; }
-    .app-shell:not(.sidebar-is-open) .modern-sidebar { transform: translateX(-100%); }
-    .app-shell:not(.sidebar-is-open) .modern-topbar { left: 0; }
-    .app-shell:not(.sidebar-is-open) .main-content { margin-left: 0; }
-}
+
 
 @media (max-width: 991.98px) {
     .agenda-priority-links { grid-template-columns: minmax(0, 1fr); }

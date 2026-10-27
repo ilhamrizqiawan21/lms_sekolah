@@ -11,7 +11,7 @@ import { sidebarMenu } from '../Components/AppShell/sidebarMenu';
 import type { AppPageProps } from '../types';
 
 interface Props { title?: string; }
-withDefaults(defineProps<Props>(), { title: '' });
+const props = withDefaults(defineProps<Props>(), { title: '' });
 
 const page = usePage<AppPageProps>();
 const sidebarOpen = ref(false);
@@ -60,6 +60,10 @@ function openCommandShortcut(event: KeyboardEvent) {
     }
 }
 
+function toggleSidebar() {
+    sidebarOpen.value = !sidebarOpen.value;
+}
+
 function closeSidebar() {
     sidebarOpen.value = false;
 }
@@ -72,26 +76,30 @@ function closeSidebar() {
         <div class="sidebar-overlay" :class="{ show: sidebarOverlayVisible }" @click="closeSidebar"></div>
 
         <Topbar
+            :title="props.title"
             :school="school"
             :user="user"
             :academic="academic"
             :notifications="notifications"
             :sidebar-open="sidebarOpen"
-            @toggle-sidebar="sidebarOpen = !sidebarOpen"
+            @toggle-sidebar="toggleSidebar"
             @open-command="commandOpen = true"
         />
 
         <Sidebar
             :open="sidebarOpen"
+            :mobile="isMobileViewport"
             :school="school"
             :user="user"
             :capabilities="capabilities"
-            @open-menu="sidebarOpen = !sidebarOpen"
+            @close="closeSidebar"
         />
 
         <main id="mainContent" class="main-content" tabindex="-1">
             <div class="page-content">
-                <slot />
+                <div class="page-route-stage">
+                    <div class="page-route-content"><slot /></div>
+                </div>
             </div>
             <footer class="app-footer">
                 <span>&copy; {{ new Date().getFullYear() }} {{ school.name }}</span>
@@ -126,6 +134,27 @@ function closeSidebar() {
 @media (max-width: 991.98px) {
     .app-footer {
         padding-bottom: 5.75rem;
+    }
+}
+
+/* Desktop keeps the same explicit drawer state as mobile so the shell has one
+ * predictable interaction model at every viewport width. */
+@media (min-width: 992px) {
+    :global(.app-shell .topbar-toggle-btn) {
+        display: inline-flex;
+    }
+
+    :global(.app-shell:not(.sidebar-is-open) .modern-sidebar) {
+        transform: translateX(-102%);
+    }
+
+    :global(.app-shell:not(.sidebar-is-open) .modern-topbar) {
+        left: 0;
+        width: 100%;
+    }
+
+    :global(.app-shell:not(.sidebar-is-open) .main-content) {
+        margin-left: 0;
     }
 }
 
