@@ -32,6 +32,19 @@ test('CBT anti-cheat: keluar/kembali/salin dicatat sekali dan tampil di detail j
     await siswa.getByRole('button', { name: 'Mulai Sekarang' }).click();
     await expect(siswa.getByText('Berapa hasil 3 + 4 pada ujian uji?')).toBeVisible({ timeout: 15000 });
 
+    const themeButton = siswa.getByRole('button', { name: /Aktifkan mode gelap|Aktifkan mode terang/ }).first();
+    if (await siswa.locator('html').getAttribute('data-bs-theme') !== 'dark') {
+        await themeButton.click();
+    }
+    await expect(siswa.locator('html')).toHaveAttribute('data-bs-theme', 'dark');
+    await expect(siswa.locator('.exam-option-letter').first()).toHaveCSS('background-color', 'rgb(20, 30, 49)');
+
+    const options = siswa.getByRole('radio');
+    await options.first().focus();
+    await options.first().press('ArrowRight');
+    await expect(options.nth(1)).toBeFocused();
+    await expect(options.nth(1)).toHaveAttribute('aria-checked', 'true');
+
     // Heartbeat pertama terkirim saat halaman ujian dibuka.
     await siswa.waitForResponse((response) => response.url().endsWith('/heartbeat') && response.ok());
 

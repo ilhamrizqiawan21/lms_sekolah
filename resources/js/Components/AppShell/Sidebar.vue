@@ -211,7 +211,7 @@ function handleNavigation(event: MouseEvent) {
     margin-top: 3px;
     overflow: hidden;
     color: var(--text-muted);
-    font-size: 10px;
+    font-size: var(--fs-xs);
     font-weight: 550;
     letter-spacing: 0.01em;
     line-height: 1.5;
@@ -234,7 +234,7 @@ function handleNavigation(event: MouseEvent) {
     margin: 17px 10px 6px;
     padding: 0;
     color: var(--text-muted);
-    font-size: 10px;
+    font-size: var(--fs-xs);
     font-weight: 700;
     line-height: 1.5;
     letter-spacing: 0.08em;
@@ -253,7 +253,7 @@ function handleNavigation(event: MouseEvent) {
 .app-shell .sidebar.modern-sidebar .nav-section-toggle::marker { content: ''; }
 .app-shell .sidebar.modern-sidebar .nav-section-toggle i {
     color: var(--text-muted);
-    font-size: 10px;
+    font-size: var(--fs-xs);
     transition: transform 0.18s ease;
 }
 .app-shell .sidebar.modern-sidebar .sidebar-collapsible[open] > .nav-section-toggle i { transform: rotate(180deg); }
@@ -303,7 +303,7 @@ function handleNavigation(event: MouseEvent) {
     border-radius: 999px;
     background: var(--status-warning-bg);
     color: var(--status-warning-text);
-    font-size: 10px;
+    font-size: var(--fs-xs);
     font-weight: 750;
     text-align: center;
 }
@@ -315,17 +315,17 @@ function handleNavigation(event: MouseEvent) {
     padding: 14px 8px 0;
     border-top: 1px solid var(--border-soft);
 }
-.sidebar-profile-avatar { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border-radius: 50%; background: var(--brand-soft-bg); color: var(--text-brand); font-size: 11px; font-weight: 800; object-fit: cover; }
-.sidebar-profile-copy { display: block; min-width: 0; font-size: 11px; font-weight: 700; line-height: 1.5; }
-.sidebar-profile-copy strong { display: block; overflow: hidden; color: var(--text-strong); font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
-.sidebar-profile-copy small { display: block; margin-top: 2px; overflow: hidden; color: var(--text-muted); font-size: 10px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-profile-avatar { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border-radius: 50%; background: var(--brand-soft-bg); color: var(--text-brand); font-size: 12px; font-weight: 800; object-fit: cover; }
+.sidebar-profile-copy { display: block; min-width: 0; font-size: var(--fs-xs); font-weight: 700; line-height: 1.5; }
+.sidebar-profile-copy strong { display: block; overflow: hidden; color: var(--text-strong); font-size: var(--fs-xs); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-profile-copy small { display: block; margin-top: 2px; overflow: hidden; color: var(--text-muted); font-size: var(--fs-xs); font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
 .sidebar-profile-menu { position: relative; flex: 0 0 auto; margin-left: auto; }
 .sidebar-profile-menu > summary { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 8px; color: var(--text-muted); cursor: pointer; list-style: none; }
 .sidebar-profile-menu > summary::-webkit-details-marker { display: none; }
 .sidebar-profile-menu > summary:hover, .sidebar-profile-menu[open] > summary { background: var(--surface-hover); color: var(--text-strong); }
 .sidebar-profile-popover { position: absolute; right: 0; bottom: calc(100% + .5rem); z-index: 10; display: grid; width: 180px; gap: .2rem; padding: .35rem; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--surface-card); box-shadow: var(--refresh-shadow-float); }
 .sidebar-profile-menu[open] > .sidebar-profile-popover { animation: sidebar-menu-reveal 150ms var(--ease-standard) both; }
-.sidebar-profile-popover :is(a, button) { display: flex; align-items: center; gap: .55rem; width: 100%; min-height: 36px; padding: .45rem .55rem; border: 0; border-radius: 7px; background: transparent; color: var(--text-body); font: inherit; font-size: .72rem; text-align: left; text-decoration: none; }
+.sidebar-profile-popover :is(a, button) { display: flex; align-items: center; gap: .55rem; width: 100%; min-height: 36px; padding: .45rem .55rem; border: 0; border-radius: 7px; background: transparent; color: var(--text-body); font: inherit; font-size: var(--fs-xs); text-align: left; text-decoration: none; }
 .sidebar-profile-popover :is(a, button):hover { background: var(--surface-hover); color: var(--text-strong); }
 .sidebar-profile-popover .sidebar-profile-logout { color: var(--status-danger-text); cursor: pointer; }
 

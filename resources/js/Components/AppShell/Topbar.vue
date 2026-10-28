@@ -233,7 +233,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
     background: var(--surface-card);
     padding: 0 18px;
     box-shadow: none;
-    backdrop-filter: blur(10px);
+    backdrop-filter: none;
 }
 @media (min-width: 992px) {
     .topbar {
@@ -261,7 +261,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
     align-items: center;
     gap: 8px;
     color: var(--text-muted);
-    font-size: 11px;
+    font-size: var(--fs-xs);
     white-space: nowrap;
 }
 .breadcrumbs strong {
@@ -272,7 +272,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
     font-weight: 700;
 }
 .breadcrumbs .bi-chevron-right {
-    font-size: 10px;
+    font-size: var(--fs-xs);
     color: var(--text-muted);
 }
 .top-spacer {
@@ -288,7 +288,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
     border-radius: 8px;
     background: var(--surface-card);
     color: var(--text-body);
-    font-size: 11px;
+    font-size: var(--fs-xs);
     font-weight: 650;
     white-space: nowrap;
 }
@@ -301,7 +301,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
     margin: 0 2px;
 }
 .period-select .icon-chevron {
-    font-size: 11px;
+    font-size: var(--fs-xs);
     color: var(--text-muted);
 }
 .top-icon {
@@ -345,7 +345,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
     height: 7px;
     border: 1.5px solid var(--surface-card);
     border-radius: 50%;
-    background: #d27a3d;
+    background: var(--accent-orange);
 }
 .top-profile {
     display: flex;
@@ -357,7 +357,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
     background: transparent;
     color: var(--text-strong);
     cursor: pointer;
-    font-size: 11px;
+    font-size: var(--fs-xs);
     font-weight: 700;
     line-height: 1;
 }
@@ -373,12 +373,12 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
     border-radius: 50%;
     background: var(--brand-soft-bg);
     color: var(--text-brand);
-    font-size: 11px;
+    font-size: var(--fs-xs);
     font-weight: 800;
     object-fit: cover;
 }
 .top-profile-name {
-    font-size: 11px;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: var(--text-strong);
     max-width: 140px;
@@ -387,7 +387,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
     white-space: nowrap;
 }
 .profile-chevron {
-    font-size: 11px;
+    font-size: var(--fs-xs);
     color: var(--text-muted);
 }
 @media (max-width: 1180px) {
@@ -410,7 +410,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
         padding-inline: 12px;
     }
     .breadcrumbs {
-        font-size: 10px;
+        font-size: var(--fs-xs);
     }
     .breadcrumbs > span,
     .breadcrumbs > .bi-chevron-right {

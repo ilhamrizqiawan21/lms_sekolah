@@ -171,6 +171,22 @@ function selectOpsi(opsiId: number) {
     void saveCurrentAnswer();
 }
 
+function handleOpsiKeydown(event: KeyboardEvent, opsiIndex: number) {
+    if (!currentSoal.value) return;
+
+    if (!['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'].includes(event.key)) return;
+
+    event.preventDefault();
+    const direction = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1 : -1;
+    const nextIndex = (opsiIndex + direction + currentSoal.value.opsi.length) % currentSoal.value.opsi.length;
+    const nextOpsi = currentSoal.value.opsi[nextIndex];
+    selectOpsi(nextOpsi.id);
+
+    requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>(`[data-opsi-index="${nextIndex}"]`)?.focus();
+    });
+}
+
 function toggleRagu() {
     if (!currentSoal.value || isSubmitting.value) return;
 
@@ -373,21 +389,22 @@ async function autoSubmitOnTimeUp() {
                                 v-for="(opsi, oIdx) in currentSoal.opsi"
                                 :key="opsi.id"
                                 role="radio"
-                                tabindex="0"
+                                :tabindex="localAnswers[currentSoal.attempt_jawaban_id]?.opsiId === opsi.id || (!localAnswers[currentSoal.attempt_jawaban_id]?.opsiId && oIdx === 0) ? 0 : -1"
+                                :data-opsi-index="oIdx"
                                 :aria-checked="localAnswers[currentSoal.attempt_jawaban_id]?.opsiId === opsi.id"
                                 class="p-3 border rounded-3 cursor-pointer transition-all d-flex align-items-start gap-3"
                                 :class="{
                                     'border-primary bg-primary-subtle text-primary fw-semibold': localAnswers[currentSoal.attempt_jawaban_id]?.opsiId === opsi.id,
                                     'hover-bg-light': localAnswers[currentSoal.attempt_jawaban_id]?.opsiId !== opsi.id,
                                 }"
-                                style="cursor: pointer;"
                                 @click="selectOpsi(opsi.id)"
                                 @keydown.enter.prevent="selectOpsi(opsi.id)"
                                 @keydown.space.prevent="selectOpsi(opsi.id)"
+                                @keydown="handleOpsiKeydown($event, oIdx)"
                             >
                                 <div
-                                    class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold border u-sq-32px"
-                                    :class="localAnswers[currentSoal.attempt_jawaban_id]?.opsiId === opsi.id ? 'bg-primary text-white border-primary' : 'bg-light text-dark'"
+                                    class="exam-option-letter rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold border u-sq-32px"
+                                    :class="localAnswers[currentSoal.attempt_jawaban_id]?.opsiId === opsi.id ? 'bg-primary text-white border-primary' : ''"
                                 >
                                     {{ String.fromCharCode(65 + oIdx) }}
                                 </div>
@@ -455,7 +472,7 @@ async function autoSubmitOnTimeUp() {
                                 <span>Ragu ({{ raguCount }})</span>
                             </div>
                             <div class="d-flex align-items-center gap-1">
-                                <span class="badge bg-light text-dark border p-1 u-sq-12px" />
+                                <span class="badge bg-body text-body border p-1 u-sq-12px" />
                                 <span>Belum ({{ belumDijawabCount }})</span>
                             </div>
                         </div>
@@ -489,7 +506,7 @@ async function autoSubmitOnTimeUp() {
                             Apakah Anda yakin ingin menyelesaikan ujian ini? Jawaban yang sudah dikumpulkan tidak dapat diubah kembali.
                         </p>
 
-                        <div class="bg-light p-3 rounded mb-3">
+                        <div class="exam-summary-surface p-3 rounded mb-3">
                             <div class="d-flex justify-content-between mb-1">
                                 <span>Total Soal:</span>
                                 <span class="fw-bold">{{ totalSoal }}</span>
@@ -536,3 +553,15 @@ async function autoSubmitOnTimeUp() {
         </div>
     </AppShell>
 </template>
+
+<style scoped>
+.exam-option-letter:not(.bg-primary) {
+    background: var(--surface-subtle);
+    color: var(--text-body);
+}
+
+.exam-summary-surface {
+    background: var(--surface-muted);
+    color: var(--text-body);
+}
+</style>

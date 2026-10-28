@@ -126,6 +126,51 @@ test('sidebar navigation text and icons keep theme-token contrast', async ({ pag
     }
 });
 
+test('shared shell keeps readable labels and flat surfaces', async ({ page }) => {
+    await login(page, 'admin');
+    await page.goto('/admin/dashboard');
+    await expect(page.locator('.modern-topbar')).toBeVisible();
+
+    const shell = await page.evaluate(() => {
+        const labels = [
+            document.querySelector('.breadcrumbs'),
+            document.querySelector('.period-select'),
+            document.querySelector('.top-profile'),
+        ].filter((element): element is HTMLElement => Boolean(element));
+
+        const topbar = document.querySelector('.modern-topbar');
+
+        return {
+            labelSizes: labels.map(element => Number.parseFloat(getComputedStyle(element).fontSize)),
+            backdropFilter: topbar ? getComputedStyle(topbar).backdropFilter : null,
+        };
+    });
+
+    expect(shell.labelSizes.length).toBeGreaterThan(0);
+    for (const size of shell.labelSizes) expect(size).toBeGreaterThanOrEqual(12);
+    expect(shell.backdropFilter).toBe('none');
+});
+
+test('dashboard teacher and sidebar labels stay readable on mobile and desktop', async ({ page }) => {
+    await login(page, 'guru');
+    for (const width of [390, 1440]) {
+        await page.setViewportSize({ width, height: 1000 });
+        await page.goto('/guru/dashboard');
+
+        const textSizes = await page.locator([
+            '.overview-label', '.text-link', '.queue-tab', '.tab-count', '.subject-mark', '.task-title',
+            '.task-meta', '.status', '.queue-footer', '.timeline-time', '.timeline-current',
+            '.timeline-copy strong', '.timeline-copy small', '.class-name', '.class-meta', '.class-stat',
+            '.attention-copy strong', '.attention-copy small', '#sidebar .sidebar-logo-sub',
+            '#sidebar .nav-section', '#sidebar .sidebar-profile-copy strong', '#sidebar .sidebar-profile-copy small',
+        ].join(', ')).evaluateAll(elements => elements.map(element => Number.parseFloat(getComputedStyle(element).fontSize)));
+
+        expect(textSizes.length).toBeGreaterThan(0);
+        for (const size of textSizes) expect(size, `${width}px dashboard text`).toBeGreaterThanOrEqual(12);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    }
+});
+
 test('card headings and page actions remain readable across viewport sizes', async ({ page }, testInfo) => {
     await login(page, 'admin');
     for (const width of [390, 820, 1440]) {

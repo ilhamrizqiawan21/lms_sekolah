@@ -148,7 +148,7 @@ function submit() {
             <div class="tugas-col-form">
                 <Card title="Buat Tugas Baru" subtitle="Atur instruksi, tenggat, dan kelas penerima." icon="bi-plus-circle">
                     <template #actions>
-                        <span class="badge rounded-pill text-bg-primary-subtle border border-primary-subtle text-primary fw-bold" style="font-size: 8px;">Guru</span>
+                        <span class="badge badge-compact rounded-pill text-bg-primary-subtle border border-primary-subtle text-primary fw-bold">Guru</span>
                     </template>
                     <form @submit.prevent="submit">
                         <div class="form-help-panel">
@@ -205,7 +205,7 @@ function submit() {
             <div class="tugas-col-courses">
                 <Card title="Kelas yang Diajar" subtitle="Pantau aktivitas tugas per kelas dan mata pelajaran." icon="bi-people-fill">
                     <template #actions>
-                        <span class="badge rounded-pill text-bg-success-subtle border border-success-subtle text-success fw-bold" style="font-size: 8px;">{{ kelasMapel.length }} penugasan</span>
+                        <span class="badge badge-compact rounded-pill text-bg-success-subtle border border-success-subtle text-success fw-bold">{{ kelasMapel.length }} penugasan</span>
                     </template>
                     <div class="courses-toolbar d-flex align-items-center justify-content-between gap-2 mb-3">
                         <div class="assignment-search flex-grow-1">
