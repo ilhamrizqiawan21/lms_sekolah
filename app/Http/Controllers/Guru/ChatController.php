@@ -18,14 +18,18 @@ class ChatController extends Controller
 {
     public function index()
     {
-        $rooms = $this->roomsForTeacher();
-
-        if ($rooms->isNotEmpty()) {
-            return redirect()->route('guru.chat.show', $rooms->first()['id']);
-        }
+        $kelasMapel = KelasMapel::with(['kelas', 'mataPelajaran'])
+            ->where('guru_id', Auth::id())
+            ->aktif()
+            ->get();
 
         return Inertia::render('Guru/Chat/Index', [
-            'rooms' => $rooms,
+            'rooms' => $kelasMapel->map(fn (KelasMapel $item) => [
+                'id' => $item->id,
+                'title' => $item->mataPelajaran?->nama_mapel ?? '-',
+                'subtitle' => $item->kelas?->displayName() ?? '-',
+                'url' => route('guru.chat.show', $item),
+            ]),
             'emptyMessage' => 'Anda belum memiliki penugasan.',
         ]);
     }
@@ -47,9 +51,7 @@ class ChatController extends Controller
             ->update(['is_read' => true]);
 
         return Inertia::render('Guru/Chat/Show', [
-            'rooms' => $this->roomsForTeacher(),
             'room' => [
-                'id' => $kelasMapel->id,
                 'title' => $kelasMapel->mataPelajaran?->nama_mapel ?? '-',
                 'subtitle' => $kelasMapel->kelas?->displayName() ?? '-',
             ],
@@ -65,21 +67,6 @@ class ChatController extends Controller
             'backUrl' => route('guru.chat.index'),
             'emptyMessage' => 'Belum ada pesan. Mulai percakapan!',
         ]);
-    }
-
-    private function roomsForTeacher()
-    {
-        return KelasMapel::with(['kelas', 'mataPelajaran'])
-            ->where('guru_id', Auth::id())
-            ->aktif()
-            ->orderBy('id')
-            ->get()
-            ->map(fn (KelasMapel $item) => [
-                'id' => $item->id,
-                'title' => $item->mataPelajaran?->nama_mapel ?? '-',
-                'subtitle' => $item->kelas?->displayName() ?? '-',
-                'url' => route('guru.chat.show', $item),
-            ]);
     }
 
     // Kirim pesan

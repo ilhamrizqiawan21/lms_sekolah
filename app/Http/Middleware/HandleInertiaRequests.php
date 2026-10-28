@@ -19,9 +19,9 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user()?->loadMissing('role');
         $role = $user?->role?->nama_role;
         try {
-            $theme = Pengaturan::getValue('warna_tema', 'indigo');
+            $theme = Pengaturan::getValue('warna_tema', 'hijau');
         } catch (\Throwable) {
-            $theme = 'indigo';
+            $theme = 'hijau';
         }
         $themeColors = [
             'hijau' => [
@@ -55,7 +55,7 @@ class HandleInertiaRequests extends Middleware
                 'navbar' => '#be123c',
             ],
         ];
-        $activeTheme = $themeColors[$theme] ?? $themeColors['indigo'];
+        $activeTheme = $themeColors[$theme] ?? $themeColors['hijau'];
 
         return array_merge(parent::share($request), [
             'auth' => [

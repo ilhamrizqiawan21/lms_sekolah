@@ -19,7 +19,7 @@ Panduan ini mencakup instalasi manual, pilihan data awal (demo/kosong), konfigur
 
 | Komponen | Versi |
 |---|---|
-| PHP | 8.3.36+ pada cabang 8.3; 8.4.27+ pada cabang 8.4; 8.5.12+ pada cabang 8.5, atau build vendor dengan kedua perbaikan PHP2Shell yang terverifikasi |
+| PHP | 8.3+ |
 | Laravel | 13 |
 | Composer | 2+ |
 | Node.js | 20 LTS atau 22 LTS; repository saat ini mematok 22 |
@@ -39,8 +39,6 @@ Panduan ini mencakup instalasi manual, pilihan data awal (demo/kosong), konfigur
 Untuk production:
 
     composer install --no-dev --optimize-autoloader
-
-Periksa juga versi **PHP yang melayani HTTP**. `php -v` hanya menunjukkan binary CLI dan bisa berbeda dari PHP-FPM, Apache, atau handler web lain.
 
 ### 2.2 Environment
 
@@ -135,9 +133,6 @@ Test Laravel dikonfigurasi memakai SQLite `:memory:` melalui `phpunit.xml`, sehi
 
 ## 7. Checklist production
 
-- [ ] PHP yang melayani HTTP sudah memuat perbaikan CVE-2026-109618 dan CVE-2026-109619: upstream 8.3.36+, 8.4.27+, atau 8.5.12+ pada cabangnya, atau patch vendor yang terdokumentasi. Mulai ulang seluruh worker setelah pembaruan. Verifikasi SAPI, versi/build, berkas `php.ini` yang dimuat, dan status patch dari penyedia hosting; hasil `php -v` CLI saja tidak cukup.
-- [ ] Pada konfigurasi PHP/web server yang berlaku **sebelum parsing request**, batasi `post_max_size` sesuai kebutuhan unggah (misalnya 32M), pertahankan `upload_max_filesize` di bawahnya (misalnya 5M), serta batasi ukuran request, jumlah field/bagian multipart, dan header di web server atau proxy. Periksa juga request tanpa `Content-Length`. Validasi Laravel baru berjalan setelah PHP memproses multipart.
-- [ ] Set `session.upload_progress.enabled=0` pada `php.ini` atau konfigurasi pool/server yang berlaku sebelum parsing request, lalu mulai ulang worker. Jangan mengandalkan `ini_set()` atau `.user.ini` untuk pengaturan ini. Batas dan pengaturan tersebut hanya mengurangi paparan; patch PHP tetap wajib. Rujukan: [advisori resmi PHP](https://www.php.net/archive/2026.php#2026-10-21-5).
 - [ ] `APP_ENV=production`, `APP_DEBUG=false`, dan `APP_URL` HTTPS.
 - [ ] `SESSION_SECURE_COOKIE=true` dan `LOG_LEVEL=warning` (atau lebih tinggi).
 - [ ] `TRUSTED_PROXIES` diisi IP/CIDR reverse proxy bila aplikasi berada di belakang proxy/load balancer, agar rate limit dan blokir IP memakai IP klien asli.

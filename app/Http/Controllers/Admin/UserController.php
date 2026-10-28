@@ -231,7 +231,7 @@ class UserController extends Controller
         }
 
         if ((int) $validated['role_id'] !== (int) $user->role_id
-            && ($user->kelasMapel()->exists() || $user->waliKelas()->exists() || $user->soalBank()->exists())) {
+            && $user->kelasMapel()->exists()) {
             throw ValidationException::withMessages([
                 'role_id' => 'Role tidak dapat diubah karena user ini sudah memiliki data siswa atau penugasan mengajar. Buat akun baru agar riwayat data tetap aman.',
             ]);
@@ -275,8 +275,8 @@ class UserController extends Controller
             return back()->with('error', 'User tidak dapat dihapus karena merupakan admin aktif terakhir.');
         }
 
-        if ($user->kelasMapel()->exists() || $user->waliKelas()->exists() || $user->soalBank()->exists()) {
-            return back()->with('error', 'User tidak dapat dihapus karena masih memiliki penugasan mengajar, wali kelas, atau bank soal.');
+        if ($user->kelasMapel()->exists()) {
+            return back()->with('error', 'User tidak dapat dihapus karena masih memiliki penugasan mengajar.');
         }
 
         DB::transaction(fn () => $user->delete());

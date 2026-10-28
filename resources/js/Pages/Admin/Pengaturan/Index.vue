@@ -24,7 +24,7 @@ const themeOptions = [
 ];
 
 const systemForm = useForm({
-    warna_tema: props.settings.warna_tema ?? 'indigo',
+    warna_tema: props.settings.warna_tema ?? 'hijau',
     semester_aktif: props.settings.semester_aktif ?? '1',
     mode_kenaikan: props.settings.mode_kenaikan ?? 'manual',
     penalty_terlambat_poin: props.settings.penalty_terlambat_poin ?? '1',
@@ -281,7 +281,7 @@ function saveSchool() {
                         <span class="theme-option-body">
                             <span class="theme-option-title">
                                 {{ theme.label }}
-                                <Badge v-if="theme.value === 'indigo'" color="primary">Default</Badge>
+                                <Badge v-if="theme.value === 'hijau'" color="primary">Default</Badge>
                             </span>
                             <span class="theme-option-note">{{ theme.note }}</span>
                         </span>

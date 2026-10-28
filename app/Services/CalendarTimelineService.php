@@ -34,12 +34,11 @@ class CalendarTimelineService
     public function monthGrid(int $year, int $month, Collection $eventProps, string $routeName): array
     {
         $bulanIndo = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-        // Kalender LMS mengikuti kebiasaan akademik Indonesia: Senin menjadi kolom pertama.
-        $hariIndo = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+        $hariIndo = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
         $firstDay = Carbon::create($year, $month, 1);
         $daysInMonth = $firstDay->daysInMonth;
-        $startDayOfWeek = $firstDay->dayOfWeekIso - 1;
+        $startDayOfWeek = $firstDay->dayOfWeek;
         $prevMonth = $firstDay->copy()->subMonth();
         $nextMonth = $firstDay->copy()->addMonth();
         $today = now()->toDateString();
@@ -125,15 +124,13 @@ class CalendarTimelineService
             ->whereBetween('batas_waktu', [$start, $end]);
 
         if ($user->isGuru()) {
-            $query->whereHas('kelasMapel', fn ($q) => $q->where('guru_id', $user->id)->aktif());
+            $query->whereHas('kelasMapel', fn ($q) => $q->where('guru_id', $user->id));
         } elseif ($user->isSiswa()) {
             $kelasId = $user->siswa?->kelas_id;
             if (! $kelasId) {
                 return collect();
             }
-            $query->whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $kelasId)->aktif());
-        } else {
-            $query->whereHas('kelasMapel', fn ($q) => $q->aktif());
+            $query->whereHas('kelasMapel', fn ($q) => $q->where('kelas_id', $kelasId));
         }
 
         $tasks = $query->orderBy('batas_waktu')->get();
@@ -282,10 +279,8 @@ class CalendarTimelineService
                     });
             });
         } elseif ($user->isKepalaSekolah()) {
-            $query->where(function ($q) use ($user) {
-                $q->whereIn('target', ['semua', 'guru'])
-                    ->orWhere('created_by', $user->id);
-            });
+            $query->whereIn('target', ['semua', 'guru'])
+                ->orWhere('created_by', $user->id);
         }
 
         return $query->get()->map(fn (Pengumuman $item) => [

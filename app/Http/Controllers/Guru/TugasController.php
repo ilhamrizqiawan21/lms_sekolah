@@ -350,9 +350,7 @@ class TugasController extends Controller
         $disk = Storage::disk('local');
         abort_unless($disk->exists($path), 404);
 
-        $safeName = basename(str_replace(['/', '\\'], '-', $downloadName)) ?: basename($path);
-
-        return response()->download($disk->path($path), $safeName);
+        return response()->download($disk->path($path), $downloadName);
     }
 
     private function assignedKelasMapelQuery()

@@ -28,26 +28,26 @@ final class ExcelReportWriter
     public function header(Writer $writer, string $title, array $school, string $subtitle): void
     {
         $styles = $this->styles();
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow([$school['name'] ?? 'Nama Sekolah']), $styles['school'], 24));
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow([$title]), $styles['title'], 24));
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow([
+        $writer->addRow(Row::fromValuesWithStyle([$school['name'] ?? 'Nama Sekolah'], $styles['school'], 24));
+        $writer->addRow(Row::fromValuesWithStyle([$title], $styles['title'], 24));
+        $writer->addRow(Row::fromValuesWithStyle([
             'Tahun Ajaran', $school['academic_year'] ?? '-',
             'Semester', $school['semester_label'] ?? '-',
-        ]), $styles['meta'], 18));
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow([$subtitle]), $styles['meta'], 18));
+        ], $styles['meta'], 18));
+        $writer->addRow(Row::fromValuesWithStyle([$subtitle], $styles['meta'], 18));
         $writer->addRow(Row::fromValues([]));
     }
 
     public function tableHeader(Writer $writer, array $headers): void
     {
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow($headers), $this->styles()['tableHeader'], 24));
+        $writer->addRow(Row::fromValuesWithStyle($headers, $this->styles()['tableHeader'], 24));
     }
 
     public function dataRow(Writer $writer, array $values, int $index): void
     {
         $styles = $this->styles();
         $writer->addRow(Row::fromValuesWithStyle(
-            $this->sanitizeRow($values),
+            $values,
             $index % 2 === 0 ? $styles['row'] : $styles['alternateRow'],
             20
         ));
@@ -58,17 +58,6 @@ final class ExcelReportWriter
         $writer->close();
 
         return [$path, $filename];
-    }
-
-    private function sanitizeRow(array $values): array
-    {
-        return array_map(static function ($value) {
-            if (! is_string($value) || $value === '') {
-                return $value;
-            }
-
-            return preg_match('/^[\s]*[=+\-@]/', $value) === 1 ? "'{$value}" : $value;
-        }, $values);
     }
 
     private function prepareWorksheet(Writer $writer, int $columnCount): void

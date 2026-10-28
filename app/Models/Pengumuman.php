@@ -9,9 +9,9 @@ class Pengumuman extends Model
 {
     protected $table = 'pengumuman';
 
-    const CREATED_AT = 'created_at';
+    public $timestamps = false;
 
-    const UPDATED_AT = null;
+    const CREATED_AT = 'created_at';
 
     protected $fillable = [
         'judul',

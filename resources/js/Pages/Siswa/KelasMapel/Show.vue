@@ -36,14 +36,7 @@ const quickActions = [
         </PageHeader>
 
         <nav class="workspace-tabs" aria-label="Navigasi mata pelajaran">
-            <Link
-                v-for="tab in tabs"
-                :key="tab.label"
-                :href="tab.href"
-                class="workspace-tab"
-                :class="{ 'is-active': tab.label === 'Ringkasan' }"
-                :aria-current="tab.label === 'Ringkasan' ? 'page' : undefined"
-            >
+            <Link v-for="tab in tabs" :key="tab.label" :href="tab.href" class="workspace-tab" :class="{ 'is-active': tab.label === 'Ringkasan' }">
                 <i class="bi" :class="tab.icon" aria-hidden="true"></i>{{ tab.label }}
             </Link>
         </nav>

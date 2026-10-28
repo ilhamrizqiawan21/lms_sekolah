@@ -25,9 +25,7 @@ function progressColor(value: number) {
 
     <AppShell title="Rekap Absensi">
         <PageHeader
-            eyebrow="Laporan"
             title="Rekap Absensi Per Kelas"
-            subtitle="Bandingkan jumlah dan persentase kehadiran di setiap kelas."
         />
 
         <div v-if="rekap.length" class="content-summary">

@@ -24,7 +24,6 @@ class KelasMapelController extends Controller
         $waliKelas = WaliKelas::with(['kelas', 'guru', 'tahunAjaran'])
             ->orderBy('tahun_ajaran_id', 'desc')->orderBy('kelas_id')->paginate(20, ['*'], 'wali_page');
         $jadwalMengajar = JadwalMengajar::with(['guru', 'kelasMapel.kelas', 'kelasMapel.mataPelajaran'])
-            ->whereHas('kelasMapel', fn ($q) => $q->aktif())
             ->orderBy('hari')
             ->orderBy('pelajaran_ke')
             ->get();
@@ -79,9 +78,9 @@ class KelasMapelController extends Controller
 
     public function destroy(KelasMapel $kelasMapel)
     {
-        $hasData = $kelasMapel->materi()->exists() || $kelasMapel->tugas()->exists() || $kelasMapel->ujian()->exists() || $kelasMapel->absensi()->exists() || $kelasMapel->nilaiAkhir()->exists() || $kelasMapel->sikapSosial()->exists() || $kelasMapel->sikapSpiritual()->exists() || $kelasMapel->chatMessages()->exists() || $kelasMapel->jadwalMengajar()->exists() || $kelasMapel->kelasDaring()->exists();
+        $hasData = $kelasMapel->materi()->exists() || $kelasMapel->tugas()->exists() || $kelasMapel->absensi()->exists() || $kelasMapel->nilaiAkhir()->exists() || $kelasMapel->sikapSosial()->exists() || $kelasMapel->sikapSpiritual()->exists() || $kelasMapel->chatMessages()->exists() || $kelasMapel->jadwalMengajar()->exists() || $kelasMapel->kelasDaring()->exists();
         if ($hasData) {
-            return back()->with('error', 'Pengajaran tidak dapat dihapus karena sudah memiliki data materi, tugas, ujian, absensi, nilai, sikap, chat, jadwal, atau kelas daring.');
+            return back()->with('error', 'Pengajaran tidak dapat dihapus karena sudah memiliki data materi, tugas, absensi, nilai, sikap, chat, jadwal, atau kelas daring.');
         }
         $kelasMapel->delete();
 

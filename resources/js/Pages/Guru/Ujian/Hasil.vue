@@ -183,30 +183,24 @@ function statusLabel(status: string) {
         <!-- Main Card with Tabs -->
         <Card>
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                <ul class="nav nav-pills" role="tablist">
-                    <li class="nav-item" role="presentation">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
                         <button
-                            type="button"
-                            role="tab"
                             class="nav-link"
                             :class="{ active: activeTab === 'selesai' }"
-                            :aria-selected="activeTab === 'selesai'"
                             @click="activeTab = 'selesai'"
                         >
-                            <i class="bi bi-person-check me-1" aria-hidden="true" />
+                            <i class="bi bi-person-check me-1" />
                             Sudah Mengerjakan ({{ attempts.length }})
                         </button>
                     </li>
-                    <li class="nav-item" role="presentation">
+                    <li class="nav-item">
                         <button
-                            type="button"
-                            role="tab"
                             class="nav-link"
                             :class="{ active: activeTab === 'belum' }"
-                            :aria-selected="activeTab === 'belum'"
                             @click="activeTab = 'belum'"
                         >
-                            <i class="bi bi-person-x me-1" aria-hidden="true" />
+                            <i class="bi bi-person-x me-1" />
                             Belum Mengerjakan ({{ belumMengerjakan.length }})
                         </button>
                     </li>

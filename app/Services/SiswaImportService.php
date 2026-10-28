@@ -35,15 +35,13 @@ class SiswaImportService
         }
 
         $roleSiswa = Role::where('nama_role', 'siswa')->firstOrFail();
-        $defaultPasswordHash = Hash::make(User::DEFAULT_PASSWORD);
 
-        DB::transaction(function () use ($rows, $roleSiswa, $defaultPasswordHash) {
+        DB::transaction(function () use ($rows, $roleSiswa) {
             foreach ($rows['data'] as $row) {
-                $isDefault = $row['password'] === '' || $row['password'] === User::DEFAULT_PASSWORD;
                 $user = User::create([
                     'username' => $row['username'],
-                    'password' => $isDefault ? $defaultPasswordHash : Hash::make($row['password']),
-                    'is_password_default' => $isDefault,
+                    'password' => Hash::make($row['password'] ?: User::DEFAULT_PASSWORD),
+                    'is_password_default' => $row['password'] === '' || $row['password'] === User::DEFAULT_PASSWORD,
                     'nama_lengkap' => $row['nama_lengkap'],
                     'nip_nis' => $row['nis'],
                     'jenis_kelamin' => $row['jenis_kelamin'] ?: null,
@@ -79,19 +77,6 @@ class SiswaImportService
         $seenNis = [];
         $headerChecked = false;
 
-        $existingUsernames = array_fill_keys(
-            User::pluck('username')->map(fn ($u) => strtolower((string) $u))->all(),
-            true
-        );
-        $existingNis = array_fill_keys(
-            Siswa::pluck('nis')->map(fn ($n) => Str::upper((string) $n))->all(),
-            true
-        );
-        $existingKelasIds = array_fill_keys(
-            Kelas::pluck('id')->map(fn ($id) => (int) $id)->all(),
-            true
-        );
-
         try {
             $reader->open($filePath);
             $readerOpened = true;
@@ -126,7 +111,7 @@ class SiswaImportService
 
                     $rowData = array_combine(SiswaTemplateService::HEADERS, $values);
                     $rowData['nis'] = Str::upper($rowData['nis']);
-                    $rowErrors = $this->validateRow($rowData, $rowIndex, $seenUsernames, $seenNis, $existingUsernames, $existingNis, $existingKelasIds);
+                    $rowErrors = $this->validateRow($rowData, $rowIndex, $seenUsernames, $seenNis);
 
                     if ($rowErrors !== []) {
                         $errors = array_merge($errors, $rowErrors);
@@ -183,27 +168,18 @@ class SiswaImportService
         return true;
     }
 
-    private function validateRow(
-        array $data,
-        int $rowIndex,
-        array $seenUsernames,
-        array $seenNis,
-        array $existingUsernames,
-        array $existingNis,
-        array $existingKelasIds
-    ): array {
+    private function validateRow(array $data, int $rowIndex, array $seenUsernames, array $seenNis): array
+    {
         $errors = [];
         $prefix = "Baris {$rowIndex}:";
-        $lowerUsername = strtolower($data['username']);
-        $lowerNis = strtolower($data['nis']);
 
         if ($data['username'] === '') {
             $errors[] = "{$prefix} username wajib diisi.";
         } elseif (strlen($data['username']) > 50) {
             $errors[] = "{$prefix} username maksimal 50 karakter.";
-        } elseif (in_array($lowerUsername, $seenUsernames, true)) {
+        } elseif (in_array(strtolower($data['username']), $seenUsernames, true)) {
             $errors[] = "{$prefix} username duplikat di file.";
-        } elseif (isset($existingUsernames[$lowerUsername])) {
+        } elseif (User::where('username', $data['username'])->exists()) {
             $errors[] = "{$prefix} username sudah digunakan.";
         }
 
@@ -219,15 +195,15 @@ class SiswaImportService
             $errors[] = "{$prefix} nis maksimal 20 karakter.";
         } elseif (in_array($data['nis'], $seenNis, true)) {
             $errors[] = "{$prefix} nis duplikat di file.";
-        } elseif (isset($existingNis[$data['nis']])) {
+        } elseif (Siswa::where('nis', $data['nis'])->exists()) {
             $errors[] = "{$prefix} nis sudah digunakan.";
-        } elseif (isset($existingUsernames[$lowerNis])) {
+        } elseif (User::where('username', $data['nis'])->exists()) {
             $errors[] = "{$prefix} nis sudah digunakan sebagai username akun lain.";
         }
 
         if ($data['kelas_id'] === '') {
             $errors[] = "{$prefix} kelas_id wajib diisi.";
-        } elseif (! ctype_digit($data['kelas_id']) || ! isset($existingKelasIds[(int) $data['kelas_id']])) {
+        } elseif (! ctype_digit($data['kelas_id']) || ! Kelas::whereKey((int) $data['kelas_id'])->exists()) {
             $errors[] = "{$prefix} kelas_id tidak ditemukan.";
         }
 

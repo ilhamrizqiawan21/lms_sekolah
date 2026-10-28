@@ -21,7 +21,6 @@ class KelasDaringController extends Controller
         $kelasMapel = $this->assignedKelasMapelQuery()->get();
         $sessions = KelasDaring::with(['kelasMapel.kelas', 'kelasMapel.mataPelajaran'])
             ->where('guru_id', Auth::id())
-            ->whereHas('kelasMapel', fn ($q) => $q->aktif())
             ->orderByDesc('tanggal')
             ->orderBy('pelajaran_ke')
             ->get();

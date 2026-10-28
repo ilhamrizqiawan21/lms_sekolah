@@ -31,13 +31,7 @@ class KelasMapelWorkspaceController extends Controller
             ->orderBy('batas_waktu')
             ->take(5)
             ->get();
-        $completedStatuses = [
-            PengumpulanTugas::STATUS_SUDAH,
-            PengumpulanTugas::STATUS_TERLAMBAT,
-            PengumpulanTugas::STATUS_DINILAI,
-        ];
         $submittedCount = PengumpulanTugas::where('siswa_id', $siswa->id)
-            ->whereIn('status', $completedStatuses)
             ->whereHas('tugas', fn ($query) => $query->where('kelas_mapel_id', $kelasMapel->id))
             ->count();
         $latestMessage = ChatMessage::with('user')->where('kelas_mapel_id', $kelasMapel->id)->latest('created_at')->first();
@@ -70,23 +64,19 @@ class KelasMapelWorkspaceController extends Controller
                 ['label' => 'Sudah dikumpulkan', 'value' => $submittedCount, 'icon' => 'bi-check-circle-fill', 'tone' => 'success'],
                 ['label' => 'Belum dikumpulkan', 'value' => max(0, $totalTasks - $submittedCount), 'icon' => 'bi-exclamation-circle-fill', 'tone' => 'danger'],
             ],
-            'tasks' => $tasks->map(function (Tugas $tugas) use ($completedStatuses) {
+            'tasks' => $tasks->map(function (Tugas $tugas) {
                 $submission = $tugas->pengumpulan->first();
-                $isSubmitted = $submission && in_array($submission->status, $completedStatuses, true);
-                $needsRevision = $submission && $submission->status === PengumpulanTugas::STATUS_PERLU_PERBAIKAN;
 
                 return [
                     'id' => $tugas->id,
                     'title' => $tugas->judul,
                     'meta' => $tugas->batas_waktu ? 'Deadline '.$tugas->batas_waktu->format('d M Y') : 'Tanpa deadline',
-                    'detail' => $submission?->nilai !== null
-                        ? 'Nilai: '.$submission->nilai
-                        : ($needsRevision ? 'Perlu perbaikan' : ($isSubmitted ? 'Sudah dikumpulkan' : 'Belum dikumpulkan')),
+                    'detail' => $submission?->nilai !== null ? 'Nilai: '.$submission->nilai : ($submission ? 'Sudah dikumpulkan' : 'Belum dikumpulkan'),
                     'href' => route('siswa.tugas.show', $tugas),
-                    'badge' => $isSubmitted ? 'Selesai' : ($needsRevision ? 'Revisi' : 'Belum'),
-                    'badgeColor' => $isSubmitted ? 'success' : 'warning text-dark',
-                    'icon' => $isSubmitted ? 'bi-check-circle' : 'bi-journal-text',
-                    'accent' => $isSubmitted ? '#16a34a' : '#f59e0b',
+                    'badge' => $submission ? 'Selesai' : 'Belum',
+                    'badgeColor' => $submission ? 'success' : 'warning text-dark',
+                    'icon' => $submission ? 'bi-check-circle' : 'bi-journal-text',
+                    'accent' => $submission ? '#16a34a' : '#f59e0b',
                 ];
             })->values(),
             'latestMessage' => $latestMessage ? [

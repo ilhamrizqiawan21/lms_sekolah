@@ -17,14 +17,10 @@ defineProps({
     <Head title="Laporan Wali Kelas" />
 
     <AppShell title="Laporan Wali Kelas">
-        <PageHeader
-            eyebrow="Laporan"
-            title="Laporan Wali Kelas"
-            subtitle="Pantau rekap absensi, pertemuan, dan penanganan siswa per kelas."
-        />
+        <PageHeader title="Laporan Wali Kelas" />
 
         <Card title="Daftar Wali Kelas Aktif" body-class="p-0">
-            <TableWrapper v-if="waliKelas.data.length" stack :min-width="640">
+            <TableWrapper v-if="waliKelas.data.length" :min-width="640">
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>

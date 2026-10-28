@@ -2,9 +2,9 @@
  * Design tokens, tema "Calm Academic" (lihat docs/UI_REDESIGN_CALM_ACADEMIC.md).
  *
  * Pembagian tanggung jawab:
- * - resources/views/app.blade.php: token dinamis dari tema sekolah pilihan admin.
- * - berkas ini: nilai dasar token dan pemetaan Bootstrap.
- * - resources/css/ruang-kelas.css: palette light aplikasi; palette dark tetap dikelola di sini.
+ * - resources/views/app.blade.php: hanya token yang bergantung pada tema pilihan admin
+ *   (--app-primary, skala --primary-*, --sidebar-bg, --navbar-bg, --focus-ring, --shadow-green).
+ * - berkas ini: semua token statis, nilai gelap, dan pemetaan Bootstrap.
  *
  * Aturan: warna, jarak, radius, dan bayangan baru dibuat sebagai token di sini, bukan hex di komponen.
  * Breakpoint mengikuti Bootstrap: <576 / 576 / 768 / 992 / 1200 / 1400. Media query ditulis
@@ -22,8 +22,6 @@
     --accent-red: #dc2626;
     --accent-orange: #f97316;
     --accent-slate: #6b7280;
-    --success-solid: #198754;
-    --success-solid-hover: #146c43;
     --on-brand: #ffffff; /* teks di atas warna tema/solid; tetap putih di mode gelap */
     --gold-400: #fbbf24;
     --gold-500: #f59e0b;
@@ -38,16 +36,15 @@
     --gray-700: #374151;
     --gray-800: #1f2937;
 
-    /* Permukaan dan teks (2026 UI Mockup) */
-    --canvas: #f5f7fa;
-    --app-bg: #f5f7fa;
-    --surface-body: #f5f7fa;
+    /* Permukaan dan teks */
+    --app-bg: #f6f7fb;
+    --surface-body: #f6f7fb;
     --surface-card: #ffffff;
     --surface-muted: var(--gray-50);
-    --text-strong: #182230;
-    --text-body: #344054;
-    --text-muted: #667085;
-    --modern-border: #e4e7ec;
+    --text-strong: #172033;
+    --text-body: #334155;
+    --text-muted: #5b6b82; /* sebelumnya #64748b: 4,45:1 pada --app-bg, kini 5,07:1 (AA) */
+    --modern-border: #e6e8ef;
 
     /* Status (pasangan latar/teks) */
     --status-success-bg: #dcfce7;
@@ -60,8 +57,8 @@
     --status-info-text: #1e40af;
 
     /* Layout */
-    --sidebar-width: 252px;
-    --topbar-height: 66px;
+    --sidebar-width: 248px;
+    --topbar-height: 64px;
 
     /* Spasi */
     --space-1: 0.25rem;
@@ -166,16 +163,6 @@
     --shadow-float: 0 12px 32px rgba(15, 23, 42, 0.14);
     --control-height: 2.375rem;
     --control-height-sm: 2rem;
-    /* Shared page/card hierarchy and action palette. All action variants use
-     * the school brand; status badges retain their semantic status colors. */
-    --action-bg: var(--primary-600);
-    --action-hover-bg: var(--primary-700);
-    --action-active-bg: var(--primary-800);
-    --card-heading-size: var(--fs-sm);
-    --card-description-size: var(--fs-xs);
-    --page-heading-size: clamp(1.5rem, 2.4vw, 2rem);
-    --page-description-size: 0.8125rem;
-    --panel-radius: 0.875rem;
     --brand-soft-bg: var(--primary-100);
     --brand-soft-text: var(--primary-800);
     --danger-600: #dc2626;
@@ -194,23 +181,21 @@
 }
 
 /* Mode gelap: seluruh nilai dihasilkan dari token, bukan override per komponen. */
-:root[data-bs-theme="dark"] {
-    --canvas: #0f172a;
-    --app-bg: #0f172a;
-    --surface-body: #0f172a;
-    --surface-card: #151f33;
-    --surface-elevated: #1b2740;
-    --surface-muted: #202c44;
-    --surface-subtle: #141e31;
-    --surface-hover: #24314b;
-    --surface-input: #121c2f;
+[data-bs-theme="dark"] {
+    --app-bg: #0b1120;
+    --surface-body: #0b1120;
+    --surface-card: #111827;
+    --surface-elevated: #172033;
+    --surface-muted: #1e293b;
+    --surface-subtle: #243244;
+    --surface-hover: #223047;
+    --surface-input: #0f172a;
     --border-soft: rgba(148, 163, 184, 0.18);
-    --border-strong: rgba(148, 163, 184, 0.32);
-    --text-strong: #edf2ff;
-    --text-body: #d5deef;
-    --text-muted: #a7b5ce;
+    --border-strong: rgba(203, 213, 225, 0.34);
+    --text-strong: #f8fafc;
+    --text-body: #dbe4f0;
+    --text-muted: #9fb0c5;
     --text-inverse: #0f172a;
-    --gray-900: var(--text-strong);
     --gray-50: #0f172a;
     --gray-100: #172033;
     --gray-200: rgba(148, 163, 184, 0.22);
@@ -220,8 +205,8 @@
     --gray-600: #cbd5e1;
     --gray-700: #dbe4f0;
     --gray-800: #f8fafc;
-    --primary-50: color-mix(in srgb, var(--primary-500) 14%, #1a1c1f);
-    --primary-100: color-mix(in srgb, var(--primary-500) 22%, #1a1c1f);
+    --primary-50: color-mix(in srgb, var(--primary-500) 14%, #111827);
+    --primary-100: color-mix(in srgb, var(--primary-500) 22%, #111827);
     --primary-300: color-mix(in srgb, var(--primary-500) 52%, #111827);
     --status-success-bg: #123626;
     --status-success-text: #86efac;
@@ -262,13 +247,11 @@
     --bs-info-text-emphasis: var(--status-info-text);
     --focus-ring: 0 0 0 0.22rem color-mix(in srgb, var(--primary-500) 32%, transparent);
     /* 60% warna tema + 40% putih: 5,1:1 sampai 7,0:1 pada permukaan gelap untuk kelima tema */
-    --text-brand: color-mix(in srgb, var(--primary-500) 55%, white);
+    --text-brand: color-mix(in srgb, var(--primary-500) 60%, white);
     --bs-link-color: var(--text-brand);
     --bs-link-hover-color: color-mix(in srgb, var(--text-brand) 80%, white);
-    --brand-soft-bg: color-mix(in srgb, var(--primary-500) 18%, var(--surface-card));
-    --brand-soft-text: color-mix(in srgb, var(--primary-500) 55%, white);
-    --card-border: rgba(255, 255, 255, 0.07);
-    --shadow-raised: none;
-    --shadow-float: 0 16px 40px -10px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.4);
+    --brand-soft-bg: var(--primary-100);
+    --brand-soft-text: color-mix(in srgb, var(--primary-500) 45%, white); /* 7,0:1 sampai 8,2:1 pada --brand-soft-bg */
+    --shadow-float: 0 16px 38px rgba(0, 0, 0, 0.5);
     --backdrop: rgba(2, 6, 23, 0.66);
 }

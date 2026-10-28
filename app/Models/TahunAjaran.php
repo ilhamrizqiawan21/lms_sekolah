@@ -35,16 +35,6 @@ class TahunAjaran extends Model
         return $this->hasMany(NilaiAkhir::class, 'tahun_ajaran_id');
     }
 
-    public function sikapSosial(): HasMany
-    {
-        return $this->hasMany(SikapSosial::class, 'tahun_ajaran_id');
-    }
-
-    public function sikapSpiritual(): HasMany
-    {
-        return $this->hasMany(SikapSpiritual::class, 'tahun_ajaran_id');
-    }
-
     public static function getAktif(): ?self
     {
         return self::where('is_active', true)->first();

@@ -23,7 +23,7 @@ class UjianService
                 'waktu_selesai' => $validated['waktu_selesai'] ?? null,
                 'acak_soal' => $validated['acak_soal'],
                 'acak_opsi' => $validated['acak_opsi'],
-            ] + $this->kebijakanAntiCheat($validated));
+            ]);
 
             $this->replaceSoal($ujian, $validated['soal']);
 
@@ -53,11 +53,6 @@ class UjianService
                 'acak_opsi' => $validated['acak_opsi'],
             ]);
 
-            // Kebijakan pengawasan dikunci begitu ada siswa yang mulai: mengubah batas di tengah ujian tidak adil.
-            if (! $hasActiveAttempts) {
-                $ujian->update($this->kebijakanAntiCheat($validated, $ujian));
-            }
-
             if ($ujian->waktu_selesai) {
                 UjianAttempt::where('ujian_id', $ujian->id)
                     ->where('status', UjianAttempt::STATUS_SEDANG_MENGERJAKAN)
@@ -70,23 +65,6 @@ class UjianService
                 $this->replaceSoal($ujian, $validated['soal']);
             }
         });
-    }
-
-    /**
-     * Pengawasan nonaktif berarti batas pelanggaran dan layar penuh tidak berlaku.
-     * Field yang tidak dikirim mempertahankan nilai ujian saat ini (atau default untuk ujian baru).
-     *
-     * @return array{anticheat_aktif: bool, maks_pelanggaran: int|null, wajib_fullscreen: bool}
-     */
-    private function kebijakanAntiCheat(array $validated, ?Ujian $ujian = null): array
-    {
-        $aktif = (bool) ($validated['anticheat_aktif'] ?? $ujian?->anticheat_aktif ?? true);
-
-        return [
-            'anticheat_aktif' => $aktif,
-            'maks_pelanggaran' => $aktif ? ($validated['maks_pelanggaran'] ?? null) : null,
-            'wajib_fullscreen' => $aktif && (bool) ($validated['wajib_fullscreen'] ?? $ujian?->wajib_fullscreen ?? false),
-        ];
     }
 
     public function hasActiveAttempts(Ujian $ujian): bool

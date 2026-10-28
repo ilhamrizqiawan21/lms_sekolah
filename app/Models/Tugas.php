@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Tugas extends Model
 {
-    const CREATED_AT = 'created_at';
+    public $timestamps = false;
 
-    const UPDATED_AT = null;
+    const CREATED_AT = 'created_at';
 
     protected $fillable = [
         'kelas_mapel_id',

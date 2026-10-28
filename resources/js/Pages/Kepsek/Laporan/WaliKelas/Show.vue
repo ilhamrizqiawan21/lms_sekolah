@@ -53,11 +53,7 @@ function statusLabel(status: string | null) {
     <Head title="Detail Wali Kelas" />
 
     <AppShell title="Detail Wali Kelas">
-        <PageHeader
-            eyebrow="Laporan"
-            title="Detail Wali Kelas"
-            subtitle="Pantau kehadiran, pertemuan, dan tindak lanjut siswa pada kelas ini."
-        >
+        <PageHeader title="Detail Wali Kelas">
             <template #actions>
                 <Button :href="backUrl" color="outline-secondary" icon="bi-arrow-left">Kembali</Button>
             </template>
@@ -127,7 +123,7 @@ function statusLabel(status: string | null) {
 
             <div class="col-lg-6">
                 <Card title="Pertemuan Terbaru" body-class="p-0">
-                    <TableWrapper v-if="pertemuan.length" stack :min-width="360">
+                    <TableWrapper v-if="pertemuan.length" :min-width="360">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -151,7 +147,7 @@ function statusLabel(status: string | null) {
 
             <div class="col-lg-6">
                 <Card title="Penanganan Siswa" body-class="p-0">
-                    <TableWrapper v-if="penanganan.length" stack :min-width="400">
+                    <TableWrapper v-if="penanganan.length" :min-width="400">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>

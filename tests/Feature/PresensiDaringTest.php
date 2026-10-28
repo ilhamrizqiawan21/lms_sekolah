@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Absensi;
 use App\Models\Kelas;
 use App\Models\KelasDaring;
 use App\Models\KelasMapel;
@@ -82,83 +81,9 @@ class PresensiDaringTest extends TestCase
         $this->assertDatabaseHas('absensi', [
             'siswa_id' => $siswa->id,
             'kelas_mapel_id' => $kelasMapel->id,
-            'status' => 'hadir',
+            'status' => 'h',
             'is_daring' => true,
             'kelas_daring_id' => $sesiDaring->id,
-        ]);
-    }
-
-    public function test_student_cannot_overwrite_teacher_recorded_non_hadir_attendance(): void
-    {
-        $roleSiswa = Role::firstOrCreate(['nama_role' => 'siswa']);
-        $userSiswa = User::create([
-            'username' => 'siswa-alpha',
-            'nama_lengkap' => 'Siswa Alpha',
-            'password' => bcrypt('password'),
-            'role_id' => $roleSiswa->id,
-            'is_active' => true,
-        ]);
-
-        $tahun = TahunAjaran::create(['tahun' => '2025/2026', 'is_active' => true]);
-        $kelas = Kelas::create(['nama_kelas' => 'A', 'tingkat' => 'VII']);
-        $mapel = MataPelajaran::create(['kode' => 'MAT-7', 'nama_mapel' => 'Matematika']);
-
-        $roleGuru = Role::firstOrCreate(['nama_role' => 'guru']);
-        $userGuru = User::create([
-            'username' => 'guru-alpha',
-            'nama_lengkap' => 'Guru Alpha',
-            'password' => bcrypt('password'),
-            'role_id' => $roleGuru->id,
-            'is_active' => true,
-        ]);
-
-        $kelasMapel = KelasMapel::create([
-            'kelas_id' => $kelas->id,
-            'mapel_id' => $mapel->id,
-            'guru_id' => $userGuru->id,
-            'tahun_ajaran_id' => $tahun->id,
-            'semester' => '1',
-            'pertemuan_per_minggu' => 2,
-        ]);
-
-        $siswa = Siswa::create([
-            'user_id' => $userSiswa->id,
-            'kelas_id' => $kelas->id,
-            'nis' => '12349',
-            'status' => 'aktif',
-        ]);
-
-        $today = now()->toDateString();
-
-        Absensi::create([
-            'siswa_id' => $siswa->id,
-            'kelas_mapel_id' => $kelasMapel->id,
-            'tanggal' => $today,
-            'pertemuan_ke' => 1,
-            'status' => 'alpha',
-            'is_daring' => false,
-        ]);
-
-        $sesiDaring = KelasDaring::create([
-            'kelas_mapel_id' => $kelasMapel->id,
-            'guru_id' => $userGuru->id,
-            'judul' => 'Sesi Daring',
-            'tanggal' => $today,
-            'pelajaran_ke' => 1,
-            'meeting_url' => 'https://meet.google.com/abc-def-ghi',
-            'status' => KelasDaring::STATUS_TERJADWAL,
-        ]);
-
-        $response = $this->actingAs($userSiswa)
-            ->post(route('siswa.kelas-daring.presensi', $sesiDaring));
-
-        $response->assertSessionHas('error');
-
-        $this->assertDatabaseHas('absensi', [
-            'siswa_id' => $siswa->id,
-            'kelas_mapel_id' => $kelasMapel->id,
-            'status' => 'alpha',
-            'is_daring' => false,
         ]);
     }
 

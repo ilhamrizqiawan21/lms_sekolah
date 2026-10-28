@@ -20,7 +20,6 @@ class JadwalMengajarController extends Controller
 
         $schedules = JadwalMengajar::with(['kelasMapel.kelas', 'kelasMapel.mataPelajaran'])
             ->where('guru_id', Auth::id())
-            ->whereHas('kelasMapel', fn ($q) => $q->aktif())
             ->orderBy('hari')
             ->orderBy('pelajaran_ke')
             ->get();
@@ -57,7 +56,6 @@ class JadwalMengajarController extends Controller
         }
 
         if (JadwalMengajar::where('guru_id', Auth::id())
-            ->whereHas('kelasMapel', fn ($q) => $q->where('tahun_ajaran_id', $kelasMapel->tahun_ajaran_id)->where('semester', $kelasMapel->semester))
             ->where('hari', $validated['hari'])
             ->where('pelajaran_ke', $validated['pelajaran_ke'])
             ->exists()) {
@@ -67,7 +65,6 @@ class JadwalMengajarController extends Controller
         }
 
         if (JadwalMengajar::where('kelas_id', $kelasMapel->kelas_id)
-            ->whereHas('kelasMapel', fn ($q) => $q->where('tahun_ajaran_id', $kelasMapel->tahun_ajaran_id)->where('semester', $kelasMapel->semester))
             ->where('hari', $validated['hari'])
             ->where('pelajaran_ke', $validated['pelajaran_ke'])
             ->exists()) {
@@ -97,7 +94,6 @@ class JadwalMengajarController extends Controller
     {
         $schedules = JadwalMengajar::with(['kelasMapel.kelas', 'kelasMapel.mataPelajaran'])
             ->where('guru_id', Auth::id())
-            ->whereHas('kelasMapel', fn ($q) => $q->aktif())
             ->get()
             ->groupBy(fn (JadwalMengajar $item) => $item->hari.'-'.$item->pelajaran_ke);
 

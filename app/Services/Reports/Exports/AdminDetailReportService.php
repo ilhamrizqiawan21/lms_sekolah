@@ -79,13 +79,13 @@ final class AdminDetailReportService
 
         $rekap = [];
         foreach ($siswaList as $s) {
-            $sa = $absensiData->get($s->id, collect())->keyBy(fn (Absensi $a) => $a->tanggal?->format('Y-m-d'));
+            $sa = $absensiData->get($s->id, collect());
             $row = ['nis' => $s->nis, 'nama' => $s->user->nama_lengkap ?? '-', 'absensi' => [], 'hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0];
             foreach ($tanggalList as $tgl) {
-                $ab = $sa->get($tgl);
+                $ab = $sa->firstWhere('tanggal', $tgl);
                 $st = $ab ? $ab->status : null;
                 $row['absensi'][$tgl] = $st;
-                if ($st && isset($row[$st])) {
+                if ($st) {
                     $row[$st]++;
                 }
             }

@@ -13,7 +13,7 @@ withDefaults(defineProps<Props>(), { monthEvents: () => [], timelineEvents: () =
 <template>
     <Head :title="pageTitle" />
     <AppShell title="Kalender">
-        <PageHeader eyebrow="Aktivitas" :title="pageTitle" subtitle="Atur jadwal, hari libur, dan tenggat akademik dalam satu tampilan." icon="bi-calendar3" />
+        <PageHeader :title="pageTitle" icon="bi-calendar3" />
         <CalendarWorkspace
             :calendar="calendar"
             :month-events="monthEvents"

@@ -242,7 +242,6 @@ function submit() {
         <PageHeader
             :title="`${kelasMapel.mata_pelajaran} · ${kelasMapel.kelas}`"
             :subtitle="`Input nilai · Tahun Ajaran ${tahunAjaran?.tahun ?? '-'} · Semester ${semester === '2' ? 'Genap' : 'Ganjil'}`"
-            :breadcrumbs="[{ label: 'Nilai', href: '/guru/nilai' }]"
         >
             <template #actions>
                 <a :href="kelasMapel.export_excel_url" class="btn btn-outline-secondary"><i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Excel</a>
@@ -258,10 +257,6 @@ function submit() {
 
         <form @submit.prevent="submit">
             <Card body-class="p-0">
-                <div class="agenda-grade-intro">
-                    <div><span class="agenda-kicker">Lembar penilaian</span><h2>Nilai {{ students.length }} siswa</h2><p>Kolom nama tetap terlihat saat tabel digeser. Perubahan akan ditandai sebelum disimpan.</p></div>
-                    <span class="agenda-grade-term">Semester {{ semester === '2' ? 'Genap' : 'Ganjil' }}</span>
-                </div>
                 <div class="grade-toolbar">
                     <span class="grade-hint"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>Enter: pindah ke siswa berikutnya. Tempel langsung dari spreadsheet untuk mengisi banyak nilai.</span>
                     <span class="d-flex align-items-center gap-2">

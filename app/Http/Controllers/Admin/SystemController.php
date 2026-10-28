@@ -111,7 +111,7 @@ class SystemController extends Controller
 
         return Inertia::render('Admin/Pengaturan/Index', [
             'settings' => [
-                'warna_tema' => $settings['warna_tema'] ?? 'indigo',
+                'warna_tema' => $settings['warna_tema'] ?? 'hijau',
                 'semester_aktif' => $settings['semester_aktif'] ?? '1',
                 'mode_kenaikan' => $settings['mode_kenaikan'] ?? 'manual',
                 'penalty_terlambat_poin' => $settings['penalty_terlambat_poin'] ?? '1',

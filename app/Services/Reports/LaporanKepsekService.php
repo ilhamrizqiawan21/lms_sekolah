@@ -9,7 +9,6 @@ use App\Models\Pengaturan;
 use App\Models\PengumpulanTugas;
 use App\Models\SikapSosial;
 use App\Models\SikapSpiritual;
-use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Models\Tugas;
 use App\Models\WaliKelas;
@@ -54,26 +53,10 @@ class LaporanKepsekService
      */
     public function buildTugasRekap(LengthAwarePaginator $tugas): LengthAwarePaginator
     {
-        $kelasIds = collect($tugas->items())
-            ->map(fn ($t) => $t->kelasMapel?->kelas_id)
-            ->filter()
-            ->unique()
-            ->values();
-
-        $siswaCounts = Siswa::whereIn('kelas_id', $kelasIds)
-            ->where('status', 'aktif')
-            ->selectRaw('kelas_id, count(*) as total')
-            ->groupBy('kelas_id')
-            ->pluck('total', 'kelas_id');
-
         foreach ($tugas as $t) {
-            $kelasId = $t->kelasMapel?->kelas_id;
-            $totalSiswa = (int) ($siswaCounts->get($kelasId) ?? 0);
-            $sudah = $t->pengumpulan->whereIn('status', PengumpulanTugas::STATUS_SUBMITTED)->count();
-
-            $t->total_siswa = max($totalSiswa, $sudah);
-            $t->sudah_kumpul = $sudah;
-            $t->belum_kumpul = max(0, $t->total_siswa - $sudah);
+            $t->total_siswa = $t->pengumpulan->count();
+            $t->sudah_kumpul = $t->pengumpulan->whereIn('status', PengumpulanTugas::STATUS_SUBMITTED)->count();
+            $t->belum_kumpul = $t->pengumpulan->where('status', 'belum')->count();
             $t->rata_nilai = $t->pengumpulan->whereNotNull('nilai')->avg('nilai');
         }
 

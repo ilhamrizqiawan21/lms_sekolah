@@ -42,7 +42,7 @@ Detail fungsional lengkap per role ada di [docs/PRD.md](docs/PRD.md).
 
 | Layer | Teknologi |
 |---|---|
-| Backend | PHP 8.3.36+ (atau cabang lain yang sudah mendapat perbaikan PHP2Shell), Laravel 13 |
+| Backend | PHP 8.3+, Laravel 13 |
 | Frontend | Vue 3, Inertia.js, Blade |
 | UI/build | Bootstrap 5, Bootstrap Icons, Vite |
 | Database | MySQL 8+ atau MariaDB 10.6+ |

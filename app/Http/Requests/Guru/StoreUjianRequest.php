@@ -24,11 +24,8 @@ class StoreUjianRequest extends FormRequest
             'waktu_selesai' => ['nullable', 'date', 'after_or_equal:waktu_mulai'],
             'acak_soal' => ['required', 'boolean'],
             'acak_opsi' => ['required', 'boolean'],
-            'anticheat_aktif' => ['sometimes', 'boolean'],
-            'maks_pelanggaran' => ['nullable', 'integer', 'min:1', 'max:20'],
-            'wajib_fullscreen' => ['sometimes', 'boolean'],
             'soal' => ['required', 'array', 'min:1'],
-            'soal.*.soal_bank_id' => ['required', 'integer', 'distinct', 'exists:soal_bank,id'],
+            'soal.*.soal_bank_id' => ['required', 'integer', 'exists:soal_bank,id'],
             'soal.*.poin' => ['required', 'numeric', 'min:0.01', 'max:1000'],
         ];
     }

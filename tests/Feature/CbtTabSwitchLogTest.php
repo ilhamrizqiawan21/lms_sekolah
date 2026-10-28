@@ -2,213 +2,103 @@
 
 namespace Tests\Feature;
 
+use App\Models\Kelas;
+use App\Models\KelasMapel;
+use App\Models\MataPelajaran;
+use App\Models\Role;
+use App\Models\Siswa;
+use App\Models\SoalBank;
+use App\Models\SoalBankOpsi;
+use App\Models\TahunAjaran;
+use App\Models\Ujian;
 use App\Models\UjianAttempt;
-use App\Models\UjianAttemptEvent;
-use Carbon\Carbon;
+use App\Models\UjianSoal;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Feature\Concerns\MembuatUjianCbt;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
-/**
- * Event anti-cheat CBT (pindah tab/jendela, salin, klik kanan) dan heartbeat server.
- */
 class CbtTabSwitchLogTest extends TestCase
 {
-    use MembuatUjianCbt;
     use RefreshDatabase;
 
-    protected function tearDown(): void
+    private function makeUser(string $nama, string $role): User
     {
-        Carbon::setTestNow();
+        $roleModel = Role::firstOrCreate(['nama_role' => $role]);
 
-        parent::tearDown();
+        return User::create([
+            'username' => strtolower(str_replace(' ', '-', $nama)).'-'.uniqid(),
+            'email' => strtolower(str_replace(' ', '-', $nama)).'-'.uniqid().'@example.test',
+            'password' => Hash::make('secret'),
+            'is_password_default' => false,
+            'nama_lengkap' => $nama,
+            'nip_nis' => null,
+            'jenis_kelamin' => null,
+            'foto' => null,
+            'role_id' => $roleModel->id,
+            'is_active' => true,
+        ]);
     }
 
-    public function test_event_keluar_dicatat_dan_menaikkan_counter_sedangkan_event_lain_tidak(): void
+    private function createSiswa(User $user, Kelas $kelas): Siswa
     {
-        $this->siapkanUjian();
-        [$user, $attempt] = $this->mulaiAttempt();
+        return Siswa::create([
+            'user_id' => $user->id,
+            'kelas_id' => $kelas->id,
+            'nama_lengkap' => $user->nama_lengkap,
+            'nis' => 'NIS'.uniqid(),
+            'status' => 'aktif',
+        ]);
+    }
 
-        $this->kirimEvent($user, $attempt, 'tab_hidden')->assertOk();
-        $this->kirimEvent($user, $attempt, 'window_blur')->assertOk();
-        $this->kirimEvent($user, $attempt, 'kembali')->assertOk();
-        $this->kirimEvent($user, $attempt, 'salin')->assertOk();
-        $this->kirimEvent($user, $attempt, 'klik_kanan')->assertOk();
+    public function test_tab_switch_logging_and_guards(): void
+    {
+        $guru = $this->makeUser('Guru Mapel', 'guru');
+        $ta = TahunAjaran::create(['tahun' => '2025/2026', 'is_active' => true]);
+        $mapel = MataPelajaran::create(['kode' => 'TIK', 'nama_mapel' => 'Informatika', 'urutan' => 1]);
+        $kelas = Kelas::create(['tingkat' => '10', 'nama_kelas' => '10-D']);
+
+        $km = KelasMapel::create([
+            'kelas_id' => $kelas->id,
+            'mapel_id' => $mapel->id,
+            'guru_id' => $guru->id,
+            'tahun_ajaran_id' => $ta->id,
+            'semester' => '1',
+            'status' => 'aktif',
+        ]);
+
+        $userSiswa = $this->makeUser('Siswa TIK', 'siswa');
+        $siswa = $this->createSiswa($userSiswa, $kelas);
+
+        $soal = SoalBank::create(['guru_id' => $guru->id, 'pertanyaan' => 'Soal TIK', 'kesulitan' => 'mudah']);
+        $opsi = SoalBankOpsi::create(['soal_bank_id' => $soal->id, 'teks_opsi' => 'A', 'is_benar' => true]);
+
+        $ujian = Ujian::create([
+            'kelas_mapel_id' => $km->id,
+            'judul' => 'Ujian TIK',
+            'durasi_menit' => 30,
+            'kategori_nilai' => 'NH',
+        ]);
+        UjianSoal::create(['ujian_id' => $ujian->id, 'soal_bank_id' => $soal->id, 'poin' => 10, 'urutan' => 1]);
+
+        $this->actingAs($userSiswa)->post(route('siswa.ujian.mulai', $ujian->id));
+        $attempt = UjianAttempt::where('ujian_id', $ujian->id)->where('siswa_id', $siswa->id)->first();
+
+        // Switch tab 3 times
+        $this->actingAs($userSiswa)->post(route('siswa.ujian.tab-switch', $attempt->id))->assertNoContent();
+        $this->actingAs($userSiswa)->post(route('siswa.ujian.tab-switch', $attempt->id))->assertNoContent();
+        $this->actingAs($userSiswa)->post(route('siswa.ujian.tab-switch', $attempt->id))->assertNoContent();
 
         $attempt->refresh();
-        $this->assertSame(2, $attempt->tab_switch_count);
-        $this->assertSame(
-            ['tab_hidden', 'window_blur', 'kembali', 'salin', 'klik_kanan'],
-            $attempt->events()->orderBy('id')->pluck('jenis')->all()
-        );
-        $this->assertNull($attempt->events()->first()->durasi_detik);
-    }
+        $this->assertEquals(3, $attempt->tab_switch_count);
+        $this->assertCount(3, $attempt->tab_switch_log);
 
-    public function test_jenis_tidak_valid_dan_heartbeat_gap_dari_klien_ditolak(): void
-    {
-        $this->siapkanUjian();
-        [$user, $attempt] = $this->mulaiAttempt();
+        // Submit attempt
+        $this->actingAs($userSiswa)->post(route('siswa.ujian.submit', $attempt->id));
 
-        $this->kirimEvent($user, $attempt, 'heartbeat_gap')->assertUnprocessable();
-        $this->kirimEvent($user, $attempt, 'asal_asalan')->assertUnprocessable();
-        $this->actingAs($user)->postJson(route('siswa.ujian.event', $attempt->id), [])->assertUnprocessable();
-
-        $this->assertSame(0, $attempt->events()->count());
-        $this->assertSame(0, $attempt->refresh()->tab_switch_count);
-    }
-
-    public function test_event_ditolak_untuk_attempt_siswa_lain_dan_untuk_non_siswa(): void
-    {
-        $this->siapkanUjian();
-        [, $attempt] = $this->mulaiAttempt('Siswa Pemilik');
-        $penyusup = $this->makeUser('Siswa Lain', 'siswa');
-        $this->createSiswa($penyusup, $this->kelas);
-
-        $this->kirimEvent($penyusup, $attempt, 'tab_hidden')->assertForbidden();
-        $this->kirimHeartbeat($penyusup, $attempt)->assertForbidden();
-
-        $this->kirimEvent($this->guru, $attempt, 'tab_hidden')->assertForbidden();
-
-        $this->assertSame(0, $attempt->events()->count());
-        $this->assertSame(0, $attempt->refresh()->tab_switch_count);
-    }
-
-    public function test_event_setelah_submit_diabaikan(): void
-    {
-        $this->siapkanUjian();
-        [$user, $attempt] = $this->mulaiAttempt();
-
-        $this->kirimEvent($user, $attempt, 'tab_hidden')->assertOk();
-        $this->actingAs($user)->post(route('siswa.ujian.submit', $attempt->id));
-
-        $this->kirimEvent($user, $attempt, 'tab_hidden')->assertOk();
-
+        // Switch tab after submit (count should remain 3)
+        $this->actingAs($userSiswa)->post(route('siswa.ujian.tab-switch', $attempt->id));
         $attempt->refresh();
-        $this->assertSame(1, $attempt->tab_switch_count);
-        $this->assertSame(1, $attempt->events()->count());
-    }
-
-    public function test_event_setelah_batas_waktu_diabaikan(): void
-    {
-        Carbon::setTestNow('2026-10-19 10:00:00');
-        $this->siapkanUjian();
-        [$user, $attempt] = $this->mulaiAttempt();
-
-        Carbon::setTestNow('2026-10-19 10:31:00');
-        $this->kirimEvent($user, $attempt, 'tab_hidden')->assertOk();
-
-        $this->assertSame(0, $attempt->events()->count());
-        $this->assertSame(0, $attempt->refresh()->tab_switch_count);
-    }
-
-    public function test_jumlah_event_per_attempt_dibatasi(): void
-    {
-        $this->siapkanUjian();
-        [$user, $attempt] = $this->mulaiAttempt();
-
-        $baris = [];
-        for ($i = 0; $i < UjianAttemptEvent::BATAS_EVENT_PER_ATTEMPT; $i++) {
-            $baris[] = ['ujian_attempt_id' => $attempt->id, 'jenis' => 'salin', 'terjadi_pada' => now()];
-        }
-        UjianAttemptEvent::insert($baris);
-
-        $this->kirimEvent($user, $attempt, 'tab_hidden')->assertOk();
-
-        $this->assertSame(UjianAttemptEvent::BATAS_EVENT_PER_ATTEMPT, $attempt->events()->count());
-        $this->assertSame(0, $attempt->refresh()->tab_switch_count);
-    }
-
-    public function test_event_dan_heartbeat_dibatasi_throttle(): void
-    {
-        $this->siapkanUjian();
-        [$user, $attempt] = $this->mulaiAttempt();
-
-        for ($i = 0; $i < 60; $i++) {
-            $this->kirimEvent($user, $attempt, 'kembali')->assertOk();
-        }
-
-        $this->kirimEvent($user, $attempt, 'kembali')->assertStatus(429);
-        $this->kirimHeartbeat($user, $attempt)->assertStatus(429);
-    }
-
-    public function test_heartbeat_normal_tidak_membuat_gap_dan_mengembalikan_sisa_waktu(): void
-    {
-        Carbon::setTestNow('2026-10-19 10:00:00');
-        $this->siapkanUjian();
-        [$user, $attempt] = $this->mulaiAttempt();
-
-        Carbon::setTestNow('2026-10-19 10:00:20');
-        $this->kirimHeartbeat($user, $attempt)
-            ->assertOk()
-            ->assertJson(['status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN, 'sisa_detik' => 30 * 60 - 20]);
-
-        $this->assertSame(0, $attempt->events()->count());
-        $this->assertSame('2026-10-19 10:00:20', $attempt->refresh()->heartbeat_terakhir->format('Y-m-d H:i:s'));
-    }
-
-    public function test_heartbeat_dengan_jeda_panjang_mencatat_heartbeat_gap_oleh_server(): void
-    {
-        Carbon::setTestNow('2026-10-19 10:00:00');
-        $this->siapkanUjian();
-        [$user, $attempt] = $this->mulaiAttempt();
-
-        Carbon::setTestNow('2026-10-19 10:02:00');
-        $this->kirimHeartbeat($user, $attempt)->assertOk();
-
-        $gap = $attempt->events()->sole();
-        $this->assertSame(UjianAttemptEvent::JENIS_HEARTBEAT_GAP, $gap->jenis);
-        $this->assertSame(120, $gap->durasi_detik);
-        $this->assertSame('2026-10-19 10:02:00', $gap->terjadi_pada->format('Y-m-d H:i:s'));
-        // heartbeat_gap adalah bukti, bukan "pindah tab": counter tidak berubah.
-        $this->assertSame(0, $attempt->refresh()->tab_switch_count);
-
-        // Heartbeat berikutnya yang tepat waktu tidak menambah gap.
-        Carbon::setTestNow('2026-10-19 10:02:15');
-        $this->kirimHeartbeat($user, $attempt)->assertOk();
-        $this->assertSame(1, $attempt->events()->count());
-    }
-
-    public function test_guru_pengampu_melihat_events_berurutan_dan_guru_lain_ditolak(): void
-    {
-        Carbon::setTestNow('2026-10-19 10:00:00');
-        $this->siapkanUjian();
-        [$user, $attempt] = $this->mulaiAttempt();
-
-        $this->kirimEvent($user, $attempt, 'tab_hidden')->assertOk();
-        Carbon::setTestNow('2026-10-19 10:00:30');
-        $this->kirimEvent($user, $attempt, 'kembali')->assertOk();
-
-        $url = route('guru.ujian.attempt.show', [$this->ujian->kelas_mapel_id, $this->ujian->id, $attempt->id]);
-
-        $this->actingAs($this->guru)->get($url)
-            ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->component('Guru/Ujian/AttemptDetail')
-                ->where('attempt.tab_switch_count', 1)
-                ->where('attempt.events.0.jenis', 'tab_hidden')
-                ->where('attempt.events.0.waktu', '19/10/2026 10:00:00')
-                ->where('attempt.events.1.jenis', 'kembali')
-                ->where('attempt.events.1.waktu', '19/10/2026 10:00:30')
-            );
-
-        $guruLain = $this->makeUser('Guru Lain', 'guru');
-        $this->actingAs($guruLain)->get($url)->assertForbidden();
-    }
-
-    public function test_heartbeat_pada_attempt_selesai_tidak_menulis_apa_pun(): void
-    {
-        Carbon::setTestNow('2026-10-19 10:00:00');
-        $this->siapkanUjian();
-        [$user, $attempt] = $this->mulaiAttempt();
-        $this->actingAs($user)->post(route('siswa.ujian.submit', $attempt->id));
-        $terakhir = $attempt->refresh()->heartbeat_terakhir;
-
-        Carbon::setTestNow('2026-10-19 10:10:00');
-        $this->kirimHeartbeat($user, $attempt)
-            ->assertOk()
-            ->assertJson(['status' => UjianAttempt::STATUS_SELESAI, 'sisa_detik' => 0]);
-
-        $this->assertSame(0, $attempt->events()->count());
-        $this->assertEquals($terakhir, $attempt->refresh()->heartbeat_terakhir);
+        $this->assertEquals(3, $attempt->tab_switch_count);
     }
 }

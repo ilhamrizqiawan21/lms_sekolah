@@ -53,45 +53,6 @@ for (const [role, pages] of Object.entries(routes)) {
     });
 }
 
-test('sidebar toggles on desktop and mobile without losing its state on resize', async ({ page }) => {
-    await login(page, 'guru');
-    const toggle = page.locator('.topbar-toggle-btn');
-    const sidebar = page.locator('#sidebar');
-    const main = page.locator('#mainContent');
-
-    await expect(toggle).toBeVisible();
-    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    await expect(sidebar).not.toBeInViewport();
-    await expect(main).toHaveCSS('margin-left', '0px');
-
-    await page.setViewportSize({ width: 1360, height: 1000 });
-    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    await expect(sidebar).toBeInViewport();
-
-    await page.setViewportSize({ width: 390, height: 844 });
-    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    await expect(page.locator('.sidebar-overlay')).toHaveClass(/show/);
-    await page.keyboard.press('Escape');
-    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    await expect(sidebar).not.toBeInViewport();
-});
-
-test('page header breadcrumbs navigate back to the parent screen', async ({ page }) => {
-    await login(page, 'guru');
-    await page.goto('/guru/nilai/1/input');
-    const breadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' });
-    await expect(breadcrumb).toContainText('Beranda');
-    await expect(breadcrumb).toContainText('Nilai');
-    await breadcrumb.getByRole('link', { name: 'Nilai' }).click();
-    await expect(page).toHaveURL(/\/guru\/nilai$/);
-});
-
 test('grade paste and attendance save', async ({ page }) => {
     await login(page, 'guru');
     await page.goto('/guru/nilai');

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Kepsek;
 use App\Http\Controllers\Controller;
 use App\Models\Absensi;
 use App\Models\Kelas;
-use App\Models\KelasMapel;
 use App\Models\NilaiAkhir;
 use App\Models\PengumpulanTugas;
 use App\Models\Siswa;
@@ -37,14 +36,11 @@ class StatistikController extends Controller
         $totalSiswa = Siswa::where('status', 'aktif')->count();
         $totalKelas = Kelas::count();
 
-        $activeKelasMapelIds = KelasMapel::aktif()->pluck('id');
-
         $absensiBulanan = Absensi::select(
             DB::raw("$attendanceMonthExpression as bulan"),
             DB::raw("SUM(CASE WHEN status = 'hadir' THEN 1 ELSE 0 END) as hadir"),
             DB::raw('COUNT(*) as total')
         )
-            ->whereIn('kelas_mapel_id', $activeKelasMapelIds)
             ->where('tanggal', '>=', now()->subMonths(6)->startOfMonth())
             ->groupBy('bulan')
             ->orderBy('bulan')
@@ -66,10 +62,10 @@ class StatistikController extends Controller
 
         $rataAkhir = NilaiAkhir::rataAkhirExpression();
         $distribusiNilai = [
-            'sangat_baik' => NilaiAkhir::whereIn('kelas_mapel_id', $activeKelasMapelIds)->whereRaw("$rataAkhir >= ?", [92])->count(),
-            'baik' => NilaiAkhir::whereIn('kelas_mapel_id', $activeKelasMapelIds)->whereRaw("$rataAkhir >= ? and $rataAkhir < ?", [83, 92])->count(),
-            'cukup' => NilaiAkhir::whereIn('kelas_mapel_id', $activeKelasMapelIds)->whereRaw("$rataAkhir >= ? and $rataAkhir < ?", [75, 83])->count(),
-            'kurang' => NilaiAkhir::whereIn('kelas_mapel_id', $activeKelasMapelIds)->whereRaw("$rataAkhir < ?", [75])->count(),
+            'sangat_baik' => NilaiAkhir::whereRaw("$rataAkhir >= ?", [92])->count(),
+            'baik' => NilaiAkhir::whereRaw("$rataAkhir between ? and ?", [83, 91.99])->count(),
+            'cukup' => NilaiAkhir::whereRaw("$rataAkhir between ? and ?", [75, 82.99])->count(),
+            'kurang' => NilaiAkhir::whereRaw("$rataAkhir < ?", [75])->count(),
         ];
 
         $totalTugas = Tugas::whereHas('kelasMapel', fn ($q) => $q->aktif())->count();

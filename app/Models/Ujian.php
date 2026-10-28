@@ -21,9 +21,6 @@ class Ujian extends Model
         'waktu_selesai',
         'acak_soal',
         'acak_opsi',
-        'anticheat_aktif',
-        'maks_pelanggaran',
-        'wajib_fullscreen',
     ];
 
     protected $casts = [
@@ -32,9 +29,6 @@ class Ujian extends Model
         'waktu_selesai' => 'datetime',
         'acak_soal' => 'boolean',
         'acak_opsi' => 'boolean',
-        'anticheat_aktif' => 'boolean',
-        'maks_pelanggaran' => 'integer',
-        'wajib_fullscreen' => 'boolean',
     ];
 
     public function kelasMapel(): BelongsTo

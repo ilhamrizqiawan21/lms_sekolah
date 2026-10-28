@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\KelasMapel;
+use App\Models\NilaiAkhir;
 use App\Models\Pengaturan;
 use App\Models\PengumpulanTugas;
 use App\Models\Siswa;
+use App\Models\TahunAjaran;
 use App\Models\Tugas;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -26,7 +28,7 @@ class TugasService
             $tugas = Tugas::create([
                 'kelas_mapel_id' => $kelasMapel->id,
                 'judul' => $validated['judul'],
-                'deskripsi' => $validated['deskripsi'] ?? null,
+                'deskripsi' => $validated['deskripsi'],
                 'batas_waktu' => $batasWaktu,
             ]);
 
@@ -171,6 +173,44 @@ class TugasService
 
     private function syncNilaiHarian(KelasMapel $kelasMapel, Siswa $siswa): void
     {
-        $this->nilaiService->sinkronNilaiKomponen($kelasMapel, $siswa->id, 'NH');
+        $tahunAjaran = TahunAjaran::getAktif();
+
+        if (! $tahunAjaran) {
+            return;
+        }
+
+        $semester = Pengaturan::getValue('semester_aktif', '1');
+        $average = PengumpulanTugas::where('siswa_id', $siswa->id)
+            ->whereNotNull('nilai')
+            ->whereHas('tugas', fn ($query) => $query
+                ->where('kelas_mapel_id', $kelasMapel->id)
+                ->where('kategori_nilai', 'NH'))
+            ->avg('nilai');
+
+        $existing = NilaiAkhir::where([
+            'siswa_id' => $siswa->id,
+            'kelas_mapel_id' => $kelasMapel->id,
+            'tahun_ajaran_id' => $tahunAjaran->id,
+            'semester' => $semester,
+        ])->first();
+
+        if ($average === null && ! $existing) {
+            return;
+        }
+
+        $this->nilaiService->simpanNilai([
+            'siswa_id' => $siswa->id,
+            'kelas_mapel_id' => $kelasMapel->id,
+            'tahun_ajaran_id' => $tahunAjaran->id,
+            'semester' => $semester,
+            'sum1' => $existing?->sum1,
+            'sum2' => $existing?->sum2,
+            'sum3' => $existing?->sum3,
+            'sum4' => $existing?->sum4,
+            'nilai_harian' => $average !== null ? round((float) $average, 2) : null,
+            'sts' => $existing?->sts,
+            'sas' => $existing?->sas,
+            'sat' => $existing?->sat,
+        ]);
     }
 }

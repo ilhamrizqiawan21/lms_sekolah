@@ -18,7 +18,7 @@ class StoreBulkMateriRequest extends FormRequest
             'kelas_mapel_ids.*' => ['integer'],
             'judul' => ['required', 'string', 'max:200'],
             'deskripsi' => ['nullable', 'string'],
-            'file_materi' => ['required', 'file', 'mimes:jpg,jpeg,pdf', 'extensions:jpg,jpeg,pdf', 'max:5120'],
+            'file_materi' => ['required', 'file', 'extensions:jpg,jpeg,pdf', 'max:5120'],
         ];
     }
 }

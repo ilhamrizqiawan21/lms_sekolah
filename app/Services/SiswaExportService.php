@@ -28,7 +28,7 @@ class SiswaExportService
         $styles = $this->styles();
         $school = school_setting('school_name', 'Nama Sekolah');
 
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow([$school]), $styles['school'], 24));
+        $writer->addRow(Row::fromValuesWithStyle([$school], $styles['school'], 24));
         $writer->addRow(Row::fromValuesWithStyle(['EXPORT DATA SISWA'], $styles['title'], 24));
         $writer->addRow(Row::fromValuesWithStyle(['Tanggal Export', now()->format('d/m/Y H:i')], $styles['meta'], 18));
         $writer->addRow(Row::fromValues([]));
@@ -47,7 +47,7 @@ class SiswaExportService
             foreach ($students as $siswa) {
                 $kelas = trim(($siswa->kelas?->tingkat ? $siswa->kelas->tingkat.' ' : '').($siswa->kelas?->nama_kelas ?? '')) ?: '-';
                 $isDefaultPassword = (bool) $siswa->user?->is_password_default;
-                $values = $this->sanitizeRow([
+                $values = [
                     $siswa->nis ?? '-',
                     $siswa->user?->username ?? '-',
                     $siswa->user?->nama_lengkap ?? '-',
@@ -55,7 +55,7 @@ class SiswaExportService
                     $siswa->user?->jenis_kelamin ?? '-',
                     $siswa->status ?? '-',
                     $isDefaultPassword ? 'Masih default' : 'Sudah diubah',
-                ]);
+                ];
                 $writer->addRow(Row::fromValuesWithStyle(
                     $values,
                     $rowIndex % 2 === 0 ? $styles['row'] : $styles['alternateRow'],
@@ -68,17 +68,6 @@ class SiswaExportService
         $writer->close();
 
         return $filePath;
-    }
-
-    private function sanitizeRow(array $values): array
-    {
-        return array_map(static function ($value) {
-            if (! is_string($value) || $value === '') {
-                return $value;
-            }
-
-            return preg_match('/^[\s]*[=+\-@]/', $value) === 1 ? "'{$value}" : $value;
-        }, $values);
     }
 
     private function styles(): array

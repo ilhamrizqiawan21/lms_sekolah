@@ -12,7 +12,6 @@ use App\Services\Reports\LaporanKepsekService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -112,30 +111,24 @@ class WaliKelasController extends Controller
                         'absensi' => 'Data absensi berisi tanggal di luar hari sekolah bulan ini.',
                     ]);
                 }
+
+                $scope = [
+                    'wali_kelas_id' => $waliKelas->id,
+                    'siswa_id' => (int) $siswaId,
+                    'tanggal' => $tanggal,
+                ];
+
+                if (! $status) {
+                    AbsensiWaliKelas::where($scope)->delete();
+
+                    continue;
+                }
+
+                AbsensiWaliKelas::updateOrCreate($scope, [
+                    'status' => $status,
+                ]);
             }
         }
-
-        DB::transaction(function () use ($absensiInput, $waliKelas) {
-            foreach ($absensiInput as $siswaId => $tanggalData) {
-                foreach ($tanggalData as $tanggal => $status) {
-                    $scope = [
-                        'wali_kelas_id' => $waliKelas->id,
-                        'siswa_id' => (int) $siswaId,
-                        'tanggal' => $tanggal,
-                    ];
-
-                    if (! $status) {
-                        AbsensiWaliKelas::where($scope)->delete();
-
-                        continue;
-                    }
-
-                    AbsensiWaliKelas::updateOrCreate($scope, [
-                        'status' => $status,
-                    ]);
-                }
-            }
-        });
 
         return back()->with('success', 'Absensi wali kelas berhasil disimpan.');
     }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from 'vue';
 import type { PaginationLink } from '../../../types/pagination';
-interface Student { id: number; nis: string; username: string | null; nama_lengkap: string; kelas_id: number | null; jenis_kelamin: string | null; tinggal_kelas: boolean; kelas: string; status: string; password_is_default: boolean; password_status: string; is_active: boolean }
+interface Student { id: number; nis: string; nama_lengkap: string; kelas_id: number | null; jenis_kelamin: string | null; tinggal_kelas: boolean; kelas: string; status: string; password_is_default: boolean; password_status: string; is_active: boolean }
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, reactive, ref, watch } from 'vue';
 import { FileInput, SelectInput, TextInput } from '../../../Components/Form';
@@ -47,13 +47,14 @@ const editing = ref<Student | null>(null);
 const importForm = useForm({ file_siswa: null as File | null });
 const createForm = useForm(blankStudent());
 
-// Import tetap bisa dibuka dari header; form tambah selalu tampil di halaman.
-const panel = ref<'import' | null>(null);
-function toggleImportPanel() {
-    panel.value = panel.value === 'import' ? null : 'import';
+// Import/tambah dibuka dari tombol header; otomatis terbuka bila ada error agar tidak tersembunyi.
+const panel = ref<'tambah' | 'import' | null>(null);
+function togglePanel(name: 'tambah' | 'import') {
+    panel.value = panel.value === name ? null : name;
 }
 watch(() => props.importErrors.length, (count) => { if (count) panel.value = 'import'; }, { immediate: true });
 watch(() => importForm.hasErrors, (has) => { if (has) panel.value = 'import'; });
+watch(() => createForm.hasErrors, (has) => { if (has) panel.value = 'tambah'; });
 watch(() => props.studentPassword, (value) => { if (value) panel.value = null; });
 
 // Kelulusan hanya relevan untuk kelas tingkat IX.
@@ -197,9 +198,6 @@ async function graduateClass(kelas: { id: number; nama_kelas: string }) {
 function passwordStatusColor(isDefault: boolean) {
     return isDefault ? 'warning text-dark' : 'success';
 }
-function initials(name: string) {
-    return name.trim().split(/\s+/).slice(0, 2).map((part) => part[0] ?? '').join('').toUpperCase();
-}
 </script>
 
 <template>
@@ -208,10 +206,8 @@ function initials(name: string) {
     <AppShell title="Kelas dan Siswa">
         <PageHeader eyebrow="Administrasi Akademik" title="Kelas dan Siswa" subtitle="Pantau, tambah, import, dan perbarui data siswa per kelas.">
             <template #actions>
-                <a :href="templateUrl" class="btn btn-outline-secondary">
-                    <i class="bi bi-download me-1" aria-hidden="true"></i> Download Template
-                </a>
-                <Button type="button" color="outline-secondary" icon="bi-file-earmark-spreadsheet" :aria-expanded="panel === 'import'" @click="toggleImportPanel">Import Excel</Button>
+                <Button type="button" color="outline-secondary" icon="bi-file-earmark-spreadsheet" :aria-expanded="panel === 'import'" @click="togglePanel('import')">Import Excel</Button>
+                <Button type="button" color="primary" icon="bi-person-plus" :aria-expanded="panel === 'tambah'" @click="togglePanel('tambah')">Tambah Siswa</Button>
             </template>
         </PageHeader>
 
@@ -233,6 +229,12 @@ function initials(name: string) {
         </div>
 
         <Card v-if="panel === 'import'" title="Import Siswa dari Excel" icon="bi-file-earmark-spreadsheet-fill" class="mb-3">
+            <template #actions>
+                <a :href="templateUrl" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-download me-1" aria-hidden="true"></i> Download Template
+                </a>
+            </template>
+
             <form class="row g-3 align-items-end" @submit.prevent="submitImport">
                 <div class="col-md-8">
                     <FileInput
@@ -248,33 +250,30 @@ function initials(name: string) {
                         :error="importForm.errors.file_siswa"
                     />
                 </div>
-                <div class="col-md-4 d-flex gap-2">
-                    <Button type="button" color="outline-secondary" class="flex-fill" @click="panel = null">
-                        Batal
-                    </Button>
-                    <Button type="submit" color="primary" size="" icon="bi-upload" class="flex-fill" :disabled="importForm.processing">
+                <div class="col-md-4">
+                    <Button type="submit" color="primary" size="" icon="bi-upload" class="w-100" :disabled="importForm.processing">
                         {{ importForm.processing ? 'Mengimport...' : 'Import Siswa' }}
                     </Button>
                 </div>
             </form>
         </Card>
 
-        <Card title="Tambah Siswa Baru" subtitle="Tambahkan siswa langsung atau gunakan Import Excel untuk data dalam jumlah besar." icon="bi-person-plus-fill" class="mb-3">
-            <form class="student-create-form" @submit.prevent="submitCreate">
-                <div>
+        <Card v-if="panel === 'tambah'" title="Tambah Siswa Baru" icon="bi-person-plus-fill" class="mb-3">
+            <form class="row g-3 align-items-end" @submit.prevent="submitCreate">
+                <div class="col-md-3">
                     <TextInput v-model="createForm.nis" name="nis" label="NIS" placeholder="NIS" required wrapper-class="mb-0" :error="createForm.errors.nis" />
                 </div>
-                <div>
+                <div class="col-md-3">
                     <TextInput v-model="createForm.nama_lengkap" name="nama_lengkap" label="Nama Lengkap" placeholder="Nama" required wrapper-class="mb-0" :error="createForm.errors.nama_lengkap" />
                 </div>
-                <div>
+                <div class="col-md-3">
                     <SelectInput v-model="createForm.kelas_id" name="kelas_id" label="Kelas" placeholder="-- Pilih Kelas --" required wrapper-class="mb-0" :options="kelasOptions()" :error="createForm.errors.kelas_id" />
                 </div>
-                <div>
+                <div class="col-md-2">
                     <SelectInput v-model="createForm.jenis_kelamin" name="jenis_kelamin" label="Jenis Kelamin" placeholder="--" required wrapper-class="mb-0" :options="genderOptions" :error="createForm.errors.jenis_kelamin" />
                 </div>
-                <div class="student-create-action">
-                    <Button type="submit" color="primary" size="" :loading="createForm.processing">Simpan</Button>
+                <div class="col-md-1 d-grid">
+                    <Button type="submit" color="primary" size="" icon="bi-plus-lg" :loading="createForm.processing" aria-label="Simpan siswa baru" />
                 </div>
             </form>
         </Card>
@@ -303,7 +302,7 @@ function initials(name: string) {
             </TableWrapper>
         </Card>
 
-        <Card title="Daftar Siswa" icon="bi-people-fill" body-class="p-0" class="student-list-card">
+        <Card title="Daftar Siswa" icon="bi-people-fill" body-class="p-0">
             <template #actions>
                 <form class="d-flex flex-wrap gap-2 filter-bar" @submit.prevent="applyFilters">
                     <SelectInput v-model="filterForm.kelas_id" name="kelas_id" wrapper-class="mb-0 filter-control" placeholder="Semua Kelas" :options="kelasOptions()" />
@@ -319,19 +318,19 @@ function initials(name: string) {
                 </form>
             </template>
 
-            <TableWrapper v-if="siswa.data?.length" :min-width="720" :stack="true">
-                <table class="table table-hover mb-0 student-table">
+            <TableWrapper v-if="siswa.data?.length" stack>
+                <table class="table table-hover mb-0">
                     <thead>
-                        <tr><th scope="col">Siswa</th><th scope="col">NIS</th><th scope="col">Kelas</th><th scope="col">Jenis Kelamin</th><th scope="col">Status</th><th scope="col">Password</th><th scope="col" class="table-action-column">Aksi</th></tr>
+                        <tr><th scope="col">NIS</th><th scope="col">Nama</th><th scope="col">JK</th><th scope="col">Kelas</th><th scope="col">Status Siswa</th><th scope="col">Status Password</th><th scope="col" class="table-action-column">Aksi</th></tr>
                     </thead>
                     <tbody>
                         <template v-for="item in siswa.data" :key="item.id">
                             <tr>
-                                <td class="stack-title" data-label="Siswa"><span class="student-identity"><span class="student-avatar" aria-hidden="true">{{ initials(item.nama_lengkap ?? item.nis) }}</span><span><strong>{{ item.nama_lengkap ?? '-' }}</strong><small>Username: {{ item.username ?? '-' }}</small></span></span></td>
                                 <td data-label="NIS">{{ item.nis }}</td>
-                                <td data-label="Kelas"><Badge color="secondary">{{ item.kelas || '-' }}</Badge></td>
-                                <td data-label="Jenis Kelamin">{{ item.jenis_kelamin ?? '-' }}</td>
-                                <td data-label="Status"><Badge :color="item.status === 'aktif' ? 'success' : 'secondary'">{{ item.status }}</Badge></td>
+                                <td class="stack-title"><strong>{{ item.nama_lengkap ?? '-' }}</strong></td>
+                                <td data-label="JK">{{ item.jenis_kelamin ?? '-' }}</td>
+                                <td data-label="Kelas">{{ item.kelas || '-' }}</td>
+                                <td data-label="Status siswa"><Badge :color="item.status === 'aktif' ? 'success' : 'secondary'">{{ item.status }}</Badge></td>
                                 <td data-label="Password">
                                     <Badge :color="passwordStatusColor(item.password_is_default)">
                                         {{ item.password_status }}
@@ -339,9 +338,9 @@ function initials(name: string) {
                                     <Badge v-if="item.tinggal_kelas" color="warning text-dark" class="ms-1">Tinggal Kelas</Badge>
                                     <Badge v-if="!item.is_active" color="secondary" class="ms-1">Akun nonaktif</Badge>
                                 </td>
-                                <td class="table-action-column stack-actions" data-label="Aksi">
+                                <td class="table-action-column stack-actions">
                                     <div class="d-inline-flex gap-1">
-                                        <IconButton icon="bi-pencil" :label="`Edit ${item.nama_lengkap ?? item.nis}`" color="outline-success" @click="startEdit(item)" />
+                                        <IconButton icon="bi-pencil" :label="`Edit ${item.nama_lengkap ?? item.nis}`" color="outline-primary" @click="startEdit(item)" />
                                         <IconButton icon="bi-key" :label="`Reset password ${item.nama_lengkap ?? item.nis}`" color="outline-warning" @click="resetPassword(item)" />
                                         <IconButton icon="bi-trash" :label="`Hapus ${item.nama_lengkap ?? item.nis}`" color="outline-danger" @click="destroyStudent(item)" />
                                     </div>
@@ -389,46 +388,9 @@ function initials(name: string) {
 </template>
 
 <style scoped>
-.student-create-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: .75rem; }
-.student-create-action .btn { min-width: 78px; }
-.student-identity { display: inline-flex; align-items: center; gap: .65rem; min-width: 0; }
-.student-identity > span:last-child { display: flex; flex-direction: column; min-width: 0; }
-.student-identity strong, .student-identity small { overflow: hidden; max-width: 13rem; text-overflow: ellipsis; white-space: nowrap; }
-.student-identity strong { color: var(--text-strong); }
-.student-identity small { margin-top: .15rem; color: var(--text-muted); font-size: .65rem; }
-.student-avatar { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 32px; width: 32px; height: 32px; border-radius: 9px; background: var(--brand-soft-bg); color: var(--text-brand); font-size: .65rem; font-weight: 800; }
-.student-table td { vertical-align: middle; }
-.student-table :deep(.btn-outline-danger) {
-    border-color: transparent;
-    background: var(--status-danger-bg);
-    color: var(--status-danger-text);
-}
-.student-table :deep(.btn-outline-danger:hover) {
-    background: color-mix(in srgb, var(--status-danger-bg) 80%, black);
-    color: var(--status-danger-text);
-}
-.student-table :deep(.btn-outline-warning) {
-    border-color: transparent;
-    background: var(--status-warning-bg);
-    color: var(--status-warning-text);
-}
-@media (max-width: 1279.98px) {
-    .student-create-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .student-create-action { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
-}
-@media (max-width: 1180px) {
-    .student-list-card :deep(.card-header) { flex-wrap: wrap; gap: .75rem; }
-    .student-list-card :deep(.app-card-actions) { width: 100%; }
-    .filter-actions { display: flex; flex-wrap: nowrap; gap: .5rem; }
-}
 @media (min-width: 768px) {
     .filter-control {
         min-width: 180px;
     }
-}
-@media (max-width: 680px) {
-    .student-create-form { grid-template-columns: minmax(0, 1fr); }
-    .student-create-action { grid-column: auto; display: block; }
-    .student-create-action .btn { width: 100%; }
 }
 </style>

@@ -71,7 +71,6 @@ function exportUrl(format: 'excel' | 'pdf') {
 
     <AppShell title="Laporan Nilai">
         <PageHeader
-            eyebrow="Laporan"
             title="Laporan Nilai"
             :subtitle="taAktif ? `Tahun ajaran ${taAktif.tahun}` : 'Tahun ajaran aktif belum tersedia'"
         />

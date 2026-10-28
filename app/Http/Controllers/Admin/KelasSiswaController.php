@@ -61,7 +61,6 @@ class KelasSiswaController extends Controller
                     'status' => $siswa->status,
                     'is_active' => (bool) $siswa->user?->is_active,
                     'tinggal_kelas' => (bool) $siswa->tinggal_kelas,
-                    'username' => $siswa->user?->username,
                     'nama_lengkap' => $siswa->user?->nama_lengkap,
                     'jenis_kelamin' => $siswa->user?->jenis_kelamin,
                     'password_is_default' => $passwordIsDefault,

@@ -205,7 +205,7 @@ async function destroy(item: MataPelajaran): Promise<void> {
                                             <IconButton
                                                 icon="bi-pencil"
                                                 :label="`Edit ${item.nama_mapel}`"
-                                                color="outline-success"
+                                                color="outline-primary"
                                                 @click="startEdit(item)"
                                             />
                                             <IconButton

@@ -48,5 +48,4 @@ export interface TeacherTask {
     id: number; kelas_mapel_id: number; judul: string; deskripsi: string | null;
     batas_waktu: string | null; sudah_mengumpulkan: number; perlu_dinilai: number;
     is_overdue: boolean; progress_percent: number; pengumpulan_url: string; delete_url: string;
-    total_siswa?: number; kelas?: string; mata_pelajaran?: string;
 }

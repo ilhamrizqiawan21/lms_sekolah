@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import type { PropType } from 'vue';
 import type { MetricItem } from '../../types/ui';
 import { Link } from '@inertiajs/vue3';
 
-const props = withDefaults(defineProps<{ items?: MetricItem[]; variant?: 'joined' | 'cards' }>(), {
-    items: () => [],
-    variant: 'joined',
+defineProps({
+    items: { type: Array as PropType<MetricItem[]>, default: () => [] },
 });
-const columns = computed(() => Math.min(Math.max(props.items.length, 1), 4));
 </script>
 
 <template>
-    <div class="metric-strip" :class="[`metric-count-${columns}`, `metric-strip-${variant}`]" :style="{ '--metric-columns': columns }">
+    <div class="metric-strip">
         <component
             :is="item.href ? Link : 'div'"
             v-for="item in items"

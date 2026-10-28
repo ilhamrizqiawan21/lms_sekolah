@@ -1,7 +1,7 @@
 export type CalendarScope = 'user' | 'school' | string;
 
 export interface SelectOption {
-    value: string | number | boolean;
+    value: string | number;
     label: string;
 }
 

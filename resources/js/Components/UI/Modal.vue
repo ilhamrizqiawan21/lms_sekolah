@@ -145,56 +145,54 @@ function onBackdropClick(event: MouseEvent) {
 
 <template>
     <Teleport to="body">
-        <Transition name="app-modal">
+        <div
+            v-if="modelValue"
+            class="app-modal-backdrop"
+            :class="{ 'app-modal-backdrop--top': align === 'top' }"
+            @mousedown="onBackdropDown"
+            @click="onBackdropClick"
+        >
             <div
-                v-if="modelValue"
-                class="app-modal-backdrop"
-                :class="{ 'app-modal-backdrop--top': align === 'top' }"
-                @mousedown="onBackdropDown"
-                @click="onBackdropClick"
+                ref="dialog"
+                role="dialog"
+                aria-modal="true"
+                tabindex="-1"
+                :aria-labelledby="labelId"
+                :aria-label="label"
+                :aria-describedby="describedby || undefined"
+                :class="bare ? dialogClass : ['app-modal', `app-modal--${size}`, dialogClass]"
             >
-                <div
-                    ref="dialog"
-                    role="dialog"
-                    aria-modal="true"
-                    tabindex="-1"
-                    :aria-labelledby="labelId"
-                    :aria-label="label"
-                    :aria-describedby="describedby || undefined"
-                    :class="bare ? dialogClass : ['app-modal', `app-modal--${size}`, dialogClass]"
-                >
-                    <template v-if="bare">
-                        <slot />
-                    </template>
-                    <template v-else>
-                        <header v-if="title || $slots.header" class="app-modal-header">
-                            <slot name="header">
-                                <h2 :id="titleId" class="app-modal-title">{{ title }}</h2>
-                            </slot>
-                            <button
-                                v-if="dismissible"
-                                type="button"
-                                class="app-modal-close"
-                                aria-label="Tutup"
-                                @click="requestClose"
-                            >
-                                <i class="bi bi-x-lg" aria-hidden="true"></i>
-                            </button>
-                        </header>
-                        <div class="app-modal-body">
-                            <slot />
-                        </div>
-                        <!-- div, bukan footer: CSS lama memberi margin, border, dan warna pada elemen footer. -->
-                        <div
-                            v-if="$slots.footer"
-                            class="app-modal-footer"
-                            :class="{ 'app-modal-footer--center': footerAlign === 'center' }"
+                <template v-if="bare">
+                    <slot />
+                </template>
+                <template v-else>
+                    <header v-if="title || $slots.header" class="app-modal-header">
+                        <slot name="header">
+                            <h2 :id="titleId" class="app-modal-title">{{ title }}</h2>
+                        </slot>
+                        <button
+                            v-if="dismissible"
+                            type="button"
+                            class="app-modal-close"
+                            aria-label="Tutup"
+                            @click="requestClose"
                         >
-                            <slot name="footer" />
-                        </div>
-                    </template>
-                </div>
+                            <i class="bi bi-x-lg" aria-hidden="true"></i>
+                        </button>
+                    </header>
+                    <div class="app-modal-body">
+                        <slot />
+                    </div>
+                    <!-- div, bukan footer: CSS lama memberi margin, border, dan warna pada elemen footer. -->
+                    <div
+                        v-if="$slots.footer"
+                        class="app-modal-footer"
+                        :class="{ 'app-modal-footer--center': footerAlign === 'center' }"
+                    >
+                        <slot name="footer" />
+                    </div>
+                </template>
             </div>
-        </Transition>
+        </div>
     </Teleport>
 </template>

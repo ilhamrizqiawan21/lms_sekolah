@@ -61,9 +61,7 @@ function exportUrl(format: 'excel' | 'pdf'): string {
 
     <AppShell title="Rekap Tugas">
         <PageHeader
-            eyebrow="Laporan"
             title="Rekap Tugas Per Kelas"
-            subtitle="Pantau pengumpulan, tenggat, dan rata-rata nilai untuk setiap tugas."
         />
 
         <Card title="Filter" class="mb-3">
@@ -103,26 +101,20 @@ function exportUrl(format: 'excel' | 'pdf'): string {
             </form>
         </Card>
 
-        <div v-if="tugas.data.length" class="content-summary">
-            <div>
-                <div class="content-summary-title">{{ tugas.data.length }} tugas pada halaman ini</div>
-                <div class="content-summary-text">Ekspor mengikuti filter kelas dan pencarian yang aktif.</div>
-            </div>
-            <div class="content-summary-actions">
-                <a :href="exportUrl('excel')" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
-                </a>
-                <a :href="exportUrl('pdf')" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i> PDF
-                </a>
-            </div>
+        <div v-if="tugas.data.length" class="d-flex flex-wrap gap-2 mb-3">
+            <a :href="exportUrl('excel')" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Excel
+            </a>
+            <a :href="exportUrl('pdf')" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i> PDF
+            </a>
         </div>
 
-        <div v-if="tugas.data.length" class="row g-3">
+        <div v-if="tugas.data.length" class="row">
             <div
                 v-for="item in tugas.data"
                 :key="item.id"
-                class="col-md-6 col-lg-4"
+                class="col-md-6 col-lg-4 mb-3"
             >
                 <Card :class="{ 'border border-danger': item.is_past_due && item.belum_kumpul > 0 }">
                     <template #actions>

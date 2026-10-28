@@ -9,48 +9,34 @@ final class ReportMetadataService
 {
     public function context(?string $semester = null): ReportContext
     {
-        $settings = $this->loadSettings();
         $tahunAjaran = TahunAjaran::getAktif();
-        $semester = $semester ?: (string) ($settings['semester_aktif'] ?? '1');
+        $semester = $semester ?: (string) Pengaturan::getValue('semester_aktif', '1');
 
         return new ReportContext(
             tahunAjaran: $tahunAjaran,
             semester: $semester,
-            school: $this->school($settings),
+            school: $this->school(),
         );
     }
 
     /** Shape intentionally matches resources/views/exports/pdf/_school-header.blade.php. */
-    public function school(?array $settings = null): array
+    public function school(): array
     {
-        $settings ??= $this->loadSettings();
-
         return [
-            'name' => $this->firstSetting($settings, ['nama_sekolah', 'school_name', 'nama_instansi'], 'Sekolah'),
-            'address' => $this->firstSetting($settings, ['alamat_sekolah', 'school_address', 'alamat'], ''),
-            'phone' => $this->firstSetting($settings, ['telepon_sekolah', 'school_phone', 'telepon'], ''),
-            'email' => $this->firstSetting($settings, ['email_sekolah', 'school_email', 'email'], ''),
-            'website' => $this->firstSetting($settings, ['website_sekolah', 'school_website', 'website'], ''),
-            'npsn' => $this->firstSetting($settings, ['npsn'], ''),
-            'logo' => $this->logoPath($settings),
+            'name' => $this->firstSetting(['nama_sekolah', 'school_name', 'nama_instansi'], 'Sekolah'),
+            'address' => $this->firstSetting(['alamat_sekolah', 'school_address', 'alamat'], ''),
+            'phone' => $this->firstSetting(['telepon_sekolah', 'school_phone', 'telepon'], ''),
+            'email' => $this->firstSetting(['email_sekolah', 'school_email', 'email'], ''),
+            'website' => $this->firstSetting(['website_sekolah', 'school_website', 'website'], ''),
+            'npsn' => $this->firstSetting(['npsn'], ''),
+            'logo' => $this->logoPath(),
         ];
     }
 
-    /**
-     * @return array<string, string|null>
-     */
-    private function loadSettings(): array
-    {
-        return Pengaturan::query()->pluck('value', 'key')->all();
-    }
-
-    /**
-     * @param  array<string, string|null>  $settings
-     */
-    private function firstSetting(array $settings, array $keys, string $default): string
+    private function firstSetting(array $keys, string $default): string
     {
         foreach ($keys as $key) {
-            $value = $settings[$key] ?? null;
+            $value = Pengaturan::getValue($key);
             if ($value !== null && trim($value) !== '') {
                 return trim($value);
             }
@@ -59,12 +45,9 @@ final class ReportMetadataService
         return $default;
     }
 
-    /**
-     * @param  array<string, string|null>  $settings
-     */
-    private function logoPath(array $settings): ?string
+    private function logoPath(): ?string
     {
-        $configured = $this->firstSetting($settings, ['logo_sekolah', 'school_logo', 'logo'], '');
+        $configured = $this->firstSetting(['logo_sekolah', 'school_logo', 'logo'], '');
         if ($configured === '') {
             return null;
         }

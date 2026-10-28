@@ -38,9 +38,6 @@ interface UjianData {
     waktu_selesai: string | null;
     acak_soal: boolean;
     acak_opsi: boolean;
-    anticheat_aktif: boolean;
-    maks_pelanggaran: number | null;
-    wajib_fullscreen: boolean;
     soal: ExistingSoal[];
 }
 
@@ -66,10 +63,6 @@ const form = useForm({
     waktu_selesai: props.ujian?.waktu_selesai ?? '',
     acak_soal: props.ujian ? Boolean(props.ujian.acak_soal) : true,
     acak_opsi: props.ujian ? Boolean(props.ujian.acak_opsi) : true,
-    anticheat_aktif: props.ujian ? Boolean(props.ujian.anticheat_aktif) : true,
-    // Kosong = hanya catat dan peringatkan; angka = kumpul otomatis saat pelanggaran mencapainya.
-    maks_pelanggaran: (props.ujian?.maks_pelanggaran ?? null) as number | string | null,
-    wajib_fullscreen: props.ujian ? Boolean(props.ujian.wajib_fullscreen) : false,
     soal: (props.ujian?.soal ?? []).map((s) => ({
         soal_bank_id: s.soal_bank_id,
         poin: s.poin || 1,
@@ -307,57 +300,6 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
                             </div>
                         </div>
 
-                        <div class="border rounded p-3 mb-4 bg-light-subtle">
-                            <label class="form-label fw-bold mb-2">Pengawasan (Anti-Cheat)</label>
-                            <div class="form-check form-switch mb-2">
-                                <input
-                                    id="switch-anticheat"
-                                    v-model="form.anticheat_aktif"
-                                    class="form-check-input"
-                                    type="checkbox"
-                                    :disabled="hasActiveAttempts"
-                                />
-                                <label class="form-check-label" for="switch-anticheat">
-                                    Catat perpindahan tab/jendela, salin soal, dan sinyal halaman ujian
-                                </label>
-                            </div>
-
-                            <template v-if="form.anticheat_aktif">
-                                <div class="form-check form-switch mb-3">
-                                    <input
-                                        id="switch-fullscreen"
-                                        v-model="form.wajib_fullscreen"
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        :disabled="hasActiveAttempts"
-                                    />
-                                    <label class="form-check-label" for="switch-fullscreen">
-                                        Wajib layar penuh
-                                    </label>
-                                    <div class="form-text">Tidak didukung di iPhone; siswa dengan perangkat itu otomatis dikecualikan.</div>
-                                </div>
-
-                                <label for="ujian-maks-pelanggaran" class="form-label small mb-1">Batas pelanggaran sebelum dikumpulkan otomatis</label>
-                                <input
-                                    id="ujian-maks-pelanggaran"
-                                    v-model.number="form.maks_pelanggaran"
-                                    type="number"
-                                    min="1"
-                                    max="20"
-                                    placeholder="Kosong = hanya dicatat"
-                                    class="form-control form-control-sm"
-                                    :class="{ 'is-invalid': form.errors.maks_pelanggaran }"
-                                    :disabled="hasActiveAttempts"
-                                />
-                                <div v-if="form.errors.maks_pelanggaran" class="invalid-feedback">{{ form.errors.maks_pelanggaran }}</div>
-                                <div v-else class="form-text">
-                                    Pelanggaran = keluar dari halaman ujian lebih dari beberapa detik{{ form.wajib_fullscreen ? ', atau keluar dari layar penuh' : '' }}.
-                                    Sinyal browser bisa keliru (panggilan masuk, notifikasi); disarankan mulai tanpa batas dan lihat catatannya dulu.
-                                </div>
-                            </template>
-                            <div v-if="hasActiveAttempts" class="form-text mt-2">Pengaturan pengawasan dikunci karena sudah ada siswa yang mulai.</div>
-                        </div>
-
                         <div class="d-flex justify-content-between align-items-center border-top pt-3">
                             <div>
                                 <div class="small text-body-secondary">Terpilih: <strong>{{ form.soal.length }} soal</strong></div>
@@ -433,7 +375,7 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
                                 v-for="soal in filteredBank"
                                 :key="soal.id"
                                 class="p-3 border rounded transition-all"
-                                :class="isSelected(soal.id) ? 'border-primary bg-primary-subtle' : 'bg-body'"
+                                :class="isSelected(soal.id) ? 'border-primary bg-primary-subtle' : 'bg-white'"
                             >
                                 <div class="d-flex align-items-start gap-3">
                                     <div class="form-check mt-1">
@@ -450,7 +392,7 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
                                     <div class="flex-grow-1">
                                         <div class="d-flex flex-wrap gap-1 mb-1">
                                             <Badge v-if="soal.topik" color="secondary">{{ soal.topik }}</Badge>
-                                            <Badge :color="soal.kesulitan === 'mudah' ? 'success' : soal.kesulitan === 'sulit' ? 'danger' : 'warning'">
+                                            <Badge :color="soal.kesulitan === 'mudah' ? 'success' : soal.kesulitan === 'sulit' ? 'danger' : 'warning text-dark'">
                                                 {{ soal.kesulitan }}
                                             </Badge>
                                             <Badge v-if="soal.kategori_nilai" color="info">{{ soal.kategori_nilai }}</Badge>

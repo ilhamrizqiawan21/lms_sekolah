@@ -43,7 +43,6 @@ const quickActions = [
                 :href="tab.href"
                 class="workspace-tab"
                 :class="{ 'is-active': tab.label === 'Ringkasan' }"
-                :aria-current="tab.label === 'Ringkasan' ? 'page' : undefined"
             >
                 <i class="bi" :class="tab.icon" aria-hidden="true"></i>
                 {{ tab.label }}

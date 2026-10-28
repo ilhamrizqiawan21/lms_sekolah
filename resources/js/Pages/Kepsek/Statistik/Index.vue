@@ -140,9 +140,8 @@ onBeforeUnmount(() => {
 
     <AppShell title="Statistik">
         <PageHeader
-            eyebrow="Monitoring Sekolah"
             title="Statistik Sekolah"
-            subtitle="Pantau siswa, guru, pembelajaran, kehadiran, dan hasil belajar dalam satu ringkasan."
+            subtitle="Pantau kondisi siswa, guru, kelas, pembelajaran, absensi, dan hasil belajar sekolah."
         />
 
         <div class="stats-grid">
@@ -155,22 +154,31 @@ onBeforeUnmount(() => {
         <div class="row mb-4">
             <div class="col-12">
                 <Card title="Statistik Pembelajaran">
-                    <div class="learning-stat-grid">
-                        <div class="learning-stat-tile">
-                            <span class="learning-stat-icon"><i class="bi bi-journal-check" aria-hidden="true"></i></span>
-                            <span class="learning-stat-copy"><span>Total Tugas Aktif</span><strong class="tabular-nums">{{ pembelajaran.total_tugas }}</strong></span>
+                    <div class="row g-3">
+                        <div class="col-6 col-xl-3">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-body-secondary small">Total Tugas Aktif</div>
+                                <div class="fs-4 fw-bold tabular-nums">{{ pembelajaran.total_tugas }}</div>
+                            </div>
                         </div>
-                        <div class="learning-stat-tile">
-                            <span class="learning-stat-icon"><i class="bi bi-inbox" aria-hidden="true"></i></span>
-                            <span class="learning-stat-copy"><span>Total Pengumpulan</span><strong class="tabular-nums">{{ pembelajaran.total_pengumpulan }}</strong></span>
+                        <div class="col-6 col-xl-3">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-body-secondary small">Total Pengumpulan</div>
+                                <div class="fs-4 fw-bold tabular-nums">{{ pembelajaran.total_pengumpulan }}</div>
+                            </div>
                         </div>
-                        <div class="learning-stat-tile">
-                            <span class="learning-stat-icon"><i class="bi bi-check2-square" aria-hidden="true"></i></span>
-                            <span class="learning-stat-copy"><span>Sudah Dinilai</span><strong class="tabular-nums">{{ pembelajaran.total_dinilai }}</strong><small class="tabular-nums">{{ pembelajaran.persentase_dinilai }}% dari pengumpulan</small></span>
+                        <div class="col-6 col-xl-3">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-body-secondary small">Sudah Dinilai</div>
+                                <div class="fs-4 fw-bold tabular-nums">{{ pembelajaran.total_dinilai }}</div>
+                                <div class="text-body-secondary small tabular-nums">{{ pembelajaran.persentase_dinilai }}% dari pengumpulan</div>
+                            </div>
                         </div>
-                        <div class="learning-stat-tile">
-                            <span class="learning-stat-icon"><i class="bi bi-bar-chart" aria-hidden="true"></i></span>
-                            <span class="learning-stat-copy"><span>Rata-rata Nilai Tugas</span><strong class="tabular-nums">{{ pembelajaran.rata_nilai_tugas ?? '-' }}</strong></span>
+                        <div class="col-6 col-xl-3">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-body-secondary small">Rata-rata Nilai Tugas</div>
+                                <div class="fs-4 fw-bold tabular-nums">{{ pembelajaran.rata_nilai_tugas ?? '-' }}</div>
+                            </div>
                         </div>
                     </div>
                 </Card>
@@ -203,7 +211,7 @@ onBeforeUnmount(() => {
 
             <div class="col-lg-5 mb-4">
                 <Card title="Statistik Absensi Bulanan" body-class="p-0">
-                    <TableWrapper v-if="absensiBulanan.length" stack :min-width="360">
+                    <TableWrapper v-if="absensiBulanan.length" :min-width="360">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -215,10 +223,10 @@ onBeforeUnmount(() => {
                             </thead>
                             <tbody>
                                 <tr v-for="item in absensiBulanan" :key="item.bulan">
-                                    <td data-label="Bulan" class="stack-title"><strong>{{ item.bulan_label || item.bulan }}</strong></td>
-                                    <td data-label="Hadir" class="tabular-nums">{{ item.hadir }}</td>
-                                    <td data-label="Total" class="tabular-nums">{{ item.total }}</td>
-                                    <td data-label="Kehadiran" class="tabular-nums">{{ item.persentase }}%</td>
+                                    <td><strong>{{ item.bulan_label || item.bulan }}</strong></td>
+                                    <td class="tabular-nums">{{ item.hadir }}</td>
+                                    <td class="tabular-nums">{{ item.total }}</td>
+                                    <td class="tabular-nums">{{ item.persentase }}%</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -238,7 +246,7 @@ onBeforeUnmount(() => {
 
             <div class="col-lg-5 mb-4">
                 <Card title="Rekap Pengumpulan Bulanan" body-class="p-0">
-                    <TableWrapper v-if="pengumpulanBulanan.length" stack :min-width="360">
+                    <TableWrapper v-if="pengumpulanBulanan.length" :min-width="360">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -250,10 +258,10 @@ onBeforeUnmount(() => {
                             </thead>
                             <tbody>
                                 <tr v-for="item in pengumpulanBulanan" :key="item.bulan">
-                                    <td data-label="Bulan" class="stack-title"><strong>{{ item.bulan_label || item.bulan }}</strong></td>
-                                    <td data-label="Total" class="tabular-nums">{{ item.total }}</td>
-                                    <td data-label="Tepat Waktu" class="tabular-nums">{{ item.tepat_waktu }}</td>
-                                    <td data-label="Terlambat" class="tabular-nums">{{ item.terlambat }}</td>
+                                    <td><strong>{{ item.bulan_label || item.bulan }}</strong></td>
+                                    <td class="tabular-nums">{{ item.total }}</td>
+                                    <td class="tabular-nums">{{ item.tepat_waktu }}</td>
+                                    <td class="tabular-nums">{{ item.terlambat }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -264,65 +272,3 @@ onBeforeUnmount(() => {
         </div>
     </AppShell>
 </template>
-
-<style scoped>
-.learning-stat-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.65rem;
-}
-
-.learning-stat-tile {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    min-width: 0;
-    min-height: 78px;
-    padding: 0.8rem;
-    border: 1px solid var(--border-soft);
-    border-radius: 12px;
-    background: var(--surface-subtle);
-}
-
-.learning-stat-icon {
-    display: grid;
-    width: 2.2rem;
-    height: 2.2rem;
-    flex: 0 0 auto;
-    place-items: center;
-    border-radius: 10px;
-    background: var(--brand-soft-bg);
-    color: var(--text-brand);
-}
-
-.learning-stat-copy {
-    display: grid;
-    min-width: 0;
-    color: var(--text-muted);
-    font-size: 0.78rem;
-    line-height: 1.3;
-}
-
-.learning-stat-copy strong {
-    color: var(--text-strong);
-    font-size: 1.35rem;
-    font-weight: 750;
-    line-height: 1.2;
-}
-
-.learning-stat-copy small {
-    margin-top: 0.2rem;
-    font-size: 0.7rem;
-}
-
-@media (max-width: 991.98px) {
-    .learning-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-@media (max-width: 399.98px) {
-    .learning-stat-grid { gap: 0.45rem; }
-    .learning-stat-tile { gap: 0.5rem; padding: 0.65rem; }
-    .learning-stat-icon { width: 1.9rem; height: 1.9rem; }
-    .learning-stat-copy { font-size: 0.72rem; }
-}
-</style>

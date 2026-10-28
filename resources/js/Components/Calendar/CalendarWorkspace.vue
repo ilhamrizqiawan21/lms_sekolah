@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { Link, router, useForm } from '@inertiajs/vue3';
+import { router, useForm } from '@inertiajs/vue3';
 import { SelectInput, TextareaInput, TextInput } from '../Form';
 import { Badge, Button, Card, EmptyState, Modal } from '../UI';
 import type { CalendarEvent, CalendarEventForm, CalendarPayload, SelectOption } from '../../types';
@@ -128,38 +128,28 @@ function eventClass(event: CalendarEvent): Record<string, boolean> {
     };
 }
 
-function scopeLabel(scope?: string): string {
-    if (scope === 'school') {
-        return 'Sekolah';
-    }
-    if (scope === 'user') {
-        return 'Pribadi';
-    }
-
-    return scope ?? '';
-}
-
 function openEvent(event: CalendarEvent): void {
     selectedEvent.value = event;
 }
 </script>
 
 <template>
-    <div class="calendar-workspace" :class="{ 'calendar-workspace--editable': canCreate }">
-        <Card :title="calendar.title" icon="bi-calendar3" body-class="p-0" class="calendar-month-panel">
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <Card :title="calendar.title" icon="bi-calendar3" body-class="p-0">
                 <template #actions>
                     <div class="calendar-actions">
-                        <Link :href="calendar.prev_url" class="btn btn-sm btn-outline-secondary">
+                        <a :href="calendar.prev_url" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-chevron-left" aria-hidden="true"></i> {{ calendar.prev_label }}
-                        </Link>
-                        <Link :href="calendar.today_url" class="btn btn-sm btn-outline-primary">Hari Ini</Link>
-                        <Link :href="calendar.next_url" class="btn btn-sm btn-outline-secondary">
+                        </a>
+                        <a :href="calendar.today_url" class="btn btn-sm btn-outline-primary">Hari Ini</a>
+                        <a :href="calendar.next_url" class="btn btn-sm btn-outline-secondary">
                             {{ calendar.next_label }} <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                        </Link>
+                        </a>
                     </div>
                 </template>
 
-                <table class="table mb-0 calendar-table">
+                <table class="table table-bordered mb-0 calendar-table">
                     <thead>
                         <tr class="text-center calendar-head">
                             <th scope="col" v-for="day in calendar.weekdays" :key="day">{{ day }}</th>
@@ -171,8 +161,7 @@ function openEvent(event: CalendarEvent): void {
                                 v-for="cell in week"
                                 :key="cell.date || `${rowIndex}-${cell.day}`"
                                 class="calendar-cell"
-                                :class="{ 'calendar-cell-empty': !cell.date, 'calendar-cell-today': cell.is_today, 'calendar-cell-clickable': canCreate && Boolean(cell.date) }"
-                                @click="canCreate && cell.date && (createForm.event_date = cell.date)"
+                                :class="{ 'calendar-cell-empty': !cell.date, 'calendar-cell-today': cell.is_today }"
                             >
                                 <template v-if="cell.date">
                                     <div class="calendar-day" :class="{ 'calendar-day-today': cell.is_today }">{{ cell.day }}</div>
@@ -183,7 +172,7 @@ function openEvent(event: CalendarEvent): void {
                                         class="calendar-event"
                                         :class="eventClass(event)"
                                         :title="event.title"
-                                        @click.stop="openEvent(event)"
+                                        @click="openEvent(event)"
                                     >
                                         <i v-if="event.is_holiday" class="bi bi-circle-fill me-1" aria-hidden="true"></i>{{ event.title_short }}
                                     </button>
@@ -192,21 +181,11 @@ function openEvent(event: CalendarEvent): void {
                         </tr>
                     </tbody>
                 </table>
+            </Card>
+        </div>
 
-                <div class="calendar-legend">
-                    <span class="d-inline-flex align-items-center gap-1">
-                        <i class="bi bi-circle-fill calendar-legend-dot calendar-legend-dot--agenda" aria-hidden="true"></i> Agenda sekolah
-                    </span>
-                    <span class="d-inline-flex align-items-center gap-1">
-                        <i class="bi bi-circle-fill calendar-legend-dot calendar-legend-dot--holiday" aria-hidden="true"></i> Hari libur
-                    </span>
-                    <span class="d-inline-flex align-items-center gap-1">
-                        <i class="bi bi-circle-fill calendar-legend-dot calendar-legend-dot--deadline" aria-hidden="true"></i> Deadline tugas
-                    </span>
-                </div>
-        </Card>
-
-        <Card v-if="canCreate" :title="createTitle" icon="bi-plus-circle" class="calendar-create-panel">
+        <div class="col-lg-4">
+            <Card v-if="canCreate" :title="createTitle" icon="bi-plus-circle" class="mb-3">
                 <form @submit.prevent="submitCreate">
                     <TextInput v-model="createForm.title" name="title" label="Judul" required :error="createForm.errors.title" wrapper-class="mb-2" />
                     <TextInput v-model="createForm.event_date" type="date" name="event_date" label="Tanggal" required :error="createForm.errors.event_date" wrapper-class="mb-2" />
@@ -235,48 +214,46 @@ function openEvent(event: CalendarEvent): void {
                         {{ createForm.processing ? 'Menyimpan...' : 'Simpan' }}
                     </Button>
                 </form>
-        </Card>
+            </Card>
 
-    <Card :title="`Event ${calendar.month_label}`" icon="bi-list-ul" body-class="p-0" class="calendar-event-panel">
-        <div v-if="monthEvents.length" class="calendar-event-list">
-            <div
-                v-for="event in monthEvents"
-                :key="event.id"
-                class="calendar-list-item"
-            >
-                <time class="calendar-list-date" :datetime="event.event_date">
-                    <strong>{{ event.event_date.slice(8, 10) }}</strong>
-                    <small>{{ event.event_date_label }}</small>
-                </time>
-                <button type="button" class="calendar-list-main" @click="openEvent(event)">
-                    <strong class="text-sm" :class="{ 'calendar-list-done': event.is_done }">
-                        <i v-if="event.is_holiday" class="bi bi-circle-fill me-1 text-danger" aria-hidden="true"></i>
-                        <i v-else-if="event.is_done" class="bi bi-check-circle-fill me-1 text-success" aria-hidden="true"></i>
-                        {{ event.title }}
-                    </strong>
-                    <span class="text-body-secondary text-xs">
-                        {{ event.event_date_label }}
-                        <template v-if="event.description"> - {{ event.description }}</template>
-                    </span>
-                    <span v-if="event.created_by" class="text-body-secondary text-xs">Dibuat oleh {{ event.created_by }}</span>
-                </button>
-                <div class="calendar-list-meta">
-                    <Badge v-if="event.scope" :color="event.scope === 'school' ? 'info' : 'secondary'">{{ scopeLabel(event.scope) }}</Badge>
-                    <Button
-                        v-if="event.can_manage && event.toggle_done_url && !event.is_done"
-                        type="button"
-                        color="outline-success"
-                        size="sm"
-                        icon="bi-check-lg"
-                        title="Tandai selesai"
-                        aria-label="Tandai selesai"
-                        @click="toggleDone(event)"
-                    />
+            <Card :title="`Event ${calendar.month_label}`" icon="bi-list-ul" body-class="p-0">
+                <div v-if="monthEvents.length">
+                    <div
+                        v-for="event in monthEvents"
+                        :key="event.id"
+                        class="calendar-list-item"
+                    >
+                        <button type="button" class="calendar-list-main" @click="openEvent(event)">
+                            <strong class="text-sm" :class="{ 'calendar-list-done': event.is_done }">
+                                <i v-if="event.is_holiday" class="bi bi-circle-fill me-1 text-danger" aria-hidden="true"></i>
+                                <i v-else-if="event.is_done" class="bi bi-check-circle-fill me-1 text-success" aria-hidden="true"></i>
+                                {{ event.title }}
+                            </strong>
+                            <span class="text-body-secondary text-xs">
+                                {{ event.event_date_label }}
+                                <template v-if="event.description"> - {{ event.description }}</template>
+                            </span>
+                            <span v-if="event.created_by" class="text-body-secondary text-xs">Dibuat oleh {{ event.created_by }}</span>
+                        </button>
+                        <div class="calendar-list-meta">
+                            <Badge v-if="event.scope" :color="event.scope === 'school' ? 'info text-dark' : 'secondary'">{{ event.scope }}</Badge>
+                            <Button
+                                v-if="event.toggle_done_url && !event.is_done"
+                                type="button"
+                                color="outline-success"
+                                size="sm"
+                                icon="bi-check-lg"
+                                title="Tandai selesai"
+                                aria-label="Tandai selesai"
+                                @click="toggleDone(event)"
+                            />
+                        </div>
+                    </div>
                 </div>
-            </div>
+                <EmptyState v-else title="Tidak ada event." icon="bi-calendar3" />
+            </Card>
         </div>
-        <EmptyState v-else title="Tidak ada event." icon="bi-calendar3" />
-    </Card>
+    </div>
 
     <Modal :model-value="!!selectedEvent" :title="selectedTitle" @update:model-value="selectedEvent = null">
         <template v-if="selectedEvent">
@@ -316,5 +293,142 @@ function openEvent(event: CalendarEvent): void {
             </Button>
         </template>
     </Modal>
-    </div>
 </template>
+
+<style scoped>
+.calendar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.calendar-table {
+    table-layout: fixed;
+    overflow: hidden;
+    border-color: var(--bs-border-color);
+}
+
+.calendar-head {
+    background: var(--surface-muted);
+}
+
+.calendar-head th {
+    font-size: 0.75rem;
+    padding: 8px 0;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.calendar-cell {
+    height: 80px;
+    vertical-align: top;
+    padding: 4px;
+    background: var(--surface-card);
+}
+
+.calendar-cell-empty {
+    background: var(--surface-subtle);
+}
+
+.calendar-cell-today {
+    background: var(--status-success-bg);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--status-success-text) 30%, transparent);
+}
+
+.calendar-day {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.calendar-day-today {
+    font-weight: 800;
+    color: var(--status-success-text);
+}
+
+.calendar-event {
+    display: block;
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    padding: 4px;
+    text-align: left;
+    font-size: 0.68rem;
+    line-height: 1.2;
+}
+
+.calendar-event-normal {
+    background: var(--status-info-bg);
+    color: var(--status-info-text);
+    border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.calendar-event-normal:hover,
+.calendar-event-holiday:hover {
+    filter: brightness(1.06);
+}
+
+.calendar-event-holiday {
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
+    border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.calendar-event-done {
+    opacity: 0.55;
+    text-decoration: line-through;
+}
+
+.calendar-list-item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--bs-border-color);
+    padding: 0.5rem;
+}
+
+.calendar-list-main {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    padding: 0;
+}
+
+.calendar-list-main span {
+    display: block;
+}
+
+.calendar-list-done {
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+
+.calendar-list-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+@media (max-width: 575.98px) {
+    .calendar-cell {
+        height: 64px;
+        padding: 2px;
+    }
+
+    .calendar-event {
+        font-size: 0.58rem;
+        padding: 3px;
+    }
+
+    .calendar-actions,
+    .calendar-actions .btn {
+        width: 100%;
+    }
+}
+</style>

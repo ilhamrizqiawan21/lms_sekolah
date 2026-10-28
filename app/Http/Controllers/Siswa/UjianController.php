@@ -3,15 +3,12 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Siswa\CatatEventUjianRequest;
 use App\Http\Requests\Siswa\SimpanJawabanUjianRequest;
 use App\Models\KelasMapel;
 use App\Models\Siswa;
 use App\Models\Ujian;
 use App\Models\UjianAttempt;
-use App\Models\UjianAttemptEvent;
 use App\Models\UjianAttemptJawaban;
-use App\Services\CbtAntiCheatService;
 use App\Services\CbtScoringService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -26,8 +23,7 @@ use Inertia\Response;
 class UjianController extends Controller
 {
     public function __construct(
-        protected CbtScoringService $scoringService,
-        protected CbtAntiCheatService $antiCheatService
+        protected CbtScoringService $scoringService
     ) {}
 
     public function index(Request $request): Response
@@ -44,22 +40,15 @@ class UjianController extends Controller
             ->aktif()
             ->pluck('id');
 
-        $ujianRows = Ujian::query()
-            ->with(['kelasMapel.mataPelajaran', 'kelasMapel.guru'])
-            ->withCount('ujianSoal as total_soal')
+        $ujianList = Ujian::query()
+            ->with(['kelasMapel.mataPelajaran', 'kelasMapel.guru', 'ujianSoal'])
             ->whereIn('kelas_mapel_id', $activeKelasMapelIds)
             ->latest('id')
-            ->get();
-
-        $attemptsByUjian = UjianAttempt::query()
-            ->where('siswa_id', $siswa->id)
-            ->whereIn('ujian_id', $ujianRows->pluck('id'))
             ->get()
-            ->keyBy('ujian_id');
-
-        $ujianList = $ujianRows
-            ->map(function ($u) use ($attemptsByUjian) {
-                $attempt = $attemptsByUjian->get($u->id);
+            ->map(function ($u) use ($siswa) {
+                $attempt = UjianAttempt::where('ujian_id', $u->id)
+                    ->where('siswa_id', $siswa->id)
+                    ->first();
 
                 $isBuka = $u->isBuka();
 
@@ -100,10 +89,7 @@ class UjianController extends Controller
                     'kategori_nilai' => $u->kategori_nilai,
                     'waktu_mulai' => $u->waktu_mulai?->format('d/m/Y H:i'),
                     'waktu_selesai' => $u->waktu_selesai?->format('d/m/Y H:i'),
-                    'total_soal' => (int) $u->total_soal,
-                    'anticheat_aktif' => (bool) $u->anticheat_aktif,
-                    'maks_pelanggaran' => $u->anticheat_aktif ? $u->maks_pelanggaran : null,
-                    'wajib_fullscreen' => (bool) ($u->anticheat_aktif && $u->wajib_fullscreen),
+                    'total_soal' => $u->ujianSoal->count(),
                     'is_buka' => $isBuka,
                     'status_label' => $statusLabel,
                     'can_start' => $canStart,
@@ -178,12 +164,6 @@ class UjianController extends Controller
             return redirect()->route('siswa.ujian.hasil', $attempt->id);
         }
 
-        // Episode keluar yang terjadi selagi halaman tertutup baru terhitung di sini (mis. HP mematikan browser di latar).
-        $antiCheat = $this->antiCheatService->evaluasi($attempt, Carbon::now());
-        if ($antiCheat['status'] !== UjianAttempt::STATUS_SEDANG_MENGERJAKAN) {
-            return redirect()->route('siswa.ujian.hasil', $attempt->id);
-        }
-
         $attempt->loadMissing([
             'ujian.kelasMapel.kelas',
             'ujian.kelasMapel.mataPelajaran',
@@ -250,18 +230,11 @@ class UjianController extends Controller
             'soalList' => $soalPayload,
             'submitUrl' => route('siswa.ujian.submit', $attempt->id),
             'simpanJawabanUrl' => route('siswa.ujian.jawab', $attempt->id),
-            'antiCheat' => [
-                'aktif' => (bool) $ujian->anticheat_aktif,
-                'maks_pelanggaran' => $ujian->anticheat_aktif ? $ujian->maks_pelanggaran : null,
-                'wajib_fullscreen' => (bool) ($ujian->anticheat_aktif && $ujian->wajib_fullscreen),
-                'pelanggaran' => $antiCheat['pelanggaran'],
-            ],
-            'eventUrl' => route('siswa.ujian.event', $attempt->id),
-            'heartbeatUrl' => route('siswa.ujian.heartbeat', $attempt->id),
+            'logTabSwitchUrl' => route('siswa.ujian.tab-switch', $attempt->id),
         ]);
     }
 
-    public function jawab(SimpanJawabanUjianRequest $request, UjianAttempt $attempt): JsonResponse
+    public function jawab(SimpanJawabanUjianRequest $request, UjianAttempt $attempt): JsonResponse|RedirectResponse
     {
         $user = Auth::user();
         $siswa = $user->siswa;
@@ -271,6 +244,10 @@ class UjianController extends Controller
         if (in_array($attempt->status, UjianAttempt::STATUS_TERKUNCI, true) || Carbon::now()->gt($attempt->batas_waktu)) {
             if ($attempt->status === UjianAttempt::STATUS_SEDANG_MENGERJAKAN) {
                 $this->scoringService->autoSubmitKarenaWaktuHabis($attempt);
+            }
+
+            if ($request->header('X-Inertia')) {
+                return redirect()->route('siswa.ujian.hasil', $attempt->id);
             }
 
             return response()->json([
@@ -313,15 +290,28 @@ class UjianController extends Controller
         });
 
         if ($jawaban === null) {
+            if ($request->header('X-Inertia')) {
+                return redirect()->route('siswa.ujian.hasil', $attempt->id);
+            }
+
             return response()->json([
                 'message' => 'Waktu pengerjaan ujian telah habis atau ujian telah selesai.',
             ], 422);
         }
 
         if ($jawaban === false) {
+            if ($request->header('X-Inertia')) {
+                return redirect()->route('siswa.ujian.kerjakan', $attempt->id)
+                    ->withErrors(['jawaban_opsi_id' => 'Pilihan jawaban tidak valid untuk soal ini.']);
+            }
+
             return response()->json([
                 'message' => 'Pilihan jawaban tidak valid untuk soal ini.',
             ], 422);
+        }
+
+        if ($request->header('X-Inertia')) {
+            return redirect()->route('siswa.ujian.kerjakan', $attempt->id);
         }
 
         return response()->json([
@@ -348,87 +338,23 @@ class UjianController extends Controller
         return redirect()->route('siswa.ujian.hasil', $attempt->id)->with('success', 'Ujian berhasil dikumpulkan.');
     }
 
-    /**
-     * Catat kejadian anti-cheat yang dilaporkan klien. Waktu selalu dari server
-     * (klien tidak bisa memalsukan durasi); "kembali" dipasangkan dengan "keluar" saat dihitung.
-     * Responsnya status kebijakan terbaru agar klien bisa memperingatkan siswa.
-     */
-    public function catatEvent(CatatEventUjianRequest $request, UjianAttempt $attempt): JsonResponse
-    {
-        $now = Carbon::now();
-        $attempt->loadMissing('ujian');
-
-        if (! $this->attemptMasihAktif($attempt, $now) || ! $attempt->ujian?->anticheat_aktif) {
-            return response()->json(['status' => $attempt->status, 'pelanggaran' => 0, 'maks_pelanggaran' => null]);
-        }
-
-        if ($attempt->events()->count() < UjianAttemptEvent::BATAS_EVENT_PER_ATTEMPT) {
-            $jenis = $request->validated('jenis');
-
-            DB::transaction(function () use ($attempt, $jenis, $now) {
-                $attempt->events()->create([
-                    'jenis' => $jenis,
-                    'terjadi_pada' => $now,
-                ]);
-
-                // increment() = UPDATE ... SET x = x + 1 (atomik), bukan baca-ubah-simpan yang bisa kehilangan hitungan.
-                if (in_array($jenis, UjianAttemptEvent::JENIS_KELUAR, true)) {
-                    $attempt->increment('tab_switch_count');
-                }
-            });
-        }
-
-        return response()->json($this->antiCheatService->evaluasi($attempt, $now));
-    }
-
-    /**
-     * Sinyal hidup dari halaman ujian. Jeda panjang antar heartbeat dicatat sebagai heartbeat_gap:
-     * klien bisa memblokir laporan eventnya, tetapi tidak bisa menyembunyikan ketiadaan sinyal.
-     * Heartbeat juga memicu evaluasi: episode keluar yang belum ditutup "kembali" tetap terhitung.
-     */
-    public function heartbeat(UjianAttempt $attempt): JsonResponse
+    public function logTabSwitch(UjianAttempt $attempt): HttpResponse
     {
         $user = Auth::user();
         $siswa = $user->siswa;
         $this->ensureAttemptBelongsToSiswa($attempt, $siswa);
 
-        $now = Carbon::now();
+        if ($attempt->status === UjianAttempt::STATUS_SEDANG_MENGERJAKAN) {
+            $log = $attempt->tab_switch_log ?? [];
+            $log[] = Carbon::now()->toIso8601String();
 
-        if (! $this->attemptMasihAktif($attempt, $now)) {
-            return response()->json(['status' => $attempt->status, 'sisa_detik' => 0, 'pelanggaran' => 0, 'maks_pelanggaran' => null]);
+            $attempt->update([
+                'tab_switch_log' => $log,
+                'tab_switch_count' => count($log),
+            ]);
         }
 
-        $terakhir = $attempt->heartbeat_terakhir;
-        if ($terakhir) {
-            $jeda = (int) $terakhir->diffInSeconds($now, true);
-
-            if (
-                $jeda > UjianAttemptEvent::AMBANG_HEARTBEAT_GAP_DETIK
-                && $attempt->events()->count() < UjianAttemptEvent::BATAS_EVENT_PER_ATTEMPT
-            ) {
-                $attempt->events()->create([
-                    'jenis' => UjianAttemptEvent::JENIS_HEARTBEAT_GAP,
-                    'terjadi_pada' => $now,
-                    'durasi_detik' => min($jeda, 65535),
-                ]);
-            }
-        }
-
-        $attempt->update(['heartbeat_terakhir' => $now]);
-
-        $state = $this->antiCheatService->evaluasi($attempt, $now);
-
-        return response()->json($state + [
-            'sisa_detik' => $state['status'] === UjianAttempt::STATUS_SEDANG_MENGERJAKAN
-                ? max(0, (int) $now->diffInSeconds($attempt->batas_waktu, false))
-                : 0,
-        ]);
-    }
-
-    private function attemptMasihAktif(UjianAttempt $attempt, Carbon $now): bool
-    {
-        return $attempt->status === UjianAttempt::STATUS_SEDANG_MENGERJAKAN
-            && (! $attempt->batas_waktu || $now->lte($attempt->batas_waktu));
+        return response()->noContent();
     }
 
     public function hasil(UjianAttempt $attempt): Response
@@ -475,7 +401,6 @@ class UjianController extends Controller
                 'total_salah' => $totalSalah,
                 'total_kosong' => $totalKosong,
                 'tab_switches_count' => (int) $attempt->tab_switch_count,
-                'alasan_selesai' => $attempt->alasan_selesai,
             ],
             'ujian' => [
                 'id' => $ujian->id,
@@ -485,7 +410,6 @@ class UjianController extends Controller
                 'kelas' => $ujian->kelasMapel?->kelas?->displayName() ?? '-',
                 'mata_pelajaran' => $ujian->kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
             ],
-            'daftarUjianUrl' => route('siswa.ujian.index'),
         ]);
     }
 

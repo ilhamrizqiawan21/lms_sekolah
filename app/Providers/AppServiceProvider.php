@@ -13,11 +13,8 @@ use App\Policies\TugasPolicy;
 use App\Policies\UjianPolicy;
 use App\Policies\WaliKelasPolicy;
 use App\Services\CalendarTimelineService;
-use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Middleware\TrustProxies;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 
@@ -42,9 +39,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('kelola-soal-bank', [SoalBankPolicy::class, 'kelola']);
         Gate::define('lihat-pengumuman', [PengumumanPolicy::class, 'view']);
         Gate::define('kelola-pengumuman', [PengumumanPolicy::class, 'manage']);
-
-        // Event anti-cheat dan heartbeat ujian CBT berbagi satu bucket per siswa.
-        RateLimiter::for('ujian-event', fn (Request $request) => Limit::perMinute(60)->by($request->user()?->id ?: $request->ip()));
 
         Inertia::share('timelineEvents', function () {
             $routeName = request()->route()?->getName();

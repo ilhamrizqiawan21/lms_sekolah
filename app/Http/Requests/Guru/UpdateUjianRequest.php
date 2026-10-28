@@ -25,11 +25,8 @@ class UpdateUjianRequest extends FormRequest
             'waktu_selesai' => ['nullable', 'date', 'after_or_equal:waktu_mulai'],
             'acak_soal' => ['required', 'boolean'],
             'acak_opsi' => ['required', 'boolean'],
-            'anticheat_aktif' => ['sometimes', 'boolean'],
-            'maks_pelanggaran' => ['nullable', 'integer', 'min:1', 'max:20'],
-            'wajib_fullscreen' => ['sometimes', 'boolean'],
             'soal' => ['nullable', 'array'],
-            'soal.*.soal_bank_id' => ['required_with:soal', 'integer', 'distinct', 'exists:soal_bank,id'],
+            'soal.*.soal_bank_id' => ['required_with:soal', 'integer', 'exists:soal_bank,id'],
             'soal.*.poin' => ['required_with:soal', 'numeric', 'min:0.01', 'max:1000'],
         ];
     }

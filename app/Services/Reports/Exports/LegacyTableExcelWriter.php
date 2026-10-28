@@ -83,7 +83,7 @@ final class LegacyTableExcelWriter
 
         $styles = $this->excelStyles();
         foreach ($headerRows as [$values, $styleKey, $height]) {
-            $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow($values), $styles[$styleKey], $height));
+            $writer->addRow(Row::fromValuesWithStyle($values, $styles[$styleKey], $height));
         }
         $writer->addRow(Row::fromValues([]));
 
@@ -140,35 +140,24 @@ final class LegacyTableExcelWriter
         $styles = $this->excelStyles();
 
         $rows = $this->excelReportHeader($title, $school, $context);
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow($rows[0]), $styles['school'], 24));
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow($rows[1]), $styles['meta'], 18));
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow($rows[2]), $styles['title'], 24));
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow($rows[3]), $styles['context'], 20));
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow($rows[4]), $styles['meta'], 18));
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow($rows[5]), $styles['meta'], 18));
+        $writer->addRow(Row::fromValuesWithStyle($rows[0], $styles['school'], 24));
+        $writer->addRow(Row::fromValuesWithStyle($rows[1], $styles['meta'], 18));
+        $writer->addRow(Row::fromValuesWithStyle($rows[2], $styles['title'], 24));
+        $writer->addRow(Row::fromValuesWithStyle($rows[3], $styles['context'], 20));
+        $writer->addRow(Row::fromValuesWithStyle($rows[4], $styles['meta'], 18));
+        $writer->addRow(Row::fromValuesWithStyle($rows[5], $styles['meta'], 18));
         $writer->addRow(Row::fromValues([]));
     }
 
     private function writeExcelTableHeader(Writer $writer, array $headers): void
     {
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow($headers), $this->excelStyles()['tableHeader'], 24));
+        $writer->addRow(Row::fromValuesWithStyle($headers, $this->excelStyles()['tableHeader'], 24));
     }
 
     private function writeExcelDataRow(Writer $writer, array $row, int $index): void
     {
         $style = $index % 2 === 0 ? $this->excelStyles()['row'] : $this->excelStyles()['alternateRow'];
-        $writer->addRow(Row::fromValuesWithStyle($this->sanitizeRow($row), $style, 20));
-    }
-
-    private function sanitizeRow(array $values): array
-    {
-        return array_map(static function ($value) {
-            if (! is_string($value) || $value === '') {
-                return $value;
-            }
-
-            return preg_match('/^[\s]*[=+\-@]/', $value) === 1 ? "'{$value}" : $value;
-        }, $values);
+        $writer->addRow(Row::fromValuesWithStyle($row, $style, 20));
     }
 
     private function excelStyles(): array

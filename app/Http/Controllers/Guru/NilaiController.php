@@ -139,15 +139,13 @@ class NilaiController extends Controller
             return back()->withInput()->with('error', 'Pilihan kelas tidak valid.');
         }
 
-        DB::transaction(function () use ($kelasMapel, $request) {
-            foreach ($kelasMapel as $item) {
-                $this->saveNilaiForKelasMapel(
-                    $item,
-                    $request->semester,
-                    $request->input('nilai.'.$item->id, [])
-                );
-            }
-        });
+        foreach ($kelasMapel as $item) {
+            $this->saveNilaiForKelasMapel(
+                $item,
+                $request->semester,
+                $request->input('nilai.'.$item->id, [])
+            );
+        }
 
         return redirect()->route('guru.nilai.index', ['kelas_mapel_id' => $kelasMapel->first()?->id])
             ->with('success', 'Nilai berhasil disimpan untuk kelas yang dipilih.');

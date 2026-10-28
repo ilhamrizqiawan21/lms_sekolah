@@ -10,6 +10,8 @@ class KelasMapel extends Model
 {
     protected $table = 'kelas_mapel';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'kelas_id',
         'mapel_id',
@@ -74,16 +76,6 @@ class KelasMapel extends Model
     public function tugas(): HasMany
     {
         return $this->hasMany(Tugas::class, 'kelas_mapel_id');
-    }
-
-    public function ujian(): HasMany
-    {
-        return $this->hasMany(Ujian::class, 'kelas_mapel_id');
-    }
-
-    public function pengumuman(): HasMany
-    {
-        return $this->hasMany(Pengumuman::class, 'kelas_mapel_id');
     }
 
     public function chatMessages(): HasMany

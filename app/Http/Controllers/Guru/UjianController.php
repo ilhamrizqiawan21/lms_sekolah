@@ -10,12 +10,9 @@ use App\Models\Siswa;
 use App\Models\SoalBank;
 use App\Models\Ujian;
 use App\Models\UjianAttempt;
-use App\Models\UjianAttemptEvent;
 use App\Models\UjianSoal;
-use App\Services\CbtAntiCheatService;
 use App\Services\CbtScoringService;
 use App\Services\UjianService;
-use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -26,7 +23,6 @@ class UjianController extends Controller
     public function __construct(
         protected UjianService $ujianService,
         protected CbtScoringService $scoringService,
-        protected CbtAntiCheatService $antiCheatService,
     ) {}
 
     public function index(): Response
@@ -210,10 +206,6 @@ class UjianController extends Controller
             ->get();
 
         $attempts = UjianAttempt::with('siswa.user')
-            ->withCount([
-                'jawaban as total_benar' => fn ($q) => $q->where('is_benar', true),
-                'jawaban as total_salah' => fn ($q) => $q->where('is_benar', false),
-            ])
             ->where('ujian_id', $ujian->id)
             ->get()
             ->keyBy('siswa_id');
@@ -230,7 +222,7 @@ class UjianController extends Controller
                     'id' => $siswa->id,
                     'nama_lengkap' => $siswa->user?->nama_lengkap ?? $siswa->nis,
                     'nis' => $siswa->nis,
-                    'nisn' => $siswa->getAttribute('nisn'),
+                    'nisn' => $siswa->nisn,
                 ];
 
                 continue;
@@ -248,8 +240,8 @@ class UjianController extends Controller
                 $skorList[] = $nilai;
             }
 
-            $totalBenar = (int) $attempt->total_benar;
-            $totalSalah = (int) $attempt->total_salah;
+            $totalBenar = $attempt->jawaban()->where('is_benar', true)->count();
+            $totalSalah = $attempt->jawaban()->where('is_benar', false)->count();
 
             $durasi = '-';
             if ($attempt->waktu_mulai && $attempt->waktu_submit) {
@@ -262,7 +254,7 @@ class UjianController extends Controller
                     'id' => $siswa->id,
                     'nama_lengkap' => $siswa->user?->nama_lengkap ?? $siswa->nis,
                     'nis' => $siswa->nis,
-                    'nisn' => $siswa->getAttribute('nisn'),
+                    'nisn' => $siswa->nisn,
                 ],
                 'status' => $statusMap[$attempt->status] ?? 'in_progress',
                 'waktu_mulai' => $attempt->waktu_mulai?->format('d/m/Y H:i'),
@@ -373,24 +365,7 @@ class UjianController extends Controller
                 'waktu_mulai' => $attempt->waktu_mulai?->format('d/m/Y H:i:s'),
                 'waktu_submit' => $attempt->waktu_submit?->format('d/m/Y H:i:s'),
                 'tab_switch_count' => (int) $attempt->tab_switch_count,
-                'alasan_selesai' => $attempt->alasan_selesai,
-                'pelanggaran' => $ujian->anticheat_aktif
-                    ? $this->antiCheatService->hitungPelanggaran($attempt, $attempt->waktu_submit ?? Carbon::now())
-                    : 0,
-                'maks_pelanggaran' => $ujian->anticheat_aktif ? $ujian->maks_pelanggaran : null,
-                'toleransi_detik' => UjianAttemptEvent::TOLERANSI_KELUAR_DETIK,
-                // Log JSON lama hanya ada pada attempt sebelum tabel event; attempt baru memakai events.
                 'tab_switch_log' => $attempt->tab_switch_log ?? [],
-                'events' => $attempt->events()
-                    ->orderBy('terjadi_pada')
-                    ->orderBy('id')
-                    ->get()
-                    ->map(fn ($event) => [
-                        'jenis' => $event->jenis,
-                        'waktu' => $event->terjadi_pada?->format('d/m/Y H:i:s'),
-                        'durasi_detik' => $event->durasi_detik,
-                    ])
-                    ->values(),
             ],
             'jawaban' => $jawabanPayload,
             'backUrl' => route('guru.ujian.hasil', [$kelasMapel, $ujian]),
@@ -399,7 +374,7 @@ class UjianController extends Controller
 
     private function renderBuilder(KelasMapel $kelasMapel, ?Ujian $ujian): Response
     {
-        $soalBank = SoalBank::with(['opsi', 'mapel'])
+        $soalBank = SoalBank::with('opsi')
             ->where('guru_id', Auth::id())
             ->orderByDesc('id')
             ->get();
@@ -422,9 +397,6 @@ class UjianController extends Controller
                 'waktu_selesai' => $ujian->waktu_selesai?->format('Y-m-d\TH:i'),
                 'acak_soal' => $ujian->acak_soal,
                 'acak_opsi' => $ujian->acak_opsi,
-                'anticheat_aktif' => $ujian->anticheat_aktif,
-                'maks_pelanggaran' => $ujian->maks_pelanggaran,
-                'wajib_fullscreen' => $ujian->wajib_fullscreen,
                 'soal' => $ujian->ujianSoal->sortBy('urutan')->map(fn (UjianSoal $item) => [
                     'id' => $item->id,
                     'soal_bank_id' => $item->soal_bank_id,

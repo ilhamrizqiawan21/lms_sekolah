@@ -17,6 +17,7 @@ use App\Models\UjianSoal;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Inertia;
 use Tests\TestCase;
 
 class CbtIdorGuardTest extends TestCase
@@ -157,6 +158,44 @@ class CbtIdorGuardTest extends TestCase
         $fresh = $jawabanSoal1->fresh();
         $this->assertSame($opsi1->id, $fresh->soal_bank_opsi_id);
         $this->assertTrue($fresh->ragu_ragu);
+
+        // The exam UI saves through Inertia, which must receive a redirect rather than JSON.
+        $url = route('siswa.ujian.jawab', $attempt->id);
+        $headers = ['X-Inertia' => 'true', 'X-Inertia-Version' => Inertia::getVersion()];
+        $this->post($url, [
+            'attempt_jawaban_id' => $jawabanSoal1->id,
+            'jawaban_opsi_id' => $opsi1->id,
+            'ragu_ragu' => false,
+        ], $headers)->assertRedirect(route('siswa.ujian.kerjakan', $attempt->id));
+        $this->assertSame($opsi1->id, $jawabanSoal1->fresh()->soal_bank_opsi_id);
+        $this->assertFalse($jawabanSoal1->fresh()->ragu_ragu);
+        $this->get(route('siswa.ujian.kerjakan', $attempt->id), $headers)
+            ->assertOk()
+            ->assertHeader('X-Inertia', 'true')
+            ->assertJsonPath('component', 'Siswa/Ujian/Kerjakan');
+
+        $this->post($url, [
+            'attempt_jawaban_id' => $jawabanSoal1->id,
+            'jawaban_opsi_id' => $opsi2->id,
+        ], $headers)->assertRedirect(route('siswa.ujian.kerjakan', $attempt->id))
+            ->assertSessionHasErrors('jawaban_opsi_id');
+        $this->assertSame($opsi1->id, $jawabanSoal1->fresh()->soal_bank_opsi_id);
+
+        $this->post($url, [], $headers)->assertSessionHasErrors('attempt_jawaban_id');
+
+        $otherUser = $this->makeUser('Siswa Lain', 'siswa');
+        $this->createSiswa($otherUser, $kelas);
+        $this->actingAs($otherUser)->post($url, [
+            'attempt_jawaban_id' => $jawabanSoal1->id,
+            'jawaban_opsi_id' => $opsi1->id,
+        ], $headers)->assertForbidden();
+
+        $attempt->update(['batas_waktu' => now()->subMinute()]);
+        $this->actingAs($user)->post($url, [
+            'attempt_jawaban_id' => $jawabanSoal1->id,
+            'jawaban_opsi_id' => $opsi1->id,
+        ], $headers)->assertRedirect(route('siswa.ujian.hasil', $attempt->id));
+
     }
 
     public function test_jawab_rechecks_attempt_status_after_concurrent_submit(): void

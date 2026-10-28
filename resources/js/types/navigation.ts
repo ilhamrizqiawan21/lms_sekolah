@@ -3,7 +3,6 @@ import type { UserRole } from './auth';
 export interface SidebarSection {
     type: 'section';
     label: string;
-    collapsible?: boolean;
 }
 
 export interface SidebarItem {
