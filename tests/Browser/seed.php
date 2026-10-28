@@ -12,9 +12,13 @@ use App\Models\PengumpulanTugas;
 use App\Models\Pengumuman;
 use App\Models\Role;
 use App\Models\Siswa;
+use App\Models\SoalBank;
+use App\Models\SoalBankOpsi;
 use App\Models\TahunAjaran;
 use App\Models\Tugas;
 use App\Models\User;
+use App\Models\Ujian;
+use App\Models\UjianSoal;
 use App\Models\WaliKelas;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Artisan;
@@ -54,8 +58,20 @@ $class = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'VII-A']);
 $subject = MataPelajaran::create(['kode' => 'TS', 'nama_mapel' => 'Matematika', 'urutan' => 1]);
 $course = KelasMapel::create([
     'kelas_id' => $class->id, 'mapel_id' => $subject->id, 'guru_id' => $users['guru']->id,
-    'tahun_ajaran_id' => $year->id, 'semester' => '1', 'pertemuan_per_minggu' => 1,
+    'tahun_ajaran_id' => $year->id, 'semester' => '1', 'pertemuan_per_minggu' => 1, 'status' => 'aktif',
 ]);
+$soal = SoalBank::create([
+    'guru_id' => $users['guru']->id,
+    'pertanyaan' => 'Berapa hasil 3 + 4 pada ujian uji?',
+    'kesulitan' => 'mudah',
+]);
+SoalBankOpsi::create(['soal_bank_id' => $soal->id, 'teks_opsi' => '7', 'is_benar' => true]);
+SoalBankOpsi::create(['soal_bank_id' => $soal->id, 'teks_opsi' => '8', 'is_benar' => false]);
+$ujian = Ujian::create([
+    'kelas_mapel_id' => $course->id, 'judul' => 'Ujian Uji', 'durasi_menit' => 30,
+    'kategori_nilai' => 'NH', 'acak_soal' => false, 'acak_opsi' => false,
+]);
+UjianSoal::create(['ujian_id' => $ujian->id, 'soal_bank_id' => $soal->id, 'poin' => 100, 'urutan' => 1]);
 $student = Siswa::create([
     'user_id' => $users['siswa']->id, 'nis' => '9001', 'kelas_id' => $class->id, 'status' => 'aktif',
     'nomor_whatsapp' => '6281234567890', 'whatsapp_opt_in' => true, 'whatsapp_opted_in_at' => now(),

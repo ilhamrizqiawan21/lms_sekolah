@@ -18,7 +18,7 @@ withDefaults(defineProps<Props>(), {
         <div v-if="title || icon || $slots.actions" class="card-header" :class="headerClass">
             <div class="app-card-title">
                 <i v-if="icon" class="bi" :class="icon" aria-hidden="true"></i>
-                <span v-if="title">{{ title }}</span>
+                <h2 v-if="title" class="app-card-title-text">{{ title }}</h2>
             </div>
             <div v-if="$slots.actions" class="app-card-actions">
                 <slot name="actions" />

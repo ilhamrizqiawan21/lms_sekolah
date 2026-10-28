@@ -48,7 +48,7 @@ const importForm = useForm({ file_siswa: null as File | null });
 const createForm = useForm(blankStudent());
 
 // Import/tambah dibuka dari tombol header; otomatis terbuka bila ada error agar tidak tersembunyi.
-const panel = ref<'tambah' | 'import' | null>(null);
+const panel = ref<'tambah' | 'import' | null>('tambah');
 function togglePanel(name: 'tambah' | 'import') {
     panel.value = panel.value === name ? null : name;
 }
@@ -273,7 +273,7 @@ function passwordStatusColor(isDefault: boolean) {
                     <SelectInput v-model="createForm.jenis_kelamin" name="jenis_kelamin" label="Jenis Kelamin" placeholder="--" required wrapper-class="mb-0" :options="genderOptions" :error="createForm.errors.jenis_kelamin" />
                 </div>
                 <div class="col-md-1 d-grid">
-                    <Button type="submit" color="primary" size="" icon="bi-plus-lg" :loading="createForm.processing" aria-label="Simpan siswa baru" />
+                    <Button type="submit" color="primary" size="" icon="bi-plus-lg" :loading="createForm.processing" aria-label="Simpan" />
                 </div>
             </form>
         </Card>

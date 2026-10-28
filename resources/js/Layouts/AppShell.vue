@@ -61,7 +61,7 @@ function closeSidebar() {
 </script>
 
 <template>
-    <div :class="[shellClass, { 'sidebar-is-open': sidebarOpen }]" @keydown.esc.window="closeSidebar">
+    <div :class="[shellClass, { 'sidebar-is-open': sidebarOpen, 'sidebar-is-collapsed': !sidebarOpen }]" @keydown.esc.window="closeSidebar">
         <a href="#mainContent" class="skip-link">Lewati ke konten utama</a>
 
         <div class="sidebar-overlay" :class="{ show: sidebarOverlayVisible }" @click="closeSidebar"></div>

@@ -131,10 +131,16 @@ function eventClass(event: CalendarEvent): Record<string, boolean> {
 function openEvent(event: CalendarEvent): void {
     selectedEvent.value = event;
 }
+
+function selectDate(date: string | null | undefined): void {
+    if (date && canCreate.value) {
+        createForm.event_date = date;
+    }
+}
 </script>
 
 <template>
-    <div class="row">
+    <div class="row calendar-workspace">
         <div class="col-lg-8 mb-4">
             <Card :title="calendar.title" icon="bi-calendar3" body-class="p-0">
                 <template #actions>
@@ -162,6 +168,10 @@ function openEvent(event: CalendarEvent): void {
                                 :key="cell.date || `${rowIndex}-${cell.day}`"
                                 class="calendar-cell"
                                 :class="{ 'calendar-cell-empty': !cell.date, 'calendar-cell-today': cell.is_today }"
+                                :role="canCreate && cell.date ? 'button' : undefined"
+                                :tabindex="canCreate && cell.date ? 0 : undefined"
+                                @click="selectDate(cell.date)"
+                                @keydown.enter="selectDate(cell.date)"
                             >
                                 <template v-if="cell.date">
                                     <div class="calendar-day" :class="{ 'calendar-day-today': cell.is_today }">{{ cell.day }}</div>

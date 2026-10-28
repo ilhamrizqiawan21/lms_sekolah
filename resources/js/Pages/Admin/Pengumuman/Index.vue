@@ -236,9 +236,9 @@ async function remove(item: Announcement) {
                             <i class="bi bi-paperclip me-1" aria-hidden="true"></i>{{ item.attachment.name }}
                         </Badge>
                     </div>
-                    <div class="d-flex flex-wrap gap-2">
+                    <div class="d-flex flex-wrap gap-2 announcement-actions">
                         <Link :href="item.show_url" class="btn btn-sm btn-outline-primary">Detail</Link>
-                        <Button color="outline-warning" v-if="item.can_edit" type="button" @click="openEdit(item)">Edit</Button>
+                        <Button color="outline-success" v-if="item.can_edit" type="button" @click="openEdit(item)">Edit</Button>
                         <Button color="outline-danger" v-if="item.can_delete" type="button" @click="remove(item)">Hapus</Button>
                     </div>
             </Card>
