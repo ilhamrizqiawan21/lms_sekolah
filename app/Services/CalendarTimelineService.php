@@ -34,11 +34,12 @@ class CalendarTimelineService
     public function monthGrid(int $year, int $month, Collection $eventProps, string $routeName): array
     {
         $bulanIndo = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-        $hariIndo = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        $hariIndo = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
         $firstDay = Carbon::create($year, $month, 1);
         $daysInMonth = $firstDay->daysInMonth;
-        $startDayOfWeek = $firstDay->dayOfWeek;
+        // Indonesian academic calendars start weeks on Monday; Carbon uses Sunday=0.
+        $startDayOfWeek = ($firstDay->dayOfWeek + 6) % 7;
         $prevMonth = $firstDay->copy()->subMonth();
         $nextMonth = $firstDay->copy()->addMonth();
         $today = now()->toDateString();

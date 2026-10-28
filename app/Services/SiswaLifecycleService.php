@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Kelas;
 use App\Models\Role;
 use App\Models\Siswa;
+use App\Models\UjianAttempt;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -84,7 +85,8 @@ class SiswaLifecycleService
             || $siswa->pengumpulanTugas()->exists()
             || $siswa->nilaiAkhir()->exists()
             || $siswa->sikapSosial()->exists()
-            || $siswa->sikapSpiritual()->exists();
+            || $siswa->sikapSpiritual()->exists()
+            || UjianAttempt::where('siswa_id', $siswa->id)->exists();
     }
 
     /**

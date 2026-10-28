@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\NilaiAkhir;
+use App\Models\KelasMapel;
 use App\Models\Siswa;
 use App\Models\Ujian;
 use App\Models\UjianAttempt;
@@ -123,25 +124,9 @@ class CbtScoringService
 
         $siswaId = $attempt->siswa_id;
 
-        // Ambil semua attempt yang terkunci (selesai atau waktu_habis) untuk kategori nilai yang sama di kelas_mapel ini
-        $lockedAttempts = UjianAttempt::query()
-            ->where('siswa_id', $siswaId)
-            ->whereIn('status', UjianAttempt::STATUS_TERKUNCI)
-            ->whereHas('ujian', function ($q) use ($kelasMapel, $ujian) {
-                $q->where('kelas_mapel_id', $kelasMapel->id)
-                    ->where('kategori_nilai', $ujian->kategori_nilai);
-            })
-            ->get();
-
-        $scores = $lockedAttempts->map(function (UjianAttempt $att) {
-            if ($att->skor_maksimal > 0) {
-                return round(($att->skor_total / $att->skor_maksimal) * 100, 2);
-            }
-
-            return 0.0;
-        });
-
-        $avgScore = $scores->isNotEmpty() ? round((float) $scores->avg(), 2) : 0.0;
+        $avgScore = $ujian->kategori_nilai === 'NH'
+            ? $this->nilaiService->hitungNilaiHarian($kelasMapel, $attempt->siswa)
+            : $this->hitungRataRataCbt($attempt, $kelasMapel, $ujian);
 
         $existing = NilaiAkhir::where([
             'siswa_id' => $siswaId,
@@ -166,7 +151,7 @@ class CbtScoringService
         ];
 
         if ($ujian->kategori_nilai === 'NH') {
-            $payload['nilai_harian'] = $avgScore;
+            $payload['nilai_harian'] = $avgScore ?? 0.0;
         } elseif ($ujian->kategori_nilai === 'STS') {
             $payload['sts'] = $avgScore;
         } elseif ($ujian->kategori_nilai === 'SAS') {
@@ -176,6 +161,22 @@ class CbtScoringService
         }
 
         $this->nilaiService->simpanNilai($payload);
+    }
+
+    private function hitungRataRataCbt(UjianAttempt $attempt, KelasMapel $kelasMapel, Ujian $ujian): float
+    {
+        $scores = UjianAttempt::query()
+            ->where('siswa_id', $attempt->siswa_id)
+            ->whereIn('status', UjianAttempt::STATUS_TERKUNCI)
+            ->whereHas('ujian', fn ($query) => $query
+                ->where('kelas_mapel_id', $kelasMapel->id)
+                ->where('kategori_nilai', $ujian->kategori_nilai))
+            ->get(['skor_total', 'skor_maksimal'])
+            ->map(fn (UjianAttempt $item) => $item->skor_maksimal > 0
+                ? round(($item->skor_total / $item->skor_maksimal) * 100, 2)
+                : 0.0);
+
+        return $scores->isNotEmpty() ? round((float) $scores->avg(), 2) : 0.0;
     }
 
     /**

@@ -180,12 +180,7 @@ class TugasService
         }
 
         $semester = Pengaturan::getValue('semester_aktif', '1');
-        $average = PengumpulanTugas::where('siswa_id', $siswa->id)
-            ->whereNotNull('nilai')
-            ->whereHas('tugas', fn ($query) => $query
-                ->where('kelas_mapel_id', $kelasMapel->id)
-                ->where('kategori_nilai', 'NH'))
-            ->avg('nilai');
+        $average = $this->nilaiService->hitungNilaiHarian($kelasMapel, $siswa);
 
         $existing = NilaiAkhir::where([
             'siswa_id' => $siswa->id,

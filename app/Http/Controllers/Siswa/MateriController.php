@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class MateriController extends Controller
@@ -86,7 +87,13 @@ class MateriController extends Controller
             return back()->with('error', 'File materi tidak ditemukan.');
         }
 
-        return response()->download($disk->path($materi->file_path), $materi->judul.'_'.basename($materi->file_path));
+        $downloadName = Str::of($materi->judul)
+            ->replace(['/', '\\'], '-')
+            ->trim()
+            ->append('_', basename($materi->file_path))
+            ->toString();
+
+        return response()->download($disk->path($materi->file_path), $downloadName);
     }
 
     private function ensureMateriBelongsToKelasMapel(Materi $materi, KelasMapel $kelasMapel): void

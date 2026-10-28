@@ -25,7 +25,7 @@ class StoreUjianRequest extends FormRequest
             'acak_soal' => ['required', 'boolean'],
             'acak_opsi' => ['required', 'boolean'],
             'soal' => ['required', 'array', 'min:1'],
-            'soal.*.soal_bank_id' => ['required', 'integer', 'exists:soal_bank,id'],
+            'soal.*.soal_bank_id' => ['required', 'integer', 'distinct', 'exists:soal_bank,id'],
             'soal.*.poin' => ['required', 'numeric', 'min:0.01', 'max:1000'],
         ];
     }

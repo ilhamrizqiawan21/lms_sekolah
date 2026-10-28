@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Absensi;
+use App\Models\KelasMapel;
 use App\Models\Siswa;
 use Illuminate\Support\Collection;
 
@@ -30,7 +31,7 @@ class AbsensiService
         ]);
 
         foreach ($absensi as $a) {
-            $rekap[$a->status]++;
+            $rekap->put($a->status, $rekap->get($a->status, 0) + 1);
         }
 
         $rekap['persen_hadir'] = $rekap['total'] > 0
@@ -45,9 +46,8 @@ class AbsensiService
      */
     public function rekapKelas(int $kelasMapelId): Collection
     {
-        $siswas = Siswa::whereHas('kelasMapel', function ($q) use ($kelasMapelId) {
-            $q->where('kelas_mapel.id', $kelasMapelId);
-        })->get();
+        $kelasId = KelasMapel::whereKey($kelasMapelId)->value('kelas_id');
+        $siswas = Siswa::where('kelas_id', $kelasId)->get();
 
         return $siswas->map(function ($siswa) use ($kelasMapelId) {
             return [

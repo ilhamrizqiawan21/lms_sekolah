@@ -27,8 +27,12 @@ class RequirePasswordChange
 
         if (
             $request->routeIs('*.pengaturan-akun') ||
-            $request->routeIs('*.pengaturan') ||
-            $request->routeIs('*.pengaturan.update') ||
+            $request->routeIs('admin.pengaturan-akun.update') ||
+            $request->routeIs('*.pengaturan-akun.update') ||
+            $request->routeIs('guru.pengaturan') ||
+            $request->routeIs('guru.pengaturan.update') ||
+            $request->routeIs('kepsek.pengaturan') ||
+            $request->routeIs('kepsek.pengaturan.update') ||
             $request->routeIs('*.profil') ||
             $request->routeIs('*.profil.update') ||
             $request->routeIs('login') ||

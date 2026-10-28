@@ -46,7 +46,8 @@ class RekapService
             foreach ($siswaList as $s) {
                 $row = ['nis' => $s->nis, 'nama' => $s->user->nama_lengkap ?? '-', 'absensi' => [], 'hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0];
                 foreach ($tanggalList as $tgl) {
-                    $st = $absensiData->get($s->id, collect())->firstWhere('tanggal', $tgl)?->status;
+                    $st = $absensiData->get($s->id, collect())
+                        ->first(fn ($item) => $item->tanggal?->format('Y-m-d') === $tgl)?->status;
                     $row['absensi'][$tgl] = $st;
                     if ($st && isset($row[$st])) {
                         $row[$st]++;

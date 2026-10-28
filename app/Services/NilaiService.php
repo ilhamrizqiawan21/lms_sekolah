@@ -2,7 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\KelasMapel;
 use App\Models\NilaiAkhir;
+use App\Models\PengumpulanTugas;
+use App\Models\Siswa;
+use App\Models\UjianAttempt;
 
 class NilaiService
 {
@@ -54,6 +58,38 @@ class NilaiService
             ],
             $data
         );
+    }
+
+    /**
+     * Hitung nilai harian dari rata-rata tugas NH dan attempt CBT NH.
+     */
+    public function hitungNilaiHarian(KelasMapel $kelasMapel, Siswa $siswa): ?float
+    {
+        $taskAverage = PengumpulanTugas::query()
+            ->where('siswa_id', $siswa->id)
+            ->whereNotNull('nilai')
+            ->whereHas('tugas', fn ($query) => $query
+                ->where('kelas_mapel_id', $kelasMapel->id)
+                ->where('kategori_nilai', 'NH'))
+            ->avg('nilai');
+
+        $cbtAverage = UjianAttempt::query()
+            ->where('siswa_id', $siswa->id)
+            ->whereIn('status', UjianAttempt::STATUS_TERKUNCI)
+            ->whereHas('ujian', fn ($query) => $query
+                ->where('kelas_mapel_id', $kelasMapel->id)
+                ->where('kategori_nilai', 'NH'))
+            ->get(['skor_total', 'skor_maksimal'])
+            ->map(fn (UjianAttempt $attempt) => $attempt->skor_maksimal > 0
+                ? round(($attempt->skor_total / $attempt->skor_maksimal) * 100, 2)
+                : 0.0)
+            ->avg();
+
+        $components = collect([$taskAverage, $cbtAverage])
+            ->filter(fn ($value) => $value !== null)
+            ->values();
+
+        return $components->isNotEmpty() ? round((float) $components->avg(), 2) : null;
     }
 
     /**
