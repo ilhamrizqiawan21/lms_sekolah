@@ -16,6 +16,7 @@ withDefaults(defineProps<Props>(), { title: '' });
 const page = usePage<AppPageProps>();
 const sidebarOpen = ref(false);
 const isMobileViewport = ref(false);
+const previousDesktopViewport = ref<boolean | null>(null);
 const commandOpen = ref(false);
 const school = computed(() => page.props.school);
 const user = computed(() => page.props.auth?.user ?? null);
@@ -32,7 +33,13 @@ function syncSidebarWithViewport() {
         : window.innerWidth >= 992;
 
     isMobileViewport.value = !isDesktop;
-    sidebarOpen.value = isDesktop;
+    // Only apply the default state when crossing the desktop/mobile boundary.
+    // Resizing within the same breakpoint must not unexpectedly close an open
+    // mobile drawer (for example while rotating or resizing a browser window).
+    if (previousDesktopViewport.value === null || previousDesktopViewport.value !== isDesktop) {
+        sidebarOpen.value = isDesktop;
+        previousDesktopViewport.value = isDesktop;
+    }
 }
 
 onMounted(() => {
@@ -78,6 +85,7 @@ function closeSidebar() {
 
         <Sidebar
             :open="sidebarOpen"
+            :mobile="isMobileViewport"
             :school="school"
             :user="user"
             :capabilities="capabilities"

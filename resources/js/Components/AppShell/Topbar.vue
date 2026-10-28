@@ -395,7 +395,9 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
         padding-inline: 24px;
     }
 }
-@media (max-width: 920px) {
+/* Keep the drawer trigger available for the full tablet/mobile range used by
+ * the sidebar (including split-screen widths between 921px and 991px). */
+@media (max-width: 991.98px) {
     .mobile-menu {
         display: inline-flex;
     }
