@@ -20,6 +20,7 @@ class CredentialAndSeederHardeningTest extends TestCase
 
     public function test_temporary_password_blocks_every_role_until_it_is_changed(): void
     {
+        config(['security.require_password_change' => true]);
         config(['security.require_student_phone' => false]);
 
         $routes = [
@@ -36,6 +37,16 @@ class CredentialAndSeederHardeningTest extends TestCase
                 ->get(route($routeNames['dashboard']))
                 ->assertRedirect(route($routeNames['settings']));
         }
+    }
+
+    public function test_temporary_password_does_not_block_access_while_requirement_is_disabled(): void
+    {
+        config(['security.require_password_change' => false]);
+        $user = $this->makeDefaultUser('siswa', 'siswa-opt');
+
+        $this->actingAs($user)
+            ->get(route('siswa.dashboard'))
+            ->assertOk();
     }
 
     public function test_student_can_clear_temporary_password_flag_from_the_allowed_settings_route(): void

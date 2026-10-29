@@ -10,6 +10,10 @@ class RequirePasswordChange
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if (! config('security.require_password_change')) {
+            return $next($request);
+        }
+
         $user = $request->user();
 
         if (! $user || ! $user->is_password_default) {
