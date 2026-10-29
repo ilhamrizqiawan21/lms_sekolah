@@ -239,7 +239,7 @@ watch(() => props.open && props.mobile, (active, wasActive) => {
     padding: 22px 14px 16px;
     overflow: hidden;
     border-right: 1px solid var(--sidebar-border);
-    background: var(--sidebar-navy);
+    background: var(--sidebar-surface);
     box-shadow: none;
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }

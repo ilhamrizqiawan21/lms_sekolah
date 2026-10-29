@@ -60,9 +60,9 @@ class CbtScoringService
     /**
      * Submit ujian secara manual oleh siswa.
      */
-    public function submit(UjianAttempt $attempt): UjianAttempt
+    public function submit(UjianAttempt $attempt, ?string $alasanSelesai = null): UjianAttempt
     {
-        return DB::transaction(function () use ($attempt) {
+        return DB::transaction(function () use ($attempt, $alasanSelesai) {
             // Lock this attempt's answer rows so a concurrent jawab() write (a plain
             // UPDATE) blocks until this transaction commits, instead of landing
             // between this read and the score/status update and being silently lost.
@@ -74,6 +74,7 @@ class CbtScoringService
             $attempt->update([
                 'status' => UjianAttempt::STATUS_SELESAI,
                 'waktu_submit' => Carbon::now(),
+                'alasan_selesai' => $alasanSelesai,
                 'skor_total' => $hasil['skor_total'],
                 'skor_maksimal' => $hasil['skor_maksimal'],
             ]);
@@ -202,6 +203,7 @@ class CbtScoringService
                 'urutan_soal_ids' => [],
                 'waktu_mulai' => $now,
                 'batas_waktu' => $batasWaktu,
+                'heartbeat_terakhir' => $now,
                 'skor_total' => 0,
                 'skor_maksimal' => 0,
                 'tab_switch_log' => [],

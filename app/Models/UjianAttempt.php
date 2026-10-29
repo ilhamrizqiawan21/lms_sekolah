@@ -25,6 +25,8 @@ class UjianAttempt extends Model
         self::STATUS_WAKTU_HABIS,
     ];
 
+    public const ALASAN_PELANGGARAN = 'pelanggaran';
+
     protected $fillable = [
         'ujian_id',
         'siswa_id',
@@ -34,6 +36,8 @@ class UjianAttempt extends Model
         'waktu_mulai',
         'batas_waktu',
         'waktu_submit',
+        'alasan_selesai',
+        'heartbeat_terakhir',
         'skor_total',
         'skor_maksimal',
         'tab_switch_log',
@@ -48,6 +52,7 @@ class UjianAttempt extends Model
         'waktu_mulai' => 'datetime',
         'batas_waktu' => 'datetime',
         'waktu_submit' => 'datetime',
+        'heartbeat_terakhir' => 'datetime',
         'skor_total' => 'float',
         'skor_maksimal' => 'float',
     ];
@@ -65,5 +70,10 @@ class UjianAttempt extends Model
     public function jawaban(): HasMany
     {
         return $this->hasMany(UjianAttemptJawaban::class, 'ujian_attempt_id');
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(UjianAttemptEvent::class, 'ujian_attempt_id');
     }
 }

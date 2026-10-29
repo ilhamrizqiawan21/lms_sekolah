@@ -23,7 +23,7 @@ class UjianService
                 'waktu_selesai' => $validated['waktu_selesai'] ?? null,
                 'acak_soal' => $validated['acak_soal'],
                 'acak_opsi' => $validated['acak_opsi'],
-            ]);
+            ] + $this->kebijakanAntiCheat($validated));
 
             $this->replaceSoal($ujian, $validated['soal']);
 
@@ -53,6 +53,11 @@ class UjianService
                 'acak_opsi' => $validated['acak_opsi'],
             ]);
 
+            // Pengawasan dikunci setelah ada siswa yang mulai agar kebijakan tidak berubah di tengah ujian.
+            if (! $hasActiveAttempts) {
+                $ujian->update($this->kebijakanAntiCheat($validated, $ujian));
+            }
+
             if ($ujian->waktu_selesai) {
                 UjianAttempt::where('ujian_id', $ujian->id)
                     ->where('status', UjianAttempt::STATUS_SEDANG_MENGERJAKAN)
@@ -72,6 +77,18 @@ class UjianService
         return UjianAttempt::where('ujian_id', $ujian->id)
             ->where('status', '!=', UjianAttempt::STATUS_BELUM_MULAI)
             ->exists();
+    }
+
+    /** @return array{anticheat_aktif: bool, maks_pelanggaran: int|null, wajib_fullscreen: bool} */
+    private function kebijakanAntiCheat(array $validated, ?Ujian $ujian = null): array
+    {
+        $aktif = (bool) ($validated['anticheat_aktif'] ?? $ujian?->anticheat_aktif ?? true);
+
+        return [
+            'anticheat_aktif' => $aktif,
+            'maks_pelanggaran' => $aktif ? ($validated['maks_pelanggaran'] ?? null) : null,
+            'wajib_fullscreen' => $aktif && (bool) ($validated['wajib_fullscreen'] ?? $ujian?->wajib_fullscreen ?? false),
+        ];
     }
 
     private function replaceSoal(Ujian $ujian, array $soalList): void

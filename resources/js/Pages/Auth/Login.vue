@@ -121,7 +121,7 @@ function submit() {
                 </div>
 
                 <div class="brand-hero">
-                    <h1 class="brand-headline">Ruang belajar yang tenang dan tertata.</h1>
+                    <h1 class="brand-headline">Satu ruang untuk belajar dan bertumbuh.</h1>
                     <p v-if="branding.school_motto" class="brand-motto">
                         {{ branding.school_motto }}
                     </p>
@@ -129,27 +129,27 @@ function submit() {
             </header>
 
             <div class="brand-lower">
-            <!-- Papan Informasi / Pengumuman Resmi Sekolah -->
-            <section
-                class="brand-board"
-                :class="{ 'has-announcements': publicAnnouncements.length > 0 }"
-                aria-label="Papan Informasi Sekolah"
-            >
-                <div class="board-header">
-                    <div class="board-header-left">
-                        <i
-                            :class="publicAnnouncements.length ? 'bi bi-megaphone-fill text-amber' : 'bi bi-info-circle-fill'"
-                            class="board-icon"
-                            aria-hidden="true"
-                        ></i>
-                        <span class="board-eyebrow">
-                            {{ publicAnnouncements.length ? 'PENGUMUMAN SEKOLAH' : 'PAPAN INFORMASI' }}
+                <!-- Papan Informasi / Pengumuman Resmi Sekolah -->
+                <section
+                    class="brand-board"
+                    :class="{ 'has-announcements': publicAnnouncements.length > 0 }"
+                    aria-label="Papan Informasi Sekolah"
+                >
+                    <div class="board-header">
+                        <div class="board-header-left">
+                            <i
+                                :class="publicAnnouncements.length ? 'bi bi-megaphone-fill text-amber' : 'bi bi-info-circle-fill'"
+                                class="board-icon"
+                                aria-hidden="true"
+                            ></i>
+                            <span class="board-eyebrow">
+                                {{ publicAnnouncements.length ? 'PENGUMUMAN SEKOLAH' : 'TENTANG LMS' }}
+                            </span>
+                        </div>
+                        <span class="board-count-pill">
+                            {{ publicAnnouncements.length ? `${publicAnnouncements.length} pengumuman` : 'Info Portal' }}
                         </span>
                     </div>
-                    <span class="board-count-pill">
-                        {{ publicAnnouncements.length ? `${publicAnnouncements.length} pengumuman` : 'Info Portal' }}
-                    </span>
-                </div>
 
                 <!-- Jika ada pengumuman publik yang disematkan -->
                 <div v-if="publicAnnouncements.length" class="board-list">
@@ -187,35 +187,35 @@ function submit() {
                 </div>
 
                 <!-- Jika belum ada pengumuman publik (mengisi panel dengan panduan yang bermanfaat) -->
-                <div v-else class="board-empty-state">
-                    <p class="board-empty-intro">
-                        Selamat datang di portal pembelajaran digital {{ branding.school_name }}. Papan ini memuat informasi dan pengumuman resmi yang ditujukan bagi seluruh civitas sekolah.
-                    </p>
-                    <div class="board-quick-guide">
-                        <div class="guide-item">
-                            <i class="bi bi-mortarboard-fill guide-icon" aria-hidden="true"></i>
-                            <div class="guide-content">
-                                <strong class="guide-title">Akses Pembelajaran Terpadu</strong>
-                                <span class="guide-text">Masuk menggunakan kredensial resmi sekolah untuk mengakses materi, tugas, dan ujian daring.</span>
+                    <div v-else class="board-empty-state">
+                        <p class="board-empty-intro">
+                            Portal pembelajaran digital untuk seluruh civitas {{ branding.school_name }}.
+                        </p>
+                        <div class="board-quick-guide">
+                            <div class="guide-item">
+                                <i class="bi bi-mortarboard-fill guide-icon" aria-hidden="true"></i>
+                                <div class="guide-content">
+                                    <strong class="guide-title">Belajar terarah</strong>
+                                    <span class="guide-text">Materi, tugas, dan ujian dalam satu tempat.</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="guide-item">
-                            <i class="bi bi-shield-check guide-icon" aria-hidden="true"></i>
-                            <div class="guide-content">
-                                <strong class="guide-title">Jaga Keamanan Akun</strong>
-                                <span class="guide-text">Jangan bagikan kata sandi kepada orang lain dan selalu keluar setelah menggunakan perangkat bersama.</span>
+                            <div class="guide-item">
+                                <i class="bi bi-shield-check guide-icon" aria-hidden="true"></i>
+                                <div class="guide-content">
+                                    <strong class="guide-title">Akun tetap aman</strong>
+                                    <span class="guide-text">Gunakan akun resmi sekolah dan jangan bagikan kata sandi.</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="guide-item">
-                            <i class="bi bi-question-circle-fill guide-icon" aria-hidden="true"></i>
-                            <div class="guide-content">
-                                <strong class="guide-title">Bantuan &amp; Kendala Akses</strong>
-                                <span class="guide-text">Jika lupa kata sandi atau akun bermasalah, silakan hubungi wali kelas atau admin sekolah.</span>
+                            <div class="guide-item">
+                                <i class="bi bi-question-circle-fill guide-icon" aria-hidden="true"></i>
+                                <div class="guide-content">
+                                    <strong class="guide-title">Perlu bantuan?</strong>
+                                    <span class="guide-text">Hubungi wali kelas atau admin sekolah.</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
             <!-- Footer Panel Kiri: Tanggal & Hak Cipta -->
             <footer class="brand-footer">
@@ -388,7 +388,7 @@ function submit() {
     min-height: 100vh;
     width: 100%;
     display: grid;
-    grid-template-columns: minmax(420px, 46%) minmax(460px, 54%);
+    grid-template-columns: minmax(400px, 42%) minmax(500px, 58%);
     background: var(--login-bg);
     color: var(--login-text);
     font-family: var(--font-sans);
@@ -404,7 +404,7 @@ function submit() {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 36px;
+    gap: 28px;
     color: #ffffff;
 }
 
@@ -412,7 +412,7 @@ function submit() {
     display: flex;
     align-items: center;
     gap: 14px;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
 }
 
 .brand-logo-box {
@@ -484,7 +484,7 @@ function submit() {
     color: #ffffff;
     display: flex;
     flex-direction: column;
-    flex: 1;
+    flex: 0 1 auto;
     min-height: 0;
 }
 
@@ -630,9 +630,8 @@ function submit() {
 .board-empty-state {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    flex: 1;
-    justify-content: center;
+    gap: 12px;
+    justify-content: flex-start;
 }
 
 .board-empty-intro {
@@ -645,14 +644,14 @@ function submit() {
 .board-quick-guide {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .guide-item {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    padding: 10px 12px;
+    padding: 8px 10px;
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -678,7 +677,7 @@ function submit() {
 }
 
 .guide-text {
-    font-size: 0.73rem;
+    font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.74);
     line-height: 1.35;
 }
@@ -716,7 +715,7 @@ function submit() {
 
 .login-form-wrapper {
     width: 100%;
-    max-width: 420px;
+    max-width: 440px;
     margin: 0 auto;
 }
 
@@ -846,6 +845,11 @@ function submit() {
     background: transparent !important;
     color: var(--login-text) !important;
     font-size: 0.9rem;
+    box-shadow: none !important;
+}
+
+.login-page .form-control:focus-visible {
+    outline: 0;
     box-shadow: none !important;
 }
 
@@ -1045,7 +1049,12 @@ function submit() {
 }
 
 .brand-lower {
-    display: contents;
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 18px;
 }
 
 /* Responsive Layout */
@@ -1073,6 +1082,7 @@ function submit() {
 
     .brand-lower {
         display: flex;
+        flex: none;
         flex-direction: column;
         gap: 24px;
         order: 3;

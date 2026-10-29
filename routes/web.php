@@ -271,6 +271,8 @@ Route::middleware(['auth', 'role:siswa', RequireStudentPhone::class])->prefix('s
     Route::post('/ujian/attempt/{attempt}/jawab', [SiswaUjianController::class, 'jawab'])->name('ujian.jawab');
     Route::post('/ujian/attempt/{attempt}/submit', [SiswaUjianController::class, 'submit'])->name('ujian.submit');
     Route::post('/ujian/attempt/{attempt}/tab-switch', [SiswaUjianController::class, 'logTabSwitch'])->name('ujian.tab-switch');
+    Route::post('/ujian/attempt/{attempt}/event', [SiswaUjianController::class, 'catatEvent'])->name('ujian.event')->middleware('throttle:ujian-event');
+    Route::post('/ujian/attempt/{attempt}/heartbeat', [SiswaUjianController::class, 'heartbeat'])->name('ujian.heartbeat')->middleware('throttle:ujian-event');
     Route::get('/ujian/attempt/{attempt}/hasil', [SiswaUjianController::class, 'hasil'])->name('ujian.hasil');
 
     Route::get('/nilai', [SiswaNilaiController::class, 'index'])->name('nilai.index');

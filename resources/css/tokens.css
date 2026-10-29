@@ -60,15 +60,14 @@
     --sidebar-width: 248px;
     --topbar-height: 64px;
 
-    /* Shell navy: identitas navigasi tetap stabil, aksen sekolah tetap dipakai
-     * untuk active state dan CTA. */
-    --sidebar-navy: #102a43;
-    --sidebar-foreground: #d9e7f5;
-    --sidebar-foreground-strong: #f8fafc;
-    --sidebar-foreground-muted: #a9bfd5;
-    --sidebar-border-color: rgba(217, 231, 245, 0.18);
-    --sidebar-hover: rgba(217, 231, 245, 0.1);
-    --sidebar-active-bg: color-mix(in srgb, var(--primary-500) 30%, var(--sidebar-navy));
+    /* Shell mengikuti tema sekolah; tidak ada warna navy global yang menimpa tema. */
+    --sidebar-surface: var(--sidebar-bg, var(--app-primary));
+    --sidebar-foreground: color-mix(in srgb, white 90%, var(--sidebar-surface) 10%);
+    --sidebar-foreground-strong: white;
+    --sidebar-foreground-muted: color-mix(in srgb, white 68%, var(--sidebar-surface) 32%);
+    --sidebar-border-color: color-mix(in srgb, white 22%, transparent);
+    --sidebar-hover: color-mix(in srgb, var(--app-primary) 20%, transparent);
+    --sidebar-active-bg: color-mix(in srgb, var(--app-primary) 72%, var(--sidebar-surface) 28%);
 
     /* Spasi */
     --space-1: 0.25rem;
@@ -206,13 +205,13 @@
     --text-strong: #f8fafc;
     --text-body: #dbe4f0;
     --text-muted: #9fb0c5;
-    --sidebar-navy: #0b1f33;
-    --sidebar-foreground: #d9e7f5;
-    --sidebar-foreground-strong: #f8fafc;
-    --sidebar-foreground-muted: #a9bfd5;
-    --sidebar-border-color: rgba(217, 231, 245, 0.18);
-    --sidebar-hover: rgba(217, 231, 245, 0.1);
-    --sidebar-active-bg: color-mix(in srgb, var(--primary-500) 34%, var(--sidebar-navy));
+    --sidebar-surface: var(--sidebar-bg, var(--app-primary));
+    --sidebar-foreground: color-mix(in srgb, white 90%, var(--sidebar-surface) 10%);
+    --sidebar-foreground-strong: white;
+    --sidebar-foreground-muted: color-mix(in srgb, white 68%, var(--sidebar-surface) 32%);
+    --sidebar-border-color: color-mix(in srgb, white 22%, transparent);
+    --sidebar-hover: color-mix(in srgb, var(--app-primary) 24%, transparent);
+    --sidebar-active-bg: color-mix(in srgb, var(--app-primary) 78%, var(--sidebar-surface) 22%);
     --text-inverse: #0f172a;
     --gray-50: #0f172a;
     --gray-100: #172033;

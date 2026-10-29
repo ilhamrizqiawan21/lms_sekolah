@@ -19,13 +19,13 @@ class StudentPhoneSettingsTest extends TestCase
         config(['security.require_student_phone' => true]);
     }
 
-    public function test_student_is_redirected_to_password_settings_even_when_phone_requirement_is_disabled(): void
+    public function test_student_is_not_redirected_to_password_settings_when_phone_requirement_is_disabled(): void
     {
         config(['security.require_student_phone' => false]);
         $user = $this->student();
         $user->update(['is_password_default' => true]);
 
-        $this->actingAs($user)->get(route('siswa.dashboard'))->assertRedirect(route('siswa.pengaturan'));
+        $this->actingAs($user)->get(route('siswa.dashboard'))->assertOk();
         $this->get(route('siswa.pengaturan'))->assertOk()->assertInertia(fn ($page) => $page
             ->component('Account/Pengaturan')
             ->where('profile.siswa.phone_required', false)

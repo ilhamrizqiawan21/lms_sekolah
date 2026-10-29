@@ -26,18 +26,44 @@ interface UjianItem {
     waktu_selesai: string | null;
     is_buka: boolean;
     total_soal: number;
+    anticheat_aktif?: boolean;
+    maks_pelanggaran?: number | null;
+    wajib_fullscreen?: boolean;
     mata_pelajaran: string;
     guru: string;
-    attempt: AttemptData | null;
+    status_label?: string;
+    can_start?: boolean;
+    can_continue?: boolean;
+    can_view_hasil?: boolean;
+    attempt_id?: number | null;
     mulai_url: string;
+    kerjakan_url?: string | null;
+    hasil_url?: string | null;
+    attempt?: AttemptData | null;
 }
 
 defineProps({
     ujianList: { type: Array as PropType<UjianItem[]>, default: () => [] },
 });
 
+function statusBadgeColor(item: UjianItem): string {
+    if (item.can_continue || item.attempt?.status === 'sedang_mengerjakan') return 'primary';
+    if (item.can_view_hasil || item.attempt?.status === 'selesai' || item.attempt?.status === 'waktu_habis') {
+        return item.status_label?.startsWith('Waktu Habis') || item.attempt?.status === 'waktu_habis' ? 'danger' : 'success';
+    }
+    return item.is_buka ? 'warning' : 'secondary';
+}
+
+function aturanPengawasan(item: UjianItem): string {
+    if (!item.anticheat_aktif) return '';
+    const aturan = ['Perpindahan tab atau jendela dicatat dan dapat dilihat guru.'];
+    if (item.wajib_fullscreen) aturan.push('Ujian wajib dikerjakan dalam layar penuh.');
+    if (item.maks_pelanggaran) aturan.push(`Jika terjadi ${item.maks_pelanggaran} pelanggaran, jawaban dikumpulkan otomatis.`);
+    return ` ${aturan.join(' ')}`;
+}
+
 async function mulaiUjian(item: UjianItem) {
-    const confirmed = await window.confirmDialog?.(`Mulai mengerjakan ujian "${item.judul}"? Waktu pengerjaan (${item.durasi_menit} menit) akan langsung berjalan.`, {
+    const confirmed = await window.confirmDialog?.(`Mulai mengerjakan ujian "${item.judul}"? Waktu pengerjaan (${item.durasi_menit} menit) akan langsung berjalan.${aturanPengawasan(item)}`, {
         title: 'Mulai Ujian CBT',
         confirmText: 'Mulai Sekarang',
         danger: false,
@@ -105,7 +131,10 @@ async function mulaiUjian(item: UjianItem) {
                                 <Badge v-else color="secondary">Terbuka</Badge>
                             </td>
                             <td data-label="Status">
-                                <div v-if="item.attempt">
+                                <div v-if="item.status_label">
+                                    <Badge :color="statusBadgeColor(item)">{{ item.status_label }}</Badge>
+                                </div>
+                                <div v-else-if="item.attempt">
                                     <div v-if="item.attempt.status === 'selesai'">
                                         <Badge color="success">Selesai</Badge>
                                         <div class="small fw-bold text-primary mt-1 tabular-nums">
@@ -123,12 +152,18 @@ async function mulaiUjian(item: UjianItem) {
                                     </div>
                                 </div>
                                 <div v-else>
-                                    <Badge v-if="item.is_buka" color="warning text-dark">Belum Dikerjakan</Badge>
+                                    <Badge v-if="item.is_buka" color="warning">Belum Dikerjakan</Badge>
                                     <Badge v-else color="secondary">Belum Dibuka / Selesai</Badge>
                                 </div>
                             </td>
                             <td data-label="Aksi" class="stack-actions text-md-end">
-                                <div v-if="item.attempt">
+                                <div v-if="item.can_continue && item.kerjakan_url">
+                                    <Button :href="item.kerjakan_url" color="warning" icon="bi-play-circle" size="sm">Lanjutkan</Button>
+                                </div>
+                                <div v-else-if="item.can_view_hasil && item.hasil_url">
+                                    <Button :href="item.hasil_url" color="outline-secondary" icon="bi-eye" size="sm">Lihat Hasil</Button>
+                                </div>
+                                <div v-else-if="item.attempt">
                                     <Button
                                         v-if="item.attempt.status === 'sedang_mengerjakan'"
                                         :href="item.attempt.action_url"
@@ -153,7 +188,7 @@ async function mulaiUjian(item: UjianItem) {
                                         color="primary"
                                         icon="bi-pencil-fill"
                                         size="sm"
-                                        :disabled="!item.is_buka"
+                                        :disabled="item.can_start !== undefined ? !item.can_start : !item.is_buka"
                                         @click="mulaiUjian(item)"
                                     >
                                         Mulai Ujian

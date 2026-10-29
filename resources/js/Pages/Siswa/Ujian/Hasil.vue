@@ -14,9 +14,10 @@ interface AttemptSummary {
     waktu_mulai: string | null;
     waktu_submit: string | null;
     total_soal: number;
-    benar_count: number;
-    salah_count: number;
-    tidak_dijawab_count: number;
+    total_benar: number;
+    total_salah: number;
+    total_kosong: number;
+    alasan_selesai?: string | null;
 }
 
 const props = defineProps({
@@ -55,6 +56,10 @@ const props = defineProps({
 
         <div class="row justify-content-center">
             <div class="col-lg-8">
+                <div v-if="attempt.alasan_selesai === 'pelanggaran'" class="alert alert-warning small" role="status">
+                    <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true" />
+                    Jawaban dikumpulkan otomatis karena batas pelanggaran ujian tercapai.
+                </div>
                 <Card title="Hasil Pengerjaan Ujian">
                     <!-- Status Banner -->
                     <div class="text-center py-4 border-bottom mb-4">
@@ -81,21 +86,21 @@ const props = defineProps({
                             <div class="p-3 border rounded bg-success-subtle">
                                 <i class="bi bi-check-circle-fill text-success fs-4 d-block mb-1" />
                                 <span class="small text-body-secondary">Jawaban Benar</span>
-                                <h4 class="fw-bold text-success mb-0 tabular-nums">{{ attempt.benar_count }}</h4>
+                            <h4 class="fw-bold text-success mb-0 tabular-nums">{{ attempt.total_benar }}</h4>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-3 border rounded bg-danger-subtle">
                                 <i class="bi bi-x-circle-fill text-danger fs-4 d-block mb-1" />
                                 <span class="small text-body-secondary">Jawaban Salah</span>
-                                <h4 class="fw-bold text-danger mb-0 tabular-nums">{{ attempt.salah_count }}</h4>
+                            <h4 class="fw-bold text-danger mb-0 tabular-nums">{{ attempt.total_salah }}</h4>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-3 border rounded bg-light-subtle">
                                 <i class="bi bi-dash-circle text-body-secondary fs-4 d-block mb-1" />
                                 <span class="small text-body-secondary">Tidak Dijawab</span>
-                                <h4 class="fw-bold text-body-secondary mb-0 tabular-nums">{{ attempt.tidak_dijawab_count }}</h4>
+                            <h4 class="fw-bold text-body-secondary mb-0 tabular-nums">{{ attempt.total_kosong }}</h4>
                             </div>
                         </div>
                     </div>

@@ -37,7 +37,7 @@ test('CBT anti-cheat: keluar/kembali/salin dicatat sekali dan tampil di detail j
         await themeButton.click();
     }
     await expect(siswa.locator('html')).toHaveAttribute('data-bs-theme', 'dark');
-    await expect(siswa.locator('.exam-option-letter').first()).toHaveCSS('background-color', 'rgb(20, 30, 49)');
+    await expect(siswa.locator('.exam-option-letter').first()).toHaveCSS('background-color', 'rgb(17, 28, 49)');
 
     const options = siswa.getByRole('radio');
     await options.first().focus();

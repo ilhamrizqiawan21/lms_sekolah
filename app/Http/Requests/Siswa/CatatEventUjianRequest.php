@@ -12,18 +12,13 @@ class CatatEventUjianRequest extends FormRequest
     public function authorize(): bool
     {
         $user = $this->user();
-        if (! $user || ! $user->isSiswa()) {
-            return false;
-        }
-
         $attempt = $this->route('attempt');
-        if (! $attempt instanceof UjianAttempt) {
+
+        if (! $user || ! $user->isSiswa() || ! $attempt instanceof UjianAttempt) {
             return false;
         }
 
-        $siswa = $user->siswa;
-
-        return $siswa && (int) $attempt->siswa_id === (int) $siswa->id;
+        return $user->siswa && (int) $attempt->siswa_id === (int) $user->siswa->id;
     }
 
     public function rules(): array

@@ -7,9 +7,11 @@ use App\Models\SoalBankOpsi;
 use App\Models\Ujian;
 use App\Models\UjianAttempt;
 use App\Models\UjianAttemptEvent;
+use App\Models\User;
 use App\Services\CbtAntiCheatService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\Concerns\MembuatUjianCbt;
 use Tests\TestCase;
 
@@ -61,7 +63,7 @@ class CbtAntiCheatPolicyTest extends TestCase
         yield 'bukti non-pelanggaran tidak dihitung' => [[['heartbeat_gap', $t.'10'], ['salin', $t.'20'], ['klik_kanan', $t.'30']], $t.'59', true, 0];
     }
 
-    /** @dataProvider skenarioHitung */
+    #[DataProvider('skenarioHitung')]
     public function test_hitung_pelanggaran_dari_event(array $baris, string $sekarang, bool $wajibFullscreen, int $diharapkan): void
     {
         $events = array_map(fn (array $b) => $this->event($b[0], $b[1]), $baris);
@@ -301,7 +303,7 @@ class CbtAntiCheatPolicyTest extends TestCase
         $this->assertFalse($ujian->wajib_fullscreen);
     }
 
-    /** @dataProvider batasTidakValid */
+    #[DataProvider('batasTidakValid')]
     public function test_batas_pelanggaran_tidak_valid_ditolak(mixed $nilai): void
     {
         $this->siapkanUjian();
