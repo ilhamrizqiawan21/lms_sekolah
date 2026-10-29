@@ -30,7 +30,7 @@ body {
 .skip-link:focus {
     transform:translateY(0);
 }
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+:is(a, button, input, select, textarea, [tabindex]):focus-visible {
     outline:3px solid color-mix(in srgb, var(--primary-500) 42%, white);
     outline-offset:2px;
 }
@@ -87,11 +87,11 @@ body {
 .notification-link.unread { background:var(--status-danger-bg); }
 .notification-item-title { font-size:.8rem; font-weight:400; }
 .notification-link.unread .notification-item-title { font-weight:600; }
-.notification-item-message { font-size:.7rem; color:var(--gray-500); }
-.notification-item-time { font-size:.6rem; color:var(--gray-400); }
-.notification-action-link { font-size:.8rem; color:var(--primary-600); }
-.notification-mark-all { font-size:.7rem; color:var(--primary-600); }
-.notification-count { font-size:.55rem; }
+.notification-item-message { font-size:var(--fs-caption); color:var(--gray-500); }
+.notification-item-time { font-size:var(--fs-xs); color:var(--gray-400); }
+.notification-action-link { font-size:var(--fs-caption); color:var(--primary-600); }
+.notification-mark-all { font-size:var(--fs-xs); color:var(--primary-600); }
+.notification-count { font-size:var(--fs-xs); }
 
 /* ── SIDEBAR ── */
 /* ── SIDEBAR ── */
@@ -222,7 +222,7 @@ body {
     background:var(--surface-muted);
     border:1px solid var(--modern-border, var(--gray-200));
     color:var(--text-strong);
-    width:38px; height:38px; border-radius:0.55rem;
+    width:44px; height:44px; border-radius:0.55rem;
     cursor:pointer; display:flex; align-items:center; justify-content:center;
     font-size:1rem; transition:background-color 0.15s ease, border-color 0.15s ease;
 }
@@ -903,7 +903,7 @@ footer { text-align:center; padding:1.5rem; color:var(--gray-400); font-size:0.7
 @media (max-width: 480px) {
     .stats-grid { grid-template-columns:1fr; }
     .topbar { gap:0.5rem; padding:0 0.65rem; }
-    .topbar-toggle-btn { width:34px; height:34px; }
+    .topbar-toggle-btn { width:44px; height:44px; }
     .topbar-logo-icon { width:32px; height:32px; }
     .topbar-title-main { font-size:0.82rem; }
     .topbar-title-sub { display:none; }
@@ -930,7 +930,7 @@ footer { text-align:center; padding:1.5rem; color:var(--gray-400); font-size:0.7
         flex-direction:column;
     }
     .table-responsive { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-    .table td, .table th { white-space:nowrap; font-size:0.78rem; padding:0.4rem 0.5rem; }
+    .table td, .table th { white-space:nowrap; font-size:var(--fs-caption); padding:0.4rem 0.5rem; }
     .table-action-column { min-width:78px; }
     .table-action-column > .d-inline-flex {
         gap:0.2rem !important;

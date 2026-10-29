@@ -18,9 +18,10 @@ class CredentialAndSeederHardeningTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_temporary_password_blocks_every_role_until_it_is_changed(): void
+    public function test_temporary_password_blocks_every_role_when_force_change_is_enabled(): void
     {
         config(['security.require_student_phone' => false]);
+        config(['security.force_password_change' => true]);
 
         $routes = [
             'admin' => ['dashboard' => 'admin.dashboard', 'settings' => 'admin.pengaturan-akun'],
@@ -36,6 +37,16 @@ class CredentialAndSeederHardeningTest extends TestCase
                 ->get(route($routeNames['dashboard']))
                 ->assertRedirect(route($routeNames['settings']));
         }
+    }
+
+    public function test_temporary_password_does_not_block_access_when_force_change_is_disabled(): void
+    {
+        config(['security.force_password_change' => false]);
+        $user = $this->makeDefaultUser('admin', 'admin-no-password-redirect');
+
+        $this->actingAs($user)
+            ->get(route('admin.dashboard'))
+            ->assertOk();
     }
 
     public function test_student_can_clear_temporary_password_flag_from_the_allowed_settings_route(): void

@@ -200,7 +200,7 @@ class P0AdminHardeningTest extends TestCase
         }
     }
 
-    public function test_staff_and_student_password_reset_uses_unique_temporary_passwords(): void
+    public function test_staff_and_student_password_reset_uses_the_operational_default_password(): void
     {
         $admin = $this->makeUser('admin', 'admin-reset-p0');
         $guru = $this->makeUser('guru', 'guru-reset-p0', true, 'old-password', false);
@@ -231,9 +231,8 @@ class P0AdminHardeningTest extends TestCase
 
         $this->assertIsString($staffPassword);
         $this->assertIsString($studentPassword);
-        $this->assertNotSame(User::LEGACY_DEFAULT_PASSWORD, $staffPassword);
-        $this->assertNotSame(User::LEGACY_DEFAULT_PASSWORD, $studentPassword);
-        $this->assertNotSame($staffPassword, $studentPassword);
+        $this->assertSame(User::LEGACY_DEFAULT_PASSWORD, $staffPassword);
+        $this->assertSame(User::LEGACY_DEFAULT_PASSWORD, $studentPassword);
         $this->assertTrue(Hash::check($staffPassword, $guru->password));
         $this->assertTrue(Hash::check($studentPassword, $studentUser->password));
         $this->assertTrue((bool) $guru->is_password_default);

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import SidebarLink from './SidebarLink.vue';
 import { mobileNav, sidebarMenu, type MobileNavItem } from './sidebarMenu';
@@ -8,8 +8,11 @@ import type { AppPageProps, AuthUser, Capabilities, SchoolBranding, SidebarItem,
 interface Props { open?: boolean; mobile?: boolean; school: SchoolBranding; user?: AuthUser | null; capabilities?: Capabilities; }
 const props = withDefaults(defineProps<Props>(), { open: false, mobile: false, user: null, capabilities: () => ({ has_wali_kelas: false }) });
 const emit = defineEmits<{ close: [] }>();
+const sidebar = ref<HTMLElement | null>(null);
 const sidebarNav = ref<HTMLElement | null>(null);
 const sidebarScrollStorageKey = 'lms.sidebar.scrollTop';
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
+let previousFocus: HTMLElement | null = null;
 
 const page = usePage<AppPageProps>();
 const menu = computed(() => sidebarMenu(props.user?.role, props.capabilities));
@@ -46,6 +49,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    releaseDrawer();
     if (sidebarNav.value) {
         sessionStorage.setItem(sidebarScrollStorageKey, String(sidebarNav.value.scrollTop));
     }
@@ -69,10 +73,90 @@ function handleNavigation(event: MouseEvent) {
         emit('close');
     }
 }
+
+function focusables(): HTMLElement[] {
+    return [...(sidebar.value?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])]
+        .filter((element) => element.getClientRects().length > 0
+            && (element.tagName === 'SUMMARY' || !element.closest('details:not([open])')));
+}
+
+function handleDrawerKeydown(event: KeyboardEvent) {
+    if (!props.mobile || !props.open) {
+        return;
+    }
+
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        emit('close');
+        return;
+    }
+
+    if (event.key !== 'Tab') {
+        return;
+    }
+
+    const elements = focusables();
+    if (!elements.length) {
+        event.preventDefault();
+        sidebar.value?.focus();
+        return;
+    }
+
+    const first = elements[0];
+    const last = elements[elements.length - 1];
+
+    const activeIndex = elements.indexOf(document.activeElement as HTMLElement);
+    if (event.shiftKey && (activeIndex === 0 || document.activeElement === sidebar.value)) {
+        event.preventDefault();
+        event.stopPropagation();
+        last.focus();
+    } else if (!event.shiftKey && activeIndex === elements.length - 1) {
+        event.preventDefault();
+        event.stopPropagation();
+        first.focus();
+    }
+}
+
+async function openDrawer() {
+    previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    window.addEventListener('keydown', handleDrawerKeydown, true);
+    await nextTick();
+    focusables()[0]?.focus();
+}
+
+function releaseDrawer() {
+    window.removeEventListener('keydown', handleDrawerKeydown, true);
+
+    if (previousFocus?.isConnected) {
+        previousFocus.focus();
+    }
+
+    previousFocus = null;
+}
+
+watch(() => props.open && props.mobile, (active, wasActive) => {
+    if (active && !wasActive) {
+        void openDrawer();
+    } else if (!active && wasActive) {
+        releaseDrawer();
+    }
+}, { immediate: true });
 </script>
 
 <template>
-    <aside id="sidebar" class="sidebar modern-sidebar" :class="{ 'sidebar-open': props.open, 'sidebar-closed': !props.open }">
+    <aside
+        id="sidebar"
+        ref="sidebar"
+        class="sidebar modern-sidebar"
+        :class="{ 'sidebar-open': props.open, 'sidebar-closed': !props.open }"
+        :role="props.mobile ? 'dialog' : undefined"
+        :aria-label="props.mobile ? 'Navigasi utama' : undefined"
+        :aria-modal="props.mobile && props.open ? 'true' : undefined"
+        :aria-hidden="props.mobile && !props.open ? 'true' : undefined"
+        :inert="props.mobile && !props.open ? true : undefined"
+        tabindex="-1"
+        @keydown="handleDrawerKeydown"
+    >
         <div class="sidebar-header">
             <div class="sidebar-logo-icon">
                 <img v-if="school.logo_url && !school.logo_url.startsWith('data:')" :src="school.logo_url" :alt="`Logo ${school.name}`" class="sidebar-logo-image" width="36" height="36" decoding="async">
@@ -279,7 +363,7 @@ function handleNavigation(event: MouseEvent) {
 .app-shell .sidebar.modern-sidebar .sidebar-menu li:first-child .nav-section { margin-top: 3px; }
 .app-shell .sidebar.modern-sidebar .sidebar-menu :deep(.nav-link) {
     display: flex;
-    min-height: 38px;
+    min-height: 44px;
     align-items: center;
     gap: 11px;
     margin: 2px 0;
@@ -288,7 +372,7 @@ function handleNavigation(event: MouseEvent) {
     border-radius: 9px;
     background: transparent;
     color: var(--sidebar-text);
-    font-size: 12px;
+    font-size: var(--fs-caption);
     font-weight: 580;
     line-height: 1.5;
     text-decoration: none;

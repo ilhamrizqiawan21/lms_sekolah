@@ -193,7 +193,7 @@ class KelasSiswaController extends Controller
         return back()->with('success', 'Data siswa berhasil diperbarui.');
     }
 
-    // Reset password ke password sementara acak.
+    // Reset password ke password standar operasional.
     public function resetPassword(Siswa $siswa)
     {
         $this->ensureAdmin();
@@ -252,7 +252,7 @@ class KelasSiswaController extends Controller
 
     private function generateInitialPassword(): string
     {
-        return User::temporaryPassword();
+        return User::LEGACY_DEFAULT_PASSWORD;
     }
 
     private function ensureAdmin(): void

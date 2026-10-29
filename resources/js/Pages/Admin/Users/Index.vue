@@ -76,7 +76,7 @@ async function toggleActive(user: AdminUser): Promise<void> {
 }
 
 async function resetPassword(user: AdminUser): Promise<void> {
-    const confirmed = await window.confirmDialog?.(`Buat password sementara baru untuk ${user.nama_lengkap}?`, {
+    const confirmed = await window.confirmDialog?.(`Reset password ${user.nama_lengkap} ke 123456?`, {
         title: 'Reset Password',
         confirmText: 'Ya, buat password baru',
     });
@@ -124,7 +124,7 @@ async function destroy(user: AdminUser): Promise<void> {
             <div>Nama: <strong>{{ initialPassword.name }}</strong></div>
             <div>Username: <code>{{ initialPassword.username }}</code></div>
             <div>Password: <code>{{ initialPassword.password }}</code></div>
-            <div class="small mt-2">Simpan dan serahkan password ini melalui kanal aman. Password hanya ditampilkan setelah proses berhasil dan wajib diganti saat login.</div>
+            <div class="small mt-2">Simpan dan serahkan password ini melalui kanal aman.</div>
         </div>
 
         <Card title="Daftar Guru dan Staf" icon="bi-people-fill">
@@ -206,7 +206,7 @@ async function destroy(user: AdminUser): Promise<void> {
                                     />
                                     <IconButton
                                         icon="bi-key"
-                                        :label="`Buat password sementara baru untuk ${user.nama_lengkap}`"
+                                        :label="`Reset password ${user.nama_lengkap} ke 123456`"
                                         color="outline-warning"
                                         @click="resetPassword(user)"
                                     />

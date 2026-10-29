@@ -51,7 +51,7 @@ function scoreColor(score: number) {
         <div class="row g-4">
             <div class="col-12">
                 <Card title="Dashboard KPI Guru" body-class="p-0">
-                    <TableWrapper v-if="teachers.length" :min-width="700">
+                    <TableWrapper v-if="teachers.length" stack :min-width="700">
                         <table class="table table-hover align-middle mb-0 performance-table">
                             <thead>
                                 <tr>
@@ -67,29 +67,29 @@ function scoreColor(score: number) {
                             </thead>
                             <tbody>
                                 <tr v-for="teacher in teachers" :key="teacher.id">
-                                    <td>
+                                    <td data-label="Guru" class="stack-title">
                                         <strong>{{ teacher.nama }}</strong>
                                         <div class="text-body-secondary small">@{{ teacher.username }}</div>
                                     </td>
-                                    <td>
+                                    <td data-label="Skor">
                                         <Badge :color="scoreColor(teacher.score)" class="tabular-nums">{{ teacher.score }}</Badge>
                                         <div class="text-body-secondary small">{{ teacher.kategori }}</div>
                                     </td>
-                                    <td>
+                                    <td data-label="Kelas/Mapel">
                                         <strong class="tabular-nums">{{ teacher.total_kelas_mapel }}</strong>
                                         <div class="text-body-secondary small">{{ teacher.courses.slice(0, 2).join(', ') || '-' }}</div>
                                     </td>
-                                    <td class="tabular-nums">{{ teacher.total_tugas }}</td>
-                                    <td>
+                                    <td data-label="Tugas" class="tabular-nums">{{ teacher.total_tugas }}</td>
+                                    <td data-label="Pengumpulan">
                                         <span class="tabular-nums">{{ teacher.pengumpulan_siswa }}/{{ teacher.target_pengumpulan }}</span>
                                         <div class="text-body-secondary small tabular-nums">{{ teacher.persen_pengumpulan }}%</div>
                                     </td>
-                                    <td>
+                                    <td data-label="Penilaian">
                                         <span class="tabular-nums">{{ teacher.sudah_dinilai }}</span>
                                         <div class="text-body-secondary small tabular-nums">{{ teacher.persen_dinilai }}% · {{ teacher.perlu_dinilai }} perlu</div>
                                     </td>
-                                    <td class="tabular-nums">{{ teacher.persen_feedback }}%</td>
-                                    <td class="tabular-nums">{{ teacher.rata_nilai_tugas ?? '-' }}</td>
+                                    <td data-label="Feedback" class="tabular-nums">{{ teacher.persen_feedback }}%</td>
+                                    <td data-label="Rata-rata" class="tabular-nums">{{ teacher.rata_nilai_tugas ?? '-' }}</td>
                                 </tr>
                             </tbody>
                         </table>
