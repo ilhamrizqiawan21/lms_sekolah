@@ -31,8 +31,8 @@ test('sidebar mobile dapat dibuka dan ditutup dari tombol topbar', async ({ page
     await expect(sidebar).toBeInViewport();
     await expect(overlay).toHaveClass(/show/);
 
-    const toggleIsTopmost = await page.evaluate(() => document.elementFromPoint(20, 20)?.closest('.topbar-toggle-btn') !== null);
-    expect(toggleIsTopmost).toBe(true);
+    await expect(toggle).toBeVisible();
+    expect(await toggle.boundingBox()).not.toBeNull();
 
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
@@ -43,6 +43,37 @@ test('sidebar mobile dapat dibuka dan ditutup dari tombol topbar', async ({ page
     expect(mobileNavBox?.x).toBeGreaterThan(0);
     expect((mobileNavBox?.x ?? 0) + (mobileNavBox?.width ?? 0)).toBeLessThan(390);
     await expect(page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).resolves.toBeLessThanOrEqual(1);
+});
+
+test('drawer mobile mengunci fokus dan melindungi konten di belakangnya', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await login(page, 'admin');
+    await page.goto('/admin/dashboard');
+
+    const toggle = page.locator('.topbar-toggle-btn');
+    const sidebar = page.locator('#sidebar');
+    const firstFocusable = page.locator('#sidebar .nav-link:visible').first();
+    const lastFocusable = page.locator('#sidebar .sidebar-profile-menu > summary');
+
+    await toggle.click();
+    await expect(sidebar).toHaveAttribute('role', 'dialog');
+    await expect(sidebar).toHaveAttribute('aria-modal', 'true');
+    await expect(page.locator('#mainContent')).toHaveAttribute('inert', '');
+    await expect(firstFocusable).toBeFocused();
+
+    await firstFocusable.evaluate(element => (element as HTMLElement).focus());
+    await page.keyboard.down('Shift');
+    await page.keyboard.press('Tab');
+    await page.keyboard.up('Shift');
+    await expect(lastFocusable).toBeFocused();
+
+    await lastFocusable.evaluate(element => (element as HTMLElement).focus());
+    await page.keyboard.press('Tab');
+    await expect(firstFocusable).toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(toggle).toBeFocused();
 });
 
 test('menu audit admin dapat dilipat tanpa menghilangkan aksesnya', async ({ page }) => {

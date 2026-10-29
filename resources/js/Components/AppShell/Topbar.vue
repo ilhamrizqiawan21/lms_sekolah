@@ -307,9 +307,9 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
 .top-icon {
     position: relative;
     display: grid;
-    width: 36px;
-    height: 36px;
-    flex: 0 0 36px;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
     place-items: center;
     border: 1px solid transparent;
     border-radius: 9px;
@@ -321,10 +321,10 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
     font-size: 15px;
 }
 .topbar .topbar-search {
-    width: 36px;
-    min-width: 36px;
-    max-width: 36px;
-    flex: 0 0 36px;
+    width: 44px;
+    min-width: 44px;
+    max-width: 44px;
+    flex: 0 0 44px;
     padding: 0;
 }
 .top-icon:hover {

@@ -61,14 +61,18 @@ for (const mode of ['light', 'dark'] as const) {
         await save.hover();
         await page.waitForTimeout(200);
         expect(await appearance(save)).toEqual(hover);
-        await save.focus();
+        await save.evaluate(element => (element as HTMLElement).focus());
+        await page.keyboard.press('Tab');
+        await page.keyboard.down('Shift');
+        await page.keyboard.press('Tab');
+        await page.keyboard.up('Shift');
         await expect(save).toHaveCSS('outline-style', 'solid');
         await save.evaluate(element => { (element as HTMLButtonElement).disabled = true; });
         await expect(save).toBeDisabled();
         await expect(save).toHaveCSS('opacity', '0.6');
         await expect(save).toHaveCSS('background-color', normal.background);
 
-        const badge = page.locator('.assignment-form-panel .badge').last();
+        const badge = page.locator('.workspace-panel .badge').last();
         expect(await badge.evaluate(element => getComputedStyle(element).backgroundColor)).not.toEqual(normal.background);
     });
 }

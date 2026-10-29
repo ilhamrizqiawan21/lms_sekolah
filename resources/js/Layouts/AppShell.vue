@@ -71,7 +71,12 @@ function closeSidebar() {
     <div :class="[shellClass, { 'sidebar-is-open': sidebarOpen, 'sidebar-is-collapsed': !sidebarOpen }]" @keydown.esc.window="closeSidebar">
         <a href="#mainContent" class="skip-link">Lewati ke konten utama</a>
 
-        <div class="sidebar-overlay" :class="{ show: sidebarOverlayVisible }" @click="closeSidebar"></div>
+        <div
+            class="sidebar-overlay"
+            :class="{ show: sidebarOverlayVisible }"
+            aria-hidden="true"
+            @click="closeSidebar"
+        ></div>
 
         <Topbar
             :school="school"
@@ -89,10 +94,15 @@ function closeSidebar() {
             :school="school"
             :user="user"
             :capabilities="capabilities"
-            @open-menu="sidebarOpen = !sidebarOpen"
+            @close="closeSidebar"
         />
 
-        <main id="mainContent" class="main-content" tabindex="-1">
+        <main
+            id="mainContent"
+            class="main-content"
+            tabindex="-1"
+            :inert="sidebarOverlayVisible ? true : undefined"
+        >
             <div class="page-content">
                 <slot />
             </div>

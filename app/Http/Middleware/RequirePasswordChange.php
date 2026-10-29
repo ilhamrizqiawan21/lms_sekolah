@@ -10,7 +10,8 @@ class RequirePasswordChange
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (! config('security.require_password_change')) {
+        if (! config('security.require_password_change', false)
+            && ! config('security.force_password_change', false)) {
             return $next($request);
         }
 

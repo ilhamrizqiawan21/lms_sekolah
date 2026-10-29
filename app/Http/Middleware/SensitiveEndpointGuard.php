@@ -49,7 +49,7 @@ class SensitiveEndpointGuard
         abort_unless($user instanceof User && ! $user->isSiswa(), 404);
 
         $user->forceFill([
-            'password' => Hash::make($password = User::temporaryPassword()),
+            'password' => Hash::make($password = User::LEGACY_DEFAULT_PASSWORD),
             'is_password_default' => true,
         ])->save();
 
@@ -77,7 +77,7 @@ class SensitiveEndpointGuard
         abort_unless($siswa instanceof Siswa && $user instanceof User && $user->isSiswa(), 404);
 
         $user->forceFill([
-            'password' => Hash::make($password = User::temporaryPassword()),
+            'password' => Hash::make($password = User::LEGACY_DEFAULT_PASSWORD),
             'is_password_default' => true,
         ])->save();
 

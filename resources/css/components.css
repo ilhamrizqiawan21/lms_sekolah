@@ -14,7 +14,7 @@
 .btn:disabled,
 .btn.disabled { opacity: 0.6; }
 .btn-primary:disabled,
-.btn-success:disabled { opacity: 1; } /* sudah memakai warna pudar sendiri */
+.btn-success:disabled { opacity: 0.6; }
 .btn-outline-secondary {
     border-color: var(--border-strong);
     background: var(--surface-card);

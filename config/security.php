@@ -4,6 +4,8 @@ return [
     'require_student_phone' => env('REQUIRE_STUDENT_PHONE', false),
     // Set REQUIRE_PASSWORD_CHANGE=1 to restore the temporary-password redirect.
     'require_password_change' => env('REQUIRE_PASSWORD_CHANGE', false),
+    // FORCE_PASSWORD_CHANGE is the newer name; both flags are supported.
+    'force_password_change' => env('FORCE_PASSWORD_CHANGE', false),
     'rate_limit_per_minute' => (int) env('SECURITY_RATE_LIMIT_PER_MINUTE', 180),
     // Blokir otomatis IP yang gagal login berulang kali (lintas username).
     // Nilai ambang tinggi karena banyak siswa dapat berbagi satu IP sekolah (NAT).

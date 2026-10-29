@@ -319,14 +319,14 @@ class UserController extends Controller
     }
 
     /**
-     * Reset password guru/staf ke password sementara acak.
+     * Reset password guru/staf ke password standar operasional.
      */
     public function resetPassword(User $user)
     {
         $this->ensureAdmin();
         $this->ensureNotSiswaUser($user);
 
-        $password = User::temporaryPassword();
+        $password = User::LEGACY_DEFAULT_PASSWORD;
 
         DB::transaction(fn () => $user->update([
             'password' => Hash::make($password),

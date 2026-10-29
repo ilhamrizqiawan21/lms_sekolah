@@ -156,7 +156,7 @@ function submitEdit(item: Student) {
 }
 
 async function resetPassword(item: Student) {
-    const confirmed = await window.confirmDialog?.('Buat password sementara baru untuk siswa ini?', {
+    const confirmed = await window.confirmDialog?.('Reset password siswa ini ke 123456?', {
         title: 'Reset Password',
         confirmText: 'Ya, reset',
     });

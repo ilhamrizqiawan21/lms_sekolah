@@ -67,7 +67,7 @@ class AuditSecurityAndBackendFixesTest extends TestCase
 
     public function test_admin_can_update_password_when_temporary_password_is_enforced(): void
     {
-        config(['security.require_password_change' => true]);
+        config(['security.force_password_change' => true]);
         $adminRole = Role::firstOrCreate(['nama_role' => 'admin']);
         $admin = User::create([
             'username' => 'admin-force',
@@ -97,7 +97,7 @@ class AuditSecurityAndBackendFixesTest extends TestCase
 
     public function test_student_with_temporary_password_is_required_to_change_it(): void
     {
-        config(['security.require_password_change' => true]);
+        config(['security.force_password_change' => true]);
         $role = Role::firstOrCreate(['nama_role' => 'siswa']);
         $kelas = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'Password Change']);
         $student = User::create([

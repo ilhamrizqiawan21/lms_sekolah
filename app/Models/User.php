@@ -16,8 +16,8 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
-     * Kept for legacy data migrations and backwards-compatible test fixtures.
-     * New and reset accounts must use temporaryPassword() instead.
+     * Password standar operasional untuk aksi reset akun dan data legacy.
+     * Akun baru tanpa password eksplisit tetap memakai temporaryPassword().
      */
     public const LEGACY_DEFAULT_PASSWORD = '123456';
 

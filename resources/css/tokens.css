@@ -137,6 +137,7 @@
 
     /* Skala tipografi */
     --fs-xs: 0.75rem;
+    --fs-caption: 0.8125rem;
     --fs-sm: 0.875rem;
     --fs-md: 1rem;
     --fs-lg: 1.25rem;

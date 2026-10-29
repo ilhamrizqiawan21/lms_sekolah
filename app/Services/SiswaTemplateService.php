@@ -72,7 +72,7 @@ class SiswaTemplateService
             'nama_lengkap: wajib, maksimal 100 karakter.',
             'nis: wajib unik, maksimal 20 karakter.',
             'kelas_id: wajib berupa ID yang tersedia pada sheet "Daftar Kelas".',
-            'password: wajib diisi dengan password kuat minimal 10 karakter (huruf besar, huruf kecil, angka, dan simbol); password awal wajib diganti saat login pertama.',
+            'password: wajib diisi dengan password kuat minimal 10 karakter (huruf besar, huruf kecil, angka, dan simbol).',
             'jenis_kelamin: kosong atau L/P.',
             'angkatan: opsional.',
             'status: kosong atau aktif/lulus/keluar.',
