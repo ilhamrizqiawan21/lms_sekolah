@@ -125,7 +125,7 @@ function exportUrl(format: 'excel' | 'pdf') {
                 </div>
             </div>
 
-            <TableWrapper v-if="nilai.data.length" :min-width="860">
+            <TableWrapper v-if="nilai.data.length" stack :min-width="860">
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>

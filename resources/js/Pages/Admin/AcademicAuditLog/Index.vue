@@ -82,7 +82,7 @@ function formatValues(values: Record<string, unknown> | null) {
                 </form>
             </template>
 
-            <TableWrapper v-if="logs.data?.length">
+            <TableWrapper v-if="logs.data?.length" stack :min-width="720">
                 <table class="table table-hover mb-0 small">
                     <thead>
                         <tr>
@@ -96,17 +96,17 @@ function formatValues(values: Record<string, unknown> | null) {
                     </thead>
                     <tbody>
                         <tr v-for="log in logs.data" :key="log.id">
-                            <td class="text-nowrap">{{ log.created_at ?? '-' }}</td>
-                            <td><Badge :color="moduleColor(log.module)">{{ log.module }}</Badge></td>
-                            <td><strong>{{ log.actor }}</strong></td>
-                            <td>
+                            <td class="text-nowrap" data-label="Waktu">{{ log.created_at ?? '-' }}</td>
+                            <td data-label="Modul"><Badge :color="moduleColor(log.module)">{{ log.module }}</Badge></td>
+                            <td data-label="Pengubah"><strong>{{ log.actor }}</strong></td>
+                            <td data-label="Data">
                                 <div>{{ log.metadata.siswa ?? '-' }}</div>
                                 <small class="text-body-secondary">
                                     {{ log.metadata.kelas ?? '-' }} - {{ log.metadata.mata_pelajaran ?? '-' }}
                                 </small>
                             </td>
-                            <td class="audit-values">{{ formatValues(log.before_values) }}</td>
-                            <td class="audit-values">{{ formatValues(log.after_values) }}</td>
+                            <td class="audit-values" data-label="Sebelum">{{ formatValues(log.before_values) }}</td>
+                            <td class="audit-values" data-label="Sesudah">{{ formatValues(log.after_values) }}</td>
                         </tr>
                     </tbody>
                 </table>

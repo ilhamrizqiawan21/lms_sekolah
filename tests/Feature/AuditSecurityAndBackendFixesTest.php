@@ -9,6 +9,7 @@ use App\Models\MataPelajaran;
 use App\Models\Materi;
 use App\Models\NilaiAkhir;
 use App\Models\Pengaturan;
+use App\Models\PengumpulanFile;
 use App\Models\PengumpulanTugas;
 use App\Models\Role;
 use App\Models\Siswa;
@@ -93,6 +94,42 @@ class AuditSecurityAndBackendFixesTest extends TestCase
 
         $response->assertSessionHas('success');
         $this->assertFalse((bool) $admin->fresh()->is_password_default);
+    }
+
+    public function test_resubmission_replaces_previous_uploaded_files(): void
+    {
+        Storage::fake('local');
+        [, $siswa, $kelasMapel] = $this->createAcademicContext();
+        $tugas = Tugas::create([
+            'kelas_mapel_id' => $kelasMapel->id,
+            'judul' => 'Tugas Revisi',
+            'batas_waktu' => now()->addDay(),
+            'kategori_nilai' => 'NH',
+        ]);
+
+        $this->actingAs($siswa->user)
+            ->post(route('siswa.tugas.kumpul', $tugas), [
+                'file_upload' => UploadedFile::fake()->createWithContent('lama.pdf', 'versi lama', 'application/pdf'),
+            ])
+            ->assertRedirect();
+
+        $submission = PengumpulanTugas::where('tugas_id', $tugas->id)
+            ->where('siswa_id', $siswa->id)
+            ->firstOrFail();
+        $oldPath = $submission->file_upload;
+        $submission->update(['status' => PengumpulanTugas::STATUS_PERLU_PERBAIKAN]);
+
+        $this->actingAs($siswa->user)
+            ->post(route('siswa.tugas.kumpul', $tugas), [
+                'file_upload' => UploadedFile::fake()->createWithContent('baru.pdf', 'versi baru', 'application/pdf'),
+            ])
+            ->assertRedirect();
+
+        $submission->refresh();
+        $this->assertCount(1, PengumpulanFile::where('pengumpulan_id', $submission->id)->get());
+        $this->assertNotSame($oldPath, $submission->file_upload);
+        Storage::disk('local')->assertMissing($oldPath);
+        Storage::disk('local')->assertExists($submission->file_upload);
     }
 
     public function test_store_kelas_mapel_and_wali_kelas_reject_non_guru_user(): void

@@ -109,7 +109,7 @@ function submit() {
                             <Badge color="danger">A=Alpha</Badge>
                         </div>
 
-                        <TableWrapper :scroll-hint="false">
+                        <TableWrapper>
                             <table class="table table-bordered table-hover mb-0 wali-attendance-table">
                                 <thead>
                                     <tr>

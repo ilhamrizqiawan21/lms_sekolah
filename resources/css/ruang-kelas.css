@@ -271,7 +271,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 { letter-spacing: normal; }
         left: 0;
         width: 100%;
     }
-    .app-shell .topbar-toggle-btn { display: grid; }
+    .app-shell .topbar-toggle-btn { display: none; }
     .app-shell.sidebar-is-collapsed .main-content { margin-left: 0; }
 }
 
@@ -499,6 +499,13 @@ thead .grid-sticky-col { z-index: 3; background: var(--surface-subtle); text-ali
 .card-footer { background: transparent; border-top: 1px solid var(--border-soft); }
 .app-card-title { gap: 0.5rem; }
 .app-card-title i { color: var(--text-muted); }
+.app-card-title-text {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
 
 /* Metrik dan statistik */
 .metric-tile, .stat-card { padding: 0.875rem 1rem; gap: 0.75rem; }
@@ -688,6 +695,25 @@ thead .grid-sticky-col { z-index: 3; background: var(--surface-subtle); text-ali
 }
 .app-table-wrapper .table td, .app-table-wrapper .table th { padding-left: 0.75rem; padding-right: 0.75rem; }
 .table-action-column { width: 1%; min-width: 9.5rem; white-space: nowrap; }
+
+/* Tabel key-value profil tetap dua kolom pada mobile; jangan memaksa layar
+ * menggulir untuk data sederhana yang bisa dibungkus dengan aman. */
+.app-table-wrapper .profile-table {
+    width: 100%;
+    table-layout: fixed;
+}
+.app-table-wrapper .profile-table td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+@media (max-width: 575.98px) {
+    .app-table-wrapper .profile-table {
+        min-width: 0;
+    }
+    .app-table-wrapper .profile-table td {
+        padding-inline: 0.5rem;
+    }
+}
 
 /* Tabel daftar menjadi kartu di HP: <TableWrapper stack> + data-label pada tiap <td>.
  * .stack-title = sel judul kartu, .stack-actions = baris tombol, .stack-hide = disembunyikan di HP. */

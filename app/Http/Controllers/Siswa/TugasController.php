@@ -26,14 +26,11 @@ class TugasController extends Controller
 
     /**
      * Aturan validasi satu file tugas.
-     * Sengaja TANPA validasi MIME/konten (mimetypes/mimes) karena tebakan
-     * MIME server tidak konsisten antar perangkat dan sering menolak file
-     * .jpg/.pdf yang sah walau ukurannya di bawah batas. Cukup validasi
-     * ekstensi + ukuran, konsisten dengan validasi di sisi frontend.
+     * Validasi ekstensi dan MIME membatasi file ke gambar JPEG atau PDF.
      */
     public static function uploadFileRules(): string
     {
-        return 'nullable|file|extensions:'.self::UPLOAD_EXTENSIONS.'|max:'.self::UPLOAD_MAX_KB;
+        return 'nullable|file|mimes:jpg,jpeg,pdf|extensions:'.self::UPLOAD_EXTENSIONS.'|max:'.self::UPLOAD_MAX_KB;
     }
 
     public function index()
@@ -137,11 +134,13 @@ class TugasController extends Controller
         ], [
             'file_upload.file' => 'Upload harus berupa file.',
             'file_upload.extensions' => 'Ekstensi file harus .jpg, .jpeg, atau .pdf.',
+            'file_upload.mimes' => 'Tipe file harus JPEG atau PDF.',
             'file_upload.max' => 'Ukuran file maksimal 5MB.',
             'files.array' => 'Upload file tidak valid. Silakan pilih file ulang.',
             'files.max' => 'Maksimal '.self::MAX_UPLOAD_FILES.' file untuk satu pengumpulan tugas.',
             'files.*.file' => 'Upload harus berupa file.',
             'files.*.extensions' => 'Ekstensi file harus .jpg, .jpeg, atau .pdf.',
+            'files.*.mimes' => 'Tipe file harus JPEG atau PDF.',
             'files.*.max' => 'Ukuran setiap file maksimal 5MB.',
         ]);
 

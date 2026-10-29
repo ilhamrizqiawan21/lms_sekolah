@@ -289,7 +289,7 @@ function exportAllUrl(format: 'excel' | 'pdf') {
                             </span>
                         </div>
 
-                        <TableWrapper :scroll-hint="false">
+                        <TableWrapper>
                             <table class="table table-bordered table-hover mb-0 attendance-table">
                                 <thead>
                                     <tr>
@@ -442,9 +442,10 @@ function exportAllUrl(format: 'excel' | 'pdf') {
     box-shadow: inset 3px 0 0 var(--app-primary), 1px 0 0 var(--border-soft);
 }
 
-.attendance-col-student { min-width: 200px; }
+.attendance-table { --attendance-student-width: 200px; }
+.attendance-col-student { min-width: var(--attendance-student-width); }
 @media (max-width: 575.98px) {
-    .attendance-col-student { min-width: 140px; }
+    .attendance-table { --attendance-student-width: 140px; }
 }
 
 @media (max-width: 767.98px) {
@@ -452,27 +453,27 @@ function exportAllUrl(format: 'excel' | 'pdf') {
         min-width: 760px;
     }
 
-    .attendance-table th:nth-child(-n + 3),
-    .attendance-table td:nth-child(-n + 3) {
+    .attendance-table th:first-child,
+    .attendance-table td:first-child {
         position: sticky;
         z-index: 2;
         background: var(--surface-card);
     }
 
-    .attendance-table th:nth-child(1),
-    .attendance-table td:nth-child(1) { left: 0; min-width: 44px; }
-    .attendance-table th:nth-child(2),
-    .attendance-table td:nth-child(2) { left: 44px; min-width: 70px; }
-    .attendance-table th:nth-child(3),
-    .attendance-table td:nth-child(3) { left: 114px; min-width: 180px; }
+    .attendance-table th:first-child,
+    .attendance-table td:first-child {
+        left: 0;
+        width: var(--attendance-student-width);
+        min-width: var(--attendance-student-width);
+    }
 
-    .attendance-table thead th:nth-child(-n + 3) {
+    .attendance-table thead th:first-child {
         z-index: 4;
         background: var(--surface-muted);
     }
 
-    .attendance-table tbody tr:hover > td:nth-child(-n + 3),
-    .attendance-table .attendance-row-highlighted > td:nth-child(-n + 3) {
+    .attendance-table tbody tr:hover > td:first-child,
+    .attendance-table .attendance-row-highlighted > td:first-child {
         background: var(--surface-hover);
     }
 

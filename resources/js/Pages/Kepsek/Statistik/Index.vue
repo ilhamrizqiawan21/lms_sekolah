@@ -211,7 +211,7 @@ onBeforeUnmount(() => {
 
             <div class="col-lg-5 mb-4">
                 <Card title="Statistik Absensi Bulanan" body-class="p-0">
-                    <TableWrapper v-if="absensiBulanan.length" :min-width="360">
+                    <TableWrapper v-if="absensiBulanan.length" stack :min-width="360">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -223,10 +223,10 @@ onBeforeUnmount(() => {
                             </thead>
                             <tbody>
                                 <tr v-for="item in absensiBulanan" :key="item.bulan">
-                                    <td><strong>{{ item.bulan_label || item.bulan }}</strong></td>
-                                    <td class="tabular-nums">{{ item.hadir }}</td>
-                                    <td class="tabular-nums">{{ item.total }}</td>
-                                    <td class="tabular-nums">{{ item.persentase }}%</td>
+                                    <td data-label="Bulan" class="stack-title"><strong>{{ item.bulan_label || item.bulan }}</strong></td>
+                                    <td data-label="Hadir" class="tabular-nums">{{ item.hadir }}</td>
+                                    <td data-label="Total" class="tabular-nums">{{ item.total }}</td>
+                                    <td data-label="Kehadiran" class="tabular-nums">{{ item.persentase }}%</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -246,7 +246,7 @@ onBeforeUnmount(() => {
 
             <div class="col-lg-5 mb-4">
                 <Card title="Rekap Pengumpulan Bulanan" body-class="p-0">
-                    <TableWrapper v-if="pengumpulanBulanan.length" :min-width="360">
+                    <TableWrapper v-if="pengumpulanBulanan.length" stack :min-width="360">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -258,10 +258,10 @@ onBeforeUnmount(() => {
                             </thead>
                             <tbody>
                                 <tr v-for="item in pengumpulanBulanan" :key="item.bulan">
-                                    <td><strong>{{ item.bulan_label || item.bulan }}</strong></td>
-                                    <td class="tabular-nums">{{ item.total }}</td>
-                                    <td class="tabular-nums">{{ item.tepat_waktu }}</td>
-                                    <td class="tabular-nums">{{ item.terlambat }}</td>
+                                    <td data-label="Bulan" class="stack-title"><strong>{{ item.bulan_label || item.bulan }}</strong></td>
+                                    <td data-label="Total" class="tabular-nums">{{ item.total }}</td>
+                                    <td data-label="Tepat Waktu" class="tabular-nums">{{ item.tepat_waktu }}</td>
+                                    <td data-label="Terlambat" class="tabular-nums">{{ item.terlambat }}</td>
                                 </tr>
                             </tbody>
                         </table>

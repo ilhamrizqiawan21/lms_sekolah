@@ -458,17 +458,23 @@ textarea {
     overscroll-behavior-x: contain;
 }
 
-.app-table-wrapper .app-table th,
-.app-table-wrapper .app-table td {
+/* Hanya tabel proporsional yang memakai truncation; tabel data biasa boleh wrap
+ * agar nama, judul, URL, dan deskripsi tidak terpotong tanpa affordance. */
+.app-table-wrapper .app-table-proportional th,
+.app-table-wrapper .app-table-proportional td {
     max-width: 0;
-}
-
-/* max-width: 0 + nowrap membuat teks panjang meluber ke kolom sebelah; potong dengan ellipsis.
- * Sel berisi kontrol dikecualikan agar ring fokus dan dropdown tidak terpotong. */
-.app-table-wrapper .app-table th,
-.app-table-wrapper .app-table td:not(:has(input, select, textarea, button, .dropdown)) {
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.app-table-wrapper .app-table:not(.app-table-proportional):not(.grade-table):not(.attendance-table):not(.attitude-table) th,
+.app-table-wrapper .app-table:not(.app-table-proportional):not(.grade-table):not(.attendance-table):not(.attitude-table) td {
+    max-width: none;
+}
+
+.app-table-wrapper .app-table:not(.app-table-proportional):not(.grade-table):not(.attendance-table):not(.attitude-table) td {
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .app-table-wrapper .app-table td .text-truncate,

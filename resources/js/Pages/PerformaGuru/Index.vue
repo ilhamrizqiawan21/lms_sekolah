@@ -100,7 +100,7 @@ function scoreColor(score: number) {
 
             <div class="col-12">
                 <Card title="Early Warning Siswa" body-class="p-0">
-                    <TableWrapper v-if="earlyWarnings.length" :min-width="600">
+                    <TableWrapper v-if="earlyWarnings.length" stack :min-width="600">
                         <table class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
@@ -112,10 +112,10 @@ function scoreColor(score: number) {
                             </thead>
                             <tbody>
                                 <tr v-for="student in earlyWarnings" :key="student.id">
-                                    <td><strong>{{ student.nama }}</strong><div class="text-body-secondary small tabular-nums">{{ student.nis }}</div></td>
-                                    <td>{{ student.kelas }}</td>
-                                    <td>{{ student.reasons }}</td>
-                                    <td class="tabular-nums">{{ student.average_grade ?? '-' }}</td>
+                                    <td data-label="Siswa" class="stack-title"><strong>{{ student.nama }}</strong><div class="text-body-secondary small tabular-nums">{{ student.nis }}</div></td>
+                                    <td data-label="Kelas">{{ student.kelas }}</td>
+                                    <td data-label="Alasan">{{ student.reasons }}</td>
+                                    <td data-label="Nilai" class="tabular-nums">{{ student.average_grade ?? '-' }}</td>
                                 </tr>
                             </tbody>
                         </table>

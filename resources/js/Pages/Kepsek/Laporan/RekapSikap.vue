@@ -129,13 +129,13 @@ function exportUrl(format: 'excel' | 'pdf') {
                 <Badge color="secondary" class="tabular-nums">{{ sikapSosial.length }} siswa</Badge>
             </template>
 
-            <TableWrapper v-if="sikapSosial.length" :min-width="600">
+            <TableWrapper v-if="sikapSosial.length" stack :min-width="600">
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>
                             <th scope="col" class="u-w-40px">#</th>
                             <th scope="col">Nama Siswa</th>
-                            <th scope="col" class="d-none d-md-table-cell">Kelas</th>
+                            <th scope="col">Kelas</th>
                             <th scope="col" v-for="aspect in sosialAspects" :key="aspect.key">{{ aspect.label }}</th>
                         </tr>
                     </thead>
@@ -143,7 +143,7 @@ function exportUrl(format: 'excel' | 'pdf') {
                         <tr v-for="item in sikapSosial" :key="`sosial-${item.nomor}-${item.nama_siswa}`">
                             <td class="text-center tabular-nums" data-label="#">{{ item.nomor }}</td>
                             <td data-label="Nama Siswa" class="stack-title"><strong>{{ item.nama_siswa }}</strong></td>
-                            <td data-label="Kelas" class="d-none d-md-table-cell">{{ item.kelas }}</td>
+                            <td data-label="Kelas">{{ item.kelas }}</td>
                             <td v-for="aspect in sosialAspects" :key="aspect.key" :data-label="aspect.label" class="text-center">
                                 <Badge :color="scoreBadge(item[aspect.key])" class="tabular-nums">{{ item[aspect.key] }}</Badge>
                             </td>
@@ -160,13 +160,13 @@ function exportUrl(format: 'excel' | 'pdf') {
                 <Badge color="secondary" class="tabular-nums">{{ sikapSpiritual.length }} siswa</Badge>
             </template>
 
-            <TableWrapper v-if="sikapSpiritual.length" :min-width="660">
+            <TableWrapper v-if="sikapSpiritual.length" stack :min-width="660">
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>
                             <th scope="col" class="u-w-40px">#</th>
                             <th scope="col">Nama Siswa</th>
-                            <th scope="col" class="d-none d-md-table-cell">Kelas</th>
+                            <th scope="col">Kelas</th>
                             <th scope="col" v-for="aspect in spiritualAspects" :key="aspect.key">{{ aspect.label }}</th>
                         </tr>
                     </thead>
@@ -174,7 +174,7 @@ function exportUrl(format: 'excel' | 'pdf') {
                         <tr v-for="item in sikapSpiritual" :key="`spiritual-${item.nomor}-${item.nama_siswa}`">
                             <td class="text-center tabular-nums" data-label="#">{{ item.nomor }}</td>
                             <td data-label="Nama Siswa" class="stack-title"><strong>{{ item.nama_siswa }}</strong></td>
-                            <td data-label="Kelas" class="d-none d-md-table-cell">{{ item.kelas }}</td>
+                            <td data-label="Kelas">{{ item.kelas }}</td>
                             <td v-for="aspect in spiritualAspects" :key="aspect.key" :data-label="aspect.label" class="text-center">
                                 <Badge :color="scoreBadge(item[aspect.key])" class="tabular-nums">{{ item[aspect.key] }}</Badge>
                             </td>

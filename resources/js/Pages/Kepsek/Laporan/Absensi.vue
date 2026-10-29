@@ -152,7 +152,7 @@ function exportUrl(format: 'excel' | 'pdf') {
         </div>
 
         <Card body-class="p-0">
-            <TableWrapper v-if="absensi.data.length" :min-width="640">
+            <TableWrapper v-if="absensi.data.length" stack :min-width="640">
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">
                         <tr>

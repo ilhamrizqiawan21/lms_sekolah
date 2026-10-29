@@ -267,7 +267,7 @@ function submit() {
                         <Badge color="secondary">{{ activeGroup.students.length }} siswa</Badge>
                     </span>
                 </div>
-                <TableWrapper :scroll-hint="false">
+                <TableWrapper>
                     <table class="table table-bordered table-hover app-table grade-table mb-0">
                         <colgroup>
                             <col class="grade-col-student">

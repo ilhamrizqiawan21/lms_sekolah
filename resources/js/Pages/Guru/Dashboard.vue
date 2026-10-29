@@ -474,7 +474,7 @@ const attentionSignals = computed(() => [
 .overview-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: hidden; margin-bottom: 23px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--surface-card); }
 .overview-item { display: flex; min-width: 0; align-items: center; gap: 12px; padding: 15px 17px; color: inherit; text-decoration: none; }
 .overview-item + .overview-item { border-left: 1px solid var(--border-soft); }
-.overview-icon { display: grid; width: 36px; height: 36px; flex: 0 0 auto; place-items: center; border-radius: 9px; background: var(--surface-muted); color: var(--primary-600, #4f46e5); }
+.overview-icon { display: grid; width: 36px; height: 36px; flex: 0 0 auto; place-items: center; border-radius: 9px; background: var(--surface-muted); color: var(--primary-600); }
 .overview-icon .gd-icon { width: 17px; height: 17px; }
 .overview-value { display: block; color: var(--text-strong); font-size: 20px; font-weight: 760; letter-spacing: -0.05em; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .overview-label { display: block; margin-top: 4px; color: var(--text-muted); font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; }
@@ -484,13 +484,13 @@ const attentionSignals = computed(() => [
 .panel-head { display: flex; min-height: 58px; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 17px; border-bottom: 1px solid var(--border-soft); }
 .panel-title { margin: 0; color: var(--text-strong); font-size: var(--card-heading-size); font-weight: var(--fw-bold); line-height: var(--lh-base); }
 .panel-caption { display: block; margin-top: var(--space-1); color: var(--text-muted); font-size: var(--card-description-size); line-height: var(--lh-base); }
-.text-link { display: inline-flex; align-items: center; gap: 5px; color: var(--primary-600, #4f46e5); font-size: var(--fs-xs); font-weight: 750; text-decoration: none; white-space: nowrap; }
-.text-link:hover { color: var(--primary-800, #3730a3); text-decoration: underline; }
+.text-link { display: inline-flex; align-items: center; gap: 5px; color: var(--primary-600); font-size: var(--fs-xs); font-weight: 750; text-decoration: none; white-space: nowrap; }
+.text-link:hover { color: var(--primary-800); text-decoration: underline; }
 .text-link .gd-icon { width: 13px; height: 13px; }
 .queue-tabs { display: flex; align-items: center; gap: 17px; padding: 0 17px; border-bottom: 1px solid var(--border-soft); }
 .queue-tab { position: relative; display: flex; min-height: 43px; align-items: center; gap: 7px; padding: 0; border: 0; background: transparent; color: var(--text-muted); font-size: var(--fs-xs); font-weight: 650; cursor: pointer; }
 .queue-tab[aria-selected='true'] { color: var(--text-brand); }
-.queue-tab[aria-selected='true']::after { position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: var(--primary-600, #4f46e5); content: ''; }
+.queue-tab[aria-selected='true']::after { position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: var(--primary-600); content: ''; }
 .tab-count { display: grid; min-width: 19px; height: 19px; place-items: center; padding: 0 5px; border-radius: 999px; background: var(--surface-subtle); color: var(--text-muted); font-size: var(--fs-xs); font-weight: 750; }
 .queue-tab[aria-selected='true'] .tab-count { background: var(--brand-soft-bg); color: var(--brand-soft-text); }
 .task-list { padding: 0 17px; }
@@ -504,9 +504,9 @@ const attentionSignals = computed(() => [
 .task-meta span { display: inline-flex; align-items: center; gap: 4px; }
 .task-meta .gd-icon { width: 12px; height: 12px; }
 .task-action { min-width: 82px; display: flex; justify-content: flex-end; }
-.status { display: inline-flex; min-height: 24px; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 5px; background: var(--status-warning-bg, #fff3d9); color: var(--status-warning-text, #9b6412); font-size: var(--fs-xs); font-weight: 700; white-space: nowrap; }
+.status { display: inline-flex; min-height: 24px; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 5px; background: var(--status-warning-bg); color: var(--status-warning-text); font-size: var(--fs-xs); font-weight: 700; white-space: nowrap; }
 .status .status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-.status.urgent { background: var(--status-danger-bg, #f9eae7); color: var(--status-danger-text, #a3453c); }
+.status.urgent { background: var(--status-danger-bg); color: var(--status-danger-text); }
 .queue-footer { padding: 11px 17px; border-top: 1px solid var(--border-soft); background: var(--surface-muted); color: var(--text-muted); font-size: var(--fs-xs); }
 .queue-footer strong { color: var(--text-body); }
 .timeline { padding: 4px 17px 12px; }
@@ -515,8 +515,8 @@ const attentionSignals = computed(() => [
 .timeline-rail { position: relative; display: flex; justify-content: center; }
 .timeline-rail::after { position: absolute; top: 11px; bottom: -8px; width: 1px; background: var(--border-soft); content: ''; }
 .timeline-item:last-child .timeline-rail::after { display: none; }
-.timeline-dot { position: relative; z-index: 1; width: 9px; height: 9px; margin-top: 4px; border: 2px solid var(--primary-600, #4f46e5); border-radius: 50%; background: var(--surface-card); }
-.timeline-item.current .timeline-dot { border-color: #c7d2fe; background: var(--primary-600, #4f46e5); box-shadow: 0 0 0 3px #eef2ff; }
+.timeline-dot { position: relative; z-index: 1; width: 9px; height: 9px; margin-top: 4px; border: 2px solid var(--primary-600); border-radius: 50%; background: var(--surface-card); }
+.timeline-item.current .timeline-dot { border-color: var(--primary-300); background: var(--primary-600); box-shadow: 0 0 0 3px var(--primary-50); }
 .timeline-current { margin-top: 2px; color: var(--text-brand); font-size: var(--fs-xs); font-weight: 750; display: block; }
 .timeline-copy strong { display: block; color: var(--text-strong); font-size: var(--fs-xs); font-weight: 720; }
 .timeline-copy small { display: block; margin-top: 3px; color: var(--text-muted); font-size: var(--fs-xs); }
@@ -524,9 +524,9 @@ const attentionSignals = computed(() => [
 .class-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 53px; border-bottom: 1px solid var(--border-soft); color: inherit; text-decoration: none; }
 .class-row:last-child { border: 0; }
 .class-info { display: flex; min-width: 0; align-items: center; gap: 9px; }
-.class-color { width: 3px; height: 27px; flex: 0 0 auto; border-radius: 4px; background: var(--primary-600, #4f46e5); }
-.class-color.amber { background: #d7a344; }
-.class-color.blue { background: #6e9aaf; }
+.class-color { width: 3px; height: 27px; flex: 0 0 auto; border-radius: 4px; background: var(--primary-600); }
+.class-color.amber { background: var(--accent-amber); }
+.class-color.blue { background: var(--accent-blue); }
 .class-name { display: block; overflow: hidden; color: var(--text-strong); font-size: var(--fs-xs); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .class-row:hover .class-name { color: var(--text-brand); }
 .class-meta { display: block; margin-top: 2px; color: var(--text-muted); font-size: var(--fs-xs); }

@@ -114,7 +114,7 @@ function submit() {
                     <span class="text-body-secondary text-xs">Skala 1-5</span>
                 </template>
 
-                <TableWrapper :scroll-hint="false">
+                <TableWrapper>
                     <table class="table table-bordered table-hover attitude-table mb-0">
                         <colgroup>
                             <col class="attitude-col-student">
@@ -180,7 +180,7 @@ function submit() {
                     <span class="text-body-secondary text-xs">Skala 1-5</span>
                 </template>
 
-                <TableWrapper :scroll-hint="false">
+                <TableWrapper>
                     <table class="table table-bordered table-hover attitude-table mb-0">
                         <colgroup>
                             <col class="attitude-col-student">

@@ -23,6 +23,7 @@ const metrics = computed(() => [
 
 const absensiCanvas = ref<HTMLCanvasElement | null>(null);
 let absensiChart: { destroy: () => void } | null = null;
+let themeObserver: MutationObserver | null = null;
 
 async function renderAbsensiChart() {
     if (!absensiCanvas.value || !props.absensiBulanan.length) {
@@ -33,6 +34,8 @@ async function renderAbsensiChart() {
     Chart.register(...registerables);
 
     const colors = { hadir: cssVar('--accent-green'), sakit: cssVar('--accent-amber'), izin: cssVar('--accent-blue'), alpa: cssVar('--accent-red') };
+    const textColor = cssVar('--text-muted');
+    const borderColor = cssVar('--border-soft');
 
     absensiChart?.destroy();
     absensiChart = new Chart(absensiCanvas.value, {
@@ -48,12 +51,16 @@ async function renderAbsensiChart() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: textColor } },
+            },
             scales: {
+                x: { ticks: { color: textColor }, grid: { color: borderColor } },
                 y: {
                     beginAtZero: true,
-                    ticks: {
-                        precision: 0,
-                    },
+                    ticks: { color: textColor, precision: 0 },
+                    grid: { color: borderColor },
                 },
             },
         },
@@ -61,9 +68,16 @@ async function renderAbsensiChart() {
 }
 
 
-onMounted(() => nextTick(renderAbsensiChart));
+onMounted(() => {
+    nextTick(renderAbsensiChart);
+    themeObserver = new MutationObserver(() => nextTick(renderAbsensiChart));
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+});
 watch(() => props.absensiBulanan, () => nextTick(renderAbsensiChart), { deep: true });
-onBeforeUnmount(() => absensiChart?.destroy());
+onBeforeUnmount(() => {
+    themeObserver?.disconnect();
+    absensiChart?.destroy();
+});
 </script>
 
 <template>
@@ -89,7 +103,7 @@ onBeforeUnmount(() => absensiChart?.destroy());
 
             <div class="col-md-6 mb-4">
                 <Card title="Pengumuman Terbaru" body-class="p-0">
-                    <TableWrapper v-if="pengumuman.length">
+                    <TableWrapper v-if="pengumuman.length" stack>
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -99,8 +113,8 @@ onBeforeUnmount(() => absensiChart?.destroy());
                             </thead>
                             <tbody>
                                 <tr v-for="item in pengumuman" :key="item.id">
-                                    <td>{{ item.judul }}</td>
-                                    <td class="tabular-nums">{{ item.created_at }}</td>
+                                    <td data-label="Judul" class="stack-title">{{ item.judul }}</td>
+                                    <td data-label="Tanggal" class="tabular-nums">{{ item.created_at }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -113,7 +127,7 @@ onBeforeUnmount(() => absensiChart?.destroy());
         <div class="row">
             <div class="col-md-6 mb-4">
                 <Card title="Rata-rata Nilai per Mata Pelajaran" body-class="p-0">
-                    <TableWrapper v-if="rataNilaiPerMapel.length">
+                    <TableWrapper v-if="rataNilaiPerMapel.length" stack>
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -123,8 +137,8 @@ onBeforeUnmount(() => absensiChart?.destroy());
                             </thead>
                             <tbody>
                                 <tr v-for="item in rataNilaiPerMapel" :key="item.nama_mapel">
-                                    <td>{{ item.nama_mapel }}</td>
-                                    <td class="text-center fw-bold tabular-nums">{{ item.rata_rata }}</td>
+                                    <td data-label="Mata Pelajaran" class="stack-title">{{ item.nama_mapel }}</td>
+                                    <td data-label="Rata-rata" class="text-center fw-bold tabular-nums">{{ item.rata_rata }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -135,7 +149,7 @@ onBeforeUnmount(() => absensiChart?.destroy());
 
             <div class="col-md-6 mb-4">
                 <Card title="Login Terbaru" body-class="p-0">
-                    <TableWrapper v-if="loginTerbaru.length" :min-width="480">
+                    <TableWrapper v-if="loginTerbaru.length" stack :min-width="480">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -147,10 +161,10 @@ onBeforeUnmount(() => absensiChart?.destroy());
                             </thead>
                             <tbody>
                                 <tr v-for="log in loginTerbaru" :key="log.id">
-                                    <td><strong>{{ log.nama_lengkap }}</strong></td>
-                                    <td><Badge color="secondary">{{ roleLabel(log.role) }}</Badge></td>
-                                    <td class="text-body-secondary small tabular-nums">{{ log.login_time }}</td>
-                                    <td class="text-body-secondary small tabular-nums">{{ log.ip_address ?? '-' }}</td>
+                                    <td data-label="Nama" class="stack-title"><strong>{{ log.nama_lengkap }}</strong></td>
+                                    <td data-label="Role"><Badge color="secondary">{{ roleLabel(log.role) }}</Badge></td>
+                                    <td data-label="Waktu" class="text-body-secondary small tabular-nums">{{ log.login_time }}</td>
+                                    <td data-label="IP" class="text-body-secondary small tabular-nums">{{ log.ip_address ?? '-' }}</td>
                                 </tr>
                             </tbody>
                         </table>

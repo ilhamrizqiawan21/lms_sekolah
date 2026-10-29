@@ -279,17 +279,17 @@ function passwordStatusColor(isDefault: boolean) {
         </Card>
 
         <Card v-if="kelasLulus.length" title="Kelulusan Kelas IX" icon="bi-mortarboard-fill" class="mb-3" body-class="p-0">
-            <TableWrapper :scroll-hint="false">
+            <TableWrapper stack>
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr><th scope="col">Tingkat</th><th scope="col">Kelas</th><th scope="col">Siswa Aktif</th><th scope="col" class="table-action-column">Aksi</th></tr>
                     </thead>
                     <tbody>
                         <tr v-for="kelas in kelasLulus" :key="kelas.id">
-                            <td><Badge color="secondary">{{ kelas.tingkat }}</Badge></td>
-                            <td><strong>{{ kelas.nama_kelas }}</strong></td>
-                            <td>{{ kelas.siswa_count ?? 0 }} siswa</td>
-                            <td class="table-action-column">
+                            <td data-label="Tingkat"><Badge color="secondary">{{ kelas.tingkat }}</Badge></td>
+                            <td data-label="Kelas" class="stack-title"><strong>{{ kelas.nama_kelas }}</strong></td>
+                            <td data-label="Siswa Aktif">{{ kelas.siswa_count ?? 0 }} siswa</td>
+                            <td class="table-action-column stack-actions">
                                 <div class="d-flex justify-content-end gap-1">
                                     <Button type="button" color="outline-success" icon="bi-check-circle" @click="graduateClass(kelas)">
                                         Luluskan

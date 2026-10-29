@@ -114,13 +114,15 @@ test('sidebar navigation text and icons keep theme-token contrast', async ({ pag
                 surface,
                 textContrast: ratio(linkStyle.color, surface),
                 iconContrast: ratio(iconStyle.color, surface),
-                textUsesThemeToken: linkStyle.color === tokenColor('--text-body'),
-                iconUsesThemeToken: iconStyle.color === tokenColor('--text-muted'),
+                surfaceUsesThemeToken: surface === tokenColor('--sidebar-navy'),
+                textUsesThemeToken: linkStyle.color === tokenColor('--sidebar-foreground'),
+                iconUsesThemeToken: iconStyle.color === tokenColor('--sidebar-foreground-muted'),
             };
         });
 
         expect(contrast.textContrast, `${mode} sidebar text: ${JSON.stringify(contrast)}`).toBeGreaterThanOrEqual(4.5);
         expect(contrast.iconContrast, `${mode} sidebar icon: ${JSON.stringify(contrast)}`).toBeGreaterThanOrEqual(3);
+        expect(contrast.surfaceUsesThemeToken).toBe(true);
         expect(contrast.textUsesThemeToken).toBe(true);
         expect(contrast.iconUsesThemeToken).toBe(true);
     }
@@ -130,6 +132,7 @@ test('shared shell keeps readable labels and flat surfaces', async ({ page }) =>
     await login(page, 'admin');
     await page.goto('/admin/dashboard');
     await expect(page.locator('.modern-topbar')).toBeVisible();
+    await expect(page.locator('.topbar-toggle-btn')).toHaveCSS('display', 'none');
 
     const shell = await page.evaluate(() => {
         const labels = [

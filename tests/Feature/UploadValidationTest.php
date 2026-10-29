@@ -34,8 +34,8 @@ class UploadValidationTest extends TestCase
 
         $validator = Validator::make([
             'files' => [
-                UploadedFile::fake()->createWithContent('KTP_Ilham.jpeg', 'konten gambar dari perangkat siswa'),
-                UploadedFile::fake()->createWithContent('jawaban.pdf', 'konten dokumen dari perangkat siswa'),
+                UploadedFile::fake()->createWithContent('KTP_Ilham.jpeg', 'konten gambar dari perangkat siswa', 'image/jpeg'),
+                UploadedFile::fake()->createWithContent('jawaban.pdf', 'konten dokumen dari perangkat siswa', 'application/pdf'),
             ],
         ], [
             'files' => 'required|array|max:5',

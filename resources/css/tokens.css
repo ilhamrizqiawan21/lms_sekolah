@@ -60,6 +60,16 @@
     --sidebar-width: 248px;
     --topbar-height: 64px;
 
+    /* Shell navy: identitas navigasi tetap stabil, aksen sekolah tetap dipakai
+     * untuk active state dan CTA. */
+    --sidebar-navy: #102a43;
+    --sidebar-foreground: #d9e7f5;
+    --sidebar-foreground-strong: #f8fafc;
+    --sidebar-foreground-muted: #a9bfd5;
+    --sidebar-border-color: rgba(217, 231, 245, 0.18);
+    --sidebar-hover: rgba(217, 231, 245, 0.1);
+    --sidebar-active-bg: color-mix(in srgb, var(--primary-500) 30%, var(--sidebar-navy));
+
     /* Spasi */
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -195,6 +205,13 @@
     --text-strong: #f8fafc;
     --text-body: #dbe4f0;
     --text-muted: #9fb0c5;
+    --sidebar-navy: #0b1f33;
+    --sidebar-foreground: #d9e7f5;
+    --sidebar-foreground-strong: #f8fafc;
+    --sidebar-foreground-muted: #a9bfd5;
+    --sidebar-border-color: rgba(217, 231, 245, 0.18);
+    --sidebar-hover: rgba(217, 231, 245, 0.1);
+    --sidebar-active-bg: color-mix(in srgb, var(--primary-500) 34%, var(--sidebar-navy));
     --text-inverse: #0f172a;
     --gray-50: #0f172a;
     --gray-100: #172033;

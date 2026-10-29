@@ -188,10 +188,10 @@ class Phase10AuthorizationTest extends TestCase
 
         $this->actingAs($studentUser)
             ->post(route('siswa.tugas.kumpul', $tugas), [
-                'file_upload' => UploadedFile::fake()->createWithContent('utama.pdf', 'jawaban utama'),
+                'file_upload' => UploadedFile::fake()->createWithContent('utama.pdf', 'jawaban utama', 'application/pdf'),
                 'files' => [
-                    UploadedFile::fake()->createWithContent('lampiran1.jpg', 'lampiran satu'),
-                    UploadedFile::fake()->createWithContent('lampiran2.pdf', 'lampiran dua'),
+                    UploadedFile::fake()->createWithContent('lampiran1.jpg', 'lampiran satu', 'image/jpeg'),
+                    UploadedFile::fake()->createWithContent('lampiran2.pdf', 'lampiran dua', 'application/pdf'),
                 ],
             ])
             ->assertRedirect();
