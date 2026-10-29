@@ -228,6 +228,8 @@ watch(() => props.open && props.mobile, (active, wasActive) => {
 .app-shell .sidebar.modern-sidebar {
     position: fixed;
     inset: 0 auto 0 0;
+    height: 100vh;
+    height: 100dvh;
     /* Keep the drawer above the scrim. On mobile it starts below the topbar so
      * the school logo is not hidden behind the fixed header. */
     z-index: 300;
@@ -243,7 +245,8 @@ watch(() => props.open && props.mobile, (active, wasActive) => {
 }
 @media (max-width: 991.98px) {
     .app-shell .sidebar.modern-sidebar {
-        top: var(--topbar-height, 60px);
+        position: fixed;
+        top: 0;
         transform: translateX(-102%);
         box-shadow: none;
     }

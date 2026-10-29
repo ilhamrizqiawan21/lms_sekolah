@@ -67,7 +67,10 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
 </script>
 
 <template>
-    <header class="topbar modern-topbar">
+    <header
+        class="topbar modern-topbar"
+        :class="{ 'topbar-sidebar-open': sidebarOpen }"
+    >
         <button
             class="mobile-menu topbar-toggle-btn"
             type="button"
@@ -235,9 +238,18 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
     box-shadow: none;
     backdrop-filter: none;
 }
+
+/* Saat drawer terbuka, topbar hanya mengisi area di sebelah kanan sidebar.
+ * Ini menjaga seluruh tinggi sidebar tetap terlihat, termasuk bagian logo. */
+.topbar.topbar-sidebar-open {
+    left: var(--sidebar-width, 252px);
+    width: calc(100% - var(--sidebar-width, 252px));
+}
+
 @media (min-width: 992px) {
     .topbar {
-        left: var(--sidebar-width, 252px);
+        left: 0;
+        width: 100%;
         padding: 0 34px;
     }
 }
