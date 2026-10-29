@@ -44,6 +44,7 @@
             ],
         ];
         $inertiaActiveTheme = $inertiaThemeColors[$inertiaTheme] ?? $inertiaThemeColors['hijau'];
+        $cspNonce = request()->attributes->get('csp_nonce');
     @endphp
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,7 +52,7 @@
     <meta name="application-name" content="{{ $inertiaAppName }}">
     <meta name="theme-color" content="{{ $inertiaActiveTheme['primary'] }}">
     <title inertia>{{ $inertiaAppName }} - {{ $inertiaSchoolName }}</title>
-    <script>
+    <script @if($cspNonce) nonce="{{ $cspNonce }}" @endif>
         (() => {
             const key = 'lms.color-mode';
             const stored = (() => {
@@ -70,7 +71,7 @@
         })();
     </script>
     <link rel="icon" href="{{ $inertiaFaviconUrl }}">
-    <style>
+    <style @if($cspNonce) nonce="{{ $cspNonce }}" @endif>
         :root {
             --app-primary: {{ $inertiaActiveTheme['primary'] }};
             --app-primary-dark: {{ $inertiaActiveTheme['sidebar'] }};

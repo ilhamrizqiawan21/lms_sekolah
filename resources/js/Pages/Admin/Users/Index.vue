@@ -11,9 +11,10 @@ interface Role { id: number; nama_role: string }
 interface UserRole { nama_role?: string }
 interface AdminUser { id: number; username: string; nama_lengkap: string; email?: string | null; role?: UserRole; password_is_default: boolean; password_status: string; is_active: boolean }
 interface Filters { search?: string; role_id?: string | number }
-interface Props { users?: LaravelPaginator<AdminUser>; roles?: Role[]; filters?: Filters; exportUrl: string }
+interface InitialPassword { title: string; name: string; username: string; password: string }
+interface Props { users?: LaravelPaginator<AdminUser>; roles?: Role[]; filters?: Filters; exportUrl: string; initialPassword?: InitialPassword | null }
 
-const props = withDefaults(defineProps<Props>(), { users: () => ({ data: [], links: [], current_page: 1, last_page: 1, per_page: 0, total: 0, from: null, to: null }), roles: () => [], filters: () => ({}) });
+const props = withDefaults(defineProps<Props>(), { users: () => ({ data: [], links: [], current_page: 1, last_page: 1, per_page: 0, total: 0, from: null, to: null }), roles: () => [], filters: () => ({}), initialPassword: null });
 
 const filterForm = reactive({
     search: props.filters.search ?? '',
@@ -75,9 +76,9 @@ async function toggleActive(user: AdminUser): Promise<void> {
 }
 
 async function resetPassword(user: AdminUser): Promise<void> {
-    const confirmed = await window.confirmDialog?.(`Reset password ${user.nama_lengkap} kembali ke 123456?`, {
+    const confirmed = await window.confirmDialog?.(`Buat password sementara baru untuk ${user.nama_lengkap}?`, {
         title: 'Reset Password',
-        confirmText: 'Ya, reset ke 123456',
+        confirmText: 'Ya, buat password baru',
     });
 
     if (!confirmed) {
@@ -117,6 +118,14 @@ async function destroy(user: AdminUser): Promise<void> {
             subtitle="Kelola akun guru, staf, dan admin sekolah."
             icon="bi-people-fill"
         />
+
+        <div v-if="initialPassword" class="alert alert-warning" role="alert">
+            <div class="fw-semibold mb-1"><i class="bi bi-key-fill me-1" aria-hidden="true"></i> {{ initialPassword.title }}</div>
+            <div>Nama: <strong>{{ initialPassword.name }}</strong></div>
+            <div>Username: <code>{{ initialPassword.username }}</code></div>
+            <div>Password: <code>{{ initialPassword.password }}</code></div>
+            <div class="small mt-2">Simpan dan serahkan password ini melalui kanal aman. Password hanya ditampilkan setelah proses berhasil dan wajib diganti saat login.</div>
+        </div>
 
         <Card title="Daftar Guru dan Staf" icon="bi-people-fill">
             <template #actions>
@@ -197,7 +206,7 @@ async function destroy(user: AdminUser): Promise<void> {
                                     />
                                     <IconButton
                                         icon="bi-key"
-                                        :label="`Reset password ${user.nama_lengkap} ke 123456`"
+                                        :label="`Buat password sementara baru untuk ${user.nama_lengkap}`"
                                         color="outline-warning"
                                         @click="resetPassword(user)"
                                     />

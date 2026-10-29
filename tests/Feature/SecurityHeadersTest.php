@@ -22,6 +22,10 @@ class SecurityHeadersTest extends TestCase
 
         $this->assertStringContainsString("frame-ancestors 'self'", (string) $response->headers->get('Content-Security-Policy'));
         $this->assertStringContainsString("form-action 'self'", (string) $response->headers->get('Content-Security-Policy'));
+        $this->assertStringContainsString("default-src 'self'", (string) $response->headers->get('Content-Security-Policy'));
+        $this->assertStringContainsString("script-src 'self' 'nonce-", (string) $response->headers->get('Content-Security-Policy'));
+        $this->assertStringContainsString("style-src 'self' 'nonce-", (string) $response->headers->get('Content-Security-Policy'));
+        $this->assertStringContainsString('nonce="', (string) $response->getContent());
     }
 
     public function test_blocklist_check_fails_closed_when_its_storage_is_unavailable(): void

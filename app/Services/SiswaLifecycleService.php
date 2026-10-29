@@ -102,6 +102,6 @@ class SiswaLifecycleService
 
     private function generateInitialPassword(): string
     {
-        return User::DEFAULT_PASSWORD;
+        return User::temporaryPassword();
     }
 }

@@ -10,10 +10,22 @@ class SecurityHeaders
 {
     public function handle(Request $request, Closure $next): Response
     {
+        $nonce = base64_encode(random_bytes(16));
+        $request->attributes->set('csp_nonce', $nonce);
+
         $response = $next($request);
 
         // Jangan paksa upgrade ke HTTPS pada environment lokal, karena server dev (artisan serve) hanya melayani HTTP.
-        $csp = "base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none'";
+        $viteSources = app()->isLocal() ? ' http://localhost:5173 http://127.0.0.1:5173' : '';
+        $connectSources = app()->isLocal() ? ' ws://localhost:5173 ws://127.0.0.1:5173' : '';
+        $styleElementSources = app()->isLocal() ? " 'unsafe-inline'{$viteSources}" : '';
+        $csp = "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none'; "
+            ."script-src 'self' 'nonce-{$nonce}'{$viteSources}; "
+            ."style-src 'self' 'nonce-{$nonce}'{$styleElementSources}; style-src-attr 'unsafe-inline'; "
+            .'img-src \'self\' data: blob:; '
+            .'font-src \'self\' data:; '
+            ."connect-src 'self'{$connectSources}; "
+            ."worker-src 'self' blob:; manifest-src 'self'";
         if (! app()->isLocal()) {
             $csp .= '; upgrade-insecure-requests';
         }

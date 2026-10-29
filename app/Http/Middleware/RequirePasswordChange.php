@@ -12,25 +12,20 @@ class RequirePasswordChange
     {
         $user = $request->user();
 
-        if (! $user || ! config('security.force_password_change', false) || ! $user->is_password_default) {
+        if (! $user || ! $user->is_password_default) {
             return $next($request);
         }
 
         $role = $user->role?->nama_role;
 
-        // Students may continue using the default password. Password changes
-        // remain available from the account settings page, but are no longer
-        // mandatory for the siswa role.
-        if ($role === 'siswa') {
-            return $next($request);
-        }
-
         if (
             $request->routeIs('*.pengaturan-akun') ||
-            $request->routeIs('admin.pengaturan-akun.update') ||
             $request->routeIs('*.pengaturan-akun.update') ||
             $request->routeIs('guru.pengaturan') ||
             $request->routeIs('guru.pengaturan.update') ||
+            $request->routeIs('siswa.pengaturan') ||
+            $request->routeIs('siswa.pengaturan.update') ||
+            $request->routeIs('siswa.pengaturan.telepon') ||
             $request->routeIs('kepsek.pengaturan') ||
             $request->routeIs('kepsek.pengaturan.update') ||
             $request->routeIs('*.profil') ||
@@ -45,6 +40,7 @@ class RequirePasswordChange
         $route = match ($role) {
             'admin' => 'admin.pengaturan-akun',
             'guru' => 'guru.pengaturan',
+            'siswa' => 'siswa.pengaturan',
             'kepala_sekolah' => 'kepsek.pengaturan',
             default => null,
         };

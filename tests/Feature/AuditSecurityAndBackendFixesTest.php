@@ -65,15 +65,13 @@ class AuditSecurityAndBackendFixesTest extends TestCase
         $this->assertSame(100.0, $rekapKelas[0]['rekap']['persen_hadir']);
     }
 
-    public function test_admin_can_update_password_when_force_password_change_is_enabled(): void
+    public function test_admin_can_update_password_when_temporary_password_is_enforced(): void
     {
-        config(['security.force_password_change' => true]);
-
         $adminRole = Role::firstOrCreate(['nama_role' => 'admin']);
         $admin = User::create([
             'username' => 'admin-force',
             'nama_lengkap' => 'Admin Force',
-            'password' => Hash::make(User::DEFAULT_PASSWORD),
+            'password' => Hash::make(User::LEGACY_DEFAULT_PASSWORD),
             'role_id' => $adminRole->id,
             'is_active' => true,
             'is_password_default' => true,
@@ -87,13 +85,37 @@ class AuditSecurityAndBackendFixesTest extends TestCase
         // Account password update route (/admin/pengaturan-akun) must be allowed through
         $response = $this->actingAs($admin)
             ->put(route('admin.pengaturan-akun.update'), [
-                'current_password' => User::DEFAULT_PASSWORD,
+                'current_password' => User::LEGACY_DEFAULT_PASSWORD,
                 'password' => 'NewStrongPass123!',
                 'password_confirmation' => 'NewStrongPass123!',
             ]);
 
         $response->assertSessionHas('success');
         $this->assertFalse((bool) $admin->fresh()->is_password_default);
+    }
+
+    public function test_student_with_temporary_password_is_required_to_change_it(): void
+    {
+        $role = Role::firstOrCreate(['nama_role' => 'siswa']);
+        $kelas = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'Password Change']);
+        $student = User::create([
+            'username' => 'student-password-change',
+            'nama_lengkap' => 'Student Password Change',
+            'password' => Hash::make('TemporaryStrong123!'),
+            'role_id' => $role->id,
+            'is_active' => true,
+            'is_password_default' => true,
+        ]);
+        Siswa::create([
+            'user_id' => $student->id,
+            'nis' => 'PWD-001',
+            'kelas_id' => $kelas->id,
+            'status' => 'aktif',
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('siswa.dashboard'))
+            ->assertRedirect(route('siswa.pengaturan'));
     }
 
     public function test_resubmission_replaces_previous_uploaded_files(): void
@@ -348,6 +370,7 @@ class AuditSecurityAndBackendFixesTest extends TestCase
             'password' => Hash::make('StrongPass123!'),
             'role_id' => $guruRole->id,
             'is_active' => true,
+            'is_password_default' => false,
             'password_changed_at' => now(),
         ]);
 
@@ -357,6 +380,7 @@ class AuditSecurityAndBackendFixesTest extends TestCase
             'password' => Hash::make('StrongPass123!'),
             'role_id' => $siswaRole->id,
             'is_active' => true,
+            'is_password_default' => false,
             'password_changed_at' => now(),
         ]);
 

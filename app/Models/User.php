@@ -8,13 +8,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    public const DEFAULT_PASSWORD = '123456';
+    /**
+     * Kept for legacy data migrations and backwards-compatible test fixtures.
+     * New and reset accounts must use temporaryPassword() instead.
+     */
+    public const LEGACY_DEFAULT_PASSWORD = '123456';
+
+    public static function temporaryPassword(): string
+    {
+        return Str::password(16, letters: true, numbers: true, symbols: true, spaces: false);
+    }
 
     protected $table = 'users';
 

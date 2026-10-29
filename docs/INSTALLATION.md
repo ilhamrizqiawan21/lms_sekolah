@@ -75,9 +75,9 @@ Pilih **salah satu** jalur berikut, sesuai tujuan instalasi.
 
 ### 4.1 Demo untuk development/testing
 
-    php artisan migrate --seed
+    DEMO_MODE=true php artisan migrate --seed
 
-`DatabaseSeeder` membuat role, branding demo, akun demo, data akademik (kelas, mapel, jadwal mengajar), dan data LMS (materi, tugas, absensi, nilai, wali kelas, dll). Password semua akun demo adalah `password`; **jangan** gunakan data ini pada production.
+`DatabaseSeeder` membuat role, branding demo, akun demo, data akademik (kelas, mapel, jadwal mengajar), dan data LMS (materi, tugas, absensi, nilai, wali kelas, dll) hanya ketika `DEMO_MODE=true`. Password semua akun demo adalah `password`; **jangan** gunakan data ini pada production.
 
 | Role | Email |
 |---|---|
@@ -97,7 +97,7 @@ Isi nilai rahasia terlebih dahulu di `.env`:
 
 Lalu jalankan:
 
-    php artisan migrate --seed --seeder=EmptyProductSeeder
+    php artisan migrate --seed --seeder=EmptyProductSeeder --force
 
 Seeder ini membuat role, branding awal, admin, tahun ajaran aktif, semester aktif, dan konfigurasi akademik dasar **tanpa** data demo. Jangan memakai `migrate:fresh` pada database yang berisi data penting.
 
@@ -142,6 +142,7 @@ Test Laravel dikonfigurasi memakai SQLite `:memory:` melalui `phpunit.xml`, sehi
 - [ ] `npm install` dan `npm run build` selesai; manifest ter-deploy.
 - [ ] `storage:link` sudah dibuat dan directory terkait writable.
 - [ ] Admin dibuat lewat `EmptyProductSeeder` dengan password minimal 12 karakter.
+- [ ] `DEMO_MODE` tidak aktif pada environment production.
 - [ ] Backup database, rotasi log, HTTPS, dan monitoring disiapkan.
 - [ ] Queue/scheduler diaktifkan sesuai kebutuhan deployment.
 - [ ] `php artisan optimize` dijalankan setelah konfigurasi final.

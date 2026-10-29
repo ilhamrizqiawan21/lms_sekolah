@@ -27,7 +27,7 @@ return new class extends Migration
                     DB::table('users')
                         ->where('id', $user->id)
                         ->update([
-                            'is_password_default' => Hash::check(User::DEFAULT_PASSWORD, $user->password),
+                            'is_password_default' => Hash::check(User::LEGACY_DEFAULT_PASSWORD, $user->password),
                         ]);
                 }
             });

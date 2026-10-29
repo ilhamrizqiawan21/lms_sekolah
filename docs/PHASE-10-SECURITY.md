@@ -19,11 +19,11 @@ Status: **code-level hardening complete; production deployment gate remains runt
 - A general per-route request limiter is applied to web traffic.
 - Security headers include CSP, clickjacking protection, MIME sniffing protection, Referrer-Policy, Permissions-Policy and COOP; HSTS is enabled in production over HTTPS.
 - Authenticated responses are marked `no-store` to reduce sensitive browser/proxy caching.
-- Production can force users with default credentials to change their password before accessing the application.
+- Accounts created or reset without an explicit password receive a unique temporary password and must change it before accessing the application.
 - Account password changes require current-password confirmation and a stronger password policy.
 - Production environment controls are documented in `.env.example`.
 - Legacy admin password export is intercepted by `SensitiveEndpointGuard` and replaced with a CSV containing account identity and password-status metadata only; no password value is exported.
-- Legacy admin and student password-reset routes are intercepted by `SensitiveEndpointGuard` and, per current operational policy, reset accounts to `User::DEFAULT_PASSWORD` (`123456`) with hashed storage. The credential is exposed only to the authenticated admin initiating the reset.
+- Legacy admin and student password-reset routes are intercepted by `SensitiveEndpointGuard` and reset accounts to a unique temporary password with hashed storage. The credential is exposed only to the authenticated admin initiating the reset.
 - Added `tests/Feature/Phase10AuthorizationTest.php` covering cross-guru task deletion, owner task deletion, secure student password reset and role-boundary rejection.
 
 ## Authorization / IDOR completion
@@ -63,8 +63,7 @@ The Phase 10 feature tests are now part of that suite. Runtime execution must be
 - Generate a unique `APP_KEY`; never commit `.env`.
 - Use HTTPS and set `SESSION_SECURE_COOKIE=true`.
 - Keep `SESSION_HTTP_ONLY=true` and `SESSION_SAME_SITE=lax` unless the deployment architecture requires another value.
-- Kebijakan ganti password wajib dinonaktifkan secara default. Aktifkan eksplisit
-  dengan `FORCE_PASSWORD_CHANGE=true` hanya bila diperlukan oleh instalasi.
+- Pergantian password wajib berlaku untuk seluruh akun dengan password sementara; jangan menonaktifkan middleware `RequirePasswordChange` pada production.
 - Use a non-default database account with only the privileges required by the application.
 - Ensure `storage/` and `bootstrap/cache/` are writable by the application process, while `.env` and source files are not web-writable.
 - Keep private user/task files outside the public web root and serve them through authorized download controllers.

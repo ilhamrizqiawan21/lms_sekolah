@@ -11,6 +11,10 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
+        if (! config('app.demo_mode', false) || app()->environment('production')) {
+            return;
+        }
+
         $this->call(DemoUserSeeder::class);
     }
 }

@@ -75,7 +75,7 @@ function submit() {
                             name="password"
                             type="password"
                             label="Password"
-                            :help="isEdit ? 'Kosongkan bila password tidak diubah.' : 'Kosongkan untuk memakai password awal 123456.'"
+                            :help="isEdit ? 'Kosongkan bila password tidak diubah.' : 'Kosongkan untuk membuat password sementara acak. Password awal wajib diganti saat login pertama.'"
                             :error="form.errors.password"
                             autocomplete="new-password"
                         />

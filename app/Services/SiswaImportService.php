@@ -40,8 +40,8 @@ class SiswaImportService
             foreach ($rows['data'] as $row) {
                 $user = User::create([
                     'username' => $row['username'],
-                    'password' => Hash::make($row['password'] ?: User::DEFAULT_PASSWORD),
-                    'is_password_default' => $row['password'] === '' || $row['password'] === User::DEFAULT_PASSWORD,
+                    'password' => Hash::make($row['password']),
+                    'is_password_default' => true,
                     'nama_lengkap' => $row['nama_lengkap'],
                     'nip_nis' => $row['nis'],
                     'jenis_kelamin' => $row['jenis_kelamin'] ?: null,
@@ -207,8 +207,17 @@ class SiswaImportService
             $errors[] = "{$prefix} kelas_id tidak ditemukan.";
         }
 
-        if ($data['password'] !== '' && strlen($data['password']) < 6) {
-            $errors[] = "{$prefix} password minimal 6 karakter.";
+        if ($data['password'] === '') {
+            $errors[] = "{$prefix} password wajib diisi untuk import akun siswa.";
+        } elseif (
+            strlen($data['password']) < 10
+            || ! preg_match('/[A-Za-z]/', $data['password'])
+            || ! preg_match('/[A-Z]/', $data['password'])
+            || ! preg_match('/[a-z]/', $data['password'])
+            || ! preg_match('/\d/', $data['password'])
+            || ! preg_match('/[^A-Za-z\d]/', $data['password'])
+        ) {
+            $errors[] = "{$prefix} password minimal 10 karakter dan harus mengandung huruf besar, huruf kecil, angka, serta simbol.";
         }
 
         if ($data['jenis_kelamin'] !== '' && ! in_array($data['jenis_kelamin'], ['L', 'P'], true)) {

@@ -13,6 +13,10 @@ class DemoUserSeeder extends Seeder
      */
     public function run(): void
     {
+        if (! config('app.demo_mode', false) || app()->environment('production')) {
+            return;
+        }
+
         $users = [
             [
                 'username' => 'admin',
@@ -77,6 +81,7 @@ class DemoUserSeeder extends Seeder
                 ['username' => $user['username']],
                 array_merge($user, [
                     'password' => Hash::make('password'),
+                    'is_password_default' => false,
                     'is_active' => true,
                 ])
             );
@@ -93,6 +98,7 @@ class DemoUserSeeder extends Seeder
                     'nip_nis' => "SD-DEMO-{$number}",
                     'jenis_kelamin' => $i % 2 === 0 ? 'P' : 'L',
                     'password' => Hash::make('password'),
+                    'is_password_default' => false,
                     'role_id' => 3,
                     'is_active' => true,
                 ]

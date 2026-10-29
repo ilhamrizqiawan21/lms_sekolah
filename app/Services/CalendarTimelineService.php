@@ -122,6 +122,7 @@ class CalendarTimelineService
     private function tasks(User $user, Carbon $start, Carbon $end): Collection
     {
         $query = Tugas::with(['kelasMapel.kelas', 'kelasMapel.mataPelajaran', 'kelasMapel.guru'])
+            ->whereHas('kelasMapel', fn ($q) => $q->aktif())
             ->whereBetween('batas_waktu', [$start, $end]);
 
         if ($user->isGuru()) {
@@ -259,23 +260,33 @@ class CalendarTimelineService
             ->orderBy('created_at');
 
         if ($user->isGuru()) {
-            $query->where(function ($q) use ($user) {
+            $activeKelasMapel = KelasMapel::where('guru_id', $user->id)->aktif();
+            $activeKelasMapelIds = (clone $activeKelasMapel)->select('id');
+            $activeKelasIds = $activeKelasMapel->pluck('kelas_id');
+
+            $query->where(function ($q) use ($user, $activeKelasMapelIds, $activeKelasIds) {
                 $q->whereIn('target', ['semua', 'guru'])
                     ->orWhere('created_by', $user->id)
-                    ->orWhere(function ($q) use ($user) {
+                    ->orWhere(function ($q) use ($activeKelasMapelIds, $activeKelasIds) {
                         $q->where('target', 'kelas_mapel')
-                            ->whereIn('kelas_mapel_id', KelasMapel::where('guru_id', $user->id)->select('id'));
+                            ->where(function ($q) use ($activeKelasMapelIds, $activeKelasIds) {
+                                $q->whereIn('kelas_mapel_id', $activeKelasMapelIds);
+                                foreach ($activeKelasIds as $id) {
+                                    $q->orWhere('target_kelas', 'like', '%"'.$id.'"%');
+                                }
+                            });
                     });
             });
         } elseif ($user->isSiswa()) {
             $kelasId = $user->siswa?->kelas_id;
-            $query->where(function ($q) use ($kelasId) {
+            $kelasMapelIds = KelasMapel::where('kelas_id', $kelasId)->aktif()->pluck('id');
+            $query->where(function ($q) use ($kelasId, $kelasMapelIds) {
                 $q->whereIn('target', ['semua', 'siswa'])
-                    ->orWhere(function ($q) use ($kelasId) {
+                    ->orWhere(function ($q) use ($kelasId, $kelasMapelIds) {
                         $q->where('target', 'kelas_mapel')
-                            ->where(function ($q) use ($kelasId) {
-                                $q->whereIn('kelas_mapel_id', KelasMapel::where('kelas_id', $kelasId)->select('id'))
-                                    ->orWhere('target_kelas', 'like', '%"'.$kelasId.'"%');
+                            ->where(function ($q) use ($kelasId, $kelasMapelIds) {
+                                $q->whereIn('kelas_mapel_id', $kelasMapelIds)
+                                    ->when($kelasMapelIds->isNotEmpty(), fn ($q) => $q->orWhere('target_kelas', 'like', '%"'.$kelasId.'"%'));
                             });
                     });
             });

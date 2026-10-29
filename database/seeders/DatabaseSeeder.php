@@ -14,9 +14,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->environment('production') && config('app.demo_mode', false)) {
+            throw new \RuntimeException('Demo seeder diblokir di production. Gunakan EmptyProductSeeder dengan DEFAULT_ADMIN_PASSWORD yang kuat.');
+        }
+
         $this->call([
             RoleSeeder::class,
             SchoolSettingSeeder::class,
+        ]);
+
+        if (! config('app.demo_mode', false)) {
+            return;
+        }
+
+        $this->call([
             DemoUserSeeder::class,
             DemoAcademicSeeder::class,
             JadwalMengajarSeeder::class,

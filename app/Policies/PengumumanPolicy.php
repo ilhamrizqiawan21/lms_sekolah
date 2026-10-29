@@ -21,7 +21,7 @@ class PengumumanPolicy
                 return true;
             }
 
-            return $pengumuman->target === 'kelas_mapel' && KelasMapel::whereIn('kelas_id', $pengumuman->targetKelasIds())->where('guru_id', $user->id)->exists();
+            return $pengumuman->target === 'kelas_mapel' && KelasMapel::aktif()->whereIn('kelas_id', $pengumuman->targetKelasIds())->where('guru_id', $user->id)->exists();
         }
 
         return false;

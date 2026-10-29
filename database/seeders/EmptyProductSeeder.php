@@ -56,6 +56,7 @@ class EmptyProductSeeder extends Seeder
                 'nip_nis' => 'ADM-DEFAULT-001',
                 'jenis_kelamin' => null,
                 'password' => Hash::make($password),
+                'is_password_default' => true,
                 'role_id' => 1,
                 'is_active' => true,
             ]

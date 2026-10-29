@@ -62,7 +62,7 @@ class PengumumanController extends Controller
                         $query->where('target', 'kelas_mapel')
                             ->where(function ($query) use ($kelasMapelIds, $kelasId) {
                                 $query->whereIn('kelas_mapel_id', $kelasMapelIds)
-                                    ->orWhere('target_kelas', 'like', '%"'.$kelasId.'"%');
+                                    ->when($kelasMapelIds->isNotEmpty(), fn ($query) => $query->orWhere('target_kelas', 'like', '%"'.$kelasId.'"%'));
                             });
                     });
             })

@@ -23,11 +23,11 @@ class PengumumanService
                 throw ValidationException::withMessages(['target_kelas_ids' => 'Pilih minimal satu kelas tujuan.']);
             }
             if ($actor->isGuru()) {
-                $allowed = KelasMapel::where('guru_id', $actor->id)->whereIn('kelas_id', $ids)->pluck('kelas_id')->unique();
+                $allowed = KelasMapel::where('guru_id', $actor->id)->aktif()->whereIn('kelas_id', $ids)->pluck('kelas_id')->unique();
                 abort_unless($ids->diff($allowed)->isEmpty(), 403);
             }
             $v['target_kelas'] = $ids->map(fn ($id) => (string) $id)->values()->toJson();
-            $v['kelas_mapel_id'] = KelasMapel::whereIn('kelas_id', $ids)->value('id');
+            $v['kelas_mapel_id'] = KelasMapel::aktif()->whereIn('kelas_id', $ids)->value('id');
         } else {
             $v['target_kelas'] = null;
             $v['kelas_mapel_id'] = null;

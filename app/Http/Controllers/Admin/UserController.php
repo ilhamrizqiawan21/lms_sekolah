@@ -79,6 +79,7 @@ class UserController extends Controller
                 'search' => $request->string('search')->toString(),
                 'role_id' => $request->string('role_id')->toString(),
             ],
+            'initialPassword' => session('initial_password'),
             'exportUrl' => route('admin.users.export.excel'),
         ]);
     }
@@ -148,15 +149,26 @@ class UserController extends Controller
         $role = Role::findOrFail($validated['role_id']);
         $this->ensureStaffRole($role);
 
-        $plainPassword = $request->filled('password') ? $validated['password'] : User::DEFAULT_PASSWORD;
+        $plainPassword = $request->filled('password') ? $validated['password'] : User::temporaryPassword();
         $validated['password'] = Hash::make($plainPassword);
-        $validated['is_password_default'] = $plainPassword === User::DEFAULT_PASSWORD;
+        $validated['is_password_default'] = true;
         $validated['is_active'] = $request->boolean('is_active');
 
         DB::transaction(fn () => User::create($validated));
 
-        return redirect()->route('admin.users.index')
+        $response = redirect()->route('admin.users.index')
             ->with('success', 'Akun guru/staf berhasil ditambahkan.');
+
+        if (! $request->filled('password')) {
+            $response->with('initial_password', [
+                'title' => 'Password awal akun',
+                'name' => $validated['nama_lengkap'],
+                'username' => $validated['username'],
+                'password' => $plainPassword,
+            ]);
+        }
+
+        return $response;
     }
 
     /**
@@ -246,7 +258,7 @@ class UserController extends Controller
 
         if ($request->filled('password')) {
             $validated['password'] = Hash::make($request->password);
-            $validated['is_password_default'] = $request->password === User::DEFAULT_PASSWORD;
+            $validated['is_password_default'] = false;
         } else {
             unset($validated['password']);
         }
@@ -307,19 +319,28 @@ class UserController extends Controller
     }
 
     /**
-     * Reset password guru/staf ke password default.
+     * Reset password guru/staf ke password sementara acak.
      */
     public function resetPassword(User $user)
     {
         $this->ensureAdmin();
         $this->ensureNotSiswaUser($user);
 
+        $password = User::temporaryPassword();
+
         DB::transaction(fn () => $user->update([
-            'password' => Hash::make(User::DEFAULT_PASSWORD),
+            'password' => Hash::make($password),
             'is_password_default' => true,
         ]));
 
-        return back()->with('success', "Password {$user->nama_lengkap} berhasil direset ke ".User::DEFAULT_PASSWORD.'.');
+        return back()
+            ->with('success', "Password {$user->nama_lengkap} berhasil direset.")
+            ->with('initial_password', [
+                'title' => 'Password baru akun',
+                'name' => $user->nama_lengkap,
+                'username' => $user->username,
+                'password' => $password,
+            ]);
     }
 
     private function isLastActiveAdmin(User $user): bool

@@ -476,7 +476,7 @@ class Phase10AuthorizationTest extends TestCase
             ->assertRedirect();
     }
 
-    public function test_admin_student_password_reset_uses_default_password(): void
+    public function test_admin_student_password_reset_uses_unique_temporary_password(): void
     {
         [$admin, , , $kelas] = $this->fixture();
         $studentUser = $this->createUser('siswa-reset', 'Siswa Reset', 'siswa');
@@ -496,7 +496,9 @@ class Phase10AuthorizationTest extends TestCase
         $studentUser->refresh();
 
         $this->assertIsArray($payload);
-        $this->assertSame(User::DEFAULT_PASSWORD, $payload['password']);
+        $this->assertIsString($payload['password']);
+        $this->assertNotSame(User::LEGACY_DEFAULT_PASSWORD, $payload['password']);
+        $this->assertGreaterThanOrEqual(10, strlen($payload['password']));
         $this->assertTrue(Hash::check($payload['password'], $studentUser->password));
         $this->assertTrue((bool) $studentUser->is_password_default);
     }

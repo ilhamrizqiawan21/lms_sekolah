@@ -24,13 +24,13 @@ class PengumumanController extends Controller
     {
         $query = Pengumuman::with(['creator', 'kelasMapel.kelas', 'kelasMapel.mataPelajaran'])->orderByDesc('created_at');
         if (Auth::user()->isGuru()) {
-            $guruKelasIds = KelasMapel::where('guru_id', Auth::id())->pluck('kelas_id')->unique()->values();
+            $guruKelasIds = KelasMapel::where('guru_id', Auth::id())->aktif()->pluck('kelas_id')->unique()->values();
             $query->where(function ($q) use ($guruKelasIds) {
                 $q->whereIn('target', ['semua', 'guru'])
                     ->orWhere('created_by', Auth::id())
                     ->orWhere(function ($q) use ($guruKelasIds) {
                         $q->where('target', 'kelas_mapel')->where(function ($q) use ($guruKelasIds) {
-                            $q->whereIn('kelas_mapel_id', KelasMapel::where('guru_id', Auth::id())->select('id'));
+                            $q->whereIn('kelas_mapel_id', KelasMapel::where('guru_id', Auth::id())->aktif()->select('id'));
                             foreach ($guruKelasIds as $id) {
                                 $q->orWhereJsonContains('target_kelas', (string) $id);
                             }
@@ -62,7 +62,7 @@ class PengumumanController extends Controller
 
         $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
         $kelasMapel = KelasMapel::with(['kelas', 'mataPelajaran'])
-            ->when(Auth::user()->isGuru(), fn ($q) => $q->where('guru_id', Auth::id()))
+            ->when(Auth::user()->isGuru(), fn ($q) => $q->where('guru_id', Auth::id())->aktif())
             ->orderBy('kelas_id')->get();
         $targetKelasOptions = Auth::user()->isGuru()
             ? $kelasMapel->pluck('kelas')->filter()->unique('id')->sortBy(fn (Kelas $k) => $k->tingkat.' '.$k->nama_kelas)->values()

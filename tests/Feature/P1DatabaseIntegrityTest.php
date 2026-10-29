@@ -120,7 +120,7 @@ class P1DatabaseIntegrityTest extends TestCase
                 'Siswa Import P1',
                 'abc001',
                 (string) $kelas->id,
-                '',
+                'Import#Password1!',
                 'L',
                 '2026',
                 'aktif',
@@ -135,6 +135,7 @@ class P1DatabaseIntegrityTest extends TestCase
             $this->assertDatabaseHas('users', [
                 'username' => 'siswa-import-p1',
                 'nip_nis' => 'ABC001',
+                'is_password_default' => true,
             ]);
             $this->assertDatabaseHas('siswa', [
                 'nis' => 'ABC001',
@@ -147,6 +148,35 @@ class P1DatabaseIntegrityTest extends TestCase
                     ->count()
             );
             $this->assertSame(0, Siswa::whereDoesntHave('user')->count());
+        } finally {
+            @unlink($filePath);
+        }
+    }
+
+    public function test_siswa_import_rejects_missing_password_instead_of_using_a_shared_default(): void
+    {
+        Role::create(['nama_role' => 'siswa']);
+        $kelas = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'Import Password']);
+        $filePath = $this->createSiswaImportFile([
+            [
+                'siswa-import-empty-password',
+                'Siswa Empty Password',
+                'abc002',
+                (string) $kelas->id,
+                '',
+                'P',
+                '2026',
+                'aktif',
+                '1',
+            ],
+        ]);
+
+        try {
+            $result = app(SiswaImportService::class)->import($filePath);
+
+            $this->assertSame(0, $result['imported']);
+            $this->assertStringContainsString('password wajib diisi', implode(' ', $result['errors']));
+            $this->assertDatabaseMissing('users', ['username' => 'siswa-import-empty-password']);
         } finally {
             @unlink($filePath);
         }

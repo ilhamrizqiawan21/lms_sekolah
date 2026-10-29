@@ -87,6 +87,13 @@ class P0AdminHardeningTest extends TestCase
             'role_id' => $guruRoleId,
         ]);
 
+        $createdStaff = User::where('username', 'guru-baru-p0')->firstOrFail();
+        $initialPassword = session('initial_password.password');
+        $this->assertIsString($initialPassword);
+        $this->assertNotSame(User::LEGACY_DEFAULT_PASSWORD, $initialPassword);
+        $this->assertTrue(Hash::check($initialPassword, $createdStaff->password));
+        $this->assertTrue((bool) $createdStaff->is_password_default);
+
         $this->actingAs($admin)
             ->from(route('admin.users.create'))
             ->post(route('admin.users.store'), [
@@ -134,23 +141,44 @@ class P0AdminHardeningTest extends TestCase
             ->assertSessionHasErrors('username');
     }
 
+    public function test_explicit_staff_password_is_not_reflashed_as_a_temporary_credential(): void
+    {
+        $admin = $this->makeUser('admin', 'admin-explicit-password-p0');
+        $guruRoleId = Role::where('nama_role', 'guru')->value('id');
+
+        $this->actingAs($admin)
+            ->post(route('admin.users.store'), [
+                'username' => 'guru-explicit-p0',
+                'nama_lengkap' => 'Guru Explicit P0',
+                'password' => 'Explicit#Password1!',
+                'role_id' => $guruRoleId,
+                'is_active' => '1',
+            ])
+            ->assertRedirect(route('admin.users.index'))
+            ->assertSessionMissing('initial_password');
+
+        $created = User::where('username', 'guru-explicit-p0')->firstOrFail();
+        $this->assertTrue((bool) $created->is_password_default);
+        $this->assertTrue(Hash::check('Explicit#Password1!', $created->password));
+    }
+
     public function test_staff_password_export_does_not_contain_default_password_plaintext(): void
     {
         $admin = $this->makeUser('admin', 'admin-export-p0');
-        $this->makeUser('guru', 'guru-default-export-p0', true, User::DEFAULT_PASSWORD, true);
+        $this->makeUser('guru', 'guru-default-export-p0', true, User::LEGACY_DEFAULT_PASSWORD, true);
 
         $response = $this->actingAs($admin)
             ->get(route('admin.users.export.excel'));
 
         $response->assertOk();
-        $this->assertStringNotContainsString(User::DEFAULT_PASSWORD, $response->streamedContent());
+        $this->assertStringNotContainsString(User::LEGACY_DEFAULT_PASSWORD, $response->streamedContent());
     }
 
     #[RequiresPhpExtension('zip')]
     public function test_student_password_export_does_not_contain_default_password_plaintext(): void
     {
         $kelas = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'Export']);
-        $studentUser = $this->makeUser('siswa', 'siswa-default-export-p0', true, User::DEFAULT_PASSWORD, true);
+        $studentUser = $this->makeUser('siswa', 'siswa-default-export-p0', true, User::LEGACY_DEFAULT_PASSWORD, true);
         $siswa = Siswa::create([
             'user_id' => $studentUser->id,
             'nis' => 'EXP001',
@@ -165,14 +193,14 @@ class P0AdminHardeningTest extends TestCase
         try {
             $content = $this->xlsxContent($filePath);
 
-            $this->assertStringNotContainsString(User::DEFAULT_PASSWORD, $content);
+            $this->assertStringNotContainsString(User::LEGACY_DEFAULT_PASSWORD, $content);
             $this->assertStringNotContainsString('Password Default', $content);
         } finally {
             @unlink($filePath);
         }
     }
 
-    public function test_staff_and_student_password_reset_stays_on_default_password(): void
+    public function test_staff_and_student_password_reset_uses_unique_temporary_passwords(): void
     {
         $admin = $this->makeUser('admin', 'admin-reset-p0');
         $guru = $this->makeUser('guru', 'guru-reset-p0', true, 'old-password', false);
@@ -185,21 +213,29 @@ class P0AdminHardeningTest extends TestCase
             'status' => 'aktif',
         ]);
 
-        $this->actingAs($admin)
+        $staffReset = $this->actingAs($admin)
             ->post(route('admin.users.reset-password', $guru))
             ->assertRedirect()
             ->assertSessionHas('success');
 
-        $this->actingAs($admin)
+        $staffPassword = session('initial_password.password');
+        $studentReset = $this->actingAs($admin)
             ->post(route('admin.kelas-siswa.reset-password', $siswa))
             ->assertRedirect()
-            ->assertSessionHas('student_password.password', User::DEFAULT_PASSWORD);
+            ->assertSessionHas('student_password.password');
+
+        $studentPassword = session('student_password.password');
 
         $guru->refresh();
         $studentUser->refresh();
 
-        $this->assertTrue(Hash::check(User::DEFAULT_PASSWORD, $guru->password));
-        $this->assertTrue(Hash::check(User::DEFAULT_PASSWORD, $studentUser->password));
+        $this->assertIsString($staffPassword);
+        $this->assertIsString($studentPassword);
+        $this->assertNotSame(User::LEGACY_DEFAULT_PASSWORD, $staffPassword);
+        $this->assertNotSame(User::LEGACY_DEFAULT_PASSWORD, $studentPassword);
+        $this->assertNotSame($staffPassword, $studentPassword);
+        $this->assertTrue(Hash::check($staffPassword, $guru->password));
+        $this->assertTrue(Hash::check($studentPassword, $studentUser->password));
         $this->assertTrue((bool) $guru->is_password_default);
         $this->assertTrue((bool) $studentUser->is_password_default);
     }

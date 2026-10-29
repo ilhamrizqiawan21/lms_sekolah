@@ -49,14 +49,18 @@ class SensitiveEndpointGuard
         abort_unless($user instanceof User && ! $user->isSiswa(), 404);
 
         $user->forceFill([
-            'password' => Hash::make(User::DEFAULT_PASSWORD),
+            'password' => Hash::make($password = User::temporaryPassword()),
             'is_password_default' => true,
         ])->save();
 
-        return back()->with(
-            'success',
-            "Password {$user->nama_lengkap} berhasil direset ke ".User::DEFAULT_PASSWORD.'.'
-        );
+        return back()
+            ->with('success', "Password {$user->nama_lengkap} berhasil direset.")
+            ->with('initial_password', [
+                'title' => 'Password baru akun',
+                'name' => $user->nama_lengkap,
+                'username' => $user->username,
+                'password' => $password,
+            ]);
     }
 
     private function secureStudentResetPassword(Request $request, Closure $next): Response
@@ -73,7 +77,7 @@ class SensitiveEndpointGuard
         abort_unless($siswa instanceof Siswa && $user instanceof User && $user->isSiswa(), 404);
 
         $user->forceFill([
-            'password' => Hash::make(User::DEFAULT_PASSWORD),
+            'password' => Hash::make($password = User::temporaryPassword()),
             'is_password_default' => true,
         ])->save();
 
@@ -83,7 +87,7 @@ class SensitiveEndpointGuard
                 'title' => 'Password baru siswa',
                 'name' => $user->nama_lengkap,
                 'username' => $user->username,
-                'password' => User::DEFAULT_PASSWORD,
+                'password' => $password,
             ]);
     }
 
