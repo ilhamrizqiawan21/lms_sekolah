@@ -58,8 +58,8 @@
             const stored = (() => {
                 try { return window.localStorage.getItem(key); } catch { return null; }
             })();
-            // Halaman login selalu terang, apa pun preferensi tersimpan atau mode sistem.
-            const forceLight = {{ request()->routeIs('login') || request()->is('login') ? 'true' : 'false' }};
+            // Halaman publik selalu terang, apa pun preferensi tersimpan atau mode sistem.
+            const forceLight = {{ request()->routeIs('landing') || request()->routeIs('login') || request()->is('login') ? 'true' : 'false' }};
             const mode = forceLight
                 ? 'light'
                 : (['light', 'dark'].includes(stored)

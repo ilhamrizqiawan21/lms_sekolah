@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import AppShell from '../../Layouts/AppShell.vue';
 import { computed } from 'vue';
 import { ActionQueue, CourseCard, DashboardHero, MetricStrip, QuickActionBar } from '../../Components/UI';
+import type { AppPageProps } from '../../types';
 interface StudentStats { total_tugas?: number; tugas_selesai?: number; tugas_belum?: number; total_materi?: number; }
 interface StudentCourse { id: number; title: string; subtitle: string; meta: string; href: string; badges?: Array<{ label: string; color?: string }>; }
 interface StudentTask { id: number; judul: string; mata_pelajaran: string; batas_waktu: string; show_url?: string | null; selesai?: boolean; }
@@ -13,6 +14,15 @@ interface StudentLinks { tugas?: string; materi?: string; jadwal_pelajaran?: str
 
 interface Props { stats: StudentStats; courses?: StudentCourse[]; tugasTerbaru?: StudentTask[]; notifikasi?: StudentNotification[]; pengumuman?: StudentAnnouncement[]; kelasDaring?: OnlineClass[]; links?: StudentLinks; }
 const props = withDefaults(defineProps<Props>(), { courses: () => [], tugasTerbaru: () => [], notifikasi: () => [], pengumuman: () => [], kelasDaring: () => [], links: () => ({}) });
+const page = usePage<AppPageProps>();
+const studentName = computed(() => page.props.auth?.user?.nama_lengkap?.trim() || 'Siswa');
+
+const learningProgress = computed(() => {
+    const total = Number(props.stats.total_tugas ?? 0);
+    const completed = Number(props.stats.tugas_selesai ?? 0);
+
+    return total > 0 ? Math.min(100, Math.round((completed / total) * 100)) : 0;
+});
 
 const iconMap = {
     tugas_baru: { icon: 'bi-journal-plus', color: 'var(--accent-blue)' }, nilai_baru: { icon: 'bi-bar-chart-fill', color: 'var(--accent-green)' },
@@ -43,10 +53,26 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: i
 <template>
     <Head title="Dashboard Siswa" />
     <AppShell title="Dashboard Siswa">
-        <DashboardHero eyebrow="Hari Ini" title="Siap lanjut belajar?" :subtitle="`${stats.tugas_belum ?? 0} tugas belum dikerjakan dan ${stats.total_materi ?? 0} materi tersedia untuk dipelajari.`" icon="bi-mortarboard" tone="student">
+        <DashboardHero eyebrow="Hari Ini" :title="`Selamat datang, ${studentName}`" :subtitle="`${stats.tugas_belum ?? 0} tugas belum dikerjakan dan ${stats.total_materi ?? 0} materi tersedia untuk dipelajari.`" icon="bi-mortarboard" tone="student">
             <template #actions><QuickActionBar :actions="quickActions" /></template>
         </DashboardHero>
         <MetricStrip :items="metrics" />
+
+        <section class="student-learning-summary" aria-labelledby="student-progress-title">
+            <div class="student-learning-mark"><i class="bi bi-compass" aria-hidden="true"></i></div>
+            <div class="student-learning-copy">
+                <span class="student-learning-kicker">Progres belajar</span>
+                <h2 id="student-progress-title">Lihat progres tugasmu.</h2>
+                <p>{{ learningProgress }}% tugas sudah selesai dari seluruh tugas yang tersedia.</p>
+            </div>
+            <div class="student-learning-progress" aria-label="Progress tugas">
+                <div class="progress" role="progressbar" :aria-valuenow="learningProgress" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" :style="{ width: `${learningProgress}%` }"></div>
+                </div>
+                <strong>{{ learningProgress }}%</strong>
+            </div>
+            <Link :href="links.tugas || '/siswa/tugas'" class="student-learning-action">Lihat tugas <i class="bi bi-arrow-up-right" aria-hidden="true"></i></Link>
+        </section>
 
         <div class="dashboard-grid dashboard-grid-student student-priority-grid">
             <ActionQueue title="Tugas Terdekat" icon="bi-journal-check" :items="taskItems" empty-title="Belum ada tugas" />
@@ -78,8 +104,41 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: i
 <style scoped>
 .student-priority-grid { align-items: stretch; }
 .student-courses-panel { min-width: 0; }
+.student-learning-summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(150px, 0.65fr) auto;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--panel-radius);
+    background: var(--surface-card);
+}
+.student-learning-mark {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--surface-card);
+    color: var(--text-brand);
+    font-size: 1.15rem;
+}
+.student-learning-kicker { color: var(--text-brand); font-size: var(--fs-xs); font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+.student-learning-copy h2 { margin: .2rem 0 0; color: var(--text-strong); font-size: 1rem; font-weight: 750; }
+.student-learning-copy p { margin: .25rem 0 0; color: var(--text-muted); font-size: var(--fs-xs); }
+.student-learning-progress { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .65rem; }
+.student-learning-progress .progress { height: 8px; background: var(--surface-subtle); }
+.student-learning-progress .progress-bar { border-radius: inherit; background: var(--app-primary); }
+.student-learning-progress strong { color: var(--text-strong); font-size: var(--fs-xs); }
+.student-learning-action { display: inline-flex; align-items: center; gap: .35rem; color: var(--text-brand); font-size: var(--fs-xs); font-weight: 800; text-decoration: none; white-space: nowrap; }
+.student-learning-action:hover { text-decoration: underline; }
 @media (max-width: 767.98px) {
     .student-priority-grid { grid-template-columns: minmax(0, 1fr); }
     .student-courses-panel .course-card-grid { grid-template-columns: minmax(0, 1fr); }
+    .student-learning-summary { grid-template-columns: auto minmax(0, 1fr); }
+    .student-learning-progress { grid-column: 1 / -1; }
+    .student-learning-action { grid-column: 2; justify-self: end; }
 }
 </style>

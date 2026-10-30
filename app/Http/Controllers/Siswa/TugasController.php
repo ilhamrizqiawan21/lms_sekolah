@@ -136,7 +136,7 @@ class TugasController extends Controller
             'file_upload.extensions' => 'Ekstensi file harus .jpg, .jpeg, atau .pdf.',
             'file_upload.mimes' => 'Tipe file harus JPEG atau PDF.',
             'file_upload.max' => 'Ukuran file maksimal 5MB.',
-            'files.array' => 'Upload file tidak valid. Silakan pilih file ulang.',
+            'files.array' => 'File tidak valid. Pilih file lain lalu coba lagi.',
             'files.max' => 'Maksimal '.self::MAX_UPLOAD_FILES.' file untuk satu pengumpulan tugas.',
             'files.*.file' => 'Upload harus berupa file.',
             'files.*.extensions' => 'Ekstensi file harus .jpg, .jpeg, atau .pdf.',

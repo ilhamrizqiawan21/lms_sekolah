@@ -136,7 +136,7 @@ class TugasSubmissionService
             }
             report($e);
 
-            return ['status' => 'failed', 'message' => 'Tugas gagal dikumpulkan. Silakan coba lagi.'];
+            return ['status' => 'failed', 'message' => 'Tugas gagal dikumpulkan. Coba lagi.'];
         }
 
         $guruId = $tugas->kelasMapel->guru_id;

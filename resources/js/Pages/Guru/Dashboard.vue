@@ -281,6 +281,7 @@ const attentionSignals = computed(() => [
     <Head title="Dashboard Guru" />
     <AppShell title="Dashboard Guru">
         <section class="welcome-row" aria-labelledby="welcome-title">
+            <div class="welcome-mark" aria-hidden="true"><i class="bi bi-easel2-fill"></i></div>
             <div class="welcome-copy">
                 <div class="welcome-date">{{ todayLabel }}</div>
                 <h1 id="welcome-title">Selamat datang, {{ user?.nama_lengkap ?? 'Guru' }}</h1>
@@ -310,7 +311,7 @@ const attentionSignals = computed(() => [
             <div class="column">
                 <section class="panel" aria-labelledby="review-title">
                     <header class="panel-head">
-                        <div><h2 class="panel-title" id="review-title">Perlu ditinjau</h2><span class="panel-caption">Pekerjaan siswa yang baru dikumpulkan</span></div>
+                        <div><h2 class="panel-title" id="review-title">Perlu dicek</h2><span class="panel-caption">Tugas siswa yang baru masuk</span></div>
                         <Link href="/guru/tugas" class="text-link">Semua tugas <svg class="gd-icon" viewBox="0 0 24 24" aria-hidden="true"><path :d="iconPaths.arrow[0]" /></svg></Link>
                     </header>
                     <div class="queue-tabs" role="tablist" aria-label="Filter pekerjaan">
@@ -392,7 +393,7 @@ const attentionSignals = computed(() => [
 
                 <section class="panel" aria-labelledby="teacher-attention-title">
                     <header class="panel-head">
-                        <div><h2 class="panel-title" id="teacher-attention-title">Perlu perhatian</h2><span class="panel-caption">Sinyal dari kelas yang Anda ampu</span></div>
+                    <div><h2 class="panel-title" id="teacher-attention-title">Perlu perhatian</h2><span class="panel-caption">Catatan dari kelas Anda</span></div>
                         <span class="tab-count">{{ attentionSignals.length }}</span>
                     </header>
                     <div v-if="attentionSignals.length" class="attention-list">
@@ -463,13 +464,27 @@ const attentionSignals = computed(() => [
 
 <style scoped>
 .gd-icon { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.welcome-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
+.welcome-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1.25rem;
+    min-height: 174px;
+    margin-bottom: 24px;
+    padding: clamp(1.2rem, 2.6vw, 2rem);
+    border: 1px solid var(--border-soft);
+    border-top: 3px solid var(--status-success-text);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--surface-card) 97%, var(--status-success-bg));
+    box-shadow: var(--refresh-shadow-card);
+}
+.welcome-mark { display: grid; width: 52px; height: 52px; place-items: center; border: 1px solid color-mix(in srgb, var(--status-success-text) 18%, var(--border-soft)); border-radius: 1rem; background: var(--status-success-bg); color: var(--status-success-text); font-size: 1.3rem; }
 .welcome-copy { min-width: 0; }
 .welcome-date { margin-bottom: 5px; color: var(--text-muted); font-size: 12px; font-weight: 550; }
 .welcome-row h1 { margin: 0; color: var(--text-strong); font-size: var(--page-heading-size); font-weight: 750; letter-spacing: -0.04em; line-height: 1.2; }
 .welcome-sub { max-width: 620px; margin: 8px 0 0; color: var(--text-muted); font-size: 13px; }
 .welcome-sub strong { color: var(--text-strong); font-weight: 700; }
-.welcome-quick { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.welcome-quick { display: flex; flex-wrap: wrap; align-self: end; justify-content: flex-end; gap: 8px; }
 .gd-button .gd-icon { width: 15px; height: 15px; }
 .overview-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: hidden; margin-bottom: 23px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--surface-card); }
 .overview-item { display: flex; min-width: 0; align-items: center; gap: 12px; padding: 15px 17px; color: inherit; text-decoration: none; }
@@ -551,8 +566,9 @@ const attentionSignals = computed(() => [
     .content-grid { grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr); }
 }
 @media (max-width: 680px) {
-    .welcome-row { align-items: flex-start; flex-direction: column; gap: 15px; margin-bottom: 19px; }
-    .welcome-quick { width: 100%; justify-content: flex-start; }
+    .welcome-row { grid-template-columns: auto minmax(0, 1fr); align-items: flex-start; gap: 15px; min-height: auto; margin-bottom: 19px; }
+    .welcome-mark { width: 44px; height: 44px; border-radius: .85rem; }
+    .welcome-quick { grid-column: 1 / -1; width: 100%; align-self: start; justify-content: flex-start; }
     .overview-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .overview-item { padding: 12px; }
     .overview-item:nth-child(3) { border-top: 1px solid var(--border-soft); border-left: 0; }

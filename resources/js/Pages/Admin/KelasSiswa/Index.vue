@@ -204,7 +204,7 @@ function passwordStatusColor(isDefault: boolean) {
     <Head title="Kelas dan Siswa" />
 
     <AppShell title="Kelas dan Siswa">
-        <PageHeader eyebrow="Administrasi Akademik" title="Kelas dan Siswa" subtitle="Pantau, tambah, import, dan perbarui data siswa per kelas.">
+        <PageHeader eyebrow="Administrasi Akademik" title="Kelas dan Siswa" subtitle="Lihat, tambah, import, dan perbarui data siswa per kelas.">
             <template #actions>
                 <Button type="button" color="outline-secondary" icon="bi-file-earmark-spreadsheet" :aria-expanded="panel === 'import'" @click="togglePanel('import')">Import Excel</Button>
                 <Button type="button" color="primary" icon="bi-person-plus" :aria-expanded="panel === 'tambah'" @click="togglePanel('tambah')">Tambah Siswa</Button>

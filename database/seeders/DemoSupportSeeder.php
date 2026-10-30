@@ -144,7 +144,7 @@ class DemoSupportSeeder extends Seeder
                 ['is_read' => true, 'created_at' => now()->subHours(5)]
             );
             ChatMessage::firstOrCreate(
-                ['kelas_mapel_id' => $kelasMapel->id, 'user_id' => $kelasMapel->guru_id, 'message' => 'Sudah, silakan cek menu Materi ya.'],
+                ['kelas_mapel_id' => $kelasMapel->id, 'user_id' => $kelasMapel->guru_id, 'message' => 'Sudah, cek menu Materi ya.'],
                 ['is_read' => false, 'created_at' => now()->subHours(4)]
             );
         }

@@ -51,7 +51,7 @@ class RequirePasswordChange
         };
 
         if ($route && app('router')->has($route)) {
-            return redirect()->route($route)->with('warning', 'Demi keamanan, silakan ubah password default sebelum melanjutkan.');
+            return redirect()->route($route)->with('warning', 'Untuk keamanan, ubah password default sebelum melanjutkan.');
         }
 
         return $next($request);

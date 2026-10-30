@@ -54,7 +54,7 @@ class AccountSettingsController extends Controller
     {
         abort_unless($request->user()->hasRole('siswa'), 403);
         $siswa = $request->user()->siswa;
-        abort_unless($siswa, 403, 'Data siswa belum tersedia. Hubungi administrator sekolah.');
+        abort_unless($siswa, 403, 'Data siswa belum tersedia. Hubungi admin sekolah.');
 
         $validated = $request->validate([
             'nomor_whatsapp' => ['required', 'string', 'max:32'],

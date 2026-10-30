@@ -203,7 +203,7 @@ function submit() {
             </div>
 
             <div class="tugas-col-courses">
-                <Card title="Kelas yang Diajar" subtitle="Pantau aktivitas tugas per kelas dan mata pelajaran." icon="bi-people-fill">
+                <Card title="Kelas yang Diajar" subtitle="Lihat aktivitas tugas per kelas dan mata pelajaran." icon="bi-people-fill">
                     <template #actions>
                         <span class="badge badge-compact rounded-pill text-bg-success-subtle border border-success-subtle text-success fw-bold">{{ kelasMapel.length }} penugasan</span>
                     </template>

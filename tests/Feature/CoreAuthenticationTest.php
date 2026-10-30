@@ -76,7 +76,7 @@ class CoreAuthenticationTest extends TestCase
             'password' => 'secret-password',
         ]);
 
-        $response->assertSessionHas('error', 'Akun Anda telah dinonaktifkan. Silakan hubungi administrator.');
+        $response->assertSessionHas('error', 'Akun ini sedang nonaktif. Hubungi admin sekolah.');
         $this->assertGuest();
     }
 
@@ -164,6 +164,26 @@ class CoreAuthenticationTest extends TestCase
                 ->has('publicAnnouncements', 1)
                 ->where('publicAnnouncements.0.judul', 'Daftar Hasil Ulangan')
                 ->where('publicAnnouncements.0.attachment.name', 'hasil-ulangan.pdf')
+            );
+    }
+
+    public function test_landing_page_is_public_and_login_remains_a_direct_entry_point(): void
+    {
+        $this->get(route('landing'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Landing')
+                ->where('loginUrl', route('login'))
+                ->has('branding.school_name')
+                ->has('publicAnnouncements')
+                ->has('year')
+            );
+
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Auth/Login')
+                ->where('loginUrl', route('login.post'))
             );
     }
 

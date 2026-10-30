@@ -54,7 +54,7 @@ function submit() {
         <PageHeader
             eyebrow="Administrasi Sekolah"
             :title="pageTitle"
-            :subtitle="isEdit ? 'Perbarui identitas dan akses akun.' : 'Buat akun guru, staf, atau administrator sekolah.'"
+            :subtitle="isEdit ? 'Perbarui identitas dan akses akun.' : 'Buat akun guru, staf, atau admin sekolah.'"
         />
 
         <form @submit.prevent="submit">

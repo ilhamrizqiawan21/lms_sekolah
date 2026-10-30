@@ -116,7 +116,7 @@ async function deleteAvatar(): Promise<void> {
                 <Badge v-if="profile.siswa?.phone_required" color="warning">Wajib dilengkapi</Badge>
             </header>
             <div class="workspace-panel-body">
-                <div v-if="!profile.siswa" class="alert alert-warning mb-0" role="alert">Data siswa belum tersedia. Hubungi administrator sekolah.</div>
+                <div v-if="!profile.siswa" class="alert alert-warning mb-0" role="alert">Data siswa belum tersedia. Hubungi admin sekolah.</div>
                 <form v-else @submit.prevent="submitPhone">
                     <TextInput
                         v-model="phoneForm.nomor_whatsapp"

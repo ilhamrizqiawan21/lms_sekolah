@@ -16,7 +16,37 @@ use Inertia\Inertia;
 
 class LoginController extends Controller
 {
+    public function showLanding()
+    {
+        return Inertia::render('Landing', array_merge($this->publicPortalProps(), [
+            'loginUrl' => route('login'),
+        ]));
+    }
+
     public function showLogin()
+    {
+        return Inertia::render('Auth/Login', array_merge($this->publicPortalProps(), [
+            'loginUrl' => route('login.post'),
+        ]));
+    }
+
+    private function publicPortalProps(): array
+    {
+        return [
+            'branding' => [
+                'school_name' => school_setting('school_name', 'Nama Sekolah'),
+                'school_short_name' => school_setting('school_short_name', 'LMS'),
+                'school_motto' => school_setting('motto', 'Learning Management System'),
+                'school_address' => school_setting('address', 'Alamat sekolah belum diatur'),
+                'support_contact' => school_setting('whatsapp') ?: school_setting('phone'),
+                'logo_url' => school_logo_url(),
+            ],
+            'publicAnnouncements' => $this->publicAnnouncements(),
+            'year' => date('Y'),
+        ];
+    }
+
+    private function publicAnnouncements()
     {
         $publicAnnouncements = collect();
 
@@ -40,19 +70,7 @@ class LoginController extends Controller
                 ]);
         }
 
-        return Inertia::render('Auth/Login', [
-            'branding' => [
-                'school_name' => school_setting('school_name', 'Nama Sekolah'),
-                'school_short_name' => school_setting('school_short_name', 'LMS'),
-                'school_motto' => school_setting('motto', 'Learning Management System'),
-                'school_address' => school_setting('address', 'Alamat sekolah belum diatur'),
-                'support_contact' => school_setting('whatsapp') ?: school_setting('phone'),
-                'logo_url' => school_logo_url(),
-            ],
-            'loginUrl' => route('login.post'),
-            'publicAnnouncements' => $publicAnnouncements,
-            'year' => date('Y'),
-        ]);
+        return $publicAnnouncements;
     }
 
     public function downloadPublicAnnouncementAttachment(Pengumuman $pengumuman)
@@ -88,7 +106,7 @@ class LoginController extends Controller
                 RateLimiter::availableIn($accountThrottleKey)
             );
 
-            return back()->with('error', "Terlalu banyak percobaan login. Silakan coba lagi dalam {$seconds} detik.");
+            return back()->with('error', "Terlalu banyak percobaan login. Coba lagi dalam {$seconds} detik.");
         }
 
         $loginField = filter_var($username, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
@@ -101,7 +119,7 @@ class LoginController extends Controller
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                return back()->with('error', 'Akun Anda telah dinonaktifkan. Silakan hubungi administrator.');
+                return back()->with('error', 'Akun ini sedang nonaktif. Hubungi admin sekolah.');
             }
 
             $request->session()->regenerate();
@@ -186,7 +204,7 @@ class LoginController extends Controller
             'guru' => route('guru.dashboard'),
             'siswa' => route('siswa.dashboard'),
             'kepala_sekolah' => route('kepsek.dashboard'),
-            default => '/',
+            default => route('login'),
         };
     }
 

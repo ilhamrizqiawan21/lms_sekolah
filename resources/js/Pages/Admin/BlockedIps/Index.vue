@@ -39,7 +39,7 @@ async function unblock(item: BlockedIp) {
     <AppShell title="IP Diblokir">
         <PageHeader
             title="IP Diblokir"
-            subtitle="Pantau dan buka blokir IP yang masuk daftar pembatasan akses."
+            subtitle="Lihat dan buka blokir IP yang masuk daftar pembatasan akses."
             icon="bi-shield-fill-x"
         />
 

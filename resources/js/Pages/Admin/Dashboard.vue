@@ -33,19 +33,42 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({
     icon: 'bi-megaphone-fill', accent: 'var(--accent-amber)',
 })));
 
+const focusItems = computed(() => [
+    {
+        id: 'users', title: `${props.statistik.total_siswa ?? 0} siswa terdaftar`,
+        meta: 'Data peserta didik', detail: 'Kelola kelas dan penempatan siswa',
+        href: '/admin/kelas-siswa', icon: 'bi-people-fill', accent: 'var(--accent-green)',
+    },
+    {
+        id: 'teachers', title: `${props.statistik.total_guru ?? 0} guru dan staf`,
+        meta: 'Tim pengajar sekolah', detail: 'Perbarui akses dan data pengguna',
+        href: '/admin/users', icon: 'bi-person-workspace', accent: 'var(--accent-blue)',
+    },
+    {
+        id: 'classes', title: `${props.statistik.total_kelas ?? 0} kelas aktif`,
+        meta: 'Struktur akademik', detail: 'Atur kelas dan mata pelajaran',
+        href: '/admin/kelas', icon: 'bi-building', accent: 'var(--accent-violet)',
+    },
+]);
+
 </script>
 
 <template>
     <Head title="Dashboard Admin" />
     <AppShell title="Dashboard Admin">
-        <DashboardHero eyebrow="Operasional Sekolah" title="Pusat Kendali Sekolah" subtitle="Pantau data inti, aktivitas login, dan pengumuman dari satu layar operasional." icon="bi-command" tone="admin">
+        <DashboardHero eyebrow="Data Sekolah" title="Ringkasan Sekolah" subtitle="Cek data utama, login terbaru, dan pengumuman sekolah di sini." icon="bi-command" tone="admin">
             <template #actions><QuickActionBar :actions="quickActions" /></template>
         </DashboardHero>
 
         <MetricStrip :items="metrics" />
 
-        <div class="dashboard-grid dashboard-grid-admin admin-dashboard-workspace">
-            <section class="workspace-panel">
+        <div class="dashboard-grid dashboard-grid-admin admin-focus-grid">
+            <ActionQueue title="Fokus operasional" icon="bi-compass" :items="focusItems" empty-title="Belum ada fokus operasional" />
+            <ActionQueue title="Pengumuman terbaru" icon="bi-megaphone-fill" :items="announcementItems" empty-title="Belum ada pengumuman" />
+        </div>
+
+        <div class="dashboard-grid admin-dashboard-workspace">
+            <section class="workspace-panel admin-login-panel">
                 <header class="workspace-panel-header">
                     <span class="workspace-panel-title"><i class="bi bi-clock-history" aria-hidden="true"></i> Login Terbaru</span>
                     <a href="/admin/log-login" class="app-card-action-link">Lihat Semua</a>
@@ -67,16 +90,19 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({
                     <ActionQueue v-else :items="[]" empty-title="Belum ada data login" icon="bi-clock-history" />
                 </div>
             </section>
-            <ActionQueue title="Pengumuman Terbaru" icon="bi-megaphone-fill" :items="announcementItems" empty-title="Belum ada pengumuman" />
         </div>
     </AppShell>
 </template>
 
 <style scoped>
 .admin-dashboard-workspace { align-items: stretch; }
+.admin-focus-grid { align-items: stretch; }
+.admin-focus-grid .action-queue { margin-bottom: 0; }
+.admin-login-panel { margin-bottom: 0; }
 .admin-login-table { min-width: 560px; }
 @media (max-width: 767.98px) {
     .admin-dashboard-workspace { grid-template-columns: minmax(0, 1fr); }
+    .admin-focus-grid { grid-template-columns: minmax(0, 1fr); }
     .admin-login-table { min-width: 0; table-layout: fixed; }
     .admin-login-table th, .admin-login-table td { padding: .65rem .55rem; }
     .admin-login-table th:nth-child(1), .admin-login-table td:nth-child(1) { width: 38%; }

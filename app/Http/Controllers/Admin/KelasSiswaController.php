@@ -162,7 +162,7 @@ class KelasSiswaController extends Controller
         } catch (UniqueConstraintViolationException $e) {
             return back()
                 ->withInput()
-                ->with('error', 'Data sudah ada di database. Silakan periksa kembali NIS atau username yang dimasukkan.');
+                ->with('error', 'Data sudah ada. Periksa kembali NIS atau username.');
         }
     }
 

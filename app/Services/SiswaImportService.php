@@ -93,7 +93,7 @@ class SiswaImportService
                     if (! $headerChecked) {
                         $headerChecked = true;
                         if ($values !== SiswaTemplateService::HEADERS) {
-                            $errors[] = 'Header template tidak sesuai. Silakan unduh dan gunakan template terbaru.';
+                            $errors[] = 'Kolom template tidak sesuai. Unduh template terbaru lalu coba lagi.';
                             break 2;
                         }
 

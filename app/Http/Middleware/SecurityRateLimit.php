@@ -19,7 +19,7 @@ class SecurityRateLimit
             $retryAfter = RateLimiter::availableIn($key);
 
             return response()->json([
-                'message' => 'Terlalu banyak permintaan. Silakan coba lagi nanti.',
+                'message' => 'Terlalu banyak permintaan. Coba lagi nanti.',
                 'retry_after' => $retryAfter,
             ], 429, [
                 'Retry-After' => (string) $retryAfter,

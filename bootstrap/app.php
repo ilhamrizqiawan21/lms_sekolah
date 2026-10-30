@@ -82,14 +82,14 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
 
-            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+            return redirect()->route('login')->with('error', 'Masuk terlebih dahulu untuk melanjutkan.');
         });
         $exceptions->render(function (AuthorizationException $e, Request $request) use ($errorPageResponse) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json(['message' => 'Forbidden.'], 403);
             }
             if (! Auth::check()) {
-                return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+                return redirect()->route('login')->with('error', 'Masuk terlebih dahulu untuk melanjutkan.');
             }
 
             return $errorPageResponse($request, 403);
@@ -99,7 +99,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json(['message' => 'Forbidden.'], 403);
             }
             if (! Auth::check()) {
-                return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+                return redirect()->route('login')->with('error', 'Masuk terlebih dahulu untuk melanjutkan.');
             }
 
             return $errorPageResponse($request, 403);

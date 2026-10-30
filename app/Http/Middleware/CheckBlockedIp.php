@@ -30,7 +30,7 @@ class CheckBlockedIp
 
             if ($blockedIp) {
                 return response(
-                    'Akses dari IP ini sedang diblokir. Silakan hubungi administrator.',
+                    'Akses dari IP ini sedang diblokir. Hubungi admin sekolah.',
                     403
                 );
             }
@@ -42,7 +42,7 @@ class CheckBlockedIp
                 'exception' => get_class($exception),
             ]);
 
-            return response('Layanan keamanan sedang tidak tersedia. Silakan coba lagi nanti.', 503);
+            return response('Layanan keamanan sedang tidak tersedia. Coba lagi nanti.', 503);
         }
 
         return $next($request);

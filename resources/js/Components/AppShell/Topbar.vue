@@ -92,7 +92,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
 
         <div v-if="academic" class="period-select topbar-period" :title="`Tahun Ajaran ${academic.tahun} · ${semesterLabel}`">
             <i class="bi bi-calendar3 icon" aria-hidden="true"></i>
-            <span>Tahun Ajaran {{ academic.tahun }} <span class="period-sep">·</span> {{ semesterLabel }}</span>
+            <span>T.A. {{ academic.tahun }} <span class="period-sep">·</span> {{ semesterLabel }}</span>
             <i class="bi bi-chevron-down icon-chevron" aria-hidden="true"></i>
         </div>
 

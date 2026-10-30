@@ -109,7 +109,7 @@ class MateriController extends Controller
 
             report($e);
 
-            return back()->withInput()->with('error', 'Materi gagal diupload. Silakan coba lagi.');
+            return back()->withInput()->with('error', 'Materi gagal diunggah. Coba lagi.');
         }
 
         return redirect()->route('guru.materi.index')
@@ -150,7 +150,7 @@ class MateriController extends Controller
 
             report($e);
 
-            return back()->withInput()->with('error', 'Materi gagal diupload. Silakan coba lagi.');
+            return back()->withInput()->with('error', 'Materi gagal diunggah. Coba lagi.');
         }
 
         return redirect()->route('guru.materi.list', $kelasMapel)

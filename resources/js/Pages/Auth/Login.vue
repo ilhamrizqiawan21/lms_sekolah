@@ -121,10 +121,16 @@ function submit() {
                 </div>
 
                 <div class="brand-hero">
-                    <h1 class="brand-headline">Satu ruang untuk belajar dan bertumbuh.</h1>
+                    <span class="brand-kicker"><i class="bi bi-mortarboard-fill" aria-hidden="true"></i> Portal akademik sekolah</span>
+                    <h1 class="brand-headline">Semua kegiatan belajar ada di satu tempat.</h1>
                     <p v-if="branding.school_motto" class="brand-motto">
                         {{ branding.school_motto }}
                     </p>
+                    <div class="brand-proof" aria-label="Fitur utama LMS">
+                        <span><i class="bi bi-book-half" aria-hidden="true"></i> Materi</span>
+                        <span><i class="bi bi-journal-check" aria-hidden="true"></i> Tugas</span>
+                        <span><i class="bi bi-bar-chart-line" aria-hidden="true"></i> Progress</span>
+                    </div>
                 </div>
             </header>
 
@@ -189,21 +195,21 @@ function submit() {
                 <!-- Jika belum ada pengumuman publik (mengisi panel dengan panduan yang bermanfaat) -->
                     <div v-else class="board-empty-state">
                         <p class="board-empty-intro">
-                            Portal pembelajaran digital untuk seluruh civitas {{ branding.school_name }}.
+                            Tempat belajar online untuk seluruh warga {{ branding.school_name }}.
                         </p>
                         <div class="board-quick-guide">
                             <div class="guide-item">
                                 <i class="bi bi-mortarboard-fill guide-icon" aria-hidden="true"></i>
                                 <div class="guide-content">
-                                    <strong class="guide-title">Belajar terarah</strong>
-                                    <span class="guide-text">Materi, tugas, dan ujian dalam satu tempat.</span>
+                                    <strong class="guide-title">Belajar lebih teratur</strong>
+                                    <span class="guide-text">Materi, tugas, dan ujian tersedia di sini.</span>
                                 </div>
                             </div>
                             <div class="guide-item">
                                 <i class="bi bi-shield-check guide-icon" aria-hidden="true"></i>
                                 <div class="guide-content">
-                                    <strong class="guide-title">Akun tetap aman</strong>
-                                    <span class="guide-text">Gunakan akun resmi sekolah dan jangan bagikan kata sandi.</span>
+                                    <strong class="guide-title">Jaga akun tetap aman</strong>
+                                    <span class="guide-text">Pakai akun sekolah dan jangan bagikan password.</span>
                                 </div>
                             </div>
                             <div class="guide-item">
@@ -337,7 +343,7 @@ function submit() {
                     </button>
 
                     <div class="login-role-guide">
-                        <span class="role-guide-eyebrow">Akses civitas sekolah:</span>
+                        <span class="role-guide-eyebrow">Untuk warga sekolah:</span>
                         <div class="role-chips">
                             <span class="role-chip">Siswa</span>
                             <span class="role-chip">Guru</span>
@@ -345,7 +351,7 @@ function submit() {
                             <span class="role-chip">Kepala Sekolah</span>
                         </div>
                         <p class="role-guide-help">
-                            Gunakan akun resmi sekolah. Jika mengalami kendala akses atau lupa kredensial, hubungi admin sekolah melalui kontak bantuan resmi.
+                            Gunakan akun sekolah. Kalau ada kendala atau lupa password, hubungi admin sekolah.
                         </p>
                     </div>
                 </form>
@@ -399,6 +405,7 @@ function submit() {
    ========================================= */
 .login-brand-panel {
     position: relative;
+    overflow: hidden;
     background-color: var(--login-brand-bg);
     padding: clamp(36px, 5vw, 56px) clamp(32px, 4vw, 52px) clamp(28px, 4vw, 44px);
     display: flex;
@@ -408,7 +415,35 @@ function submit() {
     color: #ffffff;
 }
 
+.login-brand-panel::before,
+.login-brand-panel::after {
+    position: absolute;
+    pointer-events: none;
+    content: '';
+}
+
+.login-brand-panel::before {
+    top: -150px;
+    right: -155px;
+    width: 360px;
+    height: 360px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 50%;
+}
+
+.login-brand-panel::after {
+    top: 112px;
+    right: 86px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 18px 22px 0 rgba(255, 255, 255, 0.2), -15px 34px 0 rgba(255, 255, 255, 0.16);
+}
+
 .brand-top-row {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     gap: 14px;
@@ -455,8 +490,24 @@ function submit() {
 }
 
 .brand-hero {
+    position: relative;
+    z-index: 1;
     margin-top: 10px;
 }
+
+.brand-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 12px;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.brand-kicker i { color: #fbbf24; font-size: 0.78rem; }
 
 .brand-headline {
     margin: 0 0 10px;
@@ -474,6 +525,28 @@ function submit() {
     color: rgba(255, 255, 255, 0.84);
     line-height: 1.5;
 }
+
+.brand-proof {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 18px;
+}
+
+.brand-proof span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.brand-proof i { color: #fbbf24; font-size: 0.75rem; }
 
 /* Papan Informasi / Pengumuman Resmi */
 .brand-board {
@@ -1049,6 +1122,8 @@ function submit() {
 }
 
 .brand-lower {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex: 1;
     min-height: 0;

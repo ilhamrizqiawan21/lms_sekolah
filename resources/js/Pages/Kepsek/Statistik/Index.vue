@@ -141,7 +141,7 @@ onBeforeUnmount(() => {
     <AppShell title="Statistik">
         <PageHeader
             title="Statistik Sekolah"
-            subtitle="Pantau kondisi siswa, guru, kelas, pembelajaran, absensi, dan hasil belajar sekolah."
+            subtitle="Lihat kondisi siswa, guru, kelas, pembelajaran, absensi, dan hasil belajar sekolah."
         />
 
         <div class="stats-grid">

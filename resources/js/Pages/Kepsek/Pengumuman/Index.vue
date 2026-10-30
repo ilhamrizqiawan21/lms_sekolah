@@ -18,7 +18,7 @@ const props = defineProps({
     <AppShell title="Pengumuman">
         <PageHeader
             title="Pengumuman"
-            subtitle="Pantau informasi resmi sekolah tanpa mengubah atau mengelola pengumuman."
+            subtitle="Lihat informasi resmi sekolah tanpa mengubah atau mengelola pengumuman."
         />
 
         <Card v-if="!pengumuman.data?.length" body-class="py-5">

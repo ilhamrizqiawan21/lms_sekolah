@@ -23,7 +23,7 @@ class CheckRole
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
 
-            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+            return redirect()->route('login')->with('error', 'Masuk terlebih dahulu untuk melanjutkan.');
         }
 
         if (! $user->is_active) {

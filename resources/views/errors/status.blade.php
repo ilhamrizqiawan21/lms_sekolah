@@ -1,7 +1,7 @@
 @php
     $code = $code ?? 500;
     $title = $title ?? 'Terjadi kesalahan sistem';
-    $message = $message ?? 'Silakan coba lagi beberapa saat lagi.';
+    $message = $message ?? 'Coba lagi sebentar.';
     $primary = $primary ?? '#198754';
     $primaryDark = $primaryDark ?? '#166534';
     $icon = $icon ?? 'alert';

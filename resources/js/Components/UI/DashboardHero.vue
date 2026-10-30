@@ -12,7 +12,10 @@ defineProps({
 </script>
 
 <template>
-    <section class="dashboard-hero">
+    <section class="dashboard-hero" :class="`dashboard-hero-${tone}`">
+        <div class="dashboard-hero-mark" aria-hidden="true">
+            <i class="bi" :class="icon || 'bi-grid-1x2-fill'"></i>
+        </div>
         <div class="dashboard-hero-copy">
             <span v-if="eyebrow" class="dashboard-eyebrow">{{ eyebrow }}</span>
             <h1>{{ title }}</h1>

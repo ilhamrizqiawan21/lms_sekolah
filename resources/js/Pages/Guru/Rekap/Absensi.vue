@@ -89,7 +89,7 @@ const modeOptions = [{ value: 'bulanan', label: 'Per bulan' }, { value: 'keselur
     <AppShell title="Rekap Absensi">
         <PageHeader
             title="Rekap Absensi"
-            subtitle="Pantau ringkasan absensi per bulan atau keseluruhan untuk kelas yang Anda ampu."
+            subtitle="Lihat absensi per bulan atau keseluruhan untuk kelas yang Anda ampu."
             icon="bi-file-earmark-spreadsheet-fill"
         />
 

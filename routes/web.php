@@ -54,8 +54,8 @@ use App\Http\Controllers\Siswa\UjianController as SiswaUjianController;
 use App\Http\Middleware\RequireStudentPhone;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [LoginController::class, 'showLogin'])->name('login');
-Route::get('/login', [LoginController::class, 'showLogin']);
+Route::get('/', [LoginController::class, 'showLanding'])->name('landing');
+Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::get('/pengumuman-publik/{pengumuman}/lampiran', [LoginController::class, 'downloadPublicAnnouncementAttachment'])->name('public-pengumuman.attachment');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

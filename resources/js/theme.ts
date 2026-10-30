@@ -80,7 +80,7 @@ export function applyColorMode(mode: ColorMode, persist = true): void {
     }
 }
 
-/** Halaman publik seperti login selalu terang; preferensi pengguna tidak diubah atau disimpan. */
+/** Halaman publik seperti landing dan login selalu terang; preferensi pengguna tidak diubah atau disimpan. */
 export function forceLightMode(): void {
     forcedLight = true;
     document.documentElement.setAttribute('data-force-light', '');
