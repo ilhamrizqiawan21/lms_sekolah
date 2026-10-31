@@ -24,6 +24,8 @@ class ErrorPageTest extends TestCase
         $response = $this->get('/halaman-yang-tidak-ada');
         $response->assertStatus(404);
         $response->assertSee('Halaman tidak ditemukan');
+        $response->assertSee('Detail permintaan');
+        $response->assertSee('/halaman-yang-tidak-ada');
         $response->assertDontSee('sedang dalam perbaikan/pengembangan');
     }
 
@@ -51,7 +53,25 @@ class ErrorPageTest extends TestCase
         $response = $this->get('/__test-error-500');
         $response->assertStatus(500);
         $response->assertSee('Terjadi kesalahan sistem');
+        $response->assertSee('Detail permintaan');
+        $response->assertSee('Muat ulang');
         $response->assertDontSee('Sistem sedang dalam pemeliharaan');
+    }
+
+    public function test_web_500_shows_technical_detail_only_in_debug_mode(): void
+    {
+        Route::get('/__test-error-500-debug', fn () => abort(500, 'kurikulum gagal dimuat'));
+
+        config(['app.debug' => true]);
+        $this->get('/__test-error-500-debug')
+            ->assertStatus(500)
+            ->assertSee('HttpException')
+            ->assertSee('kurikulum gagal dimuat');
+
+        config(['app.debug' => false]);
+        $this->get('/__test-error-500-debug')
+            ->assertStatus(500)
+            ->assertDontSee('kurikulum gagal dimuat');
     }
 
     public function test_web_503_uses_maintenance_page(): void

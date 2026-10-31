@@ -58,4 +58,9 @@ class Kurikulum extends Model
     {
         return $this->hasMany(RencanaPertemuan::class, 'kurikulum_id');
     }
+
+    public function dokumen(): HasMany
+    {
+        return $this->hasMany(KurikulumDokumen::class, 'kurikulum_id')->latest('updated_at');
+    }
 }

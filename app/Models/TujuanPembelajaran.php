@@ -14,6 +14,7 @@ class TujuanPembelajaran extends Model
         'kurikulum_id',
         'capaian_pembelajaran_id',
         'kode',
+        'bab',
         'urutan',
         'tujuan',
         'materi_pokok',

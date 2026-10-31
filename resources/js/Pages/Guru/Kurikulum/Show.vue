@@ -21,6 +21,7 @@ interface TpItem {
     capaian_pembelajaran_id: number | null;
     capaian_kode: string | null;
     kode: string | null;
+    bab: string | null;
     urutan: number;
     tujuan: string;
     materi_pokok: string | null;
@@ -54,6 +55,8 @@ const props = defineProps<{
     cpStoreUrl: string;
     tpStoreUrl: string;
     promesUrl: string;
+    documentsUrl: string;
+    moduleUrl: string;
 }>();
 
 const isCpModalOpen = ref(false);
@@ -71,6 +74,7 @@ const cpForm = useForm({
 const tpForm = useForm({
     capaian_pembelajaran_id: '' as number | string,
     kode: '',
+    bab: '',
     urutan: 1,
     tujuan: '',
     materi_pokok: '',
@@ -139,6 +143,7 @@ function openEditTp(item: TpItem) {
     tpForm.clearErrors();
     tpForm.capaian_pembelajaran_id = item.capaian_pembelajaran_id ?? '';
     tpForm.kode = item.kode ?? '';
+    tpForm.bab = item.bab ?? '';
     tpForm.urutan = item.urutan;
     tpForm.tujuan = item.tujuan;
     tpForm.materi_pokok = item.materi_pokok ?? '';
@@ -218,6 +223,12 @@ function statusColor(status: string): string {
                     <div class="small text-body-secondary">Kelas: {{ kurikulum.kelas_mapel.map((item) => item.label).join(', ') || '-' }}</div>
                 </div>
                 <div class="d-flex gap-2">
+                    <Link :href="documentsUrl" class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-text me-1" aria-hidden="true"></i>Dokumen
+                    </Link>
+                    <Link :href="moduleUrl" class="btn btn-outline-primary">
+                        <i class="bi bi-journal-richtext me-1" aria-hidden="true"></i>Modul Ajar
+                    </Link>
                     <Link :href="promesUrl" class="btn btn-primary">
                         <i class="bi bi-calendar3 me-1" aria-hidden="true"></i>Promes
                     </Link>
@@ -317,8 +328,9 @@ function statusColor(status: string): string {
             <form id="tpForm" @submit.prevent="saveTp">
                 <div class="row g-3">
                     <div class="col-md-3"><TextInput v-model="tpForm.kode" name="kode" label="Kode TP (Opsional)" placeholder="TP-1" :error="tpForm.errors.kode" /></div>
-                    <div class="col-md-3"><TextInput v-model="tpForm.urutan" name="urutan" type="number" min="1" label="Urutan" required :error="tpForm.errors.urutan" /></div>
-                    <div class="col-md-6"><SelectInput v-model="tpForm.capaian_pembelajaran_id" name="capaian_pembelajaran_id" label="Capaian Pembelajaran" placeholder="Tanpa tautan CP" :options="cpOptions()" :error="tpForm.errors.capaian_pembelajaran_id" wrapper-class="" /></div>
+                    <div class="col-md-3"><TextInput v-model="tpForm.bab" name="bab" label="Bab / Unit" placeholder="Bab 1" :error="tpForm.errors.bab" /></div>
+                    <div class="col-md-2"><TextInput v-model="tpForm.urutan" name="urutan" type="number" min="1" label="Urutan" required :error="tpForm.errors.urutan" /></div>
+                    <div class="col-md-4"><SelectInput v-model="tpForm.capaian_pembelajaran_id" name="capaian_pembelajaran_id" label="Capaian Pembelajaran" placeholder="Tanpa tautan CP" :options="cpOptions()" :error="tpForm.errors.capaian_pembelajaran_id" wrapper-class="" /></div>
                     <div class="col-12"><TextareaInput v-model="tpForm.tujuan" name="tujuan" label="Tujuan Pembelajaran" placeholder="Peserta didik mampu..." :rows="3" required :error="tpForm.errors.tujuan" /></div>
                     <div class="col-md-6"><TextareaInput v-model="tpForm.materi_pokok" name="materi_pokok" label="Materi Pokok" :rows="3" :error="tpForm.errors.materi_pokok" /></div>
                     <div class="col-md-6"><TextareaInput v-model="tpForm.indikator_ketercapaian" name="indikator_ketercapaian" label="Indikator Ketercapaian" :rows="3" :error="tpForm.errors.indikator_ketercapaian" /></div>

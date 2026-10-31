@@ -34,3 +34,6 @@ This is the canonical shared workflow for any AI agent working in this repositor
 
 ## Reporting
 - Report changes made, commands actually run (with results), and any remaining limitations. Never claim a check ran if it did not.
+
+## Persistent project context
+- For cross-session handoff and material decisions, read [`docs/PROJECT_HISTORY.md`](docs/PROJECT_HISTORY.md) after these instructions and verify its technical claims against the current code and tests.

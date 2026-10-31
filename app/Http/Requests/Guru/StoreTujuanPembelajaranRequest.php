@@ -28,6 +28,7 @@ class StoreTujuanPembelajaranRequest extends FormRequest
                     ->where(fn ($query) => $query->where('kurikulum_id', $kurikulum?->id)),
             ],
             'kode' => ['nullable', 'string', 'max:50'],
+            'bab' => ['nullable', 'string', 'max:150'],
             'urutan' => ['sometimes', 'integer', 'min:1', 'max:10000'],
             'tujuan' => ['required', 'string', 'max:20000'],
             'materi_pokok' => ['nullable', 'string', 'max:20000'],

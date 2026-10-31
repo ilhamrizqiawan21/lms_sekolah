@@ -82,6 +82,8 @@ class KurikulumController extends Controller
             'cpStoreUrl' => route('guru.kurikulum.cp.store', $kurikulum),
             'tpStoreUrl' => route('guru.kurikulum.tp.store', $kurikulum),
             'promesUrl' => route('guru.kurikulum.promes.index', $kurikulum),
+            'documentsUrl' => route('guru.kurikulum.dokumen', ['kurikulum_id' => $kurikulum->id]),
+            'moduleUrl' => route('guru.kurikulum.modul-ajar', ['kurikulum_id' => $kurikulum->id]),
         ]);
     }
 
@@ -274,6 +276,7 @@ class KurikulumController extends Controller
                 'capaian_pembelajaran_id' => $tp->capaian_pembelajaran_id,
                 'capaian_kode' => $tp->capaianPembelajaran?->kode,
                 'kode' => $tp->kode,
+                'bab' => $tp->bab,
                 'urutan' => $tp->urutan,
                 'tujuan' => $tp->tujuan,
                 'materi_pokok' => $tp->materi_pokok,

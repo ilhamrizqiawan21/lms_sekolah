@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             DemoAcademicSeeder::class,
             JadwalMengajarSeeder::class,
             DemoLmsSeeder::class,
+            DemoAdministrasiGuruSeeder::class,
             DemoSupportSeeder::class,
         ]);
     }

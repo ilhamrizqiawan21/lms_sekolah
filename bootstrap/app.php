@@ -68,13 +68,17 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->shouldRenderJsonWhen(fn (Request $request) => $request->expectsJson() || $request->is('api/*'));
-        $errorPageResponse = function (Request $request, int $status = 500) {
+        $errorPageResponse = function (Request $request, int $status = 500, ?Throwable $exception = null) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return null;
             }
             $view = view()->exists("errors.{$status}") ? "errors.{$status}" : 'errors.500';
+            $data = [];
+            if (config('app.debug') && $exception) {
+                $data['exceptionDetails'] = get_class($exception)."\n".$exception->getMessage();
+            }
 
-            return response()->view($view, [], $status);
+            return response()->view($view, $data, $status);
         };
 
         $exceptions->render(function (AuthenticationException $e, Request $request) {
@@ -138,6 +142,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json(['message' => $status >= 500 ? 'Server Error.' : Response::$statusTexts[$status] ?? 'Error.'], $status);
             }
 
-            return $errorPageResponse($request, $status);
+            return $errorPageResponse($request, $status, $e);
         });
     })->create();
