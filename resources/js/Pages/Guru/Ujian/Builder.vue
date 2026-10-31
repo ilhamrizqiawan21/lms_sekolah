@@ -12,6 +12,8 @@ interface BankSoalItem {
     mapel_id: number | null;
     mapel_nama: string | null;
     pertanyaan: string;
+    tipe_soal: 'pilihan_ganda' | 'menjodohkan' | 'benar_salah' | 'uraian';
+    level_kognitif: string | null;
     topik: string | null;
     kesulitan: string;
     kategori_nilai: string | null;
@@ -24,6 +26,8 @@ interface ExistingSoal {
     poin: number;
     urutan: number;
     pertanyaan?: string;
+    tipe_soal?: BankSoalItem['tipe_soal'];
+    level_kognitif?: string | null;
     topik?: string | null;
     kesulitan?: string;
 }
@@ -68,7 +72,7 @@ const form = useForm({
     acak_opsi: props.ujian ? Boolean(props.ujian.acak_opsi) : true,
     anticheat_aktif: props.ujian ? Boolean(props.ujian.anticheat_aktif) : true,
     maks_pelanggaran: (props.ujian?.maks_pelanggaran ?? null) as number | string | null,
-    wajib_fullscreen: props.ujian ? Boolean(props.ujian.wajib_fullscreen) : false,
+    wajib_fullscreen: props.ujian ? Boolean(props.ujian.wajib_fullscreen) : true,
     soal: (props.ujian?.soal ?? []).map((s) => ({
         soal_bank_id: s.soal_bank_id,
         poin: s.poin || 1,
@@ -78,6 +82,8 @@ const form = useForm({
 const bankFilter = ref({
     topik: '',
     kesulitan: '',
+    tipeSoal: '',
+    levelKognitif: '',
     mapelOnly: true,
     search: '',
 });
@@ -95,6 +101,14 @@ const filteredBank = computed(() => {
 
     if (bankFilter.value.kesulitan) {
         list = list.filter((s) => s.kesulitan === bankFilter.value.kesulitan);
+    }
+
+    if (bankFilter.value.tipeSoal) {
+        list = list.filter((s) => s.tipe_soal === bankFilter.value.tipeSoal);
+    }
+
+    if (bankFilter.value.levelKognitif) {
+        list = list.filter((s) => s.level_kognitif === bankFilter.value.levelKognitif);
     }
 
     if (bankFilter.value.search.trim()) {
@@ -116,8 +130,12 @@ function isSelected(soalBankId: number): boolean {
     return selectedSoalIds.value.has(soalBankId);
 }
 
+function canUseInCurrentCbt(soal: BankSoalItem): boolean {
+    return ['pilihan_ganda', 'benar_salah', 'menjodohkan', 'uraian'].includes(soal.tipe_soal);
+}
+
 function toggleSoal(soal: BankSoalItem) {
-    if (props.hasActiveAttempts) {
+    if (props.hasActiveAttempts || !canUseInCurrentCbt(soal)) {
         return;
     }
 
@@ -138,7 +156,7 @@ function selectAllFiltered() {
     }
 
     filteredBank.value.forEach((soal) => {
-        if (!selectedSoalIds.value.has(soal.id)) {
+        if (canUseInCurrentCbt(soal) && !selectedSoalIds.value.has(soal.id)) {
             form.soal.push({
                 soal_bank_id: soal.id,
                 poin: 1,
@@ -192,7 +210,18 @@ function submit() {
 
 const kategoriOptions = [{ value: 'NH', label: 'Nilai Harian (NH)' }, { value: 'STS', label: 'STS' }, { value: 'SAS', label: 'SAS' }, { value: 'SAT', label: 'SAT' }];
 const kesulitanOptions = [{ value: 'mudah', label: 'Mudah' }, { value: 'sedang', label: 'Sedang' }, { value: 'sulit', label: 'Sulit' }];
+const tipeSoalOptions = [
+    { value: 'pilihan_ganda', label: 'Pilihan Ganda' },
+    { value: 'benar_salah', label: 'Benar-Salah' },
+    { value: 'menjodohkan', label: 'Menjodohkan' },
+    { value: 'uraian', label: 'Uraian' },
+];
+const levelKognitifOptions = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6'].map((level) => ({ value: level, label: level }));
 const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic, label: topic })));
+
+function tipeSoalLabel(tipe: BankSoalItem['tipe_soal']): string {
+    return tipeSoalOptions.find((option) => option.value === tipe)?.label ?? tipe;
+}
 </script>
 
 <template>
@@ -202,7 +231,7 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
         <PageHeader
             eyebrow="Ujian CBT"
             :title="isEdit ? 'Edit Pengaturan Ujian' : 'Buat Ujian CBT Baru'"
-            :subtitle="`${kelasMapel.mata_pelajaran} - ${kelasMapel.kelas}. Pilih butir soal dari bank soal dan atur bobot poin serta durasi.`"
+            :subtitle="`${kelasMapel.mata_pelajaran} - ${kelasMapel.kelas}. Pilih soal berdasarkan Bab, tipe, dan level kognitif, lalu atur bobot poin serta durasi.`"
         >
             <template #actions>
                 <Button :href="`/guru/ujian/${kelasMapel.id}/list`" color="outline-secondary" icon="bi-arrow-left">
@@ -223,7 +252,7 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
             <div class="row g-4">
                 <!-- Left: Configuration Details -->
                 <div class="col-lg-5">
-                    <Card title="Pengaturan Ujian" icon="bi-sliders" class="sticky-top" style="top: 80px;">
+                    <Card title="Pengaturan Ujian" icon="bi-sliders" class="sticky-top" style="top: 80px; z-index: 1;">
                         <div class="mb-3">
                             <TextInput
                                 name="judul"
@@ -333,7 +362,7 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
                                     <label class="form-check-label" for="switch-fullscreen">
                                         Wajib layar penuh
                                     </label>
-                                    <div class="form-text">Tidak didukung di iPhone; siswa dengan perangkat itu otomatis dikecualikan.</div>
+                                    <div class="form-text">Siswa harus menggunakan browser yang mendukung Fullscreen API. Perangkat tanpa dukungan akan tertahan di layar pengunci.</div>
                                 </div>
 
                                 <label for="ujian-maks-pelanggaran" class="form-label small mb-1">Batas pelanggaran sebelum dikumpulkan otomatis</label>
@@ -369,20 +398,33 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
                 <!-- Right: Question Selector Panel -->
                 <div class="col-lg-7">
                     <Card title="Pilih Soal dari Bank Soal" icon="bi-collection-play-fill">
+                        <div class="alert alert-info py-2 small mb-3">
+                            <i class="bi bi-info-circle me-1" aria-hidden="true" />
+                            Bank soal mendukung pilihan ganda, benar-salah, menjodohkan, dan uraian. Soal menjodohkan dinilai otomatis per pasangan, sedangkan essay dinilai manual oleh guru setelah dikumpulkan.
+                        </div>
+
                         <div v-if="form.errors.soal" class="alert alert-danger py-2 small mb-3">
                             {{ form.errors.soal }}
                         </div>
 
                         <!-- Filter toolbar -->
                         <div class="row g-2 mb-3 align-items-center">
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                                 <TextInput v-model="bankFilter.search" name="bank_search" placeholder="Cari teks soal..." aria-label="Cari teks soal" wrapper-class="" class="form-control-sm" />
                             </div>
-                            <div class="col-md-4">
-                                <SelectInput v-model="bankFilter.topik" name="bank_topik" placeholder="Semua Topik" :options="topicOptions" aria-label="Filter topik" wrapper-class="" class="form-select-sm" />
+                            <div class="col-md-3">
+                                <SelectInput v-model="bankFilter.topik" name="bank_topik" placeholder="Semua Bab" :options="topicOptions" aria-label="Filter Bab" wrapper-class="" class="form-select-sm" />
                             </div>
                             <div class="col-md-3">
+                                <SelectInput v-model="bankFilter.tipeSoal" name="bank_tipe_soal" placeholder="Semua Tipe Soal" :options="tipeSoalOptions" aria-label="Filter tipe soal" wrapper-class="" class="form-select-sm" />
+                            </div>
+                            <div class="col-md-2">
                                 <SelectInput v-model="bankFilter.kesulitan" name="bank_kesulitan" placeholder="Semua Kesulitan" :options="kesulitanOptions" aria-label="Filter kesulitan" wrapper-class="" class="form-select-sm" />
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-3">
+                                <SelectInput v-model="bankFilter.levelKognitif" name="bank_level_kognitif" placeholder="Semua Level" :options="levelKognitifOptions" aria-label="Filter level kognitif" wrapper-class="" class="form-select-sm" />
                             </div>
                         </div>
 
@@ -438,21 +480,24 @@ const topicOptions = computed(() => props.topics.map((topic) => ({ value: topic,
                                             type="checkbox"
                                             class="form-check-input"
                                             :checked="isSelected(soal.id)"
-                                            :disabled="hasActiveAttempts"
+                                            :disabled="hasActiveAttempts || !canUseInCurrentCbt(soal)"
                                             @change="toggleSoal(soal)"
                                         />
                                     </div>
 
                                     <div class="flex-grow-1">
                                         <div class="d-flex flex-wrap gap-1 mb-1">
+                                            <Badge color="primary">{{ tipeSoalLabel(soal.tipe_soal) }}</Badge>
+                                            <Badge v-if="soal.level_kognitif" color="info">{{ soal.level_kognitif }}</Badge>
                                             <Badge v-if="soal.topik" color="secondary">{{ soal.topik }}</Badge>
                                             <Badge :color="soal.kesulitan === 'mudah' ? 'success' : soal.kesulitan === 'sulit' ? 'danger' : 'warning text-dark'">
                                                 {{ soal.kesulitan }}
                                             </Badge>
                                             <Badge v-if="soal.kategori_nilai" color="info">{{ soal.kategori_nilai }}</Badge>
-                                            <span class="small text-body-secondary ms-auto">{{ soal.opsi_count }} opsi</span>
+                                            <span class="small text-body-secondary ms-auto">
+                                                {{ soal.opsi_count > 0 ? `${soal.opsi_count} opsi` : 'Jawaban non-opsi' }}
+                                            </span>
                                         </div>
-
                                         <label :for="`soal-check-${soal.id}`" class="d-block cursor-pointer fw-semibold text-break mb-2">
                                             {{ soal.pertanyaan }}
                                         </label>

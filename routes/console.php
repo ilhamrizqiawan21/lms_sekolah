@@ -16,3 +16,8 @@ Schedule::call(function (): void {
         ->where('created_at', '<', now()->subDays($retentionDays))
         ->delete();
 })->daily()->name('system-errors-prune');
+
+Schedule::command('ujian:auto-submit-expired --limit=500')
+    ->everyMinute()
+    ->withoutOverlapping(5)
+    ->name('ujian-auto-submit-expired');

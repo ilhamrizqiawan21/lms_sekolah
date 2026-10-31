@@ -21,6 +21,7 @@ interface AttemptItem {
     total_soal: number;
     total_benar: number;
     total_salah: number;
+    essay_belum_dinilai: number;
     nilai: number;
     tab_switches_count: number;
     detail_url: string;
@@ -69,6 +70,7 @@ const props = defineProps({
         default: () => [],
     },
     exportExcelUrl: { type: String, required: true },
+    exportDetailExcelUrl: { type: String, required: true },
     exportPdfUrl: { type: String, required: true },
 });
 
@@ -125,6 +127,10 @@ function statusLabel(status: string) {
                     <a :href="exportExcelUrl" class="btn btn-outline-secondary">
                         <i class="bi bi-file-earmark-excel me-1" />
                         Export Excel
+                    </a>
+                    <a :href="exportDetailExcelUrl" class="btn btn-outline-secondary">
+                        <i class="bi bi-list-columns-reverse me-1" />
+                        Detail Jawaban
                     </a>
                     <a :href="exportPdfUrl" class="btn btn-outline-secondary" target="_blank">
                         <i class="bi bi-file-earmark-pdf me-1" />
@@ -256,6 +262,10 @@ function statusLabel(status: string) {
                                     <Badge :color="statusBadgeColor(att.status)">
                                         {{ statusLabel(att.status) }}
                                     </Badge>
+                                    <div v-if="att.essay_belum_dinilai > 0" class="small text-warning-emphasis mt-1">
+                                        <i class="bi bi-pencil-square me-1" aria-hidden="true" />
+                                        {{ att.essay_belum_dinilai }} essay perlu dinilai
+                                    </div>
                                 </td>
                                 <td data-label="Waktu Pengerjaan">
                                     <div class="small">{{ att.durasi_pengerjaan }}</div>

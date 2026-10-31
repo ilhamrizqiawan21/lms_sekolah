@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Guru\GradeUjianJawabanRequest;
 use App\Http\Requests\Guru\StoreUjianRequest;
 use App\Http\Requests\Guru\UpdateUjianRequest;
 use App\Models\KelasMapel;
@@ -11,9 +12,12 @@ use App\Models\SoalBank;
 use App\Models\Ujian;
 use App\Models\UjianAttempt;
 use App\Models\UjianAttemptEvent;
+use App\Models\UjianAttemptJawaban;
+use App\Models\UjianAttemptJawabanPenilaian;
 use App\Models\UjianSoal;
 use App\Services\CbtAntiCheatService;
 use App\Services\CbtScoringService;
+use App\Services\NotifikasiService;
 use App\Services\UjianService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -27,6 +31,7 @@ class UjianController extends Controller
         protected UjianService $ujianService,
         protected CbtScoringService $scoringService,
         protected CbtAntiCheatService $antiCheatService,
+        protected NotifikasiService $notifikasiService,
     ) {}
 
     public function index(): Response
@@ -209,7 +214,7 @@ class UjianController extends Controller
             ->orderBy('nis')
             ->get();
 
-        $attempts = UjianAttempt::with('siswa.user')
+        $attempts = UjianAttempt::with(['siswa.user', 'jawaban.ujianSoal.soalBank'])
             ->where('ujian_id', $ujian->id)
             ->get()
             ->keyBy('siswa_id');
@@ -246,6 +251,11 @@ class UjianController extends Controller
 
             $totalBenar = $attempt->jawaban()->where('is_benar', true)->count();
             $totalSalah = $attempt->jawaban()->where('is_benar', false)->count();
+            $essayBelumDinilai = $attempt->jawaban->filter(function (UjianAttemptJawaban $jawaban): bool {
+                return ($jawaban->ujianSoal?->soalBank?->tipe_soal ?? null) === SoalBank::TYPE_URAIAN
+                    && $jawaban->poin_didapat === null
+                    && filled(trim((string) $jawaban->jawaban_teks));
+            })->count();
 
             $durasi = '-';
             if ($attempt->waktu_mulai && $attempt->waktu_submit) {
@@ -267,6 +277,7 @@ class UjianController extends Controller
                 'total_soal' => (int) $ujian->total_soal,
                 'total_benar' => $totalBenar,
                 'total_salah' => $totalSalah,
+                'essay_belum_dinilai' => $essayBelumDinilai,
                 'nilai' => $nilai,
                 'tab_switches_count' => (int) $attempt->tab_switch_count,
                 'detail_url' => route('guru.ujian.attempt.show', [$kelasMapel, $ujian, $attempt]),
@@ -298,6 +309,7 @@ class UjianController extends Controller
             'attempts' => $selesaiItems,
             'belumMengerjakan' => $belumItems,
             'exportExcelUrl' => route('guru.ujian.hasil.export.excel', [$kelasMapel, $ujian]),
+            'exportDetailExcelUrl' => route('guru.ujian.hasil.export.detail.excel', [$kelasMapel, $ujian]),
             'exportPdfUrl' => route('guru.ujian.hasil.export.pdf', [$kelasMapel, $ujian]),
         ]);
     }
@@ -308,7 +320,7 @@ class UjianController extends Controller
         $this->ensureUjianBelongsToKelasMapel($ujian, $kelasMapel);
         $this->ensureAttemptBelongsToUjian($attempt, $ujian);
 
-        $attempt->loadMissing(['siswa.user', 'jawaban.ujianSoal.soalBank.opsi']);
+        $attempt->loadMissing(['siswa.user', 'jawaban.ujianSoal.soalBank.opsi', 'jawaban.riwayatPenilaian.penilai']);
 
         $urutanSoalIds = $attempt->urutan_soal_ids ?? [];
         $jawabanMap = $attempt->jawaban->keyBy('ujian_soal_id');
@@ -332,10 +344,23 @@ class UjianController extends Controller
                 'poin_didapat' => $jawaban->poin_didapat !== null ? (float) $jawaban->poin_didapat : null,
                 'is_benar' => $jawaban->is_benar,
                 'soal_bank_opsi_id' => $jawaban->soal_bank_opsi_id,
+                'tipe_soal' => $soalBank->tipe_soal ?? SoalBank::TYPE_PILIHAN_GANDA,
+                'jawaban_teks' => $jawaban->jawaban_teks,
+                'jawaban_pasangan' => $jawaban->jawaban_pasangan ?? [],
                 'dijawab_pada' => $jawaban->dijawab_pada?->format('d/m/Y H:i:s'),
+                'grade_url' => route('guru.ujian.attempt.jawaban.grade', [$kelasMapel, $ujian, $attempt, $jawaban]),
+                'riwayat_penilaian' => $jawaban->riwayatPenilaian->map(fn (UjianAttemptJawabanPenilaian $item) => [
+                    'poin_sebelumnya' => $item->poin_sebelumnya,
+                    'poin_diberikan' => $item->poin_diberikan,
+                    'catatan' => $item->catatan,
+                    'penilai' => $item->penilai?->nama_lengkap ?? '-',
+                    'waktu' => $item->created_at?->format('d/m/Y H:i:s'),
+                ])->values(),
+                'catatan_penilaian' => $jawaban->riwayatPenilaian->last()?->catatan,
                 'opsi' => $soalBank->opsi->sortBy('urutan')->map(fn ($opsi) => [
                     'id' => $opsi->id,
                     'teks_opsi' => $opsi->teks_opsi,
+                    'pasangan_teks' => $opsi->pasangan_teks,
                     'is_benar' => (bool) $opsi->is_benar,
                 ])->values(),
             ];
@@ -392,6 +417,57 @@ class UjianController extends Controller
         ]);
     }
 
+    public function gradeJawaban(
+        GradeUjianJawabanRequest $request,
+        KelasMapel $kelasMapel,
+        Ujian $ujian,
+        UjianAttempt $attempt,
+        UjianAttemptJawaban $jawaban,
+    ): RedirectResponse {
+        $this->authorize('mengajar', $kelasMapel);
+        $this->ensureUjianBelongsToKelasMapel($ujian, $kelasMapel);
+        $this->ensureAttemptBelongsToUjian($attempt, $ujian);
+        abort_unless((int) $jawaban->ujian_attempt_id === (int) $attempt->id, 403);
+        abort_unless(in_array($attempt->status, UjianAttempt::STATUS_TERKUNCI, true), 422, 'Jawaban hanya dapat dinilai setelah ujian dikumpulkan.');
+
+        $jawaban->loadMissing('ujianSoal.soalBank');
+        abort_unless($jawaban->ujianSoal?->soalBank?->tipe_soal === SoalBank::TYPE_URAIAN, 422, 'Hanya soal essay yang memerlukan penilaian manual.');
+
+        $poinMaksimal = (float) ($jawaban->ujianSoal?->poin ?? 0);
+        $poinDidapat = (float) $request->validated('poin_didapat');
+        if ($poinDidapat > $poinMaksimal) {
+            return back()->withErrors(['poin_didapat' => "Nilai tidak boleh melebihi {$poinMaksimal} poin."]);
+        }
+
+        $poinSebelumnya = $jawaban->poin_didapat;
+        UjianAttemptJawabanPenilaian::create([
+            'ujian_attempt_jawaban_id' => $jawaban->id,
+            'dinilai_oleh' => (int) Auth::id(),
+            'poin_sebelumnya' => $poinSebelumnya,
+            'poin_diberikan' => $poinDidapat,
+            'catatan' => $request->validated('catatan'),
+            'created_at' => now(),
+        ]);
+        $jawaban->update([
+            'poin_didapat' => $poinDidapat,
+            'is_benar' => $poinMaksimal > 0 && $poinDidapat >= $poinMaksimal,
+        ]);
+        $this->scoringService->recalculateScores($attempt);
+
+        if ($poinSebelumnya === null || (float) $poinSebelumnya !== $poinDidapat) {
+            $attempt->loadMissing(['siswa.user', 'ujian']);
+            $this->notifikasiService->notifikasiUser(
+                (int) $attempt->siswa?->user_id,
+                'nilai_ujian_diperbarui',
+                'Nilai essay ujian diperbarui',
+                "Jawaban essay Anda pada ujian \"{$attempt->ujian?->judul}\" telah dinilai. Nilai ujian sudah diperbarui.",
+                route('siswa.ujian.hasil', $attempt),
+            );
+        }
+
+        return back()->with('success', 'Nilai essay berhasil disimpan.');
+    }
+
     private function renderBuilder(KelasMapel $kelasMapel, ?Ujian $ujian): Response
     {
         $soalBank = SoalBank::with('opsi')
@@ -426,6 +502,8 @@ class UjianController extends Controller
                     'poin' => (float) $item->poin,
                     'urutan' => $item->urutan,
                     'pertanyaan' => $item->soalBank?->pertanyaan,
+                    'tipe_soal' => $item->soalBank?->tipe_soal ?? SoalBank::TYPE_PILIHAN_GANDA,
+                    'level_kognitif' => $item->soalBank?->level_kognitif,
                     'topik' => $item->soalBank?->topik,
                     'kesulitan' => $item->soalBank?->kesulitan,
                 ])->values(),
@@ -445,6 +523,8 @@ class UjianController extends Controller
                 'mapel_id' => $item->mapel_id,
                 'mapel_nama' => $item->mapel?->nama_mapel,
                 'pertanyaan' => $item->pertanyaan,
+                'tipe_soal' => $item->tipe_soal ?? SoalBank::TYPE_PILIHAN_GANDA,
+                'level_kognitif' => $item->level_kognitif,
                 'topik' => $item->topik,
                 'kesulitan' => $item->kesulitan,
                 'kategori_nilai' => $item->kategori_nilai,

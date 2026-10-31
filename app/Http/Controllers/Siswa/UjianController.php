@@ -7,17 +7,17 @@ use App\Http\Requests\Siswa\CatatEventUjianRequest;
 use App\Http\Requests\Siswa\SimpanJawabanUjianRequest;
 use App\Models\KelasMapel;
 use App\Models\Siswa;
+use App\Models\SoalBank;
 use App\Models\Ujian;
 use App\Models\UjianAttempt;
 use App\Models\UjianAttemptEvent;
 use App\Models\UjianAttemptJawaban;
-use App\Services\CbtScoringService;
 use App\Services\CbtAntiCheatService;
+use App\Services\CbtScoringService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -181,6 +181,7 @@ class UjianController extends Controller
             'ujian.kelasMapel.kelas',
             'ujian.kelasMapel.mataPelajaran',
             'jawaban.ujianSoal.soalBank.opsi',
+            'jawaban.opsiTerpilih',
         ]);
 
         $ujian = $attempt->ujian;
@@ -200,6 +201,7 @@ class UjianController extends Controller
             $opsiMap = $soalBank->opsi->keyBy('id');
 
             $opsiOrdered = [];
+            $pasanganOrdered = [];
             foreach ($urutanOpsiIds as $oIdx => $opsiId) {
                 $opsi = $opsiMap->get($opsiId);
                 if ($opsi) {
@@ -208,6 +210,13 @@ class UjianController extends Controller
                         'urutan' => $oIdx + 1,
                         'teks_opsi' => $opsi->teks_opsi,
                     ];
+                    if ($soalBank->tipe_soal === SoalBank::TYPE_MENJODOHKAN) {
+                        $pasanganOrdered[] = [
+                            'id' => $opsi->id,
+                            'urutan' => $oIdx + 1,
+                            'teks_pasangan' => $opsi->pasangan_teks,
+                        ];
+                    }
                 }
             }
 
@@ -215,9 +224,13 @@ class UjianController extends Controller
                 'attempt_jawaban_id' => $jawaban->id,
                 'urutan' => $idx + 1,
                 'pertanyaan' => $soalBank->pertanyaan,
+                'tipe_soal' => $soalBank->tipe_soal ?? SoalBank::TYPE_PILIHAN_GANDA,
                 'ragu_ragu' => (bool) ($jawaban->ragu_ragu ?? false),
                 'jawaban_opsi_id' => $jawaban->soal_bank_opsi_id,
+                'jawaban_teks' => $jawaban->jawaban_teks,
+                'jawaban_pasangan' => $jawaban->jawaban_pasangan ?? [],
                 'opsi' => $opsiOrdered,
+                'pasangan' => $pasanganOrdered,
             ];
         }
 
@@ -243,7 +256,6 @@ class UjianController extends Controller
             'soalList' => $soalPayload,
             'submitUrl' => route('siswa.ujian.submit', $attempt->id),
             'simpanJawabanUrl' => route('siswa.ujian.jawab', $attempt->id),
-            'logTabSwitchUrl' => route('siswa.ujian.tab-switch', $attempt->id),
             'antiCheat' => [
                 'aktif' => (bool) $ujian->anticheat_aktif,
                 'maks_pelanggaran' => $ujian->anticheat_aktif ? $ujian->maks_pelanggaran : null,
@@ -292,15 +304,49 @@ class UjianController extends Controller
                 return null;
             }
 
-            $opsiId = $validated['jawaban_opsi_id'] ?? null;
-            if ($opsiId !== null && ! in_array((int) $opsiId, array_map('intval', $jawaban->urutan_opsi_ids ?? []), true)) {
+            $jawaban->loadMissing('ujianSoal.soalBank.opsi');
+            $tipeSoal = $jawaban->ujianSoal?->soalBank?->tipe_soal ?? SoalBank::TYPE_PILIHAN_GANDA;
+            $opsiIds = array_map('intval', $jawaban->urutan_opsi_ids ?? []);
+            $data = ['dijawab_pada' => Carbon::now()];
+
+            if (in_array($tipeSoal, [SoalBank::TYPE_PILIHAN_GANDA, SoalBank::TYPE_BENAR_SALAH], true)) {
+                $opsiId = $validated['jawaban_opsi_id'] ?? null;
+                if ($opsiId !== null && ! in_array((int) $opsiId, $opsiIds, true)) {
+                    return false;
+                }
+
+                $data['soal_bank_opsi_id'] = $opsiId;
+                $data['jawaban_teks'] = null;
+                $data['jawaban_pasangan'] = null;
+            } elseif ($tipeSoal === SoalBank::TYPE_MENJODOHKAN) {
+                $jawabanPasangan = $validated['jawaban_pasangan'] ?? [];
+                $validIds = array_flip($opsiIds);
+                $pasanganIds = [];
+
+                foreach ($jawabanPasangan as $kiriId => $kananId) {
+                    if (! isset($validIds[(int) $kiriId]) || ! isset($validIds[(int) $kananId])) {
+                        return false;
+                    }
+                    $pasanganIds[] = (int) $kananId;
+                }
+
+                if (count($pasanganIds) !== count(array_unique($pasanganIds))) {
+                    return false;
+                }
+
+                $data['soal_bank_opsi_id'] = null;
+                $data['jawaban_teks'] = null;
+                $data['jawaban_pasangan'] = collect($jawabanPasangan)
+                    ->mapWithKeys(fn ($kananId, $kiriId) => [(string) (int) $kiriId => (int) $kananId])
+                    ->all();
+            } elseif ($tipeSoal === SoalBank::TYPE_URAIAN) {
+                $data['soal_bank_opsi_id'] = null;
+                $data['jawaban_teks'] = $validated['jawaban_teks'] ?? null;
+                $data['jawaban_pasangan'] = null;
+            } else {
                 return false;
             }
 
-            $data = [
-                'soal_bank_opsi_id' => $opsiId,
-                'dijawab_pada' => Carbon::now(),
-            ];
             if (isset($validated['ragu_ragu'])) {
                 $data['ragu_ragu'] = (bool) $validated['ragu_ragu'];
             }
@@ -327,7 +373,7 @@ class UjianController extends Controller
             }
 
             return response()->json([
-                'message' => 'Pilihan jawaban tidak valid untuk soal ini.',
+                'message' => 'Jawaban tidak valid untuk soal ini.',
             ], 422);
         }
 
@@ -357,25 +403,6 @@ class UjianController extends Controller
         }
 
         return redirect()->route('siswa.ujian.hasil', $attempt->id)->with('success', 'Ujian berhasil dikumpulkan.');
-    }
-
-    public function logTabSwitch(UjianAttempt $attempt): HttpResponse
-    {
-        $user = Auth::user();
-        $siswa = $user->siswa;
-        $this->ensureAttemptBelongsToSiswa($attempt, $siswa);
-
-        if ($attempt->status === UjianAttempt::STATUS_SEDANG_MENGERJAKAN) {
-            $log = $attempt->tab_switch_log ?? [];
-            $log[] = Carbon::now()->toIso8601String();
-
-            $attempt->update([
-                'tab_switch_log' => $log,
-                'tab_switch_count' => count($log),
-            ]);
-        }
-
-        return response()->noContent();
     }
 
     public function catatEvent(CatatEventUjianRequest $request, UjianAttempt $attempt): JsonResponse
@@ -474,14 +501,21 @@ class UjianController extends Controller
         $attempt->loadMissing([
             'ujian.kelasMapel.mataPelajaran',
             'ujian.kelasMapel.kelas',
-            'jawaban',
+            'jawaban.ujianSoal.soalBank.opsi',
         ]);
 
         $ujian = $attempt->ujian;
         $totalSoal = $attempt->jawaban->count();
         $totalBenar = $attempt->jawaban->where('is_benar', true)->count();
-        $totalSalah = $attempt->jawaban->where('is_benar', false)->whereNotNull('soal_bank_opsi_id')->count();
-        $totalKosong = $attempt->jawaban->whereNull('soal_bank_opsi_id')->count();
+        $totalSalah = $attempt->jawaban->where('is_benar', false)->count();
+        $belumDinilai = $attempt->jawaban->filter(function (UjianAttemptJawaban $jawaban): bool {
+            return ($jawaban->ujianSoal?->soalBank?->tipe_soal ?? null) === SoalBank::TYPE_URAIAN
+                && $jawaban->poin_didapat === null
+                && filled(trim((string) $jawaban->jawaban_teks));
+        })->count();
+        $totalKosong = $attempt->jawaban->filter(function (UjianAttemptJawaban $jawaban): bool {
+            return $jawaban->is_benar === null && blank(trim((string) $jawaban->jawaban_teks));
+        })->count();
 
         $skor100 = $this->scoringService->skorPersen($attempt->skor_total, $attempt->skor_maksimal);
 
@@ -498,6 +532,7 @@ class UjianController extends Controller
                 'total_benar' => $totalBenar,
                 'total_salah' => $totalSalah,
                 'total_kosong' => $totalKosong,
+                'belum_dinilai' => $belumDinilai,
                 'tab_switches_count' => (int) $attempt->tab_switch_count,
                 'alasan_selesai' => $attempt->alasan_selesai,
             ],
@@ -509,6 +544,23 @@ class UjianController extends Controller
                 'kelas' => $ujian->kelasMapel?->kelas?->displayName() ?? '-',
                 'mata_pelajaran' => $ujian->kelasMapel?->mataPelajaran?->nama_mapel ?? '-',
             ],
+            'soalHasil' => $attempt->jawaban->sortBy(fn (UjianAttemptJawaban $jawaban) => $jawaban->ujianSoal?->urutan ?? 0)->values()->map(function (UjianAttemptJawaban $jawaban, int $index): array {
+                $soal = $jawaban->ujianSoal?->soalBank;
+                $opsiBenar = $soal?->opsi?->firstWhere('is_benar', true);
+
+                return [
+                    'nomor' => $index + 1,
+                    'pertanyaan' => $soal?->pertanyaan ?? '-',
+                    'tipe_soal' => $soal?->tipe_soal ?? SoalBank::TYPE_PILIHAN_GANDA,
+                    'jawaban_teks' => $jawaban->jawaban_teks,
+                    'jawaban_opsi' => $jawaban->opsiTerpilih?->teks_opsi,
+                    'jawaban_benar' => $opsiBenar?->teks_opsi,
+                    'poin_didapat' => $jawaban->poin_didapat,
+                    'poin_maksimal' => (float) ($jawaban->ujianSoal?->poin ?? 0),
+                    'is_benar' => $jawaban->is_benar,
+                    'pembahasan' => $soal?->pembahasan,
+                ];
+            }),
         ]);
     }
 

@@ -18,9 +18,9 @@ class CbtAntiCheatService
     ) {}
 
     /**
-     * Pelanggaran = satu episode keluar halaman ujian yang lebih lama dari toleransi
-     * (dipasangkan dengan "kembali"; episode yang masih terbuka dihitung sampai $sekarang),
-     * ditambah tiap keluar dari layar penuh bila ujian mewajibkannya.
+     * Pelanggaran = setiap episode keluar halaman ujian, ditambah tiap keluar dari layar
+     * penuh bila ujian mewajibkannya. Episode yang melewati batas lima detik ditutup
+     * otomatis oleh evaluasi kebijakan.
      * heartbeat_gap, salin, dan klik kanan adalah bukti bagi guru, bukan pelanggaran.
      *
      * @param  iterable<UjianAttemptEvent>  $events  berurutan menurut waktu
@@ -40,11 +40,12 @@ class CbtAntiCheatService
 
                 case UjianAttemptEvent::JENIS_KEMBALI:
                     if ($keluarSejak !== null) {
-                        if ($keluarSejak->diffInSeconds($event->terjadi_pada, true) > UjianAttemptEvent::TOLERANSI_KELUAR_DETIK) {
-                            $pelanggaran++;
-                        }
+                        $pelanggaran++;
                         $keluarSejak = null;
                     }
+                    break;
+
+                case UjianAttemptEvent::JENIS_TAB_TIMEOUT:
                     break;
 
                 case UjianAttemptEvent::JENIS_FULLSCREEN_EXIT:
@@ -55,7 +56,7 @@ class CbtAntiCheatService
             }
         }
 
-        if ($keluarSejak !== null && $keluarSejak->diffInSeconds($sekarang, true) > UjianAttemptEvent::TOLERANSI_KELUAR_DETIK) {
+        if ($keluarSejak !== null) {
             $pelanggaran++;
         }
 
@@ -88,10 +89,17 @@ class CbtAntiCheatService
             return ['status' => $attempt->status, 'pelanggaran' => 0, 'maks_pelanggaran' => null];
         }
 
-        $pelanggaran = $this->hitungPelanggaran($attempt, $sekarang);
+        $events = $attempt->events()
+            ->orderBy('terjadi_pada')
+            ->orderBy('id')
+            ->get(['jenis', 'terjadi_pada']);
+        $pelanggaran = $this->hitungDariEvents($events, $sekarang, (bool) $ujian?->wajib_fullscreen);
         $maks = $ujian->maks_pelanggaran;
+        $timeout = $this->adaEpisodeMelewatiToleransi($events, $sekarang);
+        $episodeTerbuka = $this->adaEpisodeTerbuka($events);
 
-        if ($maks !== null && $pelanggaran >= $maks && $attempt->status === UjianAttempt::STATUS_SEDANG_MENGERJAKAN) {
+        if (($timeout || ($maks !== null && $pelanggaran >= $maks && ! $episodeTerbuka))
+            && $attempt->status === UjianAttempt::STATUS_SEDANG_MENGERJAKAN) {
             $attempt = $this->kumpulkanKarenaPelanggaran($attempt);
         }
 
@@ -100,6 +108,57 @@ class CbtAntiCheatService
             'pelanggaran' => $pelanggaran,
             'maks_pelanggaran' => $maks,
         ];
+    }
+
+    /**
+     * Satu episode keluar yang berlangsung lebih dari lima detik mengakhiri attempt,
+     * termasuk bila tab timeout tidak sempat terkirim karena browser men-throttle tab latar.
+     *
+     * @param iterable<UjianAttemptEvent> $events
+     */
+    private function adaEpisodeMelewatiToleransi(iterable $events, Carbon $sekarang): bool
+    {
+        $keluarSejak = null;
+
+        foreach ($events as $event) {
+            switch ($event->jenis) {
+                case UjianAttemptEvent::JENIS_TAB_HIDDEN:
+                case UjianAttemptEvent::JENIS_WINDOW_BLUR:
+                    $keluarSejak ??= $event->terjadi_pada;
+                    break;
+
+                case UjianAttemptEvent::JENIS_KEMBALI:
+                    if ($keluarSejak !== null) {
+                        if ($keluarSejak->diffInSeconds($event->terjadi_pada, true) > UjianAttemptEvent::TOLERANSI_KELUAR_DETIK) {
+                            return true;
+                        }
+                        $keluarSejak = null;
+                    }
+                    break;
+
+                case UjianAttemptEvent::JENIS_TAB_TIMEOUT:
+                    return true;
+            }
+        }
+
+        return $keluarSejak !== null
+            && $keluarSejak->diffInSeconds($sekarang, true) > UjianAttemptEvent::TOLERANSI_KELUAR_DETIK;
+    }
+
+    /** @param iterable<UjianAttemptEvent> $events */
+    private function adaEpisodeTerbuka(iterable $events): bool
+    {
+        $keluarSejak = null;
+
+        foreach ($events as $event) {
+            if (in_array($event->jenis, UjianAttemptEvent::JENIS_KELUAR, true)) {
+                $keluarSejak ??= $event->terjadi_pada;
+            } elseif ($event->jenis === UjianAttemptEvent::JENIS_KEMBALI) {
+                $keluarSejak = null;
+            }
+        }
+
+        return $keluarSejak !== null;
     }
 
     private function kumpulkanKarenaPelanggaran(UjianAttempt $attempt): UjianAttempt

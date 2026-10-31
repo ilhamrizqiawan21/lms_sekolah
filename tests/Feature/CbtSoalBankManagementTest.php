@@ -46,6 +46,7 @@ class CbtSoalBankManagementTest extends TestCase
         $response = $this->actingAs($guru)->post(route('guru.soal-bank.store'), [
             'mapel_id' => $mapel->id,
             'pertanyaan' => 'Apa rumus fotosintesis?',
+            'pembahasan' => 'Gunakan persamaan reaksi fotosintesis yang seimbang.',
             'topik' => 'Fotosintesis',
             'kesulitan' => 'sedang',
             'kategori_nilai' => 'NH',
@@ -62,6 +63,7 @@ class CbtSoalBankManagementTest extends TestCase
             'guru_id' => $guru->id,
             'mapel_id' => $mapel->id,
             'pertanyaan' => 'Apa rumus fotosintesis?',
+            'pembahasan' => 'Gunakan persamaan reaksi fotosintesis yang seimbang.',
             'topik' => 'Fotosintesis',
         ]);
 
@@ -69,6 +71,85 @@ class CbtSoalBankManagementTest extends TestCase
         $this->assertNotNull($soal);
         $this->assertCount(4, $soal->opsi);
         $this->assertEquals(1, $soal->opsi()->where('is_benar', true)->count());
+    }
+
+    public function test_guru_can_store_foundation_metadata_for_future_question_types(): void
+    {
+        $guru = $this->makeUser('Guru Fondasi', 'guru');
+
+        $response = $this->actingAs($guru)->post(route('guru.soal-bank.store'), [
+            'pertanyaan' => 'Jelaskan hubungan sebab akibat pada ekosistem.',
+            'tipe_soal' => 'uraian',
+            'level_kognitif' => 'C4',
+            'topik' => 'Ekosistem',
+            'kesulitan' => 'sulit',
+            'opsi' => [],
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('soal_bank', [
+            'guru_id' => $guru->id,
+            'pertanyaan' => 'Jelaskan hubungan sebab akibat pada ekosistem.',
+            'tipe_soal' => 'uraian',
+            'level_kognitif' => 'C4',
+            'topik' => 'Ekosistem',
+        ]);
+    }
+
+    public function test_guru_can_create_matching_question_with_pairs(): void
+    {
+        $guru = $this->makeUser('Guru Menjodohkan', 'guru');
+
+        $response = $this->actingAs($guru)->post(route('guru.soal-bank.store'), [
+            'pertanyaan' => 'Jodohkan istilah dengan pengertiannya.',
+            'tipe_soal' => 'menjodohkan',
+            'level_kognitif' => 'C2',
+            'topik' => 'Ekosistem',
+            'kesulitan' => 'sedang',
+            'opsi' => [
+                ['teks_opsi' => 'Produsen', 'pasangan_teks' => 'Makhluk hidup pembuat makanan sendiri', 'is_benar' => false],
+                ['teks_opsi' => 'Konsumen', 'pasangan_teks' => 'Makhluk hidup yang memakan organisme lain', 'is_benar' => false],
+            ],
+        ]);
+
+        $response->assertRedirect();
+        $soal = SoalBank::where('pertanyaan', 'Jodohkan istilah dengan pengertiannya.')->first();
+
+        $this->assertNotNull($soal);
+        $this->assertEquals('menjodohkan', $soal->tipe_soal);
+        $this->assertEquals([
+            'Makhluk hidup pembuat makanan sendiri',
+            'Makhluk hidup yang memakan organisme lain',
+        ], $soal->opsi()->orderBy('urutan')->pluck('pasangan_teks')->all());
+    }
+
+    public function test_matching_question_requires_unique_pair_texts(): void
+    {
+        $guru = $this->makeUser('Guru Validasi Menjodohkan', 'guru');
+
+        $response = $this->actingAs($guru)->post(route('guru.soal-bank.store'), [
+            'pertanyaan' => 'Pasangan tidak lengkap.',
+            'tipe_soal' => 'menjodohkan',
+            'kesulitan' => 'mudah',
+            'opsi' => [
+                ['teks_opsi' => 'A', 'pasangan_teks' => 'Sama', 'is_benar' => false],
+                ['teks_opsi' => 'B', 'pasangan_teks' => 'Sama', 'is_benar' => false],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors(['opsi']);
+
+        $response2 = $this->actingAs($guru)->post(route('guru.soal-bank.store'), [
+            'pertanyaan' => 'Pertanyaan kiri ganda.',
+            'tipe_soal' => 'menjodohkan',
+            'kesulitan' => 'mudah',
+            'opsi' => [
+                ['teks_opsi' => 'Pertanyaan sama', 'pasangan_teks' => 'Jawaban satu', 'is_benar' => false],
+                ['teks_opsi' => 'Pertanyaan sama', 'pasangan_teks' => 'Jawaban dua', 'is_benar' => false],
+            ],
+        ]);
+
+        $response2->assertSessionHasErrors(['opsi']);
     }
 
     public function test_validation_rejects_soal_bank_with_no_or_multiple_correct_options(): void

@@ -87,7 +87,9 @@ class UjianService
         return [
             'anticheat_aktif' => $aktif,
             'maks_pelanggaran' => $aktif ? ($validated['maks_pelanggaran'] ?? null) : null,
-            'wajib_fullscreen' => $aktif && (bool) ($validated['wajib_fullscreen'] ?? $ujian?->wajib_fullscreen ?? false),
+            // Fullscreen menjadi default untuk ujian baru, tetapi tetap dapat dimatikan
+            // secara eksplisit pada ujian lama yang belum mengaktifkannya.
+            'wajib_fullscreen' => $aktif && (bool) ($validated['wajib_fullscreen'] ?? $ujian?->wajib_fullscreen ?? true),
         ];
     }
 

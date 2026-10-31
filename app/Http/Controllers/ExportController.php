@@ -340,6 +340,13 @@ class ExportController extends Controller
         return $this->pdf->table('ujian_'.$dataset['slug'].'.pdf', 'HASIL UJIAN', $dataset['context'], $dataset['headers'], $dataset['rows'], null, null, $this->pdf->teacherSigner($request));
     }
 
+    public function guruUjianJawabanDetailExcel(Request $request, KelasMapel $kelasMapel, Ujian $ujian)
+    {
+        $dataset = $this->guruReport->ujianJawabanDetail($kelasMapel, $ujian);
+
+        return $this->excel->table('ujian_'.$dataset['slug'].'.xlsx', 'DETAIL JAWABAN UJIAN', $dataset['context'], $dataset['headers'], $dataset['rows']);
+    }
+
     public function guruPengumpulanTugasExcel(Request $request, KelasMapel $kelasMapel, Tugas $tugas)
     {
         $dataset = $this->guruReport->pengumpulanTugas($kelasMapel, $tugas);

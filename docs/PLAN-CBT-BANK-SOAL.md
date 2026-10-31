@@ -1,6 +1,7 @@
 # Rencana Fitur CBT (Ujian Online) dan Bank Soal
 
-Status: rencana awal, belum diimplementasikan. Dokumen ini adalah spesifikasi teknis
+Status: implementasi dasar sudah berjalan; tipe soal extended (menjodohkan dan
+uraian) aktif pada 2026-10-31. Dokumen ini adalah spesifikasi teknis
 untuk agen yang mengerjakan implementasi, ditulis agar dapat dikerjakan tanpa
 konteks percakapan sebelumnya. Ikuti pola proyek yang sudah ada (fitur `Tugas`)
 sedapat mungkin; setiap penyimpangan dari pola tersebut dijelaskan alasannya.
@@ -9,7 +10,8 @@ sedapat mungkin; setiap penyimpangan dari pola tersebut dijelaskan alasannya.
 
 ### Tujuan
 
-Memungkinkan guru membuat bank soal pilihan ganda yang dapat dipakai ulang,
+Memungkinkan guru membuat bank soal bertipe pilihan ganda, benar-salah,
+menjodohkan, atau uraian yang dapat dipakai ulang,
 menyusun ujian (CBT) dari soal-soal di bank tersebut untuk `kelas_mapel` yang ia
 ajar, dan memungkinkan siswa mengerjakan ujian tersebut secara daring dengan
 batas waktu, urutan soal/opsi acak, dan deteksi pindah tab — dengan nilai hasil
@@ -17,8 +19,11 @@ ujian otomatis masuk ke `nilai_akhir` sesuai `kategori_nilai` ujian.
 
 ### Termasuk (fase ini)
 
-- Bank soal pilihan ganda milik guru (per guru, tidak dibagi ke guru lain).
-- Tagging opsional pada soal: topik, tingkat kesulitan, kategori nilai default.
+- Bank soal milik guru (per guru, tidak dibagi ke guru lain) dengan metadata
+  tipe soal, level kognitif C1-C6, Bab, tingkat kesulitan, dan kategori nilai.
+- Tipe pilihan ganda dan benar-salah dapat menyimpan opsi; tipe menjodohkan
+  dapat menyimpan pasangan kiri-kanan; tipe uraian menyimpan pertanyaan yang
+  akan dijawab siswa dalam bentuk teks.
 - Pembuatan ujian dari kelas_mapel: judul, durasi (menit), kategori nilai
   (NH/STS/SAS/SAT), jendela waktu buka ujian (`waktu_mulai`/`waktu_selesai`),
   dan pemilihan soal dari bank beserta bobot poin per soal.
@@ -33,14 +38,14 @@ ujian otomatis masuk ke `nilai_akhir` sesuai `kategori_nilai` ujian.
 - Deteksi visibility change (ganti tab/minimize) selama attempt aktif —
   sinyal lunak, dicatat sebagai log, ditampilkan ke guru, tidak memblokir
   siswa.
-- Auto-grading penuh (pilihan ganda saja) tanpa penilaian manual guru.
+- Auto-grading untuk pilihan ganda, benar-salah, dan menjodohkan (dengan skor
+  parsial per pasangan); essay dinilai manual guru setelah dikumpulkan.
 - Auto-write skor ke `nilai_akhir` kolom yang sesuai `kategori_nilai` ujian.
 - Rekap/export hasil ujian per kelas_mapel (Excel & PDF), mengikuti pola
   `GuruReportService`.
 
 ### Tidak termasuk (fase ini) — lihat detail di §14
 
-- Tipe soal esai, benar-salah, menjodohkan.
 - Retake/attempt ulang.
 - Proctoring penuh (webcam, screen recording).
 - Berbagi bank soal antar guru.
@@ -56,6 +61,14 @@ bukan `attendance`), fitur ini memakai istilah **`ujian`** untuk ujian/CBT dan
 
 - `soal_bank` — bank soal milik guru.
 - `soal_bank_opsi` — opsi jawaban pilihan ganda milik satu soal bank.
+- `soal_bank.tipe_soal` — tipe soal (`pilihan_ganda`, `benar_salah`,
+  `menjodohkan`, atau `uraian`).
+- `soal_bank.level_kognitif` — level Bloom C1 sampai C6; `topik` ditampilkan
+  sebagai Bab pada UI untuk menjaga kompatibilitas schema lama.
+- Untuk tipe `menjodohkan`, setiap baris `soal_bank_opsi` adalah satu subsoal:
+  `teks_opsi` berisi pertanyaan sisi kiri dan `pasangan_teks` berisi kunci
+  jawaban sisi kanan. Daftar kunci sisi kanan dapat diacak saat pengerjaan,
+  sedangkan pasangan benarnya tetap ditentukan oleh id baris.
 - `ujian` — ujian/CBT, terikat ke satu `kelas_mapel`.
 - `ujian_soal` — tabel pivot yang menghubungkan `ujian` ke `soal_bank` yang
   dipilih, dengan bobot poin per soal.
@@ -173,6 +186,8 @@ Schema::create('ujian_attempt_jawaban', function (Blueprint $table) {
     $table->foreignId('ujian_attempt_id')->constrained('ujian_attempt')->cascadeOnDelete();
     $table->foreignId('ujian_soal_id')->constrained('ujian_soal')->cascadeOnDelete();
     $table->foreignId('soal_bank_opsi_id')->nullable()->constrained('soal_bank_opsi')->nullOnDelete();
+    $table->text('jawaban_teks')->nullable(); // jawaban essay siswa
+    $table->json('jawaban_pasangan')->nullable(); // map soal_bank_opsi_id kiri -> id pasangan kanan
     $table->json('urutan_opsi_ids'); // array of soal_bank_opsi.id dalam urutan tampil untuk soal ini
     $table->boolean('is_benar')->nullable(); // null = belum dijawab
     $table->decimal('poin_didapat', 5, 2)->nullable();
@@ -423,20 +438,22 @@ Setiap method guru di atas yang menerima `Ujian $ujian` bersamaan dengan
 - `submit(UjianAttempt $attempt)` — submit manual oleh siswa (tombol
   "Selesai"). Guard kepemilikan + status. Panggil `CbtScoringService::submit()`
   (lihat §7). Redirect ke `hasil`.
-- `logTabSwitch(UjianAttempt $attempt)` — endpoint dipanggil dari event
-  Page Visibility API klien. Guard kepemilikan + status masih
-  `sedang_mengerjakan`. Append timestamp ke `tab_switch_log` (JSON array),
-  increment `tab_switch_count`. Response JSON kosong/`204`.
+- `catatEvent(CatatEventUjianRequest $request, UjianAttempt $attempt)` —
+  endpoint event anti-cheat dengan guard kepemilikan, validasi jenis event,
+  throttle, dan evaluasi pelanggaran di server. Event disimpan pada tabel
+  `ujian_attempt_event` dan event keluar menaikkan `tab_switch_count`.
+- `heartbeat(UjianAttempt $attempt)` — mencatat heartbeat terakhir dan
+  membuat event `heartbeat_gap` bila jeda sinyal melewati ambang, sehingga
+  tab latar atau koneksi putus tetap dapat ditinjau guru.
 - `hasil(UjianAttempt $attempt)` — halaman hasil siswa setelah selesai:
   skor, jumlah benar/salah, tidak menampilkan kunci jawaban jika guru belum
-  mengizinkan (fase ini: default TIDAK menampilkan kunci jawaban ke siswa,
-  hanya skor total — kunci jawaban per soal adalah kandidat fase depan,
-  bukan wajib fase ini).
+  mengizinkan (pembahasan dan kunci objektif ditampilkan setelah submit
+  melalui halaman review hasil).
 
 #### 6.1 Auto-submit saat waktu habis
 
-Tidak ada job terjadwal (scheduler) untuk auto-submit di fase ini — auto
-grading berbasis polling ringan cukup untuk skala single-tenant ini:
+Scheduler auto-submit berjalan sebagai lapisan operasional tambahan; auto
+grading berbasis polling/lazy submit tetap dipertahankan sebagai fallback:
 
 - Klien menghitung mundur dari `batas_waktu` dan saat mencapai nol memanggil
   endpoint `submit()` yang sama seperti submit manual (deteksi client-side).
@@ -448,9 +465,9 @@ grading berbasis polling ringan cukup untuk skala single-tenant ini:
   `CbtScoringService::autoSubmitKarenaWaktuHabis($attempt)` sebelum
   melanjutkan — status hasil menjadi `waktu_habis`, skor dihitung dari
   jawaban yang sudah tersimpan sejauh itu (soal yang tak sempat dijawab
-  dianggap salah/0 poin). Ini menghindari kebutuhan cron job di fase MVP,
-  konsisten dengan pola proyek ini yang belum memakai scheduler untuk fitur
-  serupa.
+  dianggap salah/0 poin).
+- Scheduler menjalankan `php artisan ujian:auto-submit-expired --limit=500`
+  setiap menit untuk menutup attempt yang tidak pernah diakses lagi.
 
 ## 7. Service Grading/Scoring: `App\Services\CbtScoringService`
 
@@ -575,7 +592,8 @@ Route::post('/ujian/{ujian}/mulai', [SiswaUjianController::class, 'mulai'])->nam
 Route::get('/ujian/attempt/{attempt}', [SiswaUjianController::class, 'kerjakan'])->name('ujian.kerjakan');
 Route::post('/ujian/attempt/{attempt}/soal/{ujianSoal}/jawab', [SiswaUjianController::class, 'jawab'])->name('ujian.jawab');
 Route::post('/ujian/attempt/{attempt}/submit', [SiswaUjianController::class, 'submit'])->name('ujian.submit');
-Route::post('/ujian/attempt/{attempt}/tab-switch', [SiswaUjianController::class, 'logTabSwitch'])->name('ujian.tab-switch');
+Route::post('/ujian/attempt/{attempt}/event', [SiswaUjianController::class, 'catatEvent'])->name('ujian.event')->middleware('throttle:ujian-event');
+Route::post('/ujian/attempt/{attempt}/heartbeat', [SiswaUjianController::class, 'heartbeat'])->name('ujian.heartbeat')->middleware('throttle:ujian-event');
 Route::get('/ujian/attempt/{attempt}/hasil', [SiswaUjianController::class, 'hasil'])->name('ujian.hasil');
 ```
 
@@ -649,13 +667,11 @@ Ikuti pola import/komposisi `resources/js/Pages/Guru/Tugas/*` dan
     server dari data `ujian_attempt_jawaban` yang sudah ada) untuk mengisi
     ulang pilihan — ini yang membuat refresh mid-exam tidak kehilangan
     progres.
-  - Page Visibility API: `document.addEventListener('visibilitychange', ...)`
-    — setiap kali `document.hidden` menjadi `true` selama attempt aktif,
-    panggil `POST siswa.ujian.tab-switch` (fire-and-forget, tidak
-    memblokir UI, tidak menampilkan alert ke siswa — sesuai keputusan produk
-    "soft signal", siswa tidak diberi tahu bahwa ini terekam, supaya tidak
-    mendorong siswa mencari cara mengelabui, dan supaya tidak terkesan
-    seperti proctoring yang mengintimidasi).
+  - Page Visibility API dan fokus jendela mengirim event ke
+    `POST siswa.ujian.event`; heartbeat berkala ke `POST siswa.ujian.heartbeat`
+    menjadi fallback saat timer tab latar ditahan browser. Siswa menerima
+    alert saat perpindahan terdeteksi, sementara keputusan pelanggaran tetap
+    dihitung server.
   - Tombol "Selesai & Kumpulkan" memicu konfirmasi modal lalu `submit()`.
   - Refresh/navigasi keluar: tambahkan `window.addEventListener('beforeunload', ...)`
     dengan peringatan native browser ("Perubahan yang belum disimpan..."),
@@ -709,12 +725,14 @@ constructor `ExportController` untuk nama property yang sudah ada persis).
 
 ## 11. Anti-Cheat / Tab-Switch — Detail
 
-- Deteksi murni klien (`visibilitychange`), tidak ada pengecekan server-side
-  tambahan (tidak mendeteksi devtools terbuka, tidak mendeteksi resize
-  window, dsb — di luar scope).
-- Data mentah: `ujian_attempt.tab_switch_log` (array timestamp ISO8601) dan
-  `tab_switch_count` (denormalized counter untuk query cepat tanpa decode
-  JSON, dipakai di tabel `Guru/Ujian/Hasil.vue` untuk sorting/filter).
+- Event dipicu klien (`visibilitychange`, fokus jendela, fullscreen), tetapi
+  dicap waktu dan dievaluasi server melalui tabel `ujian_attempt_event`.
+  Heartbeat mendeteksi jeda sinyal saat browser menahan timer tab latar.
+  Pengamanan ini tidak mendeteksi devtools, screenshot OS, atau perangkat
+  kedua.
+- `tab_switch_count` tetap menjadi counter denormalized untuk query cepat;
+  `tab_switch_log` hanya dipertahankan untuk kompatibilitas data lama dan
+  bukan lagi endpoint pencatatan aktif.
 - Presentasi ke guru: badge non-blocking di `Guru/Ujian/Hasil.vue` per baris
   siswa (mis. abu-abu jika 0, kuning jika 1–2, merah jika ≥3 — threshold
   bebas ditentukan implementer, bukan bagian kontrak wajib), klik untuk
@@ -768,10 +786,9 @@ Test wajib:
   `waktu_habis` dan skor dihitung dari jawaban yang sempat tersimpan;
   assert endpoint `jawab()` setelah waktu habis ditolak (422/403), bahkan
   jika klien masih mencoba mengirim.
-- `CbtTabSwitchLogTest.php` — panggil `siswa.ujian.tab-switch` beberapa
-  kali; assert `tab_switch_count` bertambah dan `tab_switch_log` berisi
-  timestamp; assert endpoint ditolak untuk attempt yang bukan miliknya atau
-  sudah `selesai`.
+- `CbtTabSwitchLogTest.php` — panggil `siswa.ujian.event` dengan event keluar
+  dan kembali; assert counter/event bertambah dan event setelah attempt
+  selesai tidak mengubah counter.
 
 ## 13. Build Order / Milestones
 
@@ -793,7 +810,7 @@ Test wajib:
   - [x] Routes ujian guru.
 - [x] **Tahap E — Backend Siswa: Attempt Flow**
   - [x] `UjianController` (siswa): index/mulai/kerjakan/jawab/submit/
-        logTabSwitch/hasil.
+        catatEvent/heartbeat/hasil.
   - [x] `CbtScoringService` (hitungSkor, submit, autoSubmitKarenaWaktuHabis).
   - [x] Routes ujian siswa.
 - [x] **Tahap F — Auto-Grading & `nilai_akhir` Sync**
@@ -824,7 +841,7 @@ Test wajib:
 - **Backend & Models**: 6 model Eloquent (`SoalBank`, `SoalBankOpsi`, `Ujian`, `UjianSoal`, `UjianAttempt`, `UjianAttemptJawaban`) + `CbtScoringService` + Form Requests terintegrasi.
 - **Frontend**: 6 halaman Vue Guru + 3 halaman Vue Siswa + navigasi sidebar menu.
 - **Reports & Export**: Export Excel & PDF hasil ujian terintegrasi dengan `GuruReportService` dan `ExportController`.
-- **Quality Assurance**: 129 PHPUnit tests (17 spesifik CBT) lulus 100%, `vue-tsc` type checking 0 error, build Vite sukses.
+- **Quality Assurance**: 204 PHPUnit tests lulus 100%, `vue-tsc` type checking 0 error, build Vite sukses.
 
 ## 14. Eksplisit "Di Luar Scope Fase Ini"
 
@@ -835,10 +852,6 @@ Test wajib:
   jadi unique `(ujian_id, siswa_id, attempt_ke)`), plus keputusan baru soal
   bagaimana beberapa attempt yang sama kategori diagregasi ke `nilai_akhir`
   (skor tertinggi? rata-rata? terakhir?).
-- **Tipe soal lain** (esai, benar-salah, menjodohkan) — fase ini pilihan
-  ganda saja. Skema `soal_bank`/`soal_bank_opsi` dirancang agar bisa
-  diperluas nanti dengan kolom `tipe_soal` di `soal_bank` tanpa migrasi
-  destruktif, tapi tidak dibangun sekarang.
 - **Hardening keamanan pengacakan** — urutan soal/opsi disimpan di server
   dan dikirim ke klien sebagai data biasa; seorang siswa yang cukup teknis
   (membaca response JSON/props Inertia secara langsung) berpotensi
@@ -856,11 +869,13 @@ Test wajib:
   tapi tidak dibangun sekarang. Implementasi akan butuh parser dan validasi
   format template — cek `composer.json` untuk library spreadsheet yang
   sudah dipakai proyek ini (OpenSpout) sebagai titik awal.
-- **Menampilkan kunci jawaban ke siswa setelah submit** — fase ini hanya
-  menampilkan skor, bukan pembahasan per soal ke siswa. Bisa ditambah nanti
-  sebagai opsi `ujian.tampilkan_kunci_setelah_submit` (boolean).
-- **Scheduler/cron untuk auto-submit proaktif** — fase ini memakai lazy
-  auto-submit saat attempt diakses (§6.1), bukan job terjadwal yang berjalan
-  independen dari akses pengguna. Jika nanti dibutuhkan notifikasi WhatsApp
-  "waktu ujian hampir habis" atau auto-submit tanpa perlu diakses siswa,
-  perlu scheduled command baru — di luar scope sekarang.
+- **Menampilkan pembahasan setelah submit** sudah tersedia melalui kolom
+  `soal_bank.pembahasan`; review hasil juga menampilkan kunci objektif yang salah.
+- **Ekspor detail jawaban** sudah tersedia sebagai export Excel terpisah dari
+  rekap nilai.
+- **Scheduler/cron auto-submit** sudah tersedia melalui command
+  `ujian:auto-submit-expired` yang dijalankan setiap menit; lazy auto-submit
+  tetap dipertahankan sebagai fallback.
+- **Retake/attempt ulang**, import soal Excel/Word, berbagi bank soal, dan
+  proctoring penuh tetap ditunda karena membutuhkan keputusan produk,
+  format template, serta infrastruktur/privasi tambahan.

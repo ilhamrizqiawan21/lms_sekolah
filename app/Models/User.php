@@ -124,6 +124,16 @@ class User extends Authenticatable
         return $this->hasMany(KelasDaring::class, 'guru_id');
     }
 
+    public function kurikulum(): HasMany
+    {
+        return $this->hasMany(Kurikulum::class, 'guru_id');
+    }
+
+    public function jurnalHarian(): HasMany
+    {
+        return $this->hasMany(JurnalHarian::class, 'guru_id');
+    }
+
     public function waliKelas(): HasMany
     {
         return $this->hasMany(WaliKelas::class, 'guru_id');

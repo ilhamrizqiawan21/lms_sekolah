@@ -17,7 +17,21 @@ interface AttemptSummary {
     total_benar: number;
     total_salah: number;
     total_kosong: number;
+    belum_dinilai: number;
     alasan_selesai?: string | null;
+}
+
+interface SoalHasilItem {
+    nomor: number;
+    pertanyaan: string;
+    tipe_soal: string;
+    jawaban_teks: string | null;
+    jawaban_opsi: string | null;
+    jawaban_benar: string | null;
+    poin_didapat: number | null;
+    poin_maksimal: number;
+    is_benar: boolean | null;
+    pembahasan: string | null;
 }
 
 const props = defineProps({
@@ -35,6 +49,7 @@ const props = defineProps({
         required: true,
     },
     daftarUjianUrl: { type: String, required: true },
+    soalHasil: { type: Array as PropType<SoalHasilItem[]>, default: () => [] },
 });
 </script>
 
@@ -59,6 +74,10 @@ const props = defineProps({
                 <div v-if="attempt.alasan_selesai === 'pelanggaran'" class="alert alert-warning small" role="status">
                     <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true" />
                     Jawaban dikumpulkan otomatis karena batas pelanggaran ujian tercapai.
+                </div>
+                <div v-if="attempt.belum_dinilai > 0" class="alert alert-info small" role="status">
+                    <i class="bi bi-pencil-square me-1" aria-hidden="true" />
+                    {{ attempt.belum_dinilai }} jawaban essay masih menunggu penilaian guru. Nilai akan diperbarui setelah dinilai.
                 </div>
                 <Card title="Hasil Pengerjaan Ujian">
                     <!-- Status Banner -->
@@ -124,7 +143,7 @@ const props = defineProps({
                     <div class="alert alert-info d-flex align-items-center gap-2 mb-4 small">
                         <i class="bi bi-info-circle-fill fs-5 flex-shrink-0" />
                         <div>
-                            Skor ujian ini telah otomatis tercatat ke dalam nilai <strong>{{ ujian.kategori_nilai }}</strong> pada rekap <strong>Nilai Akhir</strong> mata pelajaran Anda.
+                            Skor ujian ini telah tercatat ke dalam nilai <strong>{{ ujian.kategori_nilai }}</strong> pada rekap <strong>Nilai Akhir</strong> mata pelajaran Anda<span v-if="attempt.belum_dinilai > 0">. Nilai akan disesuaikan setelah essay selesai dinilai</span>.
                         </div>
                     </div>
 
@@ -132,6 +151,27 @@ const props = defineProps({
                         <Button :href="daftarUjianUrl" color="primary" icon="bi-arrow-left">
                             Kembali ke Daftar Ujian
                         </Button>
+                    </div>
+                </Card>
+
+                <Card v-if="soalHasil.length" title="Review Jawaban dan Pembahasan" icon="bi-journal-text" class="mt-4">
+                    <div class="d-flex flex-column gap-3">
+                        <div v-for="soal in soalHasil" :key="soal.nomor" class="border rounded p-3">
+                            <div class="d-flex justify-content-between gap-2 mb-2">
+                                <strong>Soal {{ soal.nomor }}</strong>
+                                <Badge :color="soal.is_benar === true ? 'success' : soal.is_benar === false ? 'danger' : 'warning text-dark'">
+                                    {{ soal.poin_didapat === null ? 'Belum dinilai' : `${soal.poin_didapat} / ${soal.poin_maksimal} poin` }}
+                                </Badge>
+                            </div>
+                            <div class="fw-semibold text-break mb-2">{{ soal.pertanyaan }}</div>
+                            <div v-if="soal.jawaban_teks" class="small mb-1"><span class="text-body-secondary">Jawaban Anda:</span> {{ soal.jawaban_teks }}</div>
+                            <div v-else-if="soal.jawaban_opsi" class="small mb-1"><span class="text-body-secondary">Jawaban Anda:</span> {{ soal.jawaban_opsi }}</div>
+                            <div v-else class="small text-body-secondary fst-italic mb-1">Tidak dijawab</div>
+                            <div v-if="soal.jawaban_benar && soal.is_benar === false" class="small mb-1"><span class="text-body-secondary">Kunci jawaban:</span> {{ soal.jawaban_benar }}</div>
+                            <div v-if="soal.pembahasan" class="alert alert-info py-2 px-3 small mb-0">
+                                <strong>Pembahasan:</strong> {{ soal.pembahasan }}
+                            </div>
+                        </div>
                     </div>
                 </Card>
             </div>

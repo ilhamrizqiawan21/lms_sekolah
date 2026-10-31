@@ -7,7 +7,7 @@ import AppShell from '../../../Layouts/AppShell.vue';
 import { Badge, Button, Card, EmptyState } from '../../../Components/UI';
 
 defineProps({
-    waliKelas: { type: Object as PropType<{ id: number; kelas: string; tahun_ajaran: string; absensi_count: number; pertemuan_count: number; penanganan_aktif_count: number; absensi_url: string; pertemuan_url: string; penanganan_url: string } | null>, default: null },
+    waliKelas: { type: Object as PropType<{ id: number; kelas: string; tahun_ajaran: string; absensi_count: number; pertemuan_count: number; penanganan_aktif_count: number; absensi_url: string; pertemuan_url: string; penanganan_url: string; rapor_url: string } | null>, default: null },
 });
 </script>
 
@@ -52,6 +52,9 @@ defineProps({
                             </div>
                             <div class="col-sm-6 col-xl-3 d-grid">
                                 <Button :href="waliKelas.penanganan_url" color="outline-danger" icon="bi-heart-pulse">Penanganan Siswa</Button>
+                            </div>
+                            <div class="col-sm-6 col-xl-3 d-grid">
+                                <Button :href="waliKelas.rapor_url" color="outline-primary" icon="bi-file-earmark-person">e-Rapor</Button>
                             </div>
                         </div>
                     </div>

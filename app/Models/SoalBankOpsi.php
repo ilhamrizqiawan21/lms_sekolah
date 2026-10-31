@@ -14,6 +14,7 @@ class SoalBankOpsi extends Model
     protected $fillable = [
         'soal_bank_id',
         'teks_opsi',
+        'pasangan_teks',
         'is_benar',
         'urutan',
     ];

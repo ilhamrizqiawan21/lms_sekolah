@@ -23,6 +23,11 @@ class MataPelajaran extends Model
         return $this->hasMany(KelasMapel::class, 'mapel_id');
     }
 
+    public function kurikulum(): HasMany
+    {
+        return $this->hasMany(Kurikulum::class, 'mapel_id');
+    }
+
     // Relasi: mapel memiliki banyak guru melalui pivot guru_mapel
     public function guru()
     {

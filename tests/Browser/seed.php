@@ -67,11 +67,28 @@ $soal = SoalBank::create([
 ]);
 SoalBankOpsi::create(['soal_bank_id' => $soal->id, 'teks_opsi' => '7', 'is_benar' => true]);
 SoalBankOpsi::create(['soal_bank_id' => $soal->id, 'teks_opsi' => '8', 'is_benar' => false]);
+$matchingSoal = SoalBank::create([
+    'guru_id' => $users['guru']->id,
+    'pertanyaan' => 'Jodohkan ibu kota dengan negaranya.',
+    'tipe_soal' => SoalBank::TYPE_MENJODOHKAN,
+    'kesulitan' => 'mudah',
+]);
+SoalBankOpsi::create(['soal_bank_id' => $matchingSoal->id, 'teks_opsi' => 'Indonesia', 'pasangan_teks' => 'Jakarta', 'urutan' => 1]);
+SoalBankOpsi::create(['soal_bank_id' => $matchingSoal->id, 'teks_opsi' => 'Jepang', 'pasangan_teks' => 'Tokyo', 'urutan' => 2]);
+$essaySoal = SoalBank::create([
+    'guru_id' => $users['guru']->id,
+    'pertanyaan' => 'Jelaskan manfaat belajar teratur.',
+    'pembahasan' => 'Belajar teratur membantu membangun pemahaman dan kebiasaan yang konsisten.',
+    'tipe_soal' => SoalBank::TYPE_URAIAN,
+    'kesulitan' => 'sedang',
+]);
 $ujian = Ujian::create([
     'kelas_mapel_id' => $course->id, 'judul' => 'Ujian Uji', 'durasi_menit' => 30,
     'kategori_nilai' => 'NH', 'acak_soal' => false, 'acak_opsi' => false,
 ]);
 UjianSoal::create(['ujian_id' => $ujian->id, 'soal_bank_id' => $soal->id, 'poin' => 100, 'urutan' => 1]);
+UjianSoal::create(['ujian_id' => $ujian->id, 'soal_bank_id' => $matchingSoal->id, 'poin' => 10, 'urutan' => 2]);
+UjianSoal::create(['ujian_id' => $ujian->id, 'soal_bank_id' => $essaySoal->id, 'poin' => 20, 'urutan' => 3]);
 $student = Siswa::create([
     'user_id' => $users['siswa']->id, 'nis' => '9001', 'kelas_id' => $class->id, 'status' => 'aktif',
     'nomor_whatsapp' => '6281234567890', 'whatsapp_opt_in' => true, 'whatsapp_opted_in_at' => now(),

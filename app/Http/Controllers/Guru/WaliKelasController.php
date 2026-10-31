@@ -40,6 +40,7 @@ class WaliKelasController extends Controller
                 'absensi_url' => route('guru.wali-kelas.absensi', $waliKelas),
                 'pertemuan_url' => route('guru.wali-kelas.pertemuan', $waliKelas),
                 'penanganan_url' => route('guru.wali-kelas.penanganan', $waliKelas),
+                'rapor_url' => route('guru.wali-kelas.rapor', $waliKelas),
             ] : null,
         ]);
     }

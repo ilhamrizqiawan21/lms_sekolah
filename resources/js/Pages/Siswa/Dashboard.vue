@@ -53,7 +53,7 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: i
 <template>
     <Head title="Dashboard Siswa" />
     <AppShell title="Dashboard Siswa">
-        <DashboardHero eyebrow="Hari Ini" :title="`Selamat datang, ${studentName}`" :subtitle="`${stats.tugas_belum ?? 0} tugas belum dikerjakan dan ${stats.total_materi ?? 0} materi tersedia untuk dipelajari.`" icon="bi-mortarboard" tone="student">
+        <DashboardHero class="student-dashboard-hero" eyebrow="Hari Ini" :title="`Selamat datang, ${studentName}`" :subtitle="`${stats.tugas_belum ?? 0} tugas belum dikerjakan dan ${stats.total_materi ?? 0} materi tersedia untuk dipelajari.`" icon="bi-mortarboard" tone="student">
             <template #actions><QuickActionBar :actions="quickActions" /></template>
         </DashboardHero>
         <MetricStrip :items="metrics" />
@@ -74,7 +74,7 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: i
             <Link :href="links.tugas || '/siswa/tugas'" class="student-learning-action">Lihat tugas <i class="bi bi-arrow-up-right" aria-hidden="true"></i></Link>
         </section>
 
-        <div class="dashboard-grid dashboard-grid-student student-priority-grid">
+        <div class="dashboard-grid dashboard-grid-student student-priority-grid" aria-label="Prioritas belajar siswa">
             <ActionQueue title="Tugas Terdekat" icon="bi-journal-check" :items="taskItems" empty-title="Belum ada tugas" />
             <ActionQueue title="Kelas Daring" icon="bi-camera-video-fill" :items="onlineClassItems" empty-title="Belum ada kelas daring">
                 <template #actions><Link :href="links.kelas_daring || '/siswa/kelas-daring'" class="app-card-action-link">Lihat Semua</Link></template>
@@ -102,7 +102,26 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: i
 </template>
 
 <style scoped>
-.student-priority-grid { align-items: stretch; }
+:deep(.student-dashboard-hero) {
+    justify-content: flex-start;
+    gap: 1.1rem;
+}
+:deep(.app-shell .student-dashboard-hero) {
+    justify-content: flex-start !important;
+    column-gap: 1.1rem;
+}
+:deep(.app-shell .student-dashboard-hero .dashboard-hero-mark) {
+    flex: 0 0 48px;
+}
+:deep(.student-dashboard-hero .dashboard-hero-mark) {
+    width: 48px;
+    height: 48px;
+}
+.student-priority-grid {
+    grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+}
+.student-priority-grid .workspace-panel { height: 100%; margin-bottom: 0; }
 .student-courses-panel { min-width: 0; }
 .student-learning-summary {
     display: grid;
@@ -112,16 +131,18 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: i
     margin-bottom: 1rem;
     padding: 1.1rem 1.2rem;
     border: 1px solid var(--border-soft);
+    border-top: 3px solid var(--primary-500);
     border-radius: var(--panel-radius);
-    background: var(--surface-card);
+    background: color-mix(in srgb, var(--surface-card) 97%, var(--primary-50));
 }
 .student-learning-mark {
     display: grid;
     width: 42px;
     height: 42px;
     place-items: center;
+    border: 1px solid color-mix(in srgb, var(--primary-500) 18%, var(--border-soft));
     border-radius: 12px;
-    background: var(--surface-card);
+    background: var(--brand-soft-bg);
     color: var(--text-brand);
     font-size: 1.15rem;
 }
@@ -135,10 +156,14 @@ const announcementItems = computed(() => props.pengumuman.map((item) => ({ id: i
 .student-learning-action { display: inline-flex; align-items: center; gap: .35rem; color: var(--text-brand); font-size: var(--fs-xs); font-weight: 800; text-decoration: none; white-space: nowrap; }
 .student-learning-action:hover { text-decoration: underline; }
 @media (max-width: 767.98px) {
+    :deep(.student-dashboard-hero) { gap: 0.8rem; }
     .student-priority-grid { grid-template-columns: minmax(0, 1fr); }
     .student-courses-panel .course-card-grid { grid-template-columns: minmax(0, 1fr); }
     .student-learning-summary { grid-template-columns: auto minmax(0, 1fr); }
     .student-learning-progress { grid-column: 1 / -1; }
     .student-learning-action { grid-column: 2; justify-self: end; }
+}
+@media (min-width: 768px) and (max-width: 1100px) {
+    .student-priority-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 </style>

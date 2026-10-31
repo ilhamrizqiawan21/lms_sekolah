@@ -70,4 +70,9 @@ class Siswa extends Model
     {
         return $this->hasMany(SikapSpiritual::class, 'siswa_id');
     }
+
+    public function raporSiswa(): HasMany
+    {
+        return $this->hasMany(RaporSiswa::class, 'siswa_id');
+    }
 }

@@ -144,7 +144,9 @@ Test Laravel dikonfigurasi memakai SQLite `:memory:` melalui `phpunit.xml`, sehi
 - [ ] Admin dibuat lewat `EmptyProductSeeder` dengan password minimal 12 karakter.
 - [ ] `DEMO_MODE` tidak aktif pada environment production.
 - [ ] Backup database, rotasi log, HTTPS, dan monitoring disiapkan.
-- [ ] Queue/scheduler diaktifkan sesuai kebutuhan deployment.
+- [ ] Worker queue dijalankan, misalnya `php artisan queue:work --tries=3 --timeout=120`.
+- [ ] Scheduler Laravel dijalankan dengan cron `* * * * * cd /path/aplikasi && php artisan schedule:run >> /dev/null 2>&1`.
+- [ ] Scheduler mencakup auto-submit CBT kedaluwarsa setiap menit; jangan hanya mengandalkan siswa membuka ulang halaman ujian.
 - [ ] `php artisan optimize` dijalankan setelah konfigurasi final.
 - [ ] Lisensi/hak pakai instalasi ini sudah sesuai perjanjian dengan pemilik software (lihat [LICENSE](../LICENSE)).
 

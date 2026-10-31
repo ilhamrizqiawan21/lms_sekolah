@@ -10,8 +10,8 @@ import Topbar from '../Components/AppShell/Topbar.vue';
 import { sidebarMenu } from '../Components/AppShell/sidebarMenu';
 import type { AppPageProps } from '../types';
 
-interface Props { title?: string; }
-withDefaults(defineProps<Props>(), { title: '' });
+interface Props { title?: string; lockNavigation?: boolean; }
+const props = withDefaults(defineProps<Props>(), { title: '', lockNavigation: false });
 
 const page = usePage<AppPageProps>();
 const sidebarOpen = ref(false);
@@ -24,7 +24,7 @@ const notifications = computed(() => page.props.notifications);
 const capabilities = computed(() => page.props.capabilities);
 const academic = computed(() => page.props.academic ?? null);
 const shellClass = computed(() => `app-shell app-shell-${user.value?.role ?? 'guest'}`);
-const sidebarOverlayVisible = computed(() => isMobileViewport.value && sidebarOpen.value);
+const sidebarOverlayVisible = computed(() => !props.lockNavigation && isMobileViewport.value && sidebarOpen.value);
 const commandItems = computed(() => sidebarMenu(user.value?.role, capabilities.value));
 
 function syncSidebarWithViewport() {
@@ -37,7 +37,7 @@ function syncSidebarWithViewport() {
     // Resizing within the same breakpoint must not unexpectedly close an open
     // mobile drawer (for example while rotating or resizing a browser window).
     if (previousDesktopViewport.value === null || previousDesktopViewport.value !== isDesktop) {
-        sidebarOpen.value = isDesktop;
+        sidebarOpen.value = !props.lockNavigation && isDesktop;
         previousDesktopViewport.value = isDesktop;
     }
 }
@@ -58,17 +58,25 @@ function openCommandShortcut(event: KeyboardEvent) {
     const typing = Boolean(target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable));
     if (!typing && (event.key === '/' || ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k'))) {
         event.preventDefault();
-        commandOpen.value = true;
+        if (!props.lockNavigation) commandOpen.value = true;
     }
 }
 
 function closeSidebar() {
     sidebarOpen.value = false;
 }
+
+function toggleSidebar() {
+    if (!props.lockNavigation) sidebarOpen.value = !sidebarOpen.value;
+}
+
+function openCommand() {
+    if (!props.lockNavigation) commandOpen.value = true;
+}
 </script>
 
 <template>
-    <div :class="[shellClass, { 'sidebar-is-open': sidebarOpen, 'sidebar-is-collapsed': !sidebarOpen }]" @keydown.esc.window="closeSidebar">
+    <div :class="[shellClass, { 'sidebar-is-open': !props.lockNavigation && sidebarOpen, 'sidebar-is-collapsed': props.lockNavigation || !sidebarOpen }]" @keydown.esc.window="closeSidebar">
         <a href="#mainContent" class="skip-link">Lewati ke konten utama</a>
 
         <div
@@ -83,12 +91,14 @@ function closeSidebar() {
             :user="user"
             :academic="academic"
             :notifications="notifications"
-            :sidebar-open="sidebarOpen"
-            @toggle-sidebar="sidebarOpen = !sidebarOpen"
-            @open-command="commandOpen = true"
+            :sidebar-open="props.lockNavigation ? false : sidebarOpen"
+            :navigation-locked="props.lockNavigation"
+            @toggle-sidebar="toggleSidebar"
+            @open-command="openCommand"
         />
 
         <Sidebar
+            v-if="!props.lockNavigation"
             :open="sidebarOpen"
             :mobile="isMobileViewport"
             :school="school"
@@ -115,7 +125,7 @@ function closeSidebar() {
 
         <ToastStack />
         <ConfirmDialog />
-        <CommandPalette v-model:open="commandOpen" :items="commandItems" />
+        <CommandPalette v-if="!props.lockNavigation" v-model:open="commandOpen" :items="commandItems" />
     </div>
 </template>
 

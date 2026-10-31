@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\NilaiAkhir;
 use App\Models\KelasMapel;
+use App\Models\NilaiAkhir;
 use App\Models\Siswa;
+use App\Models\SoalBank;
 use App\Models\Ujian;
 use App\Models\UjianAttempt;
 use App\Models\UjianAttemptJawaban;
@@ -34,15 +35,34 @@ class CbtScoringService
             $poinMaksimal = (float) ($ujianSoal?->poin ?? 1.0);
             $skorMaksimal += $poinMaksimal;
 
+            $tipeSoal = $soalBank?->tipe_soal ?? SoalBank::TYPE_PILIHAN_GANDA;
             $isBenar = false;
-            if ($jawaban->soal_bank_opsi_id && $soalBank) {
+            $poinDidapat = 0.0;
+
+            if ($tipeSoal === SoalBank::TYPE_URAIAN) {
+                // Essay is graded by the teacher after submission. Preserve a manual grade
+                // while keeping unanswered essays out of the automatically-correct count.
+                $poinDidapat = $jawaban->poin_didapat !== null ? min($poinMaksimal, max(0.0, (float) $jawaban->poin_didapat)) : null;
+                $isBenar = $poinDidapat !== null ? $poinDidapat >= $poinMaksimal : null;
+            } elseif ($tipeSoal === SoalBank::TYPE_MENJODOHKAN && $soalBank) {
+                $jumlahPasangan = $soalBank->opsi->count();
+                $jawabanPasangan = is_array($jawaban->jawaban_pasangan) ? $jawaban->jawaban_pasangan : [];
+                $jumlahBenar = $soalBank->opsi->filter(function ($opsi) use ($jawabanPasangan): bool {
+                    $pilihan = $jawabanPasangan[(string) $opsi->id] ?? $jawabanPasangan[$opsi->id] ?? null;
+
+                    return $pilihan !== null && (int) $pilihan === (int) $opsi->id;
+                })->count();
+
+                $isBenar = $jumlahPasangan > 0 && $jumlahBenar === $jumlahPasangan;
+                $poinDidapat = $jumlahPasangan > 0
+                    ? round($poinMaksimal * ($jumlahBenar / $jumlahPasangan), 2)
+                    : 0.0;
+            } elseif ($jawaban->soal_bank_opsi_id && $soalBank) {
                 $opsiBenar = $soalBank->opsi->firstWhere('is_benar', true);
-                if ($opsiBenar && (int) $opsiBenar->id === (int) $jawaban->soal_bank_opsi_id) {
-                    $isBenar = true;
-                }
+                $isBenar = $opsiBenar && (int) $opsiBenar->id === (int) $jawaban->soal_bank_opsi_id;
+                $poinDidapat = $isBenar ? $poinMaksimal : 0.0;
             }
 
-            $poinDidapat = $isBenar ? $poinMaksimal : 0.0;
             $skorTotal += $poinDidapat;
 
             $jawaban->update([
@@ -55,6 +75,27 @@ class CbtScoringService
             'skor_total' => round($skorTotal, 2),
             'skor_maksimal' => round($skorMaksimal, 2),
         ];
+    }
+
+    /**
+     * Recalculate a submitted attempt after a teacher grades an essay answer.
+     */
+    public function recalculateScores(UjianAttempt $attempt): UjianAttempt
+    {
+        return DB::transaction(function () use ($attempt) {
+            UjianAttemptJawaban::where('ujian_attempt_id', $attempt->id)->lockForUpdate()->get();
+            $attempt->unsetRelation('jawaban');
+
+            $hasil = $this->hitungSkor($attempt);
+            $attempt->update([
+                'skor_total' => $hasil['skor_total'],
+                'skor_maksimal' => $hasil['skor_maksimal'],
+            ]);
+
+            $this->syncNilaiUjian($attempt);
+
+            return $attempt->fresh();
+        });
     }
 
     /**

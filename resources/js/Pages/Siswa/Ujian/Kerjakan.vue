@@ -2,7 +2,6 @@
 import type { PropType } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import AppShell from '../../../Layouts/AppShell.vue';
 import { Button, Modal } from '../../../Components/UI';
 import { useExamGuard } from '../../../composables/useExamGuard';
 import { csrfHeaders } from '../../../utils/csrf';
@@ -13,13 +12,32 @@ interface OpsiItem {
     teks_opsi: string;
 }
 
+interface PasanganItem {
+    id: number;
+    urutan: number;
+    teks_pasangan: string | null;
+}
+
+type TipeSoal = 'pilihan_ganda' | 'benar_salah' | 'menjodohkan' | 'uraian';
+
 interface SoalAttemptItem {
     attempt_jawaban_id: number;
     urutan: number;
     pertanyaan: string;
+    tipe_soal: TipeSoal;
     ragu_ragu: boolean;
     jawaban_opsi_id: number | null;
+    jawaban_teks: string | null;
+    jawaban_pasangan: Record<string, number>;
     opsi: OpsiItem[];
+    pasangan: PasanganItem[];
+}
+
+interface AnswerState {
+    opsiId: number | null;
+    jawabanTeks: string;
+    pasangan: Record<string, number>;
+    ragu: boolean;
 }
 
 const props = defineProps({
@@ -104,23 +122,156 @@ function onKlikKanan(event: Event) {
     laporkanEvent('klik_kanan');
 }
 let pendingSavePromise: Promise<void> | null = null;
+const draftStorageKey = `lms:cbt:attempt:${props.attempt.id}:jawaban`;
+const pendingAnswers = ref(new Map<number, AnswerState>());
+const offlineMode = ref(typeof navigator !== 'undefined' && !navigator.onLine);
+let syncingAnswers = false;
+let retrySyncTimer: ReturnType<typeof setInterval> | null = null;
 
 // Keep local state for responsive UI
-const localAnswers = ref<{ [attemptJawabanId: number]: { opsiId: number | null; ragu: boolean } }>({});
+const localAnswers = ref<{ [attemptJawabanId: number]: AnswerState }>({});
 
 props.soalList.forEach((s) => {
     localAnswers.value[s.attempt_jawaban_id] = {
         opsiId: s.jawaban_opsi_id,
+        jawabanTeks: s.jawaban_teks ?? '',
+        pasangan: { ...s.jawaban_pasangan },
         ragu: Boolean(s.ragu_ragu),
     };
 });
+
+function answersEqual(left: AnswerState, right: AnswerState): boolean {
+    const leftPairs = Object.entries(left.pasangan).sort(([a], [b]) => a.localeCompare(b));
+    const rightPairs = Object.entries(right.pasangan).sort(([a], [b]) => a.localeCompare(b));
+
+    return left.opsiId === right.opsiId
+        && left.jawabanTeks === right.jawabanTeks
+        && left.ragu === right.ragu
+        && JSON.stringify(leftPairs) === JSON.stringify(rightPairs);
+}
+
+function persistDraft() {
+    if (typeof window === 'undefined') return;
+
+    try {
+        window.localStorage.setItem(draftStorageKey, JSON.stringify(localAnswers.value));
+    } catch {
+        // Storage may be unavailable in private browsing; server sync remains the source of truth.
+    }
+}
+
+function clearDraft() {
+    if (typeof window === 'undefined') return;
+
+    try {
+        window.localStorage.removeItem(draftStorageKey);
+    } catch {
+        // Ignore storage cleanup failures.
+    }
+}
+
+function hydrateDraft() {
+    if (typeof window === 'undefined') return;
+
+    try {
+        const raw = window.localStorage.getItem(draftStorageKey);
+        if (!raw) return;
+
+        const stored = JSON.parse(raw) as Record<string, Partial<AnswerState>>;
+        Object.entries(stored).forEach(([id, answer]) => {
+            const attemptJawabanId = Number(id);
+            if (!localAnswers.value[attemptJawabanId] || typeof answer !== 'object' || answer === null) return;
+
+            const hydrated: AnswerState = {
+                opsiId: typeof answer.opsiId === 'number' ? answer.opsiId : null,
+                jawabanTeks: typeof answer.jawabanTeks === 'string' ? answer.jawabanTeks : '',
+                pasangan: answer.pasangan && typeof answer.pasangan === 'object' ? answer.pasangan as Record<string, number> : {},
+                ragu: Boolean(answer.ragu),
+            };
+            localAnswers.value[attemptJawabanId] = hydrated;
+            pendingAnswers.value.set(attemptJawabanId, hydrated);
+        });
+    } catch {
+        // Ignore a corrupt draft and continue with the server state.
+    }
+}
+
+hydrateDraft();
+
+function queueAnswer(attemptJawabanId: number) {
+    const answer = localAnswers.value[attemptJawabanId];
+    if (!answer) return;
+
+    pendingAnswers.value = new Map(pendingAnswers.value).set(attemptJawabanId, { ...answer });
+    persistDraft();
+}
+
+function removeSyncedAnswer(attemptJawabanId: number, snapshot: AnswerState) {
+    const current = pendingAnswers.value.get(attemptJawabanId);
+    if (!current || !answersEqual(current, snapshot)) return;
+
+    const next = new Map(pendingAnswers.value);
+    next.delete(attemptJawabanId);
+    pendingAnswers.value = next;
+}
+
+async function flushAnswerQueue(): Promise<void> {
+    if (syncingAnswers || (typeof navigator !== 'undefined' && !navigator.onLine)) return;
+
+    syncingAnswers = true;
+    try {
+        for (const [attemptJawabanId, snapshot] of pendingAnswers.value.entries()) {
+            const response = await fetch(props.simpanJawabanUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: csrfHeaders(),
+                body: JSON.stringify({
+                    attempt_jawaban_id: attemptJawabanId,
+                    jawaban_opsi_id: snapshot.opsiId,
+                    jawaban_teks: snapshot.jawabanTeks || null,
+                    jawaban_pasangan: snapshot.pasangan,
+                    ragu_ragu: snapshot.ragu,
+                }),
+            });
+
+            if (!response.ok) {
+                const payload = await response.json().catch(() => null);
+                saveError.value = payload?.message ?? 'Jawaban belum tersinkron. Sistem akan mencoba lagi.';
+                break;
+            }
+
+            removeSyncedAnswer(attemptJawabanId, snapshot);
+            saveError.value = null;
+        }
+    } catch {
+        saveError.value = 'Koneksi terputus. Jawaban disimpan sementara di perangkat dan akan dikirim saat koneksi pulih.';
+    } finally {
+        syncingAnswers = false;
+    }
+}
+
+function onOnline() {
+    offlineMode.value = false;
+    void flushAnswerQueue();
+}
+
+function onOffline() {
+    offlineMode.value = true;
+    saveError.value = 'Koneksi terputus. Jawaban baru tetap disimpan sementara di perangkat.';
+}
 
 const currentSoal = computed(() => props.soalList[currentIndex.value] ?? null);
 
 const totalSoal = computed(() => props.soalList.length);
 
 const dijawabCount = computed(() => {
-    return Object.values(localAnswers.value).filter((a) => a.opsiId !== null).length;
+    return props.soalList.filter((soal) => {
+        const answer = localAnswers.value[soal.attempt_jawaban_id];
+        if (!answer) return false;
+        if (soal.tipe_soal === 'uraian') return answer.jawabanTeks.trim().length > 0;
+        if (soal.tipe_soal === 'menjodohkan') return Object.keys(answer.pasangan).length > 0;
+        return answer.opsiId !== null;
+    }).length;
 });
 
 const raguCount = computed(() => {
@@ -130,6 +281,15 @@ const raguCount = computed(() => {
 const belumDijawabCount = computed(() => {
     return totalSoal.value - dijawabCount.value;
 });
+
+function isSoalDijawab(soal: SoalAttemptItem): boolean {
+    const answer = localAnswers.value[soal.attempt_jawaban_id];
+    if (!answer) return false;
+    if (soal.tipe_soal === 'uraian') return answer.jawabanTeks.trim().length > 0;
+    if (soal.tipe_soal === 'menjodohkan') return Object.keys(answer.pasangan).length > 0;
+
+    return answer.opsiId !== null;
+}
 
 // Format timer
 const formattedTime = computed(() => {
@@ -156,18 +316,58 @@ onMounted(() => {
             autoSubmitOnTimeUp();
         }
     }, 1000);
+
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    retrySyncTimer = setInterval(() => void flushAnswerQueue(), 10_000);
+    void flushAnswerQueue();
 });
 
 onBeforeUnmount(() => {
     if (timerInterval) clearInterval(timerInterval);
+    if (retrySyncTimer) clearInterval(retrySyncTimer);
+    window.removeEventListener('online', onOnline);
+    window.removeEventListener('offline', onOffline);
 });
 
 function selectOpsi(opsiId: number) {
-    if (!currentSoal.value || isSubmitting.value) return;
+    if (!currentSoal.value || currentSoal.value.tipe_soal === 'uraian' || currentSoal.value.tipe_soal === 'menjodohkan' || isSubmitting.value) return;
 
     const ajId = currentSoal.value.attempt_jawaban_id;
     localAnswers.value[ajId].opsiId = opsiId;
 
+    void saveCurrentAnswer();
+}
+
+function updateJawabanTeks(value: string) {
+    if (!currentSoal.value || currentSoal.value.tipe_soal !== 'uraian' || isSubmitting.value) return;
+
+    const attemptJawabanId = currentSoal.value.attempt_jawaban_id;
+    localAnswers.value[attemptJawabanId].jawabanTeks = value;
+    // Keep the latest keystrokes in the offline queue too, so a timer expiry
+    // while the textarea still has focus cannot drop the essay answer.
+    queueAnswer(attemptJawabanId);
+}
+
+function saveJawabanTeks() {
+    if (!currentSoal.value || currentSoal.value.tipe_soal !== 'uraian') return;
+
+    void saveCurrentAnswer();
+}
+
+function selectPasangan(kiriId: number, kananId: string) {
+    if (!currentSoal.value || currentSoal.value.tipe_soal !== 'menjodohkan' || isSubmitting.value) return;
+
+    const pasangan = { ...localAnswers.value[currentSoal.value.attempt_jawaban_id].pasangan };
+    const parsedKananId = Number(kananId);
+    Object.keys(pasangan).forEach((key) => {
+        if (pasangan[key] === parsedKananId && Number(key) !== kiriId) delete pasangan[key];
+    });
+
+    if (parsedKananId > 0) pasangan[String(kiriId)] = parsedKananId;
+    else delete pasangan[String(kiriId)];
+
+    localAnswers.value[currentSoal.value.attempt_jawaban_id].pasangan = pasangan;
     void saveCurrentAnswer();
 }
 
@@ -200,33 +400,12 @@ function saveCurrentAnswer(): Promise<void> {
     if (!currentSoal.value) return Promise.resolve();
 
     const ajId = currentSoal.value.attempt_jawaban_id;
-    const item = localAnswers.value[ajId];
+    queueAnswer(ajId);
 
     isSaving.value = true;
-    saveError.value = null;
-
-    const task = fetch(props.simpanJawabanUrl, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: csrfHeaders(),
-        body: JSON.stringify({
-            attempt_jawaban_id: ajId,
-            jawaban_opsi_id: item.opsiId,
-            ragu_ragu: item.ragu,
-        }),
-    })
-        .then(async (response) => {
-            if (!response.ok) {
-                const payload = await response.json().catch(() => null);
-                saveError.value = payload?.message ?? 'Gagal menyimpan jawaban ke server. Periksa koneksi internet Anda.';
-            }
-        })
-        .catch(() => {
-            saveError.value = 'Gagal menyimpan jawaban ke server. Periksa koneksi internet Anda.';
-        })
-        .finally(() => {
-            isSaving.value = false;
-        });
+    const task = flushAnswerQueue().finally(() => {
+        isSaving.value = false;
+    });
 
     pendingSavePromise = task;
     return task;
@@ -264,11 +443,19 @@ async function submitUjian() {
         await pendingSavePromise;
     }
 
+    await flushAnswerQueue();
+    if (pendingAnswers.value.size > 0) {
+        isSubmitting.value = false;
+        saveError.value = 'Masih ada jawaban yang belum tersinkron. Pulihkan koneksi internet sebelum mengumpulkan ujian.';
+        return;
+    }
+
     router.post(
         props.submitUrl,
         {},
         {
             preserveScroll: false,
+            onSuccess: clearDraft,
             onFinish: () => {
                 isSubmitting.value = false;
             },
@@ -284,14 +471,15 @@ async function autoSubmitOnTimeUp() {
         await pendingSavePromise;
     }
 
-    router.post(props.submitUrl);
+    router.post(props.submitUrl, {}, { onSuccess: clearDraft });
 }
 </script>
 
 <template>
     <Head :title="`Ujian: ${ujian.judul}`" />
 
-    <AppShell title="Pengerjaan Ujian">
+    <div class="exam-page">
+        <div :inert="perluLayarPenuh">
         <!-- Top Header Bar for CBT -->
         <div class="card border mb-3 cbt-shell">
             <div class="card-body p-3">
@@ -305,8 +493,9 @@ async function autoSubmitOnTimeUp() {
 
                     <!-- Countdown Timer -->
                     <div class="d-flex align-items-center gap-2">
-                        <span v-if="isSaving" class="small text-body-secondary">
-                            <i class="bi bi-cloud-arrow-up me-1" aria-hidden="true" />Menyimpan...
+                        <span v-if="isSaving || pendingAnswers.size" class="small" :class="offlineMode ? 'text-warning' : 'text-body-secondary'" role="status">
+                            <i class="bi me-1" :class="offlineMode ? 'bi-cloud-slash' : 'bi-cloud-arrow-up'" aria-hidden="true" />
+                            {{ offlineMode ? 'Tersimpan lokal, menunggu koneksi...' : 'Menyimpan...' }}
                         </span>
                         <div
                             class="px-3 py-1 rounded border fw-bold d-flex align-items-center gap-2"
@@ -379,8 +568,9 @@ async function autoSubmitOnTimeUp() {
                             {{ currentSoal.pertanyaan }}
                         </div>
 
-                        <!-- Opsi Jawaban -->
+                        <!-- Pilihan Ganda / Benar-Salah -->
                         <div
+                            v-if="currentSoal.tipe_soal === 'pilihan_ganda' || currentSoal.tipe_soal === 'benar_salah'"
                             class="d-flex flex-column gap-3 mb-4"
                             role="radiogroup"
                             :aria-label="`Pilihan jawaban soal nomor ${currentIndex + 1}`"
@@ -411,6 +601,52 @@ async function autoSubmitOnTimeUp() {
                                 <div class="pt-1 flex-grow-1 u-ws-pre-wrap">
                                     {{ opsi.teks_opsi }}
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Menjodohkan -->
+                        <div v-else-if="currentSoal.tipe_soal === 'menjodohkan'" class="mb-4">
+                            <div class="alert alert-info py-2 small">
+                                <i class="bi bi-info-circle me-1" aria-hidden="true" />
+                                Pilih pasangan yang sesuai untuk setiap subsoal. Satu pilihan hanya dapat digunakan sekali.
+                            </div>
+                            <div class="d-flex flex-column gap-3">
+                                <div v-for="(opsi, idx) in currentSoal.opsi" :key="opsi.id" class="matching-row border rounded-3 p-3">
+                                    <div class="small text-body-secondary mb-1">Subsoal {{ idx + 1 }}</div>
+                                    <div class="fw-semibold mb-2 u-ws-pre-wrap">{{ opsi.teks_opsi }}</div>
+                                    <select
+                                        class="form-select"
+                                        :value="localAnswers[currentSoal.attempt_jawaban_id]?.pasangan[String(opsi.id)] ?? ''"
+                                        :aria-label="`Pasangan untuk subsoal ${idx + 1}`"
+                                        @change="selectPasangan(opsi.id, ($event.target as HTMLSelectElement).value)"
+                                    >
+                                        <option value="">Pilih pasangan...</option>
+                                        <option v-for="pasangan in currentSoal.pasangan" :key="pasangan.id" :value="pasangan.id">
+                                            {{ pasangan.teks_pasangan }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Essay -->
+                        <div v-else class="mb-4">
+                            <label :for="`jawaban-essay-${currentSoal.attempt_jawaban_id}`" class="form-label fw-semibold">
+                                Jawaban Anda
+                            </label>
+                            <textarea
+                                :id="`jawaban-essay-${currentSoal.attempt_jawaban_id}`"
+                                class="form-control"
+                                rows="8"
+                                maxlength="20000"
+                                :value="localAnswers[currentSoal.attempt_jawaban_id]?.jawabanTeks ?? ''"
+                                placeholder="Tuliskan jawaban Anda..."
+                                @input="updateJawabanTeks(($event.target as HTMLTextAreaElement).value)"
+                                @blur="saveJawabanTeks"
+                            />
+                            <div class="d-flex justify-content-between mt-2 small text-body-secondary">
+                                <span>Jawaban essay akan dinilai manual oleh guru.</span>
+                                <span>{{ (localAnswers[currentSoal.attempt_jawaban_id]?.jawabanTeks ?? '').length }}/20.000</span>
                             </div>
                         </div>
 
@@ -452,7 +688,7 @@ async function autoSubmitOnTimeUp() {
 
             <!-- Right: Nomor Soal Grid Navigator -->
             <div class="col-lg-4">
-                <div class="card border sticky-top" style="top: 80px;">
+                <div class="card border sticky-top exam-question-nav">
                     <div class="card-header py-3">
                         <h6 class="mb-0 fw-bold">
                             <i class="bi bi-grid-3x3-gap-fill me-1 text-primary" />
@@ -478,7 +714,7 @@ async function autoSubmitOnTimeUp() {
                         </div>
 
                         <!-- Grid -->
-                        <div class="d-grid gap-2" style="grid-template-columns: repeat(5, 1fr);">
+                        <div class="d-grid gap-2 exam-question-grid">
                             <button
                                 v-for="(soal, sIdx) in soalList"
                                 :key="soal.attempt_jawaban_id"
@@ -487,8 +723,8 @@ async function autoSubmitOnTimeUp() {
                                 :class="{
                                     'btn-primary ring-2': currentIndex === sIdx,
                                     'btn-warning text-dark': currentIndex !== sIdx && localAnswers[soal.attempt_jawaban_id]?.ragu,
-                                    'btn-success': currentIndex !== sIdx && !localAnswers[soal.attempt_jawaban_id]?.ragu && localAnswers[soal.attempt_jawaban_id]?.opsiId !== null,
-                                    'btn-outline-secondary': currentIndex !== sIdx && !localAnswers[soal.attempt_jawaban_id]?.ragu && localAnswers[soal.attempt_jawaban_id]?.opsiId === null,
+                                    'btn-success': currentIndex !== sIdx && !localAnswers[soal.attempt_jawaban_id]?.ragu && isSoalDijawab(soal),
+                                    'btn-outline-secondary': currentIndex !== sIdx && !localAnswers[soal.attempt_jawaban_id]?.ragu && !isSoalDijawab(soal),
                                 }"
                                 @click="goToSoal(sIdx)"
                             >
@@ -537,6 +773,7 @@ async function autoSubmitOnTimeUp() {
                 </Button>
             </template>
         </Modal>
+        </div>
         <!-- Wajib layar penuh: menutupi soal sampai siswa masuk (atau kembali ke) layar penuh. -->
         <div v-if="perluLayarPenuh" class="exam-guard-overlay" role="dialog" aria-modal="true" aria-labelledby="exam-guard-title">
             <div class="exam-guard-panel">
@@ -551,17 +788,93 @@ async function autoSubmitOnTimeUp() {
                 </button>
             </div>
         </div>
-    </AppShell>
+    </div>
 </template>
 
 <style scoped>
+.exam-page {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    overflow: auto;
+    min-height: 100dvh;
+    padding: clamp(0.75rem, 2vw, 2rem);
+    background: var(--surface-muted, #f5f7fb);
+    color: var(--text-body);
+}
+
+.exam-page .cbt-shell {
+    margin-inline: auto;
+}
+
+.exam-question-nav {
+    top: 1rem;
+}
+
+.exam-question-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .exam-option-letter:not(.bg-primary) {
     background: var(--surface-subtle);
     color: var(--text-body);
 }
 
+.matching-row {
+    background: var(--surface-subtle);
+}
+
 .exam-summary-surface {
     background: var(--surface-muted);
     color: var(--text-body);
+}
+
+.exam-guard-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 4000;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    background: rgba(7, 15, 29, 0.94);
+    color: #f8fafc;
+    text-align: center;
+}
+
+.exam-guard-panel {
+    width: min(100%, 32rem);
+    padding: clamp(1.5rem, 5vw, 3rem);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 1rem;
+    background: #101c31;
+    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.4);
+}
+
+.exam-guard-panel p {
+    color: #cbd5e1;
+}
+
+@media (max-width: 991.98px) {
+    .exam-page {
+        padding: 0.75rem;
+    }
+
+    .exam-question-nav {
+        position: static;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .exam-page {
+        padding: 0.5rem;
+    }
+
+    .exam-page .card-body {
+        padding: 1rem !important;
+    }
+
+    .exam-question-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
 }
 </style>

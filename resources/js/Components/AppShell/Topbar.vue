@@ -11,6 +11,7 @@ interface Props {
     academic?: AcademicPeriod | null;
     notifications?: NotificationsShare;
     sidebarOpen?: boolean;
+    navigationLocked?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -18,6 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
     academic: null,
     notifications: () => ({ route: null, mark_all_route: null, unread_count: 0, latest: [] }),
     sidebarOpen: false,
+    navigationLocked: false,
 });
 
 const page = usePage<AppPageProps>();
@@ -72,6 +74,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
         :class="{ 'topbar-sidebar-open': sidebarOpen }"
     >
         <button
+            v-if="!navigationLocked"
             class="mobile-menu topbar-toggle-btn"
             type="button"
             :aria-label="sidebarOpen ? 'Tutup menu' : 'Buka menu'"
@@ -97,6 +100,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
         </div>
 
         <button
+            v-if="!navigationLocked"
             class="top-icon topbar-search"
             type="button"
             aria-label="Buka akses cepat"
@@ -107,7 +111,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
         </button>
 
         <div class="topbar-actions">
-            <div v-if="notifications.route" class="dropdown">
+            <div v-if="notifications.route && !navigationLocked" class="dropdown">
                 <button
                     class="top-icon topbar-icon-btn position-relative"
                     type="button"
@@ -170,7 +174,7 @@ function profileIsInertia(role: UserRole | null | undefined): boolean {
                 <i class="bi bi-moon-stars icon" data-theme-toggle-icon aria-hidden="true"></i>
             </button>
 
-            <div class="dropdown">
+            <div v-if="!navigationLocked" class="dropdown">
                 <button
                     class="top-profile topbar-account-btn"
                     type="button"

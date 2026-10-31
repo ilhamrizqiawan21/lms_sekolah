@@ -10,6 +10,7 @@ use App\Models\PengumpulanTugas;
 use App\Models\SikapSosial;
 use App\Models\SikapSpiritual;
 use App\Models\Siswa;
+use App\Models\SoalBank;
 use App\Models\TahunAjaran;
 use App\Models\Tugas;
 use App\Models\Ujian;
@@ -312,7 +313,7 @@ final class GuruReportService
     {
         abort_unless((int) $ujian->kelas_mapel_id === (int) $kelasMapel->id, 403);
 
-        $attempts = UjianAttempt::with(['siswa.user', 'jawaban'])
+        $attempts = UjianAttempt::with(['siswa.user', 'jawaban.ujianSoal.soalBank'])
             ->where('ujian_id', $ujian->id)
             ->get()
             ->keyBy('siswa_id');
@@ -328,6 +329,11 @@ final class GuruReportService
                 $skor100 = $att && $att->skor_maksimal > 0
                     ? round(($att->skor_total / $att->skor_maksimal) * 100, 2)
                     : ($att ? 0 : '-');
+                $essayBelumDinilai = $att?->jawaban
+                    ->filter(fn ($jawaban) => $jawaban->ujianSoal?->soalBank?->tipe_soal === SoalBank::TYPE_URAIAN
+                        && filled(trim((string) $jawaban->jawaban_teks))
+                        && $jawaban->poin_didapat === null)
+                    ->count() ?? 0;
 
                 return [
                     $index + 1,
@@ -335,6 +341,7 @@ final class GuruReportService
                     $siswa->user?->nama_lengkap ?? '-',
                     $att ? ucfirst(str_replace('_', ' ', (string) $att->status)) : 'Belum Mulai',
                     $skor100,
+                    $essayBelumDinilai,
                     $att?->waktu_mulai?->format('d/m/Y H:i') ?? '-',
                     $att?->waktu_submit?->format('d/m/Y H:i') ?? '-',
                     $att ? (int) $att->tab_switch_count : 0,
@@ -342,10 +349,76 @@ final class GuruReportService
             })->all();
 
         return [
-            'headers' => ['No', 'NIS', 'Nama Siswa', 'Status', 'Skor', 'Waktu Mulai', 'Waktu Submit', 'Tab Switch'],
+            'headers' => ['No', 'NIS', 'Nama Siswa', 'Status', 'Skor', 'Essay Belum Dinilai', 'Waktu Mulai', 'Waktu Submit', 'Tab Switch'],
             'rows' => $rows,
             'context' => $this->kelasMapelContext($kelasMapel).' - '.$ujian->judul,
             'slug' => $this->slug($this->kelasMapelContext($kelasMapel).'_'.$ujian->judul),
+        ];
+    }
+
+    public function ujianJawabanDetail(KelasMapel $kelasMapel, Ujian $ujian): array
+    {
+        abort_unless((int) $ujian->kelas_mapel_id === (int) $kelasMapel->id, 403);
+
+        $attempts = UjianAttempt::with([
+            'siswa.user',
+            'jawaban.ujianSoal.soalBank.opsi',
+            'jawaban.opsiTerpilih',
+        ])->where('ujian_id', $ujian->id)->get()->keyBy('siswa_id');
+
+        $rows = Siswa::with('user')
+            ->where('kelas_id', $kelasMapel->kelas_id)
+            ->where('status', 'aktif')
+            ->orderBy('nis')
+            ->get()
+            ->flatMap(function (Siswa $siswa, int $studentIndex) use ($attempts) {
+                $attempt = $attempts->get($siswa->id);
+
+                if (! $attempt) {
+                    return [[
+                        $studentIndex + 1,
+                        $siswa->nis ?? '-',
+                        $siswa->user?->nama_lengkap ?? '-',
+                        'Belum Mulai',
+                        '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-',
+                    ]];
+                }
+
+                return $attempt->jawaban
+                    ->sortBy(fn ($jawaban) => $jawaban->ujianSoal?->urutan ?? 0)
+                    ->values()
+                    ->map(function ($jawaban, int $questionIndex) use ($siswa, $attempt, $studentIndex) {
+                        $soal = $jawaban->ujianSoal?->soalBank;
+                        $opsiBenar = $soal?->opsi?->firstWhere('is_benar', true);
+                        $jawabanText = $jawaban->jawaban_teks
+                            ?? $jawaban->opsiTerpilih?->teks_opsi
+                            ?? ($jawaban->jawaban_pasangan ? json_encode($jawaban->jawaban_pasangan, JSON_UNESCAPED_UNICODE) : null);
+
+                        return [
+                            $studentIndex + 1,
+                            $siswa->nis ?? '-',
+                            $siswa->user?->nama_lengkap ?? '-',
+                            ucfirst(str_replace('_', ' ', (string) $attempt->status)),
+                            $questionIndex + 1,
+                            $soal?->tipe_soal ?? '-',
+                            $soal?->pertanyaan ?? '-',
+                            $jawabanText ?: 'Tidak dijawab',
+                            $opsiBenar?->teks_opsi ?? '-',
+                            $jawaban->poin_didapat,
+                            $jawaban->ujianSoal?->poin,
+                            $soal?->pembahasan ?? '-',
+                            $attempt->waktu_mulai?->format('d/m/Y H:i') ?? '-',
+                            $attempt->waktu_submit?->format('d/m/Y H:i') ?? '-',
+                            (int) $attempt->tab_switch_count,
+                        ];
+                    });
+            })->values()->all();
+
+        return [
+            'headers' => ['No Siswa', 'NIS', 'Nama Siswa', 'Status Attempt', 'No Soal', 'Tipe', 'Pertanyaan', 'Jawaban Siswa', 'Kunci Jawaban', 'Poin Didapat', 'Poin Maksimal', 'Pembahasan', 'Waktu Mulai', 'Waktu Submit', 'Tab Switch'],
+            'rows' => $rows,
+            'context' => $this->kelasMapelContext($kelasMapel).' - '.$ujian->judul,
+            'slug' => $this->slug($this->kelasMapelContext($kelasMapel).'_'.$ujian->judul.'_detail'),
         ];
     }
 

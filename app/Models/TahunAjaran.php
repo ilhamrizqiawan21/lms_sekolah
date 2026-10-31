@@ -35,6 +35,11 @@ class TahunAjaran extends Model
         return $this->hasMany(NilaiAkhir::class, 'tahun_ajaran_id');
     }
 
+    public function kurikulum(): HasMany
+    {
+        return $this->hasMany(Kurikulum::class, 'tahun_ajaran_id');
+    }
+
     public static function getAktif(): ?self
     {
         return self::where('is_active', true)->first();

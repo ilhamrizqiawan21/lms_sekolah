@@ -51,10 +51,10 @@ class CbtAntiCheatPolicyTest extends TestCase
     {
         $t = '2026-10-19 10:00:';
 
-        yield 'kembali tepat di batas toleransi tidak dihitung' => [[['window_blur', $t.'00'], ['kembali', $t.'05']], $t.'30', false, 0];
-        yield 'kembali melewati toleransi dihitung' => [[['window_blur', $t.'00'], ['kembali', $t.'06']], $t.'30', false, 1];
-        yield 'episode terbuka belum melewati toleransi' => [[['tab_hidden', $t.'00']], $t.'05', false, 0];
-        yield 'episode terbuka melewati toleransi dihitung' => [[['tab_hidden', $t.'00']], $t.'06', false, 1];
+        yield 'setiap perpindahan tab langsung dihitung' => [[['window_blur', $t.'00'], ['kembali', $t.'05']], $t.'30', false, 1];
+        yield 'perpindahan tab yang lama tetap satu pelanggaran' => [[['window_blur', $t.'00'], ['kembali', $t.'06']], $t.'30', false, 1];
+        yield 'episode terbuka langsung dihitung' => [[['tab_hidden', $t.'00']], $t.'05', false, 1];
+        yield 'episode terbuka melewati batas lima detik tetap dihitung' => [[['tab_hidden', $t.'00']], $t.'06', false, 1];
         yield 'keluar ganda pada satu episode dihitung sekali' => [[['window_blur', $t.'00'], ['tab_hidden', $t.'01'], ['kembali', $t.'40']], $t.'59', false, 1];
         yield 'dua episode panjang dihitung dua' => [[['window_blur', $t.'00'], ['kembali', $t.'10'], ['tab_hidden', $t.'20'], ['kembali', $t.'40']], $t.'59', false, 2];
         yield 'kembali tanpa keluar diabaikan' => [[['kembali', $t.'10']], $t.'59', false, 0];
@@ -73,7 +73,7 @@ class CbtAntiCheatPolicyTest extends TestCase
         $this->assertSame($diharapkan, $hasil);
     }
 
-    public function test_respons_event_memuat_status_kebijakan_tanpa_kumpul_otomatis_bila_tidak_ada_batas(): void
+    public function test_episode_di_luar_lima_detik_mengakhiri_attempt_meski_tanpa_batas_pelanggaran(): void
     {
         Carbon::setTestNow(self::MULAI);
         $this->siapkanUjian();
@@ -81,21 +81,16 @@ class CbtAntiCheatPolicyTest extends TestCase
 
         $this->kirimEvent($user, $attempt, 'window_blur')
             ->assertOk()
-            ->assertJson(['status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN, 'pelanggaran' => 0, 'maks_pelanggaran' => null]);
+            ->assertJson(['status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN, 'pelanggaran' => 1, 'maks_pelanggaran' => null]);
 
         Carbon::setTestNow(Carbon::parse(self::MULAI)->addSeconds(30));
         $this->kirimEvent($user, $attempt, 'kembali')
             ->assertOk()
-            ->assertJson(['status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN, 'pelanggaran' => 1, 'maks_pelanggaran' => null]);
-
-        // Tanpa batas, berapa pun pelanggarannya attempt tidak pernah dikumpulkan paksa.
-        for ($i = 0; $i < 5; $i++) {
-            $this->episode($user, $attempt, 30);
-        }
+            ->assertJson(['status' => UjianAttempt::STATUS_SELESAI, 'pelanggaran' => 1, 'maks_pelanggaran' => null]);
 
         $attempt->refresh();
-        $this->assertSame(UjianAttempt::STATUS_SEDANG_MENGERJAKAN, $attempt->status);
-        $this->assertNull($attempt->alasan_selesai);
+        $this->assertSame(UjianAttempt::STATUS_SELESAI, $attempt->status);
+        $this->assertSame(UjianAttempt::ALASAN_PELANGGARAN, $attempt->alasan_selesai);
     }
 
     public function test_attempt_dikumpulkan_otomatis_saat_pelanggaran_mencapai_batas_dan_jawaban_tetap_dinilai(): void
@@ -110,7 +105,7 @@ class CbtAntiCheatPolicyTest extends TestCase
             'jawaban_opsi_id' => $this->opsiBenar->id,
         ])->assertOk();
 
-        $this->episode($user, $attempt, 30);
+        $this->episode($user, $attempt, 4);
         $this->assertSame(UjianAttempt::STATUS_SEDANG_MENGERJAKAN, $attempt->refresh()->status);
 
         $this->kirimEvent($user, $attempt, 'tab_hidden')->assertOk();
@@ -139,15 +134,33 @@ class CbtAntiCheatPolicyTest extends TestCase
 
         $this->kirimEvent($user, $attempt, 'tab_hidden')->assertOk();
 
-        // Masih dalam toleransi: belum pelanggaran.
+        // Satu perpindahan tab sudah dihitung, tetapi attempt belum ditutup sampai lima detik.
         Carbon::setTestNow(Carbon::parse(self::MULAI)->addSeconds(4));
-        $this->kirimHeartbeat($user, $attempt)->assertOk()->assertJson(['status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN, 'pelanggaran' => 0]);
+        $this->kirimHeartbeat($user, $attempt)->assertOk()->assertJson(['status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN, 'pelanggaran' => 1]);
 
         // Siswa masih di luar setelah toleransi (tab latar tetap mengirim heartbeat ±1x/menit).
         Carbon::setTestNow(Carbon::parse(self::MULAI)->addSeconds(20));
         $this->kirimHeartbeat($user, $attempt)
             ->assertOk()
             ->assertJson(['status' => UjianAttempt::STATUS_SELESAI, 'pelanggaran' => 1, 'sisa_detik' => 0]);
+
+        $this->assertSame(UjianAttempt::ALASAN_PELANGGARAN, $attempt->refresh()->alasan_selesai);
+    }
+
+    public function test_tab_timeout_mengakhiri_attempt_setelah_lima_detik(): void
+    {
+        Carbon::setTestNow(self::MULAI);
+        $this->siapkanUjian(['maks_pelanggaran' => 3]);
+        [$user, $attempt] = $this->mulaiAttempt();
+
+        $this->kirimEvent($user, $attempt, 'tab_hidden')
+            ->assertOk()
+            ->assertJson(['status' => UjianAttempt::STATUS_SEDANG_MENGERJAKAN, 'pelanggaran' => 1]);
+
+        Carbon::setTestNow(Carbon::parse(self::MULAI)->addSeconds(5));
+        $this->kirimEvent($user, $attempt, 'tab_timeout')
+            ->assertOk()
+            ->assertJson(['status' => UjianAttempt::STATUS_SELESAI, 'pelanggaran' => 1]);
 
         $this->assertSame(UjianAttempt::ALASAN_PELANGGARAN, $attempt->refresh()->alasan_selesai);
     }
@@ -274,7 +287,7 @@ class CbtAntiCheatPolicyTest extends TestCase
         $default = Ujian::where('judul', 'Ujian Kebijakan')->firstOrFail();
         $this->assertTrue($default->anticheat_aktif);
         $this->assertNull($default->maks_pelanggaran);
-        $this->assertFalse($default->wajib_fullscreen);
+        $this->assertTrue($default->wajib_fullscreen);
 
         $this->actingAs($this->guru)->post(route('guru.ujian.store', $this->kelasMapel->id), $this->payloadBuilder([
             'judul' => 'Ujian Ketat',

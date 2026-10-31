@@ -88,15 +88,19 @@ class SoalBankController extends Controller
                 'guru_id' => $user->id,
                 'mapel_id' => $validated['mapel_id'] ?? null,
                 'pertanyaan' => $validated['pertanyaan'],
+                'pembahasan' => $validated['pembahasan'] ?? null,
+                'tipe_soal' => $validated['tipe_soal'] ?? SoalBank::TYPE_PILIHAN_GANDA,
+                'level_kognitif' => $validated['level_kognitif'] ?? null,
                 'topik' => $validated['topik'] ?? null,
                 'kesulitan' => $validated['kesulitan'],
                 'kategori_nilai' => $validated['kategori_nilai'] ?? null,
             ]);
 
-            foreach ($validated['opsi'] as $index => $opsiItem) {
+            foreach ($validated['opsi'] ?? [] as $index => $opsiItem) {
                 SoalBankOpsi::create([
                     'soal_bank_id' => $soalBank->id,
                     'teks_opsi' => $opsiItem['teks_opsi'],
+                    'pasangan_teks' => $opsiItem['pasangan_teks'] ?? null,
                     'is_benar' => filter_var($opsiItem['is_benar'], FILTER_VALIDATE_BOOLEAN),
                     'urutan' => $index + 1,
                 ]);
@@ -123,6 +127,9 @@ class SoalBankController extends Controller
             $soalBank->update([
                 'mapel_id' => $validated['mapel_id'] ?? null,
                 'pertanyaan' => $validated['pertanyaan'],
+                'pembahasan' => $validated['pembahasan'] ?? null,
+                'tipe_soal' => $validated['tipe_soal'] ?? $soalBank->tipe_soal ?? SoalBank::TYPE_PILIHAN_GANDA,
+                'level_kognitif' => $validated['level_kognitif'] ?? null,
                 'topik' => $validated['topik'] ?? null,
                 'kesulitan' => $validated['kesulitan'],
                 'kategori_nilai' => $validated['kategori_nilai'] ?? null,
@@ -130,10 +137,11 @@ class SoalBankController extends Controller
 
             $soalBank->opsi()->delete();
 
-            foreach ($validated['opsi'] as $index => $opsiItem) {
+            foreach ($validated['opsi'] ?? [] as $index => $opsiItem) {
                 SoalBankOpsi::create([
                     'soal_bank_id' => $soalBank->id,
                     'teks_opsi' => $opsiItem['teks_opsi'],
+                    'pasangan_teks' => $opsiItem['pasangan_teks'] ?? null,
                     'is_benar' => filter_var($opsiItem['is_benar'], FILTER_VALIDATE_BOOLEAN),
                     'urutan' => $index + 1,
                 ]);
@@ -159,4 +167,3 @@ class SoalBankController extends Controller
         return redirect()->back()->with('success', 'Soal berhasil dihapus dari Bank Soal.');
     }
 }
-

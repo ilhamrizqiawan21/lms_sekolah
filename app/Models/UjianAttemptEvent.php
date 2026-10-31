@@ -23,6 +23,9 @@ class UjianAttemptEvent extends Model
 
     public const JENIS_FULLSCREEN_EXIT = 'fullscreen_exit';
 
+    /** Siswa tetap berada di tab/jendela lain melewati batas lima detik. */
+    public const JENIS_TAB_TIMEOUT = 'tab_timeout';
+
     /** Diamati server (tidak ada heartbeat), bukan dilaporkan klien. */
     public const JENIS_HEARTBEAT_GAP = 'heartbeat_gap';
 
@@ -34,6 +37,7 @@ class UjianAttemptEvent extends Model
         self::JENIS_SALIN,
         self::JENIS_KLIK_KANAN,
         self::JENIS_FULLSCREEN_EXIT,
+        self::JENIS_TAB_TIMEOUT,
     ];
 
     /** Jenis yang menaikkan ujian_attempt.tab_switch_count (siswa meninggalkan halaman ujian). */

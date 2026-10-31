@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class UjianAttemptJawaban extends Model
 {
@@ -15,6 +16,8 @@ class UjianAttemptJawaban extends Model
         'ujian_attempt_id',
         'ujian_soal_id',
         'soal_bank_opsi_id',
+        'jawaban_teks',
+        'jawaban_pasangan',
         'urutan_opsi_ids',
         'ragu_ragu',
         'is_benar',
@@ -24,6 +27,7 @@ class UjianAttemptJawaban extends Model
 
     protected $casts = [
         'urutan_opsi_ids' => 'array',
+        'jawaban_pasangan' => 'array',
         'ragu_ragu' => 'boolean',
         'is_benar' => 'boolean',
         'poin_didapat' => 'float',
@@ -43,5 +47,10 @@ class UjianAttemptJawaban extends Model
     public function opsiTerpilih(): BelongsTo
     {
         return $this->belongsTo(SoalBankOpsi::class, 'soal_bank_opsi_id');
+    }
+
+    public function riwayatPenilaian(): HasMany
+    {
+        return $this->hasMany(UjianAttemptJawabanPenilaian::class, 'ujian_attempt_jawaban_id');
     }
 }

@@ -269,6 +269,8 @@ function formatDate(value: string | null) {
     --landing-subtle: #f8fafc;
     --landing-primary: var(--app-primary, #198754);
     --landing-primary-dark: var(--app-primary-dark, #166534);
+    --landing-visual-start: color-mix(in srgb, var(--landing-primary) 86%, #0f172a);
+    --landing-visual-end: color-mix(in srgb, var(--landing-primary-dark) 92%, #0f172a);
     --landing-gold: #d97706;
 
     min-height: 100vh;
@@ -557,11 +559,11 @@ function formatDate(value: string | null) {
 .landing-hero-visual {
     position: relative;
     padding: clamp(1.35rem, 3vw, 2rem);
-    border: 1px solid #d8e5dc;
+    border: 1px solid color-mix(in srgb, var(--landing-primary) 38%, #d8e5dc);
     border-radius: 18px;
-    background: linear-gradient(145deg, #173d36 0%, #0f2928 100%);
+    background: linear-gradient(145deg, var(--landing-visual-start) 0%, var(--landing-visual-end) 100%);
     color: #fff;
-    box-shadow: 0 24px 48px rgba(15, 41, 40, 0.18);
+    box-shadow: 0 24px 48px color-mix(in srgb, var(--landing-primary-dark) 22%, transparent);
 }
 
 .landing-hero-visual::before {

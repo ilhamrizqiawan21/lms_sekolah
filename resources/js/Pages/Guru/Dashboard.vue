@@ -473,7 +473,7 @@ const attentionSignals = computed(() => [
     margin-bottom: 24px;
     padding: clamp(1.2rem, 2.6vw, 2rem);
     border: 1px solid var(--border-soft);
-    border-top: 3px solid var(--status-success-text);
+    border-top: 3px solid var(--primary-600);
     border-radius: 1rem;
     background: color-mix(in srgb, var(--surface-card) 97%, var(--status-success-bg));
     box-shadow: var(--refresh-shadow-card);

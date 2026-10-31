@@ -51,6 +51,16 @@ class StoreUjianRequest extends FormRequest
             if ($ownedCount !== count($soalBankIds)) {
                 $validator->errors()->add('soal', 'Beberapa butir soal yang dipilih tidak valid atau bukan milik Anda.');
             }
+
+            $unsupportedCount = SoalBank::query()
+                ->where('guru_id', $this->user()->id)
+                ->whereIn('id', $soalBankIds)
+                ->whereNotIn('tipe_soal', SoalBank::TYPES)
+                ->count();
+
+            if ($unsupportedCount > 0) {
+                $validator->errors()->add('soal', 'Beberapa butir soal memiliki tipe yang belum didukung oleh CBT.');
+            }
         });
     }
 }

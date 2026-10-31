@@ -1,7 +1,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { csrfHeaders } from '../utils/csrf';
 
-export type ExamEventType = 'tab_hidden' | 'window_blur' | 'kembali' | 'salin' | 'klik_kanan' | 'fullscreen_exit';
+export type ExamEventType = 'tab_hidden' | 'window_blur' | 'kembali' | 'salin' | 'klik_kanan' | 'fullscreen_exit' | 'tab_timeout';
 
 /** Status kebijakan dari server (respons event dan heartbeat). */
 interface ServerState {
@@ -24,6 +24,7 @@ interface ExamGuardOptions {
 }
 
 const HEARTBEAT_INTERVAL_MS = 15_000;
+const TAB_TIMEOUT_MS = 5_000;
 const MAX_QUEUE = 50;
 
 /**
@@ -39,15 +40,18 @@ export function useExamGuard(options: ExamGuardOptions) {
     /** Pesan peringatan terakhir untuk siswa; null bila tidak ada atau sudah ditutup. */
     const peringatan = ref<string | null>(null);
 
-    // Layar penuh tidak didukung di iPhone; di sana syarat dilewati agar siswa tidak terkunci.
+    // Fullscreen wajib benar-benar didukung oleh browser. Jika tidak, halaman tetap dikunci
+    // agar ujian tidak berjalan dalam mode yang lebih lemah dari kebijakan yang dipilih guru.
     const layarPenuhDidukung = typeof document !== 'undefined' && document.fullscreenEnabled === true;
-    const layarPenuhWajib = options.enabled && options.wajibFullscreen && layarPenuhDidukung;
+    const layarPenuhWajib = options.enabled && options.wajibFullscreen;
+    const sudahLayarPenuh = typeof document !== 'undefined' && document.fullscreenElement !== null;
     /** Menutupi soal sampai siswa masuk (atau kembali ke) layar penuh. */
-    const perluLayarPenuh = ref(layarPenuhWajib);
+    const perluLayarPenuh = ref(layarPenuhWajib && !sudahLayarPenuh);
     const layarPenuhError = ref<string | null>(null);
 
     let away = false;
-    let wasFullscreen = false;
+    let wasFullscreen = sudahLayarPenuh;
+    let awayTimeout: ReturnType<typeof setTimeout> | null = null;
     let flushing = false;
     let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
     const queue: ExamEventType[] = [];
@@ -83,13 +87,24 @@ export function useExamGuard(options: ExamGuardOptions) {
     function leave(trigger: 'tab_hidden' | 'window_blur') {
         if (away) return;
         away = true;
+        peringatan.value = 'Peringatan: perpindahan tab atau jendela terdeteksi dan langsung dicatat sebagai pelanggaran.';
         report(trigger);
+        awayTimeout = setTimeout(() => {
+            if (away) {
+                peringatan.value = 'Ujian diakhiri karena Anda berada di tab atau jendela lain selama lebih dari 5 detik.';
+                report('tab_timeout');
+            }
+        }, TAB_TIMEOUT_MS);
     }
 
     function back() {
         if (!away) return;
         // Masih di luar: tab tersembunyi atau fokus belum kembali ke jendela ujian.
         if (document.visibilityState === 'hidden' || !document.hasFocus()) return;
+        if (awayTimeout) {
+            clearTimeout(awayTimeout);
+            awayTimeout = null;
+        }
         away = false;
         report('kembali');
     }
@@ -172,13 +187,25 @@ export function useExamGuard(options: ExamGuardOptions) {
 
     /** Harus dipanggil dari klik siswa: browser menolak layar penuh tanpa gestur pengguna. */
     async function masukLayarPenuh() {
+        if (!layarPenuhDidukung) {
+            layarPenuhError.value = 'Browser atau perangkat ini tidak mendukung layar penuh. Gunakan Chrome/Edge di laptop atau Android untuk mengikuti ujian.';
+            perluLayarPenuh.value = true;
+            return;
+        }
+
         try {
             await document.documentElement.requestFullscreen();
         } catch {
-            // Gagal masuk layar penuh (mis. diblokir kebijakan perangkat): jangan kunci siswa dari ujiannya.
-            layarPenuhError.value = 'Layar penuh tidak dapat diaktifkan di perangkat ini, jadi syarat ini dilewati. Anda tetap dapat mengerjakan ujian.';
-            perluLayarPenuh.value = false;
+            // Gagal masuk layar penuh: tetap kunci halaman sampai siswa berhasil masuk fullscreen.
+            layarPenuhError.value = 'Layar penuh tidak dapat diaktifkan. Izinkan fullscreen pada browser lalu coba lagi.';
+            perluLayarPenuh.value = true;
         }
+    }
+
+    function cegahKeluarHalaman(event: BeforeUnloadEvent) {
+        if (!options.enabled) return;
+        event.preventDefault();
+        event.returnValue = '';
     }
 
     onMounted(() => {
@@ -187,6 +214,7 @@ export function useExamGuard(options: ExamGuardOptions) {
         window.addEventListener('blur', onBlur);
         window.addEventListener('focus', onFocus);
         document.addEventListener('fullscreenchange', onFullscreenChange);
+        window.addEventListener('beforeunload', cegahKeluarHalaman);
         heartbeatTimer = setInterval(() => void heartbeat(), HEARTBEAT_INTERVAL_MS);
         void heartbeat();
     });
@@ -197,7 +225,9 @@ export function useExamGuard(options: ExamGuardOptions) {
         window.removeEventListener('focus', onFocus);
         // Lepas listener dulu: keluar layar penuh karena ujian selesai bukan pelanggaran.
         document.removeEventListener('fullscreenchange', onFullscreenChange);
+        window.removeEventListener('beforeunload', cegahKeluarHalaman);
         if (heartbeatTimer) clearInterval(heartbeatTimer);
+        if (awayTimeout) clearTimeout(awayTimeout);
         if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
     });
 

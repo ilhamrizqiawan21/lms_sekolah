@@ -12,7 +12,7 @@ defineProps({
 </script>
 
 <template>
-    <section class="dashboard-hero" :class="`dashboard-hero-${tone}`">
+    <section class="dashboard-hero" :class="[`dashboard-hero-${tone}`, { 'dashboard-hero-student-aligned': tone === 'student' }]">
         <div class="dashboard-hero-mark" aria-hidden="true">
             <i class="bi" :class="icon || 'bi-grid-1x2-fill'"></i>
         </div>
@@ -26,3 +26,14 @@ defineProps({
         </div>
     </section>
 </template>
+
+<style scoped>
+.dashboard-hero-student-aligned {
+    justify-content: flex-start !important;
+    column-gap: 1.1rem;
+}
+
+.dashboard-hero-student-aligned .dashboard-hero-mark {
+    flex: 0 0 48px;
+}
+</style>

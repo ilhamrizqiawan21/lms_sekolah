@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class KelasMapel extends Model
@@ -106,5 +107,21 @@ class KelasMapel extends Model
     public function sikapSpiritual(): HasMany
     {
         return $this->hasMany(SikapSpiritual::class, 'kelas_mapel_id');
+    }
+
+    public function kurikulum(): BelongsToMany
+    {
+        return $this->belongsToMany(Kurikulum::class, 'kurikulum_kelas_mapel', 'kelas_mapel_id', 'kurikulum_id')
+            ->withTimestamps();
+    }
+
+    public function rencanaPertemuan(): HasMany
+    {
+        return $this->hasMany(RencanaPertemuan::class, 'kelas_mapel_id');
+    }
+
+    public function jurnalHarian(): HasMany
+    {
+        return $this->hasMany(JurnalHarian::class, 'kelas_mapel_id');
     }
 }

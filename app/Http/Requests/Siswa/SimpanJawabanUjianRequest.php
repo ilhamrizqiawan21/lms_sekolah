@@ -32,6 +32,9 @@ class SimpanJawabanUjianRequest extends FormRequest
         return [
             'attempt_jawaban_id' => ['required', 'integer', 'exists:ujian_attempt_jawaban,id'],
             'jawaban_opsi_id' => ['nullable', 'integer', 'exists:soal_bank_opsi,id'],
+            'jawaban_teks' => ['nullable', 'string', 'max:20000'],
+            'jawaban_pasangan' => ['nullable', 'array'],
+            'jawaban_pasangan.*' => ['nullable', 'integer'],
             'ragu_ragu' => ['nullable', 'boolean'],
         ];
     }

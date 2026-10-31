@@ -84,21 +84,21 @@ class CbtTabSwitchLogTest extends TestCase
         $this->actingAs($userSiswa)->post(route('siswa.ujian.mulai', $ujian->id));
         $attempt = UjianAttempt::where('ujian_id', $ujian->id)->where('siswa_id', $siswa->id)->first();
 
-        // Switch tab 3 times
-        $this->actingAs($userSiswa)->post(route('siswa.ujian.tab-switch', $attempt->id))->assertNoContent();
-        $this->actingAs($userSiswa)->post(route('siswa.ujian.tab-switch', $attempt->id))->assertNoContent();
-        $this->actingAs($userSiswa)->post(route('siswa.ujian.tab-switch', $attempt->id))->assertNoContent();
+        // Two tab-switch episodes are reported through the canonical event endpoint.
+        $this->actingAs($userSiswa)->postJson(route('siswa.ujian.event', $attempt->id), ['jenis' => 'tab_hidden'])->assertOk();
+        $this->actingAs($userSiswa)->postJson(route('siswa.ujian.event', $attempt->id), ['jenis' => 'kembali'])->assertOk();
+        $this->actingAs($userSiswa)->postJson(route('siswa.ujian.event', $attempt->id), ['jenis' => 'tab_hidden'])->assertOk();
 
         $attempt->refresh();
-        $this->assertEquals(3, $attempt->tab_switch_count);
-        $this->assertCount(3, $attempt->tab_switch_log);
+        $this->assertEquals(2, $attempt->tab_switch_count);
+        $this->assertCount(3, $attempt->events);
 
         // Submit attempt
         $this->actingAs($userSiswa)->post(route('siswa.ujian.submit', $attempt->id));
 
-        // Switch tab after submit (count should remain 3)
-        $this->actingAs($userSiswa)->post(route('siswa.ujian.tab-switch', $attempt->id));
+        // Switch tab after submit (count should remain 2)
+        $this->actingAs($userSiswa)->postJson(route('siswa.ujian.event', $attempt->id), ['jenis' => 'tab_hidden']);
         $attempt->refresh();
-        $this->assertEquals(3, $attempt->tab_switch_count);
+        $this->assertEquals(2, $attempt->tab_switch_count);
     }
 }
