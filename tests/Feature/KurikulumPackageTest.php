@@ -14,6 +14,7 @@ use App\Models\TujuanPembelajaran;
 use App\Models\User;
 use App\Services\KurikulumPackageService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 use ZipArchive;
 
@@ -29,7 +30,7 @@ class KurikulumPackageTest extends TestCase
         $this->assertFileExists($package['path']);
         $zip = new ZipArchive;
         $this->assertSame(true, $zip->open($package['path']));
-        $this->assertSame(7, $zip->count());
+        $this->assertSame(8, $zip->count());
         $names = [];
         for ($index = 0; $index < $zip->count(); $index++) {
             $name = $zip->getNameIndex($index);
@@ -51,6 +52,47 @@ class KurikulumPackageTest extends TestCase
         $this->actingAs($guru)
             ->get(route('guru.kurikulum.package.download', [$kurikulum, 'kelas_mapel_id' => $kelasMapel->id]))
             ->assertDownload($package['filename']);
+    }
+
+    public function test_paket_dapat_menggabungkan_banyak_kelas_dengan_docx_pdf_dan_modul_ajar(): void
+    {
+        [$guru, $kurikulum, $kelasMapel] = $this->fixture();
+        $kelas = Kelas::create(['tingkat' => 'VII', 'nama_kelas' => 'B']);
+        $kelasMapelKedua = KelasMapel::create([
+            'kelas_id' => $kelas->id,
+            'mapel_id' => $kelasMapel->mapel_id,
+            'guru_id' => $guru->id,
+            'tahun_ajaran_id' => $kelasMapel->tahun_ajaran_id,
+            'semester' => '1',
+        ]);
+        $kurikulum->kelasMapel()->attach($kelasMapelKedua);
+
+        $package = app(KurikulumPackageService::class)->create(
+            $kurikulum,
+            new Collection([$kelasMapel, $kelasMapelKedua]),
+            'both',
+        );
+
+        $zip = new ZipArchive;
+        $this->assertSame(true, $zip->open($package['path']));
+        $this->assertSame(32, $zip->count());
+        $names = [];
+        for ($index = 0; $index < $zip->count(); $index++) {
+            $names[] = $zip->getNameIndex($index);
+        }
+        $this->assertTrue(collect($names)->contains(fn (string $name) => str_ends_with($name, '10 Modul Ajar - Ganjil Bahasa Indonesia.docx')));
+        $this->assertTrue(collect($names)->contains(fn (string $name) => str_ends_with($name, '10 Modul Ajar - Ganjil Bahasa Indonesia.pdf')));
+        $pdfName = collect($names)->first(fn (string $name) => str_ends_with($name, '.pdf'));
+        $this->assertNotNull($pdfName);
+        $this->assertStringStartsWith('%PDF', (string) $zip->getFromName($pdfName));
+        $zip->close();
+        @unlink($package['path']);
+
+        $url = route('guru.kurikulum.package.download', $kurikulum).'?'.http_build_query([
+            'kelas_mapel_ids' => [$kelasMapel->id, $kelasMapelKedua->id],
+            'format' => 'both',
+        ]);
+        $this->actingAs($guru)->get($url)->assertDownload($package['filename']);
     }
 
     public function test_paket_menolak_kelas_yang_tidak_terhubung_dan_guru_tidak_berwenang(): void

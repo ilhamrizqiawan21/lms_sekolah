@@ -130,8 +130,9 @@ function destroy(item: PlanItem) {
     router.delete(item.delete_url, { preserveScroll: true });
 }
 
-function downloadPackage(item: ClassItem) {
-    const query = new URLSearchParams({ kelas_mapel_id: String(item.id) });
+function downloadPackage(ids: number[]) {
+    const query = new URLSearchParams({ format: 'both' });
+    ids.forEach((id) => query.append('kelas_mapel_ids[]', String(id)));
     window.location.href = `${props.packageUrl}?${query.toString()}`;
 }
 
@@ -187,12 +188,16 @@ function statusColor(status: string): string {
         </Card>
 
         <Card class="mb-4" title="Kelas yang Menggunakan ATP" icon="bi-people-fill">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                <p class="small text-body-secondary mb-0">Paket berisi dokumen DOCX dan PDF, termasuk template Modul Ajar/RPP dari data ATP dan Promes.</p>
+                <Button type="button" color="primary" size="sm" icon="bi-file-earmark-zip" :disabled="!generateForm.kelas_mapel_ids.length" @click="downloadPackage(generateForm.kelas_mapel_ids)">Unduh Paket Terpilih</Button>
+            </div>
             <div class="row g-2">
                 <div v-for="item in kurikulum.kelas_mapel" :key="item.id" class="col-md-6">
                     <label class="border rounded p-2 d-flex align-items-start gap-2 h-100">
                         <input class="form-check-input mt-1" type="checkbox" :checked="generateForm.kelas_mapel_ids.includes(item.id)" @change="toggleClass(item.id, ($event.target as HTMLInputElement).checked)">
                         <span class="flex-grow-1"><span class="d-block fw-semibold">{{ item.label }}</span><span class="small text-body-secondary">{{ item.rencana_count }} rencana tersimpan</span></span>
-                        <Button type="button" color="outline-primary" size="sm" icon="bi-file-earmark-zip" @click.prevent="downloadPackage(item)">Unduh Paket</Button>
+                        <Button type="button" color="outline-primary" size="sm" icon="bi-file-earmark-zip" @click.prevent="downloadPackage([item.id])">Unduh</Button>
                     </label>
                 </div>
             </div>

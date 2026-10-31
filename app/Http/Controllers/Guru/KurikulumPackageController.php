@@ -15,12 +15,22 @@ class KurikulumPackageController extends Controller
     public function download(ExportKurikulumPackageRequest $request, Kurikulum $kurikulum)
     {
         $this->authorize('view', $kurikulum);
+        $requestedIds = collect($request->input('kelas_mapel_ids', []))
+            ->when($request->filled('kelas_mapel_id'), fn ($ids) => $ids->push($request->integer('kelas_mapel_id')))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
         $kelasMapel = $kurikulum->kelasMapel()
-            ->where('kelas_mapel.id', $request->integer('kelas_mapel_id'))
+            ->whereIn('kelas_mapel.id', $requestedIds)
             ->where('kelas_mapel.guru_id', Auth::id())
             ->with(['kelas', 'mataPelajaran'])
-            ->firstOrFail();
-        $package = $this->packageService->create($kurikulum, $kelasMapel);
+            ->get();
+
+        if ($kelasMapel->count() !== $requestedIds->count()) {
+            abort(404);
+        }
+
+        $package = $this->packageService->create($kurikulum, $kelasMapel, $request->input('format', 'both'));
 
         return response()->download($package['path'], $package['filename'])->deleteFileAfterSend(true);
     }

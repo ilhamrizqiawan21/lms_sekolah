@@ -6,31 +6,43 @@ use App\Models\KelasMapel;
 use App\Models\Kurikulum;
 use App\Models\RencanaPertemuan;
 use App\Models\TujuanPembelajaran;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Collection;
 use ZipArchive;
 
 class KurikulumPackageService
 {
-    public function create(Kurikulum $kurikulum, KelasMapel $kelasMapel): array
+    public function create(Kurikulum $kurikulum, KelasMapel|Collection $kelasMapel, string $format = 'docx'): array
     {
+        $kelasMapels = $kelasMapel instanceof KelasMapel ? collect([$kelasMapel]) : $kelasMapel->values();
+
+        if ($kelasMapels->isEmpty()) {
+            throw new \InvalidArgumentException('Minimal satu kelas-mapel harus dipilih.');
+        }
+
+        if (! in_array($format, ['docx', 'pdf', 'both'], true)) {
+            throw new \InvalidArgumentException('Format paket tidak didukung.');
+        }
+
         $kurikulum->load([
             'tahunAjaran',
             'mataPelajaran',
             'capaianPembelajaran',
             'tujuanPembelajaran',
             'rencanaPertemuan' => fn ($query) => $query
-                ->where('kelas_mapel_id', $kelasMapel->id)
                 ->with('tujuanPembelajaran')
+                ->orderBy('kelas_mapel_id')
                 ->orderBy('tanggal_rencana')
                 ->orderBy('pertemuan_ke'),
         ]);
-        $kelasMapel->load(['kelas', 'mataPelajaran', 'jadwalMengajar']);
 
-        $mapel = $kurikulum->mataPelajaran?->nama_mapel ?? $kelasMapel->mataPelajaran?->nama_mapel ?? 'Mapel';
-        $kelas = $kelasMapel->kelas?->displayName() ?? 'Kelas';
-        $semester = (string) $kurikulum->semester;
-        $semesterLabel = $semester === '2' ? 'Genap' : 'Ganjil';
-        $documents = $this->documents($kurikulum, $kelasMapel, $semesterLabel);
-        $packageName = $this->safeName('Paket Administrasi '.$mapel.' '.$kelas.' '.($kurikulum->tahunAjaran?->tahun ?? ''));
+        $kelasMapels->each(fn (KelasMapel $item) => $item->load(['kelas', 'mataPelajaran', 'jadwalMengajar']));
+
+        $firstClass = $kelasMapels->first();
+        $mapel = $kurikulum->mataPelajaran?->nama_mapel ?? $firstClass->mataPelajaran?->nama_mapel ?? 'Mapel';
+        $kelas = $firstClass->kelas?->displayName() ?? 'Kelas';
+        $semesterLabel = (string) $kurikulum->semester === '2' ? 'Genap' : 'Ganjil';
+        $packageName = $this->safeName('Paket Administrasi '.$mapel.' '.($kelasMapels->count() > 1 ? $kelasMapels->count().' Kelas' : $kelas).' '.($kurikulum->tahunAjaran?->tahun ?? ''));
         $filename = $packageName.'.zip';
         $path = tempnam(sys_get_temp_dir(), 'lms-paket-');
 
@@ -40,8 +52,24 @@ class KurikulumPackageService
         }
 
         try {
-            foreach ($documents as $document) {
-                $zip->addFromString($document['filename'], $this->docx($document['title'], $document['lines']));
+            $documentCount = 0;
+            foreach ($kelasMapels as $classMapel) {
+                $documents = $this->documents($kurikulum, $classMapel, $semesterLabel);
+                $prefix = $kelasMapels->count() > 1
+                    ? $this->safeName(($classMapel->kelas?->displayName() ?? 'Kelas').' - '.($classMapel->mataPelajaran?->nama_mapel ?? $mapel)).'/'
+                    : '';
+
+                foreach ($documents as $document) {
+                    if (in_array($format, ['docx', 'both'], true)) {
+                        $zip->addFromString($prefix.$document['filename'], $this->docx($document['title'], $document['lines']));
+                        $documentCount++;
+                    }
+                    if (in_array($format, ['pdf', 'both'], true)) {
+                        $pdfFilename = preg_replace('/\.docx$/', '.pdf', $document['filename']) ?? ($document['filename'].'.pdf');
+                        $zip->addFromString($prefix.$pdfFilename, $this->pdf($document['title'], $document['lines']));
+                        $documentCount++;
+                    }
+                }
             }
             $zip->close();
         } catch (\Throwable $exception) {
@@ -50,7 +78,7 @@ class KurikulumPackageService
             throw $exception;
         }
 
-        return ['path' => $path, 'filename' => $filename, 'documents' => count($documents)];
+        return ['path' => $path, 'filename' => $filename, 'documents' => $documentCount, 'classes' => $kelasMapels->count(), 'format' => $format];
     }
 
     private function documents(Kurikulum $kurikulum, KelasMapel $kelasMapel, string $semesterLabel): array
@@ -83,6 +111,23 @@ class KurikulumPackageService
             $this->document('05 Program Semester - '.$semesterLabel, $subject, [$semester, ...$this->orEmpty($planLines)]),
             $this->document('07 Jadwal Pertemuan - '.$semesterLabel, $subject, [$semester, 'Jadwal mengajar:', ...$this->orEmpty($scheduleLines), 'Rencana pertemuan:', ...$this->orEmpty($planLines)]),
             $this->document('09 Ketuntasan - '.$semesterLabel, $subject, [$semester, ...$kurikulum->tujuanPembelajaran->map(fn (TujuanPembelajaran $item) => implode(' | ', array_filter([$item->kode, $item->tujuan, $item->indikator_ketercapaian ? 'Indikator: '.$item->indikator_ketercapaian : null])))->all()]),
+            $this->document('10 Modul Ajar - '.$semesterLabel, $subject, [
+                'Kelas: '.($kelasMapel->kelas?->displayName() ?? '-'),
+                'Fase: '.($kurikulum->fase ?: 'Belum diisi'),
+                'Model pembelajaran: Belum diisi — lengkapi sesuai rancangan guru.',
+                'Metode pembelajaran: Belum diisi — lengkapi sesuai rancangan guru.',
+                'Media dan sumber belajar: Belum diisi — lengkapi sesuai rancangan guru.',
+                'Kegiatan pembelajaran: Belum diisi — lengkapi sesuai rancangan guru.',
+                'Asesmen dan diferensiasi:',
+                ...$this->orEmpty($kurikulum->tujuanPembelajaran->map(fn (TujuanPembelajaran $item) => implode(' | ', array_filter([
+                    $item->kode,
+                    $item->tujuan,
+                    $item->materi_pokok ? 'Materi: '.$item->materi_pokok : null,
+                    $item->bentuk_asesmen ? 'Asesmen: '.$item->bentuk_asesmen : null,
+                    $item->indikator_ketercapaian ? 'Indikator: '.$item->indikator_ketercapaian : null,
+                ])))->all()),
+                'Refleksi guru: Belum diisi — lengkapi setelah pembelajaran.',
+            ]),
         ];
     }
 
@@ -133,6 +178,20 @@ class KurikulumPackageService
         }
 
         return $contents;
+    }
+
+    private function pdf(string $title, array $lines): string
+    {
+        $htmlLines = collect($lines)->map(function (string $line): string {
+            return '<p>'.htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</p>';
+        })->implode('');
+        $safeTitle = htmlspecialchars($title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $html = '<!doctype html><html><head><meta charset="utf-8"><style>'
+            .'@page { margin: 24mm 18mm; } body { font-family: DejaVu Sans, sans-serif; color: #1f2937; font-size: 11pt; } '
+            .'h1 { font-size: 18pt; margin: 0 0 18px; } p { margin: 0 0 8px; line-height: 1.45; }'
+            .'</style></head><body><h1>'.$safeTitle.'</h1>'.$htmlLines.'</body></html>';
+
+        return Pdf::loadHTML($html)->setPaper('a4')->output();
     }
 
     private function documentXml(string $title, array $lines): string
