@@ -25,6 +25,7 @@ use App\Http\Controllers\Guru\KalenderController as GuruKalenderController;
 use App\Http\Controllers\Guru\KelasDaringController;
 use App\Http\Controllers\Guru\KelasMapelWorkspaceController;
 use App\Http\Controllers\Guru\KurikulumController;
+use App\Http\Controllers\Guru\KurikulumPackageController;
 use App\Http\Controllers\Guru\PromesController;
 use App\Http\Controllers\Guru\RaporController;
 use App\Http\Controllers\Guru\MateriController as GuruMateriController;
@@ -186,6 +187,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
     Route::post('/kurikulum/{kurikulum}/promes/generate', [PromesController::class, 'generate'])->name('kurikulum.promes.generate')->middleware('can:update,kurikulum');
     Route::put('/kurikulum/{kurikulum}/promes/{rencanaPertemuan}', [PromesController::class, 'update'])->name('kurikulum.promes.update')->middleware('can:update,kurikulum');
     Route::delete('/kurikulum/{kurikulum}/promes/{rencanaPertemuan}', [PromesController::class, 'destroy'])->name('kurikulum.promes.destroy')->middleware('can:update,kurikulum');
+    Route::get('/kurikulum/{kurikulum}/paket-administrasi', [KurikulumPackageController::class, 'download'])->name('kurikulum.package.download')->middleware('can:view,kurikulum');
     Route::get('/jurnal-harian', [JurnalHarianController::class, 'index'])->name('jurnal-harian.index');
     Route::post('/jurnal-harian', [JurnalHarianController::class, 'store'])->name('jurnal-harian.store');
     Route::put('/jurnal-harian/{jurnalHarian}', [JurnalHarianController::class, 'update'])->name('jurnal-harian.update')->middleware('can:update,jurnalHarian');

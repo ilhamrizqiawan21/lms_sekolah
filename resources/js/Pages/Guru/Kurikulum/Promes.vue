@@ -53,6 +53,7 @@ const props = defineProps<{
     summary: { total: number; jp: number; direncanakan: number; terlaksana: number };
     defaultPeriod: { start: string; end: string };
     generateUrl: string;
+    packageUrl: string;
 }>();
 
 const statusOptions = [
@@ -129,6 +130,11 @@ function destroy(item: PlanItem) {
     router.delete(item.delete_url, { preserveScroll: true });
 }
 
+function downloadPackage(item: ClassItem) {
+    const query = new URLSearchParams({ kelas_mapel_id: String(item.id) });
+    window.location.href = `${props.packageUrl}?${query.toString()}`;
+}
+
 function statusColor(status: string): string {
     return {
         direncanakan: 'secondary',
@@ -185,7 +191,8 @@ function statusColor(status: string): string {
                 <div v-for="item in kurikulum.kelas_mapel" :key="item.id" class="col-md-6">
                     <label class="border rounded p-2 d-flex align-items-start gap-2 h-100">
                         <input class="form-check-input mt-1" type="checkbox" :checked="generateForm.kelas_mapel_ids.includes(item.id)" @change="toggleClass(item.id, ($event.target as HTMLInputElement).checked)">
-                        <span><span class="d-block fw-semibold">{{ item.label }}</span><span class="small text-body-secondary">{{ item.rencana_count }} rencana tersimpan</span></span>
+                        <span class="flex-grow-1"><span class="d-block fw-semibold">{{ item.label }}</span><span class="small text-body-secondary">{{ item.rencana_count }} rencana tersimpan</span></span>
+                        <Button type="button" color="outline-primary" size="sm" icon="bi-file-earmark-zip" @click.prevent="downloadPackage(item)">Unduh Paket</Button>
                     </label>
                 </div>
             </div>

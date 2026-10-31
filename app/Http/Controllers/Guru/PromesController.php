@@ -69,6 +69,7 @@ class PromesController extends Controller
             ],
             'defaultPeriod' => $period,
             'generateUrl' => route('guru.kurikulum.promes.generate', $kurikulum),
+            'packageUrl' => route('guru.kurikulum.package.download', $kurikulum),
         ]);
     }
 
